@@ -7,8 +7,8 @@
 
 //#include <Accelerate/Accelerate.h>
 
-#include "cblas.h"
-#include "lapacke.h"
+#include <cblas.h>
+#include <lapacke.h>
 
 #include "Tools/Tools.hpp"
 
