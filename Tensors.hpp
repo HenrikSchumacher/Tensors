@@ -7,8 +7,7 @@
 
 #include <Accelerate/Accelerate.h>
 
-#include "MyMath.hpp"
-#include "Tools.hpp"
+#include "Tools/Tools.hpp"
 
 namespace Tensors {
     
