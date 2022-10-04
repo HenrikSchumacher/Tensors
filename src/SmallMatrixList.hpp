@@ -4,16 +4,16 @@ namespace Tensors {
     
 #define CLASS SmallMatrixList
     
-    template< int M, int N, typename T, typename I>
+    template< int M, int N, typename Real, typename Int>
     class CLASS
     {
     public:
         
-        using Tensor_T = Tensor1<T,I>;
+        using Tensor_T = Tensor1<Real,Int>;
         
     private:
 
-        I K = 0;
+        Int K = 0;
         
         Tensor_T v [M][N];
         
@@ -25,24 +25,24 @@ namespace Tensors {
         //Destructor
         ~CLASS() = default;
         
-        explicit CLASS( const I K_ )
+        explicit CLASS( const Int K_ )
         :   K(K_)
         {
-            for( I i = 0; i < M; ++i )
+            for( Int i = 0; i < M; ++i )
             {
-                for( I j = 0; j < N; ++j )
+                for( Int j = 0; j < N; ++j )
                 {
                     v[i][j] = Tensor_T(K_);
                 }
             }
         }
         
-        CLASS( const I K_, const T init )
+        CLASS( const Int K_, const Real init )
         :   K(K_)
         {
-            for( I i = 0; i < M; ++i )
+            for( Int i = 0; i < M; ++i )
             {
-                for( I j = 0; j < N; ++j )
+                for( Int j = 0; j < N; ++j )
                 {
                     v[i][j] = Tensor_T(K_,init);
                 }
@@ -53,9 +53,9 @@ namespace Tensors {
         CLASS( const CLASS & other )
         :   CLASS( other.K )
         {
-            for( I i = 0; i < M; ++i )
+            for( Int i = 0; i < M; ++i )
             {
-                for( I j = 0; j < N; ++j )
+                for( Int j = 0; j < N; ++j )
                 {
                     v[i][j].Read( other.v[i][j].data());
                 }
@@ -69,9 +69,9 @@ namespace Tensors {
 
             std::swap( A.K, B.K );
             
-            for( I i = 0; i < M; ++i )
+            for( Int i = 0; i < M; ++i )
             {
-                for( I j = 0; j < N; ++j )
+                for( Int j = 0; j < N; ++j )
                 {
                     swap( A.v[i][j], B.v[i][j] );
                 }
@@ -97,9 +97,9 @@ namespace Tensors {
                 }
                 else
                 {
-                    for( I i = 0; i < M; ++i )
+                    for( Int i = 0; i < M; ++i )
                     {
-                        for( I j = 0; j < N; ++j )
+                        for( Int j = 0; j < N; ++j )
                         {
                             v[i][j].Read( other.v[i][j].data());
                         }
@@ -124,99 +124,57 @@ namespace Tensors {
         }
         
         
-    private:
-        
-        void BoundCheck( const I i ) const
-        {
-            if( (i < 0) || (i > M) )
-            {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(M-1) +" }.");
-            }
-        }
-        
-        void BoundCheck( const I i, const I j ) const
-        {
-            if( (i < 0) || (i > M) )
-            {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(M-1) +" }.");
-            }
-            if( (j < 0) || (j > N) )
-            {
-                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds { 0, " + std::to_string(N-1) +" }.");
-            }
-        }
-        
-    public:
 //  Access routines
         
-        T * data( const I i, const I j )
+        Real * restrict data( const Int i, const Int j )
         {
-#ifdef TENSORS_BOUND_CHECKS
-            BoundCheck(i,j);
-#endif
             return v[i][j].data();
         }
         
-        const T * data( const I i, const I j ) const
+        const Real * restrict data( const Int i, const Int j ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
-            BoundCheck(i,j);
-#endif
             return v[i][j].data();
         }
-        
-        
-        Tensor_T & operator()( const I i, const I j )
-        {
-#ifdef TENSORS_BOUND_CHECKS
-            BoundCheck(i,j);
-#endif
-            return v[i][j];
-        }
-        
-        const Tensor_T & operator()( const I i, const I j ) const
-        {
-#ifdef TENSORS_BOUND_CHECKS
-            BoundCheck(i,j);
-#endif
-            return v[i][j];
-        }
-    
-        T & operator()( const I i, const I j, const I k )
-        {
-#ifdef TENSORS_BOUND_CHECKS
-            BoundCheck(i,j);
-#endif
-            return v[i][j][k];
-        }
-        
-        const T & operator()( const I i, const I j, const I k ) const
-        {
-#ifdef TENSORS_BOUND_CHECKS
-            BoundCheck(i,j);
-#endif
-            return v[i][j][k];
-        }
-        
         
         void SetZero()
         {
-            for( I i = 0; i < M; ++i )
+            for( Int i = 0; i < M; ++i )
             {
-                for( I j = 0; j < N; ++j )
+                for( Int j = 0; j < N; ++j )
                 {
                     v[i][j].SetZero();
                 }
             }
         }
         
+        Tensor_T & operator()( const Int i, const Int j )
+        {
+            return v[i][j];
+        }
+        
+        const Tensor_T & operator()( const Int i, const Int j ) const
+        {
+            return v[i][j];
+        }
+    
+        Real & operator()( const Int i, const Int j, const Int k )
+        {
+            return v[i][j][k];
+        }
+        
+        const Real & operator()( const Int i, const Int j, const Int k ) const
+        {
+            return v[i][j][k];
+        }
+        
+        
         template<typename S>
         void Read( const S * const * const * const a )
         {
             //Assuming that a is a list of M x N pointers pointing to memory of at least size Dimension(1).
-            for( I i = 0; i < M; ++i )
+            for( Int i = 0; i < M; ++i )
             {
-                for( I j = 0; j < N; ++j )
+                for( Int j = 0; j < N; ++j )
                 {
                     copy_cast_buffer( a[i][j], &v[i][j], K );
                 }
@@ -227,9 +185,9 @@ namespace Tensors {
         void Write( S * const * const * const a ) const
         {
             //Assuming that a is a list of M pointers pointing to memory of at least size Dimension(1).
-            for( I i = 0; i < M; ++i )
+            for( Int i = 0; i < M; ++i )
             {
-                for( I j = 0; j < N; ++j )
+                for( Int j = 0; j < N; ++j )
                 {
                     copy_cast_buffer( &v[i][j], a[i][j], K );
                 }
@@ -242,11 +200,11 @@ namespace Tensors {
         {
             //Assuming that a is a list of size Dimension(1) x M of vectors in interleaved form.
             
-            for( I k = 0; k < K; ++ k)
+            for( Int k = 0; k < K; ++ k)
             {
-                for( I i = 0; i < M; ++ i)
+                for( Int i = 0; i < M; ++ i)
                 {
-                    for( I j = 0; j < N; ++j )
+                    for( Int j = 0; j < N; ++j )
                     {
                         v[i][j][k] = a_[(k*M+i)*N+j];
                     }
@@ -259,11 +217,11 @@ namespace Tensors {
         {
             //Assuming that a is a list of size Dimension(1) x M of vectors in interleaved form.
             
-            for( I k = 0; k < K; ++ k)
+            for( Int k = 0; k < K; ++ k)
             {
-                for( I i = 0; i < M; ++ i)
+                for( Int i = 0; i < M; ++ i)
                 {
-                    for( I j = 0; j < N; ++j )
+                    for( Int j = 0; j < N; ++j )
                     {
                         a[(k*M+i)*N+j] = v[i][j][k];
                     }
@@ -273,12 +231,12 @@ namespace Tensors {
         
     public:
         
-        static constexpr I Rank()
+        static constexpr Int Rank()
         {
             return 3;
         }
         
-        I Dimension( const I k ) const
+        Int Dimension( const Int k ) const
         {
             switch( k )
             {
@@ -304,7 +262,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return TO_STD_STRING(CLASS)+"<"+std::to_string(M)+","+std::to_string(N)+","+TypeName<T>::Get()+","+TypeName<I>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+std::to_string(M)+","+std::to_string(N)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
         }
     };
     
@@ -312,10 +270,10 @@ namespace Tensors {
 #ifdef LTEMPLATE_H
     
     
-    template<int M, int N, typename T, typename I, IsFloat(T), IsInt(I)>
+    template<int M, int N, typename T, typename I, IsFloat(T)>
     inline mma::TensorRef<mreal> to_MTensorRef( const CLASS<M,N,T,I> & A )
     {
-        const int n = A.Dimension(2);
+        const mint n = A.Dimension(2);
         
         const T * restrict p [M][N];
         
@@ -345,7 +303,7 @@ namespace Tensors {
         return B;
     }
 
-    template<int M, int N, typename J, typename I, IsInt(J), IsInt(I)>
+    template<int M, int N, typename J, typename I, IsInt(J)>
     inline mma::TensorRef<mint> to_MTensorRef( const CLASS<M,N,J,I> & A )
     {
         const mint n = A.Dimension(2);

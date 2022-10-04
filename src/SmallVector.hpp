@@ -1,488 +1,180 @@
-#pragma once
-
-#define CLASS SmallVector
+#pragma  once
 
 namespace Tensors {
-
-    template <typename T, int N>
-    class CLASS
+    
+    template< int AmbDim, typename Real, typename Int>
+    struct SmallVector
     {
-        protected:
+        // Very slim vector type of fixed length, with basic arithmetic operations.
         
-        T * a = nullptr;
+        Real v [AmbDim] = {};
         
-        public:
+         SmallVector() = default;
         
-        CLASS()
+        ~SmallVector() = default;
+        
+        SmallVector( const SmallVector & other )
         {
-#ifdef BOUND_CHECKS
-            print(ClassName()+" default constructor { " + std::to_string(N) + " }");
-#endif
-            safe_alloc(a,N);
+            Read(&other.v[0]);
         }
         
-        explicit CLASS( const T init )
+        Real * data()
         {
-#ifdef BOUND_CHECKS
-            print(ClassName()+" fill constructor { " + std::to_string(N) + " }");
-#endif
-            safe_alloc(a,N);
-            fill( init );
+            return &v[0];
         }
         
-        explicit CLASS( const T * a_ )
+        const Real * data() const
         {
-#ifdef BOUND_CHECKS
-            print(ClassName()+" pointer constructor { " + std::to_string(N) + " }");
-#endif
-            safe_alloc(a,N);
-            Read(a_);
+            return &v[0];
         }
         
-        // Copy constructor
-        explicit CLASS( const CLASS & B )
+        void SetZero()
         {
-#ifdef BOUND_CHECKS
-            print(ClassName()+" copy constructor { " + std::to_string(N) + " }" );
-#endif
-            safe_alloc(a,N);
-            Read(B.a);
+            zerofy_buffer( &v[0], AmbDim );
         }
         
-        // Move constructor
-        explicit CLASS( CLASS && B ) noexcept
+        void rand()
         {
-#ifdef BOUND_CHECKS
-            print(ClassName()+" move constructor { " + std::to_string(N) + " }" );
-#endif
-            safe_free(a);
-            a = B.a;
-            B.a = nullptr;
-        }
-        
-        friend void swap(CLASS &A, CLASS &B) noexcept
-        {
-            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-            using std::swap;
-//#ifdef BOUND_CHECKS
-//            print(ClassName()+" swap { " + std::to_string(N) + " }" );
-//#endif
-            swap(A.a, B.a);
-        }
-        
-        // copy-and-swap idiom
-        CLASS & operator=(CLASS B)
-        {
-            // see https://stackoverflow.com/a/3279550/8248900 for details
-#ifdef BOUND_CHECKS
-            print("~CLASS copy-and-swap { " + std::to_string(N) + " }" );
-#endif
-            swap(*this, B);
-
-            return *this;
-            
-        }
-        
-        ~CLASS()
-        {
-#ifdef BOUND_CHECKS
-            print("~"+ClassName()+" { " + std::to_string(N) + " }" );
-#endif
-            safe_free(a);
-        }
-        
-#ifdef LTEMPLATE_H
-        mma::TensorRef<T> to_MTensorRef() const
-        {
-            auto A = mma::makeVector<T>( N );
-            
-            Write(A.data());
-
-            return A;
-        }
-#endif
-    
-        void Read( const T * const a_ )
-        {
-            const T * restrict const a__ = a_;
-            
-            for( int k = 0; k < N; ++k )
-            {
-                a[k] = a__[k];
-            }
-        }
-        
-        void Write( T * a_ ) const
-        {
-            T * restrict const a__ = a_;
-            
-            for( int k = 0; k < N; ++k )
-            {
-                a__[k] = a[k];
-            }
-        }
-
-        
-        static constexpr int Rank()
-        {
-            return 1;
-        }
-        
-        static constexpr int Size()
-        {
-            return N;
-        }
-        
-        static int Dimension( const int i )
-        {
-            switch( i )
-            {
-                case 0:     return N;
-                default:    return 0;
-            }
-        }
-
-        T * begin()
-        {
-            return  a;
-        }
-        
-        const T * begin() const
-        {
-            return  a;
-        }
-        
-        T * end()
-        {
-            return  a+N;
-        }
-        
-        const T * end() const
-        {
-            return  a+N;
-        }
-        
-        
-        T * data()
-        {
-            return  a;
-        }
-        
-        const T * data() const
-        {
-            return  a;
-        }
-
-        T * data( const int i )
-        {
-#ifdef BOUND_CHECKS
-            if( i > N )
-            {
-                eprint(ClassName()+"::data(i): first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(N-1) +" }.");
-            }
-#endif
-            return a + i;
-        }
-        
-        const T * data( const int i ) const
-        {
-#ifdef BOUND_CHECKS
-            if( i > N )
-            {
-                eprint(ClassName()+"::data(i): first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(N-1) +" }.");
-            }
-#endif
-            return a + i;
-        }
-        
-        T & operator()( const int i)
-        {
-#ifdef BOUND_CHECKS
-            if( i >= N )
-            {
-                eprint(ClassName()+"::operator()(i): first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(N-1) +" }.");
-            }
-#endif
-            return a[i];
-        }
-        
-        const T & operator()( const int i) const
-        {
-#ifdef BOUND_CHECKS
-            if( i >= N )
-            {
-                eprint(ClassName()+"::operator()(i): first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(N-1) +" }.");
-            }
-#endif
-            return a[i];
-        }
-        
-        T & operator[]( const int i)
-        {
-#ifdef BOUND_CHECKS
-            if( i >= N )
-            {
-                eprint(ClassName()+"::operator[](i): first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(N-1) +" }.");
-            }
-#endif
-            return a[i];
-        }
-        
-        const T & operator[]( const int i) const
-        {
-#ifdef BOUND_CHECKS
-            if( i >= N )
-            {
-                eprint(ClassName()+"::operator[](i): first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(N-1) +" }.");
-            }
-#endif
-            return a[i];
-        }
-        
-        void fill( const T init )
-        {
-            for( int i = 0; i < N; ++i )
-            {
-                a[i] = init;
-            }
-        }
-        
-        void Fill( const T init )
-        {
-            for( int i = 0; i < N; ++i )
-            {
-                a[i] = init;
-            }
-        }
-        
-        void random()
-        {
-            std::uniform_real_distribution<double> unif(-1.,1.);
+            std::uniform_real_distribution<Real> unif(-1,1);
             std::default_random_engine re{static_cast<unsigned int>(time(0))};
-            
-            for( int i = 0; i < N; ++i )
+        
+            for( Int i = 0; i < AmbDim; ++i )
             {
-                a[i] = unif(re);
+                v[ i ] = unif(re);
             }
         }
         
-        std::string to_string( int begin_ = 0, int end_ = N, int prec = 16 ) const
+        Real & operator[]( const Int i )
         {
-            std::ostringstream out;
-            out.precision(prec);
-            
-            int begin__ = std::max( static_cast<int>(0),begin_);
-            int end__ = std::min(static_cast<int>(N),end_);
-            
-            out << "{";
-            if( N >= begin__ )
+            return v[i];
+        }
+        
+        const Real & operator[]( const Int i ) const
+        {
+            return v[i];
+        }
+        
+        Real & operator()( Int i )
+        {
+            return v[i];
+        }
+        
+        const Real & operator()( const Int i ) const
+        {
+            return v[i];
+        }
+        
+        void operator+=( const SmallVector & x )
+        {
+            for(Int i = 0; i < AmbDim; ++i )
             {
-                out << " " << a[begin__];
+                v[i] += x.v[i];
             }
+        }
+        
+        void operator*=( const Real scale )
+        {
+            for(Int i = 0; i < AmbDim; ++i )
+            {
+                v[i] *= scale;
+            }
+        }
+        
+        SmallVector & operator=( const SmallVector & x )
+        {
+            for( Int i = 0; i < AmbDim; ++i )
+            {
+                v[i] = x.v[i];
+            }
+            return *this;
+        }
+        
+        Real Norm() const
+        {
+            Real r = v[0] * v[0];
+            for( Int i = 1; i < AmbDim; ++i )
+            {
+                r += v[i] * v[i];
+            }
+            return std::sqrt(r);
+        }
+        
+        
+        friend Real Dot( const SmallVector & x, const SmallVector & y )
+        {
+            Real r = x.v[0] * y.v[0];
+            for( Int i = 1; i < AmbDim; ++i )
+            {
+                r += x.v[i] * y.v[i];
+            }
+            return r;
+        }
+        
+        friend void Plus( const SmallVector & x, const SmallVector & y, SmallVector & z )
+        {
+            for( Int i = 0; i < AmbDim; ++i )
+            {
+                z.v[i] = x.v[i] + y.v[i];
+            }
+        }
+        
+        friend void Times( const Real scale, const SmallVector & x, SmallVector & y )
+        {
+            for( Int i = 0; i < AmbDim; ++i )
+            {
+                y.v[i] = scale * x.v[i];
+            }
+        }
+        
+        //            friend SmallVector operator+( const SmallVector & x, const SmallVector & y )
+        //            {
+        //                SmallVector z;
+        //                for(Int i = 0; i < AmbDim; ++i )
+        //                {
+        //                    z(i) = x(i) + y(i);
+        //                }
+        //                return z;
+        //            }
+        
+        template<typename S>
+        void Read( const S * const a_ )
+        {
+            copy_cast_buffer( a_, &v[0], AmbDim );
+        }
 
-            for( int k = begin__ + 1; k < end__ ; ++k )
-            {
-                out << ", ";
-                out << a[k];
-            }
-            out << " }";
-            return out.str();
-        }
-    
-    public:
-        
-        friend T Dot( const CLASS & x, const CLASS & y )
+        template<typename S>
+        void Write( S * a_ ) const
         {
-            T sum = 0;
-            
-            const T * restrict const x_a = x.a;
-            const T * restrict const y_a = y.a;
-            
-            for( int k = 0; k < N; ++k )
-            {
-                sum += x_a[k] * y_a[k];
-            }
-            
-            return sum;
+            copy_cast_buffer( &v[0], a_, AmbDim );
         }
         
-        friend void Subtract( const CLASS & x, const CLASS & y, CLASS & z )
+        std::string ToString( const Int n = 16) const
         {
-            const T * restrict const x_a = x.a;
-            const T * restrict const y_a = y.a;
-                  T * restrict const z_a = z.a;
-            
-            for( int k = 0; k < N; ++k )
+            std::stringstream sout;
+            sout.precision(n);
+            sout << "{ ";
+            sout << v[0];
+            for( Int i = 1; i < AmbDim; ++i )
             {
-                z_a[k] = x_a[k] - y_a[k];
+                sout << ", " << v[i];
             }
+            sout << " }";
+            return sout.str();
         }
         
-        friend void Plus( const CLASS & x, const CLASS & y, CLASS & z )
-        {
-            const T * restrict const x_a = x.a;
-            const T * restrict const y_a = y.a;
-                  T * restrict const z_a = z.a;
-            
-            for( int k = 0; k < N; ++k )
-            {
-                z_a[k] = x_a[k] + y_a[k];
-            }
-        }
-        
-        friend void AXPY( const T a, const CLASS & x, CLASS & y )
-        {
-            if( a == static_cast<T>(1) )
-            {
-                y.Read(x);
-            }
-            else
-            {
-                const T * restrict const x_a = x.a;
-                      T * restrict const y_a = y.a;
-                
-                for( int k = 0; k < N; ++k )
-                {
-                    y_a[k] = a * x_a[k] + y_a[k];
-                }
-            }
-        }
-        
-        friend void Scale( const T a, CLASS & x )
-        {
-            T * restrict const x_a = x.a;
-            
-            for( int k = 0; k < N; ++k )
-            {
-                x_a[k] *= a;
-            }
-        }
-        
-        friend void Times( const T a, const CLASS & x, CLASS & y )
-        {
-            const T * restrict const x_a = x.a;
-                  T * restrict const y_a = y.a;
-            
-            for( int k = 0; k < N; ++k )
-            {
-                y_a[k] = a * x_a[k];
-            }
-        }
-        
-        friend void Minus( const CLASS & x, CLASS & y )
-        {
-            const T * restrict const x_a = x.a;
-                  T * restrict const y_a = y.a;
-            
-            for( int k = 0; k < N; ++k )
-            {
-                y_a[k] = -x_a[k];
-            }
-        }
-        
-        friend int IMAX( const CLASS & x )
-        {
-            const T * restrict const x_a = x.a;
-            
-            int pos = 0;
-    //        T maximum = x[0];
-            
-            for( int k = 1; k < N; ++k )
-            {
-                pos = ( x_a[k] > x[pos] ) ? k : pos;
-    //            maximum = std::max(maximum, x__[k]);
-            }
-            
-            return pos;
-        }
-        
-        friend int IMIN( const CLASS & x )
-        {
-            const T * restrict const x_a = x.a;
-            
-            int pos = 0;
-    //        T minimum = x[0];
-
-            for( int k = 1; k < N; ++k )
-            {
-                pos = ( x_a[k] < x[pos] ) ? k : pos;
-    //            minimum = std::min(minimum, x__[k]);
-            }
-            
-            return pos;
-        }
+//        #pragma omp declare reduction( + : SmallVector : omp_out+=omp_in )
         
     public:
         
-        std::string ToString( int prec = 16 ) const
+        static constexpr Int AmbientDimension()
         {
-            std::ostringstream out;
-            out.precision(prec);
-            
-            out << "{";
-            out << " " << a[0];
-
-            for( int k = 1; k < N; ++k )
-            {
-                out << ", ";
-                out << a[k];
-            }
-            out << " }";
-            return out.str();
+            return AmbDim;
         }
         
         static std::string ClassName()
         {
-            return TO_STD_STRING(CLASS)+"<"+TypeName<T>::Get()+","+std::to_string(N)+">";
+            return "SmallVector<"+std::to_string(AmbDim)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
         }
-        
-    }; // CLASS
+    };
     
-
-    template<typename T, int N>
-    inline SmallVector<T, N> iota()
-    {
-        auto v = SmallVector<T,N>();
-        
-        T * restrict const v_a = v.data();
-
-        for( int i = 0; i < N; ++i )
-        {
-            v_a[i] = static_cast<T>(i);
-        }
-        return v;
-    }
-    
-    
-#ifdef LTEMPLATE_H
-
-    template<int N>
-    mma::TensorRef<mreal> to_MTensorRef( const SmallVector<mreal,N> & B )
-    {
-        auto A = mma::makeVector<mreal>( N );
-
-        B.Write(A.data());
-
-        return A;
-    }
-    
-    template<int N>
-    mma::TensorRef<mreal> to_MTensorRef( const SmallVector<float,N> & B )
-    {
-        auto A = mma::makeVector<mreal>( N );
-
-        mreal * restrict const a_out = A.data();
-  
-        for( int i = 0; i < N; ++i )
-        {
-            a_out[ i ] = static_cast<mreal>( B(i) );
-        }
-
-        return A;
-    }
-    
-#endif
-    
-} // namespace Tensors
-
-#undef CLASS
+} // namespace CyclicSampler
