@@ -420,12 +420,12 @@ namespace Tensors {
             out.precision(prec);
             
             out << "{";
-            out << " " << v[0];
+            out << " " << a[0];
 
             for( int k = 1; k < N; ++k )
             {
                 out << ", ";
-                out << v[k];
+                out << a[k];
             }
             out << " }";
             return out.str();
@@ -433,7 +433,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return TO_STD_STRING(CLASS)+"<"+TypeName<T>::Get()+","+ToString(N)+">";
+            return TO_STD_STRING(CLASS)+"<"+TypeName<T>::Get()+","+std::to_string(N)+">";
         }
         
     }; // CLASS
