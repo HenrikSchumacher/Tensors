@@ -295,8 +295,8 @@ namespace Tensors {
         {
             T sum = 0;
             
-            const T * restrict const x__ = x.a;
-            const T * restrict const y__ = y.a;
+            const T * restrict const x_a = x.a;
+            const T * restrict const y_a = y.a;
             
             for( int k = 0; k < N; ++k )
             {
@@ -308,9 +308,9 @@ namespace Tensors {
         
         friend void Subtract( const CLASS & x, const CLASS & y, CLASS & z )
         {
-            const T * restrict const x__ = x.a;
-            const T * restrict const y__ = y.a;
-                  T * restrict const z__ = z.a;
+            const T * restrict const x_a = x.a;
+            const T * restrict const y_a = y.a;
+                  T * restrict const z_a = z.a;
             
             for( int k = 0; k < N; ++k )
             {
@@ -320,9 +320,9 @@ namespace Tensors {
         
         friend void Plus( const CLASS & x, const CLASS & y, CLASS & z )
         {
-            const T * restrict const x__ = x.a;
-            const T * restrict const y__ = y.a;
-                  T * restrict const z__ = z.a;
+            const T * restrict const x_a = x.a;
+            const T * restrict const y_a = y.a;
+                  T * restrict const z_a = z.a;
             
             for( int k = 0; k < N; ++k )
             {
@@ -414,7 +414,7 @@ namespace Tensors {
         
     public:
         
-        std::string ToString( int prec = 16 )
+        std::string ToString( int prec = 16 ) const
         {
             std::ostringstream out;
             out.precision(prec);
@@ -431,7 +431,7 @@ namespace Tensors {
             return out.str();
         }
         
-        static virtual std::string ClassName()
+        static std::string ClassName()
         {
             return TO_STD_STRING(CLASS)+"<"+TypeName<T>::Get()+","+ToString(N)+">";
         }
@@ -444,11 +444,11 @@ namespace Tensors {
     {
         auto v = SmallVector<T,N>();
         
-        T * restrict const a__ = v.data();
+        T * restrict const v_a = v.data();
 
         for( int i = 0; i < N; ++i )
         {
-            a__[i] = static_cast<T>(i);
+            v_a[i] = static_cast<T>(i);
         }
         return v;
     }
