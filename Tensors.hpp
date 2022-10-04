@@ -15,16 +15,14 @@ namespace Tensors {
     
 }
 
-
-//#include "src/Tensors/SmallVector.hpp"
-//#include "src/Tensors/SmallMatrix.hpp"
-
 #include "src/Tensor1.hpp"
 #include "src/Tensor2.hpp"
 
 #include "src/Tensor3.hpp"
 #include "src/ThreadTensor3.hpp"
 
+#include "src/SmallVector.hpp"
+#include "src/SmallMatrix.hpp"
 #include "src/SmallVectorList.hpp"
 #include "src/SmallMatrixList.hpp"
 

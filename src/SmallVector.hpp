@@ -291,7 +291,6 @@ namespace Tensors {
     
     public:
         
-        template<typename T, int N>
         friend T Dot( const CLASS & x, const CLASS & y )
         {
             T sum = 0;
@@ -307,7 +306,6 @@ namespace Tensors {
             return sum;
         }
         
-        template<typename T, int N>
         friend void Subtract( const CLASS & x, const CLASS & y, CLASS & z )
         {
             const T * restrict const x__ = x.a;
@@ -320,7 +318,6 @@ namespace Tensors {
             }
         }
         
-        template<typename T, int N>
         friend void Plus( const CLASS & x, const CLASS & y, CLASS & z )
         {
             const T * restrict const x__ = x.a;
@@ -417,7 +414,6 @@ namespace Tensors {
         
     public:
         
-        template<typename T, int N>
         std::string ToString( int prec = 16 )
         {
             std::ostringstream out;
