@@ -1,3 +1,5 @@
+#pragma once
+
 namespace Tensors
 {
     template<typename T, typename I, I RUN = 32 >
