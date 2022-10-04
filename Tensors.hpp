@@ -25,7 +25,7 @@ namespace Tensors {
 #include "src/ThreadTensor3.hpp"
 
 #include "src/SmallVector.hpp"
-#include "src/SmallMatrix.hpp"
+//#include "src/SmallMatrix.hpp"
 #include "src/SmallVectorList.hpp"
 #include "src/SmallMatrixList.hpp"
 
