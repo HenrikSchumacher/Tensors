@@ -4,11 +4,10 @@
 #include <random>
 #include <cstring>
 #include <array>
-
-//#include <Accelerate/Accelerate.h>
-
-#include <cblas.h>
-#include <lapacke.h>
+//
+//#define EIGEN_USE_BLAS
+//#define EIGEN_USE_LAPACKE
+//#include <eigen3/Eigen/Dense>
 
 #include "Tools/Tools.hpp"
 
@@ -28,7 +27,7 @@ namespace Tensors {
 //#include "src/SmallMatrix.hpp"
 #include "src/SmallVectorList.hpp"
 #include "src/SmallSquareMatrix.hpp"
-#include "src/SmallSymmetricMatrix.hpp"
+//#include "src/SmallSymmetricMatrix.hpp"
 #include "src/SmallMatrixList.hpp"
 
 #include "src/TwoArrayQuickSort.hpp"
