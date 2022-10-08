@@ -309,12 +309,12 @@ void SpMM_implementation(
                     }
                 }
                 
-                if( l_end > l_begin+1 )
+                // perform last calculation in row without prefetch
                 {
                     const I l = l_end-1;
                     
                     const I j   = ci[l];
-
+                    
                     if constexpr ( a_flag )
                     {
                         axpbz<cols,-1,1>( a[l], &X[cols * j], T_one, &z[0] );
