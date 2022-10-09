@@ -1,12 +1,12 @@
 #pragma once
 
 #define CLASS ScalarBlockKernel
-#define CLASS SquareBlockKernel<SIZE,Scalar_,Int_,Scalar_in_,Scalar_out_>
+#define BASE  SquareBlockKernel<SIZE,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
-namespace Repulsor
+namespace Tensors
 {
     template<int SIZE, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
-    class CLASS
+    class CLASS : public BASE
     {
     public:
 
@@ -15,22 +15,24 @@ namespace Repulsor
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
 
-        constexpr Int NONZERO_COUNT = 1;
+        using BASE::COLS;
+        using BASE::ROWS;
+        static constexpr Int NONZERO_COUNT = 1;
         
         CLASS() = delete;
         
         CLASS(
-            const Scalar     * restrict const a_,
+            const Scalar     * restrict const A_
         )
-        :   BASE(a_)
+        :   BASE( A_ )
         {}
         
         CLASS(
             const Scalar     * restrict const A_,
-            const Scalar_out                  alpha_
+            const Scalar_out                  alpha_,
             const Scalar_in  * restrict const X_,
-            const Scalar_out                  beta_
-            const Scalar_out * restrict const Y_
+            const Scalar_out                  beta_,
+                  Scalar_out * restrict const Y_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_ )
         {}
@@ -43,6 +45,7 @@ namespace Repulsor
     protected:
 
         using BASE::A;
+        using BASE::A_const;
         using BASE::X;
         using BASE::Y;
         using BASE::z;
@@ -61,24 +64,26 @@ namespace Repulsor
         
         virtual void ApplyBlock( const Int k, const Int j ) override
         {
-            const Scalar a_k = A[k];
+            const Scalar a_k = A_const[k];
+            
+            const Scalar_in * restrict x = &X[SIZE * j];
             
             for( Int l = 0; l < SIZE; ++l )
             {
-                z[l] += factor * static_cast<Scalar>(X[ SIZE * j + l ]);
+                z[l] += a_k * static_cast<Scalar>(x[l]);
             }
         }
         
     public:
         
-        virtual std::string ClassName() const
+        virtual std::string ClassName() const override
         {
             return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }
 
     };
 
-} // namespace Repulsor
+} // namespace Tensors
 
 #undef BASE
 #undef CLASS

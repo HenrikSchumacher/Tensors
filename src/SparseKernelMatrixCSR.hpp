@@ -2,60 +2,59 @@
 
 #define CLASS SparseKernelMatrixCSR
 
-namespace Repulsor
+namespace Tensors
 {
     template<typename Kernel_T>
-    class CLASS : public BASE
+    class CLASS
     {
     public:
         
-        using Scalar = typename Kernel_T::Scalar;
-        using Int    = typename Kernel_T::Int;
+        using Scalar     = typename Kernel_T::Scalar;
+        using Int        = typename Kernel_T::Int;
+        using Scalar_in  = typename Kernel_T::Scalar_in;
+        using Scalar_out = typename Kernel_T::Scalar_out;
         
         using SparsityPattern_T = SparsityPatternCSR<Int>;
         
-        CLASS() = default;
+        CLASS()
+        :   kernel { nullptr, 0, nullptr, 0, nullptr }
+        {}
         
         CLASS(
             const SparsityPattern_T & pattern_
         )
         :   pattern ( pattern_ )
+        ,   kernel { nullptr, 0, nullptr, 0, nullptr }
         {}
         
         // Copy constructor
         CLASS( const CLASS & other )
-        :   pattern ( pattern_ )
+        :   pattern ( other.pattern )
+        ,   kernel { nullptr, 0, nullptr, 0, nullptr }
         {}
 
-        virtual ~CLASS() override = default;
+        ~CLASS() = default;
         
     protected:
         
         const SparsityPattern_T   & pattern;
-        Kernel_T                    kernel;
-        const Tensor1<Scalar,Int> & values;
+        Kernel_T                    kernel { nullptr, 0, nullptr, 0, nullptr };
         
     public:
         
-        
-        const Tensor1<Scalar,Int> & NonzeroValues() const
-        {
-            return values;
-        }
-        
         Int RowCount() const
         {
-            return pattern.RowCount() * kernel.RowCount();
+            return pattern.RowCount() * Kernel_T::ROWS;
         }
         
         Int ColCount() const
         {
-            return pattern.ColCount() * kernel.ColCount();
+            return pattern.ColCount() * Kernel_T::COLS;
         }
         
         Int NonzeroCount() const
         {
-            return pattern.NonzeroCount() * kernel.NonzeroCount();
+            return pattern.NonzeroCount() * Kernel_T::NONZERO_COUNT;
         }
 
     public:
@@ -64,7 +63,7 @@ namespace Repulsor
 //      Symmetrization
 //##############################################################################################
         
-        void FillLowerTriangleFromUpperTriangle() const
+        void FillLowerTriangleFromUpperTriangle( Scalar * restrict const values ) const
         {
             ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
             
@@ -81,7 +80,7 @@ namespace Repulsor
                 #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    auto Kernel_T ker ( values.data() );
+                    Kernel_T ker ( values, 0, nullptr, 0, nullptr );
                     
                     const Int i_begin = job_ptr[thread];
                     const Int i_end   = job_ptr[thread+1];
@@ -131,16 +130,14 @@ namespace Repulsor
 
         
     virtual void Dot(
+        const Scalar     * restrict const A,
         const Scalar                      alpha,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y
+        const Scalar_in  * restrict const X,
+        const Scalar_out                  beta,
+              Scalar_out * restrict const Y
     ) const
     {
         ptoc(ClassName()+"::Dot" );
-        
-        const Int  * restrict const rp = pattern.Outer().data();
-        const Int  * restrict const ci = pattern.Inner().data();
         
         const auto & job_ptr = pattern.JobPtr();
         
@@ -149,12 +146,11 @@ namespace Repulsor
         #pragma omp parallel for num_threads( thread_count )
         for( Int thread = 0; thread < thread_count; ++thread )
         {
-            // Initialize local kernel and feed it all information that is going to be constant along its life time.
-            Kernel_T ker ( values, alpha, X, beta, Y );
+            // Initialize local kernel and feed it all the information that is going to be constant along its life time.
+            Kernel_T ker ( A, alpha, X, beta, Y );
             
-            const block_rows = ker.RowCount();
-            const block_cols = ker.ColCount();
-            const nnz        = ker.NonzeroCount();
+            const Int    * restrict const rp = pattern.Outer().data();
+            const Int    * restrict const ci = pattern.Inner().data();
             
             // Kernel is supposed the following rows of pattern:
             const Int i_begin = job_ptr[thread  ];
@@ -176,9 +172,9 @@ namespace Repulsor
                     {
                         const Int j = ci[k];
                         
-                        __builtin_prefetch( &X[cols * ci[k+1]] );
+                        __builtin_prefetch( &X[Kernel_T::COLS * ci[k+1]] );
                         
-                        __builtin_prefetch( &a[ nnz * (k+1) ] );
+                        __builtin_prefetch( &A[Kernel_T::NONZERO_COUNT * (k+1)] );
                         
                         // Let the kernel apply to the k-th block to the j-th chunk of the input.
                         // The result is stored in the kernel's local vector chunk X.
@@ -191,7 +187,7 @@ namespace Repulsor
                         
                         const Int j = ci[k];
                         
-                        // Should we include a guard here against prefecting from forbidden space?
+                        // TODO: Should we include a guard here against prefecting from forbidden space?
                         __builtin_prefetch( &ci[k_end] );
                         
                         // Let the kernel apply to the k-th block to the j-th chunk of the input X.
@@ -205,7 +201,7 @@ namespace Repulsor
                 else
                 {
                     // Just zerogy the i-th chunk if the output Y.
-                    zerofy_buffer( &Y[rows * i ], rows);
+                    zerofy_buffer( &Y[Kernel_T::ROWS * i], Kernel_T::ROWS );
                 }
                 
                 // Incoporate the local vector chunk into the i-th chunk of the output.
@@ -218,14 +214,13 @@ namespace Repulsor
         
     public:
         
-        virtual std::string ClassName() const override
+        std::string ClassName() const
         {
             return TO_STD_STRING(CLASS)+"<"+kernel.ClassName()+">";
         }
         
     };
     
-}// namespace Repulsor
+}// namespace Tensors
 
-#undef BASE
 #undef CLASS

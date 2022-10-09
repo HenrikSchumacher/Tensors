@@ -49,6 +49,7 @@
     #include "src/BlockKernels/SquareBlockKernel.hpp"
     #include "src/BlockKernels/ScalarBlockKernel.hpp"
     #include "src/BlockKernels/DenseSquareBlockKernel.hpp"
+    #include "src/BlockKernels/DenseSquareBlockKernel_BLAS.hpp"
     #include "src/SparseKernelMatrixCSR.hpp"
 
 #endif

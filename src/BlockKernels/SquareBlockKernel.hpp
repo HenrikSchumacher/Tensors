@@ -1,12 +1,12 @@
 #pragma once
 
 #define CLASS SquareBlockKernel
-#define CLASS BlockKernel<ROWS,ROWS,Scalar_,Int_,Scalar_in_,Scalar_out_>
+#define BASE  BlockKernel<SIZE,SIZE,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
-namespace Repulsor
+namespace Tensors
 {
     template<int SIZE, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
-    class CLASS
+    class CLASS : public BASE
     {
     public:
 
@@ -15,20 +15,23 @@ namespace Repulsor
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
 
+        using BASE::COLS;
+        using BASE::ROWS;
+        
         CLASS() = delete;
         
         CLASS(
-            const Scalar * restrict const a_,
+            const Scalar     * restrict const A_
         )
-        :   BASE(a_)
+        :   BASE( A_ )
         {}
         
         CLASS(
             const Scalar     * restrict const A_,
-            const Scalar_out                  alpha_
+            const Scalar_out                  alpha_,
             const Scalar_in  * restrict const X_,
-            const Scalar_out                  beta_
-            const Scalar_out * restrict const Y_
+            const Scalar_out                  beta_,
+                  Scalar_out * restrict const Y_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_ )
         {}
@@ -41,13 +44,14 @@ namespace Repulsor
     protected:
 
         using BASE::A;
+        using BASE::A_const;
         using BASE::X;
         using BASE::Y;
         using BASE::z;
         
     public:
         
-        virtual Int NonzeroCount() const override = 0
+        virtual Int NonzeroCount() const override = 0;
         
         virtual void TransposeBlock( const Int from, const Int to ) = 0;
         
@@ -55,14 +59,14 @@ namespace Repulsor
         
     public:
         
-        virtual std::string ClassName() const
+        virtual std::string ClassName() const override
         {
             return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }
 
     };
 
-} // namespace Repulsor
+} // namespace Tensors
 
 #undef BASE
 #undef CLASS

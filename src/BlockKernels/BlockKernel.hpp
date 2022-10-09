@@ -2,10 +2,9 @@
 
 #define CLASS BlockKernel
 
-
-namespace Repulsor
+namespace Tensors
 {
-    template<int BLOCK_M, int BLOCK_N, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
+    template<int ROWS_, int COLS_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
     class CLASS
     {
  
@@ -13,25 +12,38 @@ namespace Repulsor
         
     public:
         
-        using Scalar    = Scalar_;
-        using Int       = Int_;
-        using Scalar_in = Scalar_in_;
-        using Scalar_in = Scalar_in_;
+        using Scalar     = Scalar_;
+        using Int        = Int_;
+        using Scalar_in  = Scalar_in_;
+        using Scalar_out = Scalar_out_;
+        
+        static constexpr int ROWS = ROWS_;
+        static constexpr int COLS = COLS_;
         
         CLASS() = delete;
         
-        CLASS( const Scalar * restrict const a_ )
-        :   a( a_ )
+        CLASS(
+            const Scalar     * restrict const A_
+        )
+        :   A (A_)
+        ,   A_const( nullptr )
+        ,   alpha( 0 )
+        ,   X( nullptr )
+        ,   beta( 0 )
+        ,   Y( nullptr )
+        ,   alpha_flag( 0 )
+        ,   beta_flag ( 0 )
         {}
-        
+
         CLASS(
             const Scalar     * restrict const A_,
-            const Scalar_out                  alpha_
+            const Scalar_out                  alpha_,
             const Scalar_in  * restrict const X_,
-            const Scalar_out                  beta_
-            const Scalar_out * restrict const Y_
+            const Scalar_out                  beta_,
+                  Scalar_out * restrict const Y_
         )
-        :   A( A_ )
+        :   A ( nullptr )
+        ,   A_const( A_ )
         ,   alpha( alpha_ )
         ,   X( X_ )
         ,   beta( beta_ )
@@ -55,17 +67,18 @@ namespace Repulsor
         ,   beta_flag ( other.beta_flag )
         {}
         
-        virtual ~CLASS() override = default;
+        virtual ~CLASS() = default;
      
     protected:
 
         Scalar z[ ROWS ] = {};
         
-        const Scalar     * restrict const A      = nullptr;
-        const Scalar_out                  alpha  = 0;
-        const Scalar_in  * restrict const X      = nullptr;
-        const Scalar_out                  beta   = 0;
-              Scalar_out * restrict const Y      = nullptr;
+              Scalar     * restrict const A       = nullptr;
+        const Scalar     * restrict const A_const = nullptr;
+        const Scalar_out                  alpha   = 0;
+        const Scalar_in  * restrict const X       = nullptr;
+        const Scalar_out                  beta    = 0;
+              Scalar_out * restrict const Y       = nullptr;
 
         const int alpha_flag                = 0;
         const int beta_flag                 = 0;
@@ -91,7 +104,7 @@ namespace Repulsor
 
         void WriteVector( const Int i ) const
         {
-            Scalar_out * restrict const = &Y[ROWS*i];
+            Scalar_out * restrict const y = &Y[ROWS*i];
             
             if( alpha_flag == 1 )
             {
@@ -99,7 +112,7 @@ namespace Repulsor
                 if( beta_flag == 0 )
                 {
                     #pragma omp simd
-                    for( I k = 0; k < cols; ++k )
+                    for( Int k = 0; k < ROWS; ++k )
                     {
                         y[k] = static_cast<Scalar_out>(z[k]);
                     }
@@ -107,7 +120,7 @@ namespace Repulsor
                 else if( beta_flag == 1 )
                 {
                     #pragma omp simd
-                    for( I k = 0; k < cols; ++k )
+                    for( Int k = 0; k < ROWS; ++k )
                     {
                         y[k] += static_cast<Scalar_out>(z[k]);
                     }
@@ -115,7 +128,7 @@ namespace Repulsor
                 else
                 {
                     #pragma omp simd
-                    for( I k = 0; k < cols; ++k )
+                    for( Int k = 0; k < ROWS; ++k )
                     {
                         y[k] = static_cast<Scalar_out>(z[k]) + beta * y[k];
                     }
@@ -126,7 +139,7 @@ namespace Repulsor
                 if( beta_flag == 0 )
                 {
                     #pragma omp simd
-                    for( I k = 0; k < cols; ++k )
+                    for( Int k = 0; k < ROWS; ++k )
                     {
                         y[k] = static_cast<Scalar_out>(0);
                     }
@@ -138,7 +151,7 @@ namespace Repulsor
                 else
                 {
                     #pragma omp simd
-                    for( I k = 0; k < cols; ++k )
+                    for( Int k = 0; k < ROWS; ++k )
                     {
                         y[k] *= beta;
                     }
@@ -150,15 +163,15 @@ namespace Repulsor
                 if( beta_flag == 0 )
                 {
                     #pragma omp simd
-                    for( I k = 0; k < cols; ++k )
+                    for( Int k = 0; k < ROWS; ++k )
                     {
                         y[k] = alpha * static_cast<Scalar_out>(z[k]);
                     }
                 }
-                else( beta_flag == 1 )
+                else if( beta_flag == 1 )
                 {
                     #pragma omp simd
-                    for( I k = 0; k < cols; ++k )
+                    for( Int k = 0; k < ROWS; ++k )
                     {
                         y[k] += alpha * static_cast<Scalar_out>(z[k]);
                     }
@@ -167,7 +180,7 @@ namespace Repulsor
                 {
                     // general alpha and general beta
                     #pragma omp simd
-                    for( I k = 0; k < cols; ++k )
+                    for( Int k = 0; k < ROWS; ++k )
                     {
                         y[k] = alpha * static_cast<Scalar_out>(z[k]) + beta * y[k];
                     }
@@ -186,7 +199,7 @@ namespace Repulsor
   
     };
 
-} // namespace Repulsor
+} // namespace Tensors
 
 
 #undef CLASS
