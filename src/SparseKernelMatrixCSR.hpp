@@ -56,12 +56,13 @@ namespace Tensors
         {
             return pattern.NonzeroCount() * Kernel_T::NONZERO_COUNT;
         }
-
-    public:
+    
         
 //##############################################################################################
 //      Symmetrization
 //##############################################################################################
+        
+    public:
         
         void FillLowerTriangleFromUpperTriangle( Scalar * restrict const values ) const
         {
@@ -172,9 +173,13 @@ namespace Tensors
                     {
                         const Int j = ci[k];
                         
-                        __builtin_prefetch( &X[Kernel_T::COLS * ci[k+1]] );
+//                        __builtin_prefetch( &X[Kernel_T::COLS * ci[k+1]] );
                         
-                        __builtin_prefetch( &A[Kernel_T::NONZERO_COUNT * (k+1)] );
+                        prefetch_range( &X[Kernel_T::COLS * ci[k+1]], Kernel_T::COLS );
+                        
+//                        __builtin_prefetch( &A[Kernel_T::NONZERO_COUNT * (k+1)] );
+                        
+                        prefetch_range( &A[Kernel_T::NONZERO_COUNT * (k+1)], Kernel_T::NONZERO_COUNT );
                         
                         // Let the kernel apply to the k-th block to the j-th chunk of the input.
                         // The result is stored in the kernel's local vector chunk X.
@@ -200,7 +205,7 @@ namespace Tensors
                 }
                 else
                 {
-                    // Just zerogy the i-th chunk if the output Y.
+                    // Just zerofy the i-th chunk if the output Y.
                     zerofy_buffer( &Y[Kernel_T::ROWS * i], Kernel_T::ROWS );
                 }
                 

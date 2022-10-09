@@ -73,18 +73,22 @@ namespace Tensors
         
         virtual void ApplyBlock( const Int block_id, const Int j_global ) override
         {
-            const Scalar * restrict const a  = &A_const[NONZERO_COUNT * block_id];
-            // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only one.
-            Scalar x [ SIZE ];
             
+            Scalar x [ SIZE ];
+            // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             copy_cast_buffer( &X[SIZE * j_global], &x[0], SIZE );
-      
-            // TODO: SIMDization or offloading to a BLAS implementation.
+            
+            // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
+            // Probably the copy has to be done anyways and this way the compiler has better guarantees.
+            Scalar a [SIZE][SIZE];
+            
+            copy_buffer( &A_const[NONZERO_COUNT * block_id], &a[0][0], SIZE*SIZE );
+            
             for( Int i = 0; i < SIZE; ++i )
             {
                 for( Int j = 0; j < SIZE; ++j )
                 {
-                    z[i] += a[SIZE * i + j ] * x[j];
+                    z[i] += a[i][j] * x[j];
                 }
             }
         }
