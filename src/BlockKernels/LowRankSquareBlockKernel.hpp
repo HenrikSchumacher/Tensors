@@ -1,11 +1,11 @@
 #pragma once
 
-#define CLASS DenseSquareBlockKernel
+#define CLASS LowRankSquareBlockKernel
 #define BASE  SquareBlockKernel<SIZE_,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
 namespace Tensors
 {
-    template<int SIZE_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
+    template<int SIZE_, int RANK_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
     class CLASS : public BASE
     {
     public:
@@ -24,7 +24,8 @@ namespace Tensors
         using BASE::z;
         using BASE::SIZE;
         
-        static constexpr Int NONZERO_COUNT = SIZE * SIZE;
+        static constexpr Int RANK = RANK_;
+        static constexpr Int NONZERO_COUNT = 2 * SIZE * RANK;
         
     public:
         
@@ -60,36 +61,69 @@ namespace Tensors
         
         force_inline void TransposeBlock( const Int from, const Int to ) const
         {
-            const Scalar * restrict const a_from = &A[ NONZERO_COUNT * from];
-                  Scalar * restrict const a_to   = &A[ NONZERO_COUNT * to  ];
+            // U_in is of size RANK x SIZE
+            // V_in is of size SIZE x RANK
             
-            for( Int j = 0; j < SIZE; ++j )
+            const Scalar * restrict const U_in  = &A_const[NONZERO_COUNT * from            ];
+            const Scalar * restrict const V_in  = &A_const[NONZERO_COUNT * from + RANK*SIZE];
+            
+                  Scalar * restrict const U_out = &A_const[NONZERO_COUNT * to              ];
+                  Scalar * restrict const V_out = &A_const[NONZERO_COUNT * to   + RANK*SIZE];
+
+            #pragma unroll
+            for( Int i = 0; i < RANK; ++i )
             {
-                for( Int i = 0; i < SIZE; ++i )
+                #pragma unroll
+                for( Int j = 0; j < SIZE; ++j )
                 {
-                    a_to[SIZE * j + i ] = a_from[SIZE * i + j ];
+                    U_out[SIZE * i + j] += V_in[SIZE * j + i];
                 }
             }
+            
+            #pragma unroll
+            for( Int i = 0; i < SIZE; ++i )
+            {
+                #pragma unroll
+                for( Int j = 0; j < RANK; ++j )
+                {
+                    V_out[SIZE * i + j] += U_in[SIZE * j + i];
+                }
+            }
+            
         }
         
         force_inline void ApplyBlock( const Int block_id, const Int j_global )
         {
-            
             alignas(ALIGNMENT) Scalar x [ SIZE ];
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             copy_cast_buffer( &X[SIZE * j_global], &x[0], SIZE );
             
-            // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
-            // Probably the copy has to be done anyways and this way the compiler has better guarantees.
-            alignas(ALIGNMENT) Scalar a [SIZE][SIZE];
+            alignas(ALIGNMENT) Scalar w [ RANK ] = {};
             
-            copy_buffer( &A_const[NONZERO_COUNT * block_id], &a[0][0], SIZE*SIZE );
+            alignas(ALIGNMENT) Scalar U [RANK][SIZE];
+            alignas(ALIGNMENT) Scalar V [SIZE][RANK];
             
-            for( Int i = 0; i < SIZE; ++i )
+            copy_buffer( &A_const[NONZERO_COUNT * block_id            ], &U[0][0], RANK*SIZE );
+            copy_buffer( &A_const[NONZERO_COUNT * block_id + RANK*SIZE], &V[0][0], SIZE*RANK );
+            
+            #pragma unroll
+            for( Int i = 0; i < RANK; ++i )
             {
+                #pragma unroll
                 for( Int j = 0; j < SIZE; ++j )
                 {
-                    z[i] += a[i][j] * x[j];
+                    w[i] += U[i][j] * x[j];
+                }
+            }
+
+            
+            #pragma unroll
+            for( Int i = 0; i < SIZE; ++i )
+            {
+                #pragma unroll
+                for( Int j = 0; j < RANK; ++j )
+                {
+                    z[i] += V[i][j] * w[j];
                 }
             }
         }

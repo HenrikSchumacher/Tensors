@@ -5,10 +5,12 @@
 namespace Tensors
 {
     template<int ROWS_, int COLS_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
-    class CLASS
+    class alignas( OBJECT_ALIGNMENT ) CLASS
     {
- 
+        ASSERT_ARITHMETIC(Scalar_)
         ASSERT_INT(Int_);
+        ASSERT_ARITHMETIC(Scalar_in_)
+        ASSERT_ARITHMETIC(Scalar_out_)
         
     public:
         
@@ -17,8 +19,24 @@ namespace Tensors
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
         
-        static constexpr int ROWS = ROWS_;
-        static constexpr int COLS = COLS_;
+    protected:
+        
+        static constexpr Int ROWS = ROWS_;
+        static constexpr Int COLS = COLS_;
+        
+        alignas(ALIGNMENT) Scalar z[ ROWS ] = {};
+        
+              Scalar     * restrict const A       = nullptr;
+        const Scalar     * restrict const A_const = nullptr;
+        const Scalar_out                  alpha   = 0;
+        const Scalar_in  * restrict const X       = nullptr;
+        const Scalar_out                  beta    = 0;
+              Scalar_out * restrict const Y       = nullptr;
+
+        const int alpha_flag = 0;
+        const int beta_flag  = 0;
+        
+    public:
         
         CLASS() = delete;
         
@@ -67,21 +85,8 @@ namespace Tensors
         ,   beta_flag ( other.beta_flag )
         {}
         
-        virtual ~CLASS() = default;
-     
-    protected:
+        ~CLASS() = default;
 
-        Scalar z[ ROWS ] = {};
-        
-              Scalar     * restrict const A       = nullptr;
-        const Scalar     * restrict const A_const = nullptr;
-        const Scalar_out                  alpha   = 0;
-        const Scalar_in  * restrict const X       = nullptr;
-        const Scalar_out                  beta    = 0;
-              Scalar_out * restrict const Y       = nullptr;
-
-        const int alpha_flag                = 0;
-        const int beta_flag                 = 0;
 
     public:
         
@@ -95,14 +100,15 @@ namespace Tensors
             return COLS;
         }
         
-        virtual Int NonzeroCount() const = 0;
+//        virtual Int NonzeroCount() const = 0;
         
-        void CleanseVector()
+        force_inline void CleanseVector()
         {
             zerofy_buffer( &z[0], ROWS );
         }
 
-        void WriteVector( const Int i ) const
+        
+        force_inline void WriteVector( const Int i ) const
         {
             Scalar_out * restrict const y = &Y[ROWS*i];
             
@@ -188,11 +194,9 @@ namespace Tensors
             }
         }
         
-        virtual void ApplyBlock( const Int k, const Int j ) = 0;
-        
     public:
         
-        virtual std::string ClassName() const
+        std::string ClassName() const
         {
             return TO_STD_STRING(CLASS)+"<"+ToString(ROWS)+","+ToString(COLS)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }

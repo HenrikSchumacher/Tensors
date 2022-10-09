@@ -44,17 +44,17 @@ namespace Tensors
         
         Int RowCount() const
         {
-            return pattern.RowCount() * Kernel_T::ROWS;
+            return pattern.RowCount() * Kernel_T::RowCount();
         }
         
         Int ColCount() const
         {
-            return pattern.ColCount() * Kernel_T::COLS;
+            return pattern.ColCount() * Kernel_T::ColCount();
         }
         
         Int NonzeroCount() const
         {
-            return pattern.NonzeroCount() * Kernel_T::NONZERO_COUNT;
+            return pattern.NonzeroCount() * Kernel_T::NonzeroCount();
         }
     
         
@@ -129,8 +129,7 @@ namespace Tensors
 //      Matrix multiplication
 //##############################################################################################
 
-        
-    virtual void Dot(
+        void Dot(
         const Scalar     * restrict const A,
         const Scalar                      alpha,
         const Scalar_in  * restrict const X,
@@ -163,6 +162,8 @@ namespace Tensors
                 const Int k_begin = rp[i  ];
                 const Int k_end   = rp[i+1];
                 
+                prefetch_range<Kernel_T::RowCount(),1,0>( &Y[Kernel_T::RowCount() * i] );
+                
                 if( k_end > k_begin )
                 {
                     // Clear the local vector chunk of the kernel.
@@ -172,14 +173,14 @@ namespace Tensors
                     for( int k = k_begin; k < k_end-1; ++k )
                     {
                         const Int j = ci[k];
+
+//                        __builtin_prefetch( &X[Kernel_T::ColCount() * ci[k+1]] );
                         
-//                        __builtin_prefetch( &X[Kernel_T::COLS * ci[k+1]] );
+                        prefetch_range<Kernel_T::ColCount(),0,3>( &X[Kernel_T::ColCount() * ci[k+1]] );
                         
-                        prefetch_range( &X[Kernel_T::COLS * ci[k+1]], Kernel_T::COLS );
+//                        __builtin_prefetch( &A[Kernel_T::NonzeroCount() * (k+1)] );
                         
-//                        __builtin_prefetch( &A[Kernel_T::NONZERO_COUNT * (k+1)] );
-                        
-                        prefetch_range( &A[Kernel_T::NONZERO_COUNT * (k+1)], Kernel_T::NONZERO_COUNT );
+                        prefetch_range<Kernel_T::NonzeroCount(),0,0>( &A[Kernel_T::NonzeroCount() * (k+1)] );
                         
                         // Let the kernel apply to the k-th block to the j-th chunk of the input.
                         // The result is stored in the kernel's local vector chunk X.
@@ -192,8 +193,8 @@ namespace Tensors
                         
                         const Int j = ci[k];
                         
-                        // TODO: Should we include a guard here against prefecting from forbidden space?
-                        __builtin_prefetch( &ci[k_end] );
+                        // TODO: Should we include a guard here against prefetching from forbidden space?
+//                        __builtin_prefetch( &ci[k_end],0,0);
                         
                         // Let the kernel apply to the k-th block to the j-th chunk of the input X.
                         // The result is stored in the kernel's local vector chunk.
@@ -206,7 +207,7 @@ namespace Tensors
                 else
                 {
                     // Just zerofy the i-th chunk if the output Y.
-                    zerofy_buffer( &Y[Kernel_T::ROWS * i], Kernel_T::ROWS );
+                    zerofy_buffer( &Y[Kernel_T::RowCount() * i], Kernel_T::RowCount() );
                 }
                 
                 // Incoporate the local vector chunk into the i-th chunk of the output.

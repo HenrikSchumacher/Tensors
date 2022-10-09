@@ -1,30 +1,31 @@
 #pragma once
 
-#define CLASS ScalarBlockKernel
+#define CLASS DenseSquareBlockKernel_BLAS
 #define BASE  SquareBlockKernel<SIZE_,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
+#include <Accelerate/Accelerate.h>
 namespace Tensors
 {
-    template<int SIZE_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
+    template<int SIZE_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
     class CLASS : public BASE
     {
     public:
 
         using Scalar     = Scalar_;
         using Int        = Int_;
-        using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
-
+        using Scalar_in  = Scalar_in_;
+        
     protected:
-        
-        static constexpr Int NONZERO_COUNT = 1;
-        
+
         using BASE::A;
         using BASE::A_const;
         using BASE::X;
         using BASE::Y;
         using BASE::z;
         using BASE::SIZE;
+
+        static constexpr Int NONZERO_COUNT = SIZE * SIZE;
         
     public:
         
@@ -50,7 +51,6 @@ namespace Tensors
         CLASS( const CLASS & other ) : BASE(other) {}
         
         ~CLASS() = default;
-
         
     public:
         
@@ -59,22 +59,28 @@ namespace Tensors
             return NONZERO_COUNT;
         };
         
+        
         force_inline void TransposeBlock( const Int from, const Int to ) const
         {
-            A[to] = A[from];
+            const Scalar * restrict const a_from = &A[ NONZERO_COUNT * from];
+                  Scalar * restrict const a_to   = &A[ NONZERO_COUNT * to  ];
+            
+            for( Int j = 0; j < SIZE; ++j )
+            {
+                for( Int i = 0; i < SIZE; ++i )
+                {
+                    a_to[SIZE * j + i ] = a_from[SIZE * i + j ];
+                }
+            }
         }
         
-        force_inline void ApplyBlock( const Int k, const Int j )
+        force_inline void ApplyBlock( const Int block_id, const Int j_global )
         {
-            const Scalar a_k = A_const[k];
-            
-            const Scalar_in * restrict x = &X[SIZE * j];
-            
-            #pragma unroll
-            for( Int l = 0; l < SIZE; ++l )
-            {
-                z[l] += a_k * static_cast<Scalar>(x[l]);
-            }
+            cblas_dgemv( CblasRowMajor, CblasNoTrans, SIZE, SIZE,
+                        1.0, &A_const[NONZERO_COUNT * block_id], SIZE,
+                             &X[SIZE * j_global], 1,
+                        1.0, &z[0], 1
+            );
         }
         
     public:
