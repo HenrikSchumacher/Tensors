@@ -2,17 +2,17 @@ protected:
 
 void SpMM_gen
 (
-    const I     * restrict const rp,
-    const I     * restrict const ci,
+    const Int   * restrict const rp,
+    const Int   * restrict const ci,
     const T     * restrict const a,
-    const I                      m,
-    const I                      n,
+    const Int                    m,
+    const Int                    n,
     const T                      alpha_,
     const T_in  * restrict const X,
     const T_out                  beta,
           T_out * restrict const Y,
-    const I                      cols,
-    const JobPointers<I> & job_ptr
+    const Int                    cols,
+    const JobPointers<Int> & job_ptr
 )
 {
     // This is basically a large switch to determine at runtime, which instantiation of SpMM_implementation is to be invoked.
@@ -122,17 +122,17 @@ void SpMM_gen
 
 template<bool a_flag, int alpha_flag, int beta_flag >
 void SpMM_gen_implementation(
-    const I     * restrict const rp,
-    const I     * restrict const ci,
+    const Int   * restrict const rp,
+    const Int   * restrict const ci,
     const T     * restrict const a,
-    const I                      m,
-    const I                      n,
+    const Int                    m,
+    const Int                    n,
     const T                      alpha,
     const T_in  * restrict const X,
     const T_out                  beta,
           T_out * restrict const Y,
-    const I                      cols,
-    const JobPointers<I> & job_ptr
+    const Int                    cols,
+    const JobPointers<Int> & job_ptr
 )
 {
     // Threats sparse matrix as a binary matrix if a_flag == false.
@@ -159,31 +159,31 @@ void SpMM_gen_implementation(
     }
 
     #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-    for( I thread = 0; thread < job_ptr.Size()-1; ++thread )
+    for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
     {
-        Tensor1<T,I> z (cols);
-        const I i_begin = job_ptr[thread  ];
-        const I i_end   = job_ptr[thread+1];
+        Tensor1<T,Int> z (cols);
+        const Int i_begin = job_ptr[thread  ];
+        const Int i_end   = job_ptr[thread+1];
         
-        for( I i = i_begin; i < i_end; ++i )
+        for( Int i = i_begin; i < i_end; ++i )
         {
-            const I l_begin = rp[i  ];
-            const I l_end   = rp[i+1];
+            const Int l_begin = rp[i  ];
+            const Int l_end   = rp[i+1];
             
-            __builtin_prefetch( &ci[l_end] );
-            
-            if constexpr ( a_flag )
-            {
-                __builtin_prefetch( &a[l_end] );
-            }
+//            __builtin_prefetch( &ci[l_end] );
+//
+//            if constexpr ( a_flag )
+//            {
+//                __builtin_prefetch( &a[l_end] );
+//            }
             
             if( l_end > l_begin)
             {
                 // create a local buffer for accumulating the result
                 
                 {
-                    const I l = l_begin;
-                    const I j = ci[l];
+                    const Int l = l_begin;
+                    const Int j = ci[l];
                     
                     __builtin_prefetch( &X[cols * ci[l+1]] );
                     
@@ -196,9 +196,9 @@ void SpMM_gen_implementation(
                         axpbz_gen<1,0>( T_one, &X[cols * j], T_zero, &z[0], cols );
                     }
                 }
-                for( I l = l_begin+1; l < l_end-1; ++l )
+                for( Int l = l_begin+1; l < l_end-1; ++l )
                 {
-                    const I j = ci[l];
+                    const Int j = ci[l];
                     
                     __builtin_prefetch( &X[cols * ci[l+1]] );
                     
@@ -214,9 +214,9 @@ void SpMM_gen_implementation(
                 
                 if( l_end > l_begin+1 )
                 {
-                    const I l = l_end-1;
+                    const Int l = l_end-1;
                     
-                    const I j   = ci[l];
+                    const Int j   = ci[l];
 
                     if constexpr ( a_flag )
                     {

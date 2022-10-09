@@ -3,16 +3,16 @@ protected:
     template<int cols>
     void SpMM
     (
-        const I     * restrict const rp,
-        const I     * restrict const ci,
+        const Int   * restrict const rp,
+        const Int   * restrict const ci,
         const T     * restrict const a,
-        const I                      m,
-        const I                      n,
+        const Int                    m,
+        const Int                    n,
         const T                      alpha_,
         const T_in  * restrict const X,
         const T_out                  beta,
               T_out * restrict const Y,
-        const JobPointers<I> & job_ptr
+        const JobPointers<Int> & job_ptr
     )
     {
         // This is basically a large switch to determine at runtime, which instantiation of SpMM_implementation is to be invoked.
@@ -122,18 +122,18 @@ protected:
         }
     }
 
-//    template<I cols, bool a_flag, int alpha_flag, int beta_flag >
+//    template<Int cols, bool a_flag, int alpha_flag, int beta_flag >
 //    void SpMM_implementation(
-//        const I     * restrict const rp,
-//        const I     * restrict const ci,
+//        const Int   * restrict const rp,
+//        const Int   * restrict const ci,
 //        const T     * restrict const a,
-//        const I                      m,
-//        const I                      n,
+//        const Int                    m,
+//        const Int                    n,
 //        const T                      alpha,
 //        const T_in  * restrict const X,
 //        const T_out                  beta,
 //              T_out * restrict const Y,
-//        const JobPointers<I> & job_ptr
+//        const JobPointers<Int> & job_ptr
 //    )
 //    {
 //        // Threats sparse matrix as a binary matrix if a_flag == false.
@@ -160,15 +160,15 @@ protected:
 //        }
 //
 //        #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-//        for( I thread = 0; thread < job_ptr.Size()-1; ++thread )
+//        for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
 //        {
-//            const I i_begin = job_ptr[thread  ];
-//            const I i_end   = job_ptr[thread+1];
+//            const Int i_begin = job_ptr[thread  ];
+//            const Int i_end   = job_ptr[thread+1];
 //
-//            for( I i = i_begin; i < i_end; ++i )
+//            for( Int i = i_begin; i < i_end; ++i )
 //            {
-//                const I l_begin = rp[i  ];
-//                const I l_end   = rp[i+1];
+//                const Int l_begin = rp[i  ];
+//                const Int l_end   = rp[i+1];
 //
 //                __builtin_prefetch( &ci[l_end] );
 //
@@ -182,9 +182,9 @@ protected:
 //                    // create a local buffer for accumulating the result
 //                    T z [cols] = {};
 //
-//                    for( I l = l_begin; l < l_end-1; ++l )
+//                    for( Int l = l_begin; l < l_end-1; ++l )
 //                    {
-//                        const I j = ci[l];
+//                        const Int j = ci[l];
 //
 //                        __builtin_prefetch( &X[cols * ci[l+1]] );
 //
@@ -200,9 +200,9 @@ protected:
 //
 //                    if( l_end > l_begin+1 )
 //                    {
-//                        const I l = l_end-1;
+//                        const Int l = l_end-1;
 //
-//                        const I j   = ci[l];
+//                        const Int j   = ci[l];
 //
 //                        if constexpr ( a_flag )
 //                        {
@@ -228,18 +228,18 @@ protected:
 //
 
 
-template<I cols, bool a_flag, int alpha_flag, int beta_flag >
+template<Int cols, bool a_flag, int alpha_flag, int beta_flag >
 void SpMM_implementation(
-    const I     * restrict const rp,
-    const I     * restrict const ci,
+    const Int   * restrict const rp,
+    const Int   * restrict const ci,
     const T     * restrict const a,
-    const I                      m,
-    const I                      n,
+    const Int                    m,
+    const Int                    n,
     const T                      alpha,
     const T_in  * restrict const X,
     const T_out                  beta,
           T_out * restrict const Y,
-    const JobPointers<I> & job_ptr
+    const JobPointers<Int> & job_ptr
 )
 {
     // Threats sparse matrix as a binary matrix if a_flag == false.
@@ -271,37 +271,37 @@ void SpMM_implementation(
     }
 
     #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-    for( I thread = 0; thread < job_ptr.Size()-1; ++thread )
+    for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
     {
-        const I i_begin = job_ptr[thread  ];
-        const I i_end   = job_ptr[thread+1];
+        const Int i_begin = job_ptr[thread  ];
+        const Int i_end   = job_ptr[thread+1];
         
-        for( I i = i_begin; i < i_end; ++i )
+        for( Int i = i_begin; i < i_end; ++i )
         {
-            const I l_begin = rp[i  ];
-            const I l_end   = rp[i+1];
+            const Int k_begin = rp[i  ];
+            const Int k_end   = rp[i+1];
             
-            __builtin_prefetch( &ci[l_end] );
+//            __builtin_prefetch( &ci[l_end] );
+//
+//            if constexpr ( a_flag )
+//            {
+//                __builtin_prefetch( &a[l_end] );
+//            }
             
-            if constexpr ( a_flag )
-            {
-                __builtin_prefetch( &a[l_end] );
-            }
-            
-            if( l_end > l_begin)
+            if( k_end > k_begin)
             {
                 // create a local buffer for accumulating the result
                 T z [cols] = {};
                 
-                for( I l = l_begin; l < l_end-1; ++l )
+                for( Int k = k_begin; k < k_end-1; ++k )
                 {
-                    const I j = ci[l];
+                    const Int j = ci[k];
                     
-                    __builtin_prefetch( &X[cols * ci[l+1]] );
+                    prefetch_range<cols,0,0>( &X[cols * ci[k+1]] );
                     
                     if constexpr ( a_flag )
                     {
-                        axpbz<cols,-1,1>( a[l], &X[cols * j], T_one, &z[0] );
+                        axpbz<cols,-1,1>( a[k], &X[cols * j], T_one, &z[0] );
                     }
                     else
                     {
@@ -311,13 +311,13 @@ void SpMM_implementation(
                 
                 // perform last calculation in row without prefetch
                 {
-                    const I l = l_end-1;
+                    const Int k = k_end-1;
                     
-                    const I j   = ci[l];
+                    const Int j   = ci[k];
                     
                     if constexpr ( a_flag )
                     {
-                        axpbz<cols,-1,1>( a[l], &X[cols * j], T_one, &z[0] );
+                        axpbz<cols,-1,1>( a[k], &X[cols * j], T_one, &z[0] );
                     }
                     else
                     {

@@ -1,6 +1,6 @@
 protected:
 
-    template<I cols, int alpha_flag, int beta_flag>
+    template<Int cols, int alpha_flag, int beta_flag>
     void axpbz(
         const T                     alpha,
         const T_in * restrict const x,
@@ -14,7 +14,7 @@ protected:
             if constexpr ( beta_flag == 0 )
             {
                 #pragma omp simd
-                for( I k = 0; k < cols; ++k )
+                for( Int k = 0; k < cols; ++k )
                 {
                     z[k] = static_cast<T>(x[k]);
                 }
@@ -22,7 +22,7 @@ protected:
             else if constexpr ( beta_flag == 1 )
             {
                 #pragma omp simd
-                for( I k = 0; k < cols; ++k )
+                for( Int k = 0; k < cols; ++k )
                 {
                     z[k] += static_cast<T>(x[k]);
                 }
@@ -30,7 +30,7 @@ protected:
             else
             {
                 #pragma omp simd
-                for( I k = 0; k < cols; ++k )
+                for( Int k = 0; k < cols; ++k )
                 {
                     z[k] = static_cast<T>(x[k]) + beta * z[k];
                 }
@@ -41,7 +41,7 @@ protected:
             if constexpr ( beta_flag == 0 )
             {
                 #pragma omp simd
-                for( I k = 0; k < cols; ++k )
+                for( Int k = 0; k < cols; ++k )
                 {
                     z[k] = static_cast<T>(0);
                 }
@@ -53,7 +53,7 @@ protected:
             else
             {
                 #pragma omp simd
-                for( I k = 0; k < cols; ++k )
+                for( Int k = 0; k < cols; ++k )
                 {
                     z[k] *= beta;
                 }
@@ -65,7 +65,7 @@ protected:
             if constexpr ( beta_flag == 0 )
             {
                 #pragma omp simd
-                for( I k = 0; k < cols; ++k )
+                for( Int k = 0; k < cols; ++k )
                 {
                     z[k] = alpha * static_cast<T>(x[k]);
                 }
@@ -73,7 +73,7 @@ protected:
             else if constexpr ( beta_flag == 1 )
             {
                 #pragma omp simd
-                for( I k = 0; k < cols; ++k )
+                for( Int k = 0; k < cols; ++k )
                 {
                     z[k] += alpha * static_cast<T>(x[k]);
                 }
@@ -82,7 +82,7 @@ protected:
             {
                 // general alpha and general beta
                 #pragma omp simd
-                for( I k = 0; k < cols; ++k )
+                for( Int k = 0; k < cols; ++k )
                 {
                     z[k] = alpha * static_cast<T>(x[k]) + beta * z[k];
                 }

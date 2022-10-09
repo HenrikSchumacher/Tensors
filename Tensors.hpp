@@ -5,10 +5,17 @@
     #include <random>
     #include <cstring>
     #include <array>
-    //
-    //#define EIGEN_USE_BLAS
-    //#define EIGEN_USE_LAPACKE
-    //#include <eigen3/Eigen/Dense>
+    
+
+    #include <Accelerate/Accelerate.h>
+//    #include <cblas.h>
+//    #include <lapacke.h>
+
+//    #define EIGEN_USE_BLAS
+//    #define EIGEN_USE_LAPACKE
+//    #include <eigen3/Eigen/Dense>
+    
+
 
     #include "Tools/Tools.hpp"
 
@@ -20,7 +27,6 @@
 
     #include "src/Tensor1.hpp"
     #include "src/Tensor2.hpp"
-
     #include "src/Tensor3.hpp"
     #include "src/ThreadTensor3.hpp"
 
@@ -51,6 +57,7 @@
     #include "src/BlockKernels/LowRankSquareBlockKernel.hpp"
     #include "src/BlockKernels/DenseSquareBlockKernel.hpp"
     #include "src/BlockKernels/DenseSquareBlockKernel_BLAS.hpp"
+//    #include "src/BlockKernels/DenseSquareBlockKernel_Eigen.hpp"
     #include "src/SparseKernelMatrixCSR.hpp"
 
 #endif

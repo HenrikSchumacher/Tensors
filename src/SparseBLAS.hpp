@@ -2,10 +2,10 @@
 
 namespace Tensors
 {
-    template<typename T, typename I, typename T_in, typename T_out>
+    template<typename T, typename Int, typename T_in, typename T_out>
     class SparseBLAS
     {
-        ASSERT_INT(I);
+        ASSERT_INT(Int);
 
     public:
         
@@ -20,13 +20,13 @@ namespace Tensors
             #pragma omp parallel
             {
                 // cppcheck-suppress [useInitializationList]
-                thread_count = static_cast<I>(omp_get_num_threads());
+                thread_count = static_cast<Int>(omp_get_num_threads());
             }
 //            ptoc("SparseBLAS()");
 
         };
         
-        explicit SparseBLAS( const I thread_count_ )
+        explicit SparseBLAS( const Int thread_count_ )
         : thread_count(thread_count_)
         {
 //            ptic("SparseBLAS()");
@@ -37,14 +37,14 @@ namespace Tensors
         
     protected:
         
-        I thread_count = 1;
+        Int thread_count = 1;
         
     protected:
         
-        void scale( T_out * restrict const y, const T_out beta, const I size, const I thread_count_ )
+        void scale( T_out * restrict const y, const T_out beta, const Int size, const Int thread_count_ )
         {
             #pragma omp parallel for simd num_threads( thread_count_ ) schedule( static )
-            for( I i = 0; i < size; ++i )
+            for( Int i = 0; i < size; ++i )
             {
                 y[i] *= beta;
             }
@@ -65,7 +65,7 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return "SparseBLAS<"+TypeName<T>::Get()+","+TypeName<I>::Get()+","+TypeName<T_in>::Get()+","+TypeName<T_out>::Get()+">";
+            return "SparseBLAS<"+TypeName<T>::Get()+","+TypeName<Int>::Get()+","+TypeName<T_in>::Get()+","+TypeName<T_out>::Get()+">";
         }
         
 

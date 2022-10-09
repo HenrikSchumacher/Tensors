@@ -1,6 +1,6 @@
 #pragma once
 
-#define CLASS DenseSquareBlockKernel_BLAS
+#define CLASS DenseSquareBlockKernel_Eigen
 #define BASE  SquareBlockKernel<SIZE_,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
 namespace Tensors
@@ -14,16 +14,16 @@ namespace Tensors
         using Int        = Int_;
         using Scalar_out = Scalar_out_;
         using Scalar_in  = Scalar_in_;
-        
-    protected:
 
+    protected:
+        
         using BASE::A;
         using BASE::A_const;
         using BASE::X;
         using BASE::Y;
         using BASE::z;
         using BASE::SIZE;
-
+        
         static constexpr Int NONZERO_COUNT = SIZE * SIZE;
         
     public:
@@ -56,8 +56,7 @@ namespace Tensors
         static constexpr Int NonzeroCount()
         {
             return NONZERO_COUNT;
-        };
-        
+        }
         
         force_inline void TransposeBlock( const Int from, const Int to ) const
         {
@@ -75,11 +74,22 @@ namespace Tensors
         
         force_inline void ApplyBlock( const Int block_id, const Int j_global )
         {
-            cblas_dgemv( CblasRowMajor, CblasNoTrans, SIZE, SIZE,
-                        1.0, &A_const[NONZERO_COUNT * block_id], SIZE,
-                             &X[SIZE * j_global], 1,
-                        1.0, &z[0], 1
-            );
+            
+            // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
+            Eigen::Matrix<Scalar,SIZE,1> x ( &X[SIZE * j_global] );
+            
+            // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
+            // Probably the copy has to be done anyways and this way the compiler has better guarantees.
+            Eigen::Matrix<Scalar,SIZE,SIZE,Eigen::RowMajor> a ( &A_const[NONZERO_COUNT * block_id] );
+            
+            Eigen::Matrix<Scalar,SIZE,1> z_vec;
+            
+            z_vec = a * x;
+            
+            for( Int i = 0; i < SIZE; ++i )
+            {
+                z[i] += z_vec(i,0);
+            }
         }
         
     public:

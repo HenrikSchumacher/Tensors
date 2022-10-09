@@ -6,7 +6,7 @@ protected:
         const T     * restrict const z,
         const T_out                  beta,
               T_out * restrict const y,
-        const I                      N
+        const Int                    N
     )
     {
         if constexpr ( alpha_flag == 1 )
@@ -15,7 +15,7 @@ protected:
             if constexpr ( beta_flag == 0 )
             {
                 #pragma omp simd
-                for( I k = 0; k < N; ++k )
+                for( Int k = 0; k < N; ++k )
                 {
                     y[k] = static_cast<T_out>(z[k]);
                 }
@@ -23,7 +23,7 @@ protected:
             else if constexpr ( beta_flag == 1 )
             {
                 #pragma omp simd
-                for( I k = 0; k < N; ++k )
+                for( Int k = 0; k < N; ++k )
                 {
                     y[k] += static_cast<T_out>(z[k]);
                 }
@@ -31,7 +31,7 @@ protected:
             else
             {
                 #pragma omp simd
-                for( I k = 0; k < N; ++k )
+                for( Int k = 0; k < N; ++k )
                 {
                     y[k] = static_cast<T_out>(z[k]) + beta * y[k];
                 }
@@ -42,7 +42,7 @@ protected:
             if constexpr ( beta_flag == 0 )
             {
                 #pragma omp simd
-                for( I k = 0; k < N; ++k )
+                for( Int k = 0; k < N; ++k )
                 {
                     y[k] = static_cast<T_out>(0);
                 }
@@ -54,7 +54,7 @@ protected:
             else
             {
                 #pragma omp simd
-                for( I k = 0; k < N; ++k )
+                for( Int k = 0; k < N; ++k )
                 {
                     y[k] *= beta;
                 }
@@ -66,7 +66,7 @@ protected:
             if constexpr ( beta_flag == 0 )
             {
                 #pragma omp simd
-                for( I k = 0; k < N; ++k )
+                for( Int k = 0; k < N; ++k )
                 {
                     y[k] = static_cast<T_out>(alpha * z[k]);
                 }
@@ -74,7 +74,7 @@ protected:
             else if constexpr ( beta_flag == 1 )
             {
                 #pragma omp simd
-                for( I k = 0; k < N; ++k )
+                for( Int k = 0; k < N; ++k )
                 {
                     y[k] += static_cast<T_out>(alpha * z[k]);
                 }
@@ -83,7 +83,7 @@ protected:
             {
                 // general alpha and general beta
                 #pragma omp simd
-                for( I k = 0; k < N; ++k )
+                for( Int k = 0; k < N; ++k )
                 {
                     y[k] = static_cast<T_out>(alpha * z[k]) + beta * y[k];
                 }

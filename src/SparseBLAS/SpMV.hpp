@@ -2,16 +2,16 @@ protected:
 
     void SpMV
     (
-        I const * restrict const rp,
-        I const * restrict const ci,
+        Int const * restrict const rp,
+        Int const * restrict const ci,
         T const * restrict const a,
-        I const m,
-        I const n,
+        Int const m,
+        Int const n,
         const T alpha,
         T_in  const * restrict const x,
         const T_out beta,
         T_out       * restrict const y,
-        const JobPointers<I> & job_ptr
+        const JobPointers<Int> & job_ptr
     )
     {
 //        T alpha = ( rp[m] > 0 ) ? alpha_ : static_cast<T>(0);
@@ -51,25 +51,25 @@ protected:
             {
                 // The target buffer Y may contain nan, so we have to _overwrite_ instead of multiply by 0 and add to it!
                 #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-                for( I thread = 0; thread < job_ptr.Size()-1; ++thread )
+                for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
 
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
                         T sum = static_cast<T>(0);
 
-                        const I l_begin = rp[i  ];
-                        const I l_end   = rp[i+1];
+                        const Int l_begin = rp[i  ];
+                        const Int l_end   = rp[i+1];
                         
                         __builtin_prefetch( ci + l_end );
                         __builtin_prefetch( a  + l_end );
                     
                         #pragma omp simd reduction( + : sum )
-                        for( I l = l_begin; l < l_end; ++l )
+                        for( Int l = l_begin; l < l_end; ++l )
                         {
-                            const I j = ci[l];
+                            const Int j = ci[l];
                             
                             sum += a[l] * static_cast<T>(x[j]);
     //                                sum = std::fma(a[l], x[j], sum);
@@ -89,25 +89,25 @@ protected:
             else
             {
                 #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-                for( I thread = 0; thread < job_ptr.Size()-1; ++thread )
+                for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
 
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
                         T sum = static_cast<T>(0);
 
-                        const I l_begin = rp[i  ];
-                        const I l_end   = rp[i+1];
+                        const Int l_begin = rp[i  ];
+                        const Int l_end   = rp[i+1];
                         
                         __builtin_prefetch( ci + l_end );
                         __builtin_prefetch( a  + l_end );
                     
                         #pragma omp simd reduction( + : sum )
-                        for( I l = l_begin; l < l_end; ++l )
+                        for( Int l = l_begin; l < l_end; ++l )
                         {
-                            const I j = ci[l];
+                            const Int j = ci[l];
                             
                             sum += a[l] * static_cast<T>(x[j]);
     //                                sum = std::fma(a[l], x[j], sum);

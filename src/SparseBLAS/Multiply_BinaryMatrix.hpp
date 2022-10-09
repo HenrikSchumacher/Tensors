@@ -6,32 +6,32 @@ public:
 
     void Multiply_BinaryMatrix_Vector
     (
-        I const * restrict const rp,
-        I const * restrict const ci,
-        I const m,
-        I const n,
+        Int const * restrict const rp,
+        Int const * restrict const ci,
+        Int const m,
+        Int const n,
         const T alpha,
         T_in  const * restrict const x,
         const T_out beta,
         T_out       * restrict const y
     )
     {
-        const JobPointers<I> job_ptr (m,rp,thread_count,false);
+        const JobPointers<Int> job_ptr (m,rp,thread_count,false);
         
         Multiply_BinaryMatrix_Vector(rp,ci,m,n,alpha,x,beta,y,job_ptr);
     }
     
     void Multiply_BinaryMatrix_Vector
     (
-        I const * restrict const rp,
-        I const * restrict const ci,
-        I const m,
-        I const n,
+        Int const * restrict const rp,
+        Int const * restrict const ci,
+        Int const m,
+        Int const n,
         const T alpha,
         T_in  const * restrict const x,
         const T_out beta,
         T_out       * restrict const y,
-        const JobPointers<I> & job_ptr
+        const JobPointers<Int> & job_ptr
     )
     {
         if( rp[m] <= 0 )
@@ -67,22 +67,22 @@ public:
             {
                 // The target buffer Y may contain nan, so we have to _overwrite_ instead of multiply by 0 and add to it!
                 #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-                for( I thread = 0; thread < job_ptr.Size()-1; ++thread )
+                for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
 
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
                         T sum = static_cast<T>(0);
 
-                        const I l_begin = rp[i  ];
-                        const I l_end   = rp[i+1];
+                        const Int l_begin = rp[i  ];
+                        const Int l_end   = rp[i+1];
                         
                         __builtin_prefetch( ci + l_end );
                     
                         #pragma omp simd reduction( + : sum )
-                        for( I l = l_begin; l < l_end; ++l )
+                        for( Int l = l_begin; l < l_end; ++l )
                         {
                             sum += static_cast<T>(x[ci[l]]);
                         }
@@ -101,22 +101,22 @@ public:
             else
             {
                 #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-                for( I thread = 0; thread < job_ptr.Size()-1; ++thread )
+                for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
 
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
                         T sum = static_cast<T>(0);
 
-                        const I l_begin = rp[i  ];
-                        const I l_end   = rp[i+1];
+                        const Int l_begin = rp[i  ];
+                        const Int l_end   = rp[i+1];
                         
                         __builtin_prefetch( &ci[l_end] );
                     
                         #pragma omp simd reduction( + : sum )
-                        for( I l = l_begin; l < l_end; ++l )
+                        for( Int l = l_begin; l < l_end; ++l )
                         {
                             sum += static_cast<T>(x[ci[l]]);
                         }
@@ -135,15 +135,15 @@ public:
     
     void Multiply_BinaryMatrix_DenseMatrix
     (
-        const I     * restrict const rp,
-        const I     * restrict const ci,
-        const I                      m,
-        const I                      n,
+        const Int   * restrict const rp,
+        const Int   * restrict const ci,
+        const Int                    m,
+        const Int                    n,
         const T                      alpha,
         const T_in  * restrict const X,
         const T_out                  beta,
               T_out * restrict const Y,
-        const I                      cols
+        const Int                    cols
     )
     {
         Multiply_GeneralMatrix_DenseMatrix(rp,ci,nullptr,m,n,alpha,X,beta,Y,cols);
@@ -151,16 +151,16 @@ public:
     
     void Multiply_BinaryMatrix_DenseMatrix
     (
-        const I     * restrict const rp,
-        const I     * restrict const ci,
-        const I                      m,
-        const I                      n,
+        const Int   * restrict const rp,
+        const Int   * restrict const ci,
+        const Int                    m,
+        const Int                     n,
         const T                      alpha,
         const T_in  * restrict const X,
         const T_out                  beta,
               T_out * restrict const Y,
-        const I                      cols,
-        const JobPointers<I> & job_ptr
+        const Int                    cols,
+        const JobPointers<Int> & job_ptr
     )
     {
         Multiply_GeneralMatrix_DenseMatrix(rp,ci,nullptr,m,n,alpha,X,beta,Y,cols,job_ptr);

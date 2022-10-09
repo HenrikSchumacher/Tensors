@@ -162,8 +162,6 @@ namespace Tensors
                 const Int k_begin = rp[i  ];
                 const Int k_end   = rp[i+1];
                 
-                prefetch_range<Kernel_T::RowCount(),1,0>( &Y[Kernel_T::RowCount() * i] );
-                
                 if( k_end > k_begin )
                 {
                     // Clear the local vector chunk of the kernel.
@@ -174,13 +172,11 @@ namespace Tensors
                     {
                         const Int j = ci[k];
 
-//                        __builtin_prefetch( &X[Kernel_T::ColCount() * ci[k+1]] );
-                        
-                        prefetch_range<Kernel_T::ColCount(),0,3>( &X[Kernel_T::ColCount() * ci[k+1]] );
-                        
-//                        __builtin_prefetch( &A[Kernel_T::NonzeroCount() * (k+1)] );
-                        
-                        prefetch_range<Kernel_T::NonzeroCount(),0,0>( &A[Kernel_T::NonzeroCount() * (k+1)] );
+                        // X is accessed in an unpredictable way; let's help with a prefetch statement.
+                        prefetch_range<Kernel_T::ColCount(),0,0>( &X[Kernel_T::ColCount() * ci[k+1]] );
+
+                        // The buffer A is accessed in-order; thus we can rely on the CPU's prefetecher.
+                        // prefetch_range<Kernel_T::NonzeroCount(),0,0>( &A[Kernel_T::NonzeroCount() * (k+1)] );
                         
                         // Let the kernel apply to the k-th block to the j-th chunk of the input.
                         // The result is stored in the kernel's local vector chunk X.
@@ -192,9 +188,6 @@ namespace Tensors
                         const Int k = k_end-1;
                         
                         const Int j = ci[k];
-                        
-                        // TODO: Should we include a guard here against prefetching from forbidden space?
-//                        __builtin_prefetch( &ci[k_end],0,0);
                         
                         // Let the kernel apply to the k-th block to the j-th chunk of the input X.
                         // The result is stored in the kernel's local vector chunk.

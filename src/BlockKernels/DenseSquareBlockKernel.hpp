@@ -74,7 +74,6 @@ namespace Tensors
         
         force_inline void ApplyBlock( const Int block_id, const Int j_global )
         {
-            
             alignas(ALIGNMENT) Scalar x [ SIZE ];
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             copy_cast_buffer( &X[SIZE * j_global], &x[0], SIZE );
