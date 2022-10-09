@@ -3,13 +3,13 @@
 namespace Tensors
 {
 
-#define BASE  SparseCSR<I>
+#define BASE  SparsityPatternCSR<Int>
 #define CLASS SparseBinaryMatrixCSR
     
-    template<typename I>
+    template<typename Int>
     class CLASS : public BASE
     {
-        ASSERT_INT  (I);
+        ASSERT_INT  (Int);
         
     protected:
         
@@ -119,22 +119,22 @@ namespace Tensors
         
         
         CLASS(
-            std::vector<I> & idx,
-            std::vector<I> & jdx,
-            const I m_,
-            const I n_,
-            const I final_thread_count,
+            std::vector<Int> & idx,
+            std::vector<Int> & jdx,
+            const Int m_,
+            const Int n_,
+            const Int final_thread_count,
             const bool compress   = true,
             const int  symmetrize = 0
         )
         :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize ) {};
         
         CLASS(
-            const std::vector<std::vector<I>> & idx,
-            const std::vector<std::vector<I>> & jdx,
-            const I m_,
-            const I n_,
-            const I final_thread_count,
+            const std::vector<std::vector<Int>> & idx,
+            const std::vector<std::vector<Int>> & jdx,
+            const Int m_,
+            const Int n_,
+            const Int final_thread_count,
             const bool compress   = true,
             const int  symmetrize = 0
         )
@@ -149,36 +149,36 @@ namespace Tensors
             
             RequireJobPtr();
             
-            Tensor2<I,I> counters = CreateTransposeCounters();
+            Tensor2<Int,Int> counters = CreateTransposeCounters();
             
-            CLASS<I> B ( n, m, outer[m], thread_count );
+            CLASS<Int> B ( n, m, outer[m], thread_count );
 
             copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
             
             if( WellFormed() )
             {
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
                     
-                          I * restrict const c = counters.data(thread);
+                          Int * restrict const c = counters.data(thread);
 
-                          I * restrict const B_inner  = B.Inner().data();
+                          Int * restrict const B_inner  = B.Inner().data();
 
-                    const I * restrict const A_outer  = Outer().data();
-                    const I * restrict const A_inner  = Inner().data();
+                    const Int * restrict const A_outer  = Outer().data();
+                    const Int * restrict const A_inner  = Inner().data();
                     
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const I k_begin = A_outer[i  ];
-                        const I k_end   = A_outer[i+1];
+                        const Int k_begin = A_outer[i  ];
+                        const Int k_end   = A_outer[i+1];
                         
-                        for( I k = k_end-1; k > k_begin-1; --k )
+                        for( Int k = k_end-1; k > k_begin-1; --k )
                         {
-                            const I j = A_inner[k];
-                            const I pos = --c[ j ];
+                            const Int j = A_inner[k];
+                            const Int pos = --c[ j ];
                             B_inner [pos] = i;
                         }
                     }
@@ -202,9 +202,9 @@ namespace Tensors
     
     public:
         
-        CLASS<I> Dot( const CLASS<I> & B ) const
+        CLASS<Int> Dot( const CLASS<Int> & B ) const
         {
-            CLASS<I> result;
+            CLASS<Int> result;
             
             BASE C = this->DotBinary_(B);
             
@@ -213,9 +213,9 @@ namespace Tensors
             return result;
         }
         
-        CLASS<I> DotBinary( const CLASS<I> & B ) const
+        CLASS<Int> DotBinary( const CLASS<Int> & B ) const
         {
-            CLASS<I> result;
+            CLASS<Int> result;
             
             BASE C = this->DotBinary_(B);
             
@@ -237,7 +237,7 @@ namespace Tensors
             const T_in  * X,
             const T_out beta,
                   T_out * Y,
-            const I cols = static_cast<I>(1)
+            const Int cols = static_cast<Int>(1)
         ) const
         {
             Dot_( alpha, X, beta, Y, cols );
@@ -246,14 +246,14 @@ namespace Tensors
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
             const T_ext alpha,
-            const Tensor1<T_in, I> & X,
+            const Tensor1<T_in, Int> & X,
             const T_out beta,
-                  Tensor1<T_out,I> & Y
+                  Tensor1<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )
             {
-                Dot_( alpha, X.data(), beta, Y.data(), static_cast<I>(1) );
+                Dot_( alpha, X.data(), beta, Y.data(), static_cast<Int>(1) );
             }
             else
             {
@@ -264,9 +264,9 @@ namespace Tensors
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
             const T_ext alpha,
-            const Tensor2<T_in, I> & X,
+            const Tensor2<T_in, Int> & X,
             const T_out beta,
-                  Tensor2<T_out,I> & Y
+                  Tensor2<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -289,7 +289,7 @@ namespace Tensors
             const T_in  * X,
             const T_out beta,
                   T_out * Y,
-            const I cols = static_cast<I>(1)
+            const Int cols = static_cast<Int>(1)
         ) const
         {
             Dot_( ext_values, alpha, X, beta, Y, cols );
@@ -297,16 +297,16 @@ namespace Tensors
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-            const Tensor1<T_ext, I> & ext_values,
+            const Tensor1<T_ext, Int> & ext_values,
             const T_ext alpha,
-            const Tensor1<T_in, I> & X,
+            const Tensor1<T_in, Int> & X,
             const T_out beta,
-                  Tensor1<T_out,I> & Y
+                  Tensor1<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )
             {
-                Dot_( ext_values.data(), alpha, X.data(), beta, Y.data(), static_cast<I>(1) );
+                Dot_( ext_values.data(), alpha, X.data(), beta, Y.data(), static_cast<Int>(1) );
             }
             else
             {
@@ -316,11 +316,11 @@ namespace Tensors
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-            const Tensor1<T_ext, I> & ext_values,
+            const Tensor1<T_ext, Int> & ext_values,
             const T_ext alpha,
-            const Tensor2<T_in, I> & X,
+            const Tensor2<T_in, Int> & X,
             const T_out beta,
-                  Tensor2<T_out,I> & Y
+                  Tensor2<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -338,7 +338,7 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return TO_STD_STRING(CLASS)+"<"+TypeName<I>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+TypeName<Int>::Get()+">";
         }
         
     }; // CLASS

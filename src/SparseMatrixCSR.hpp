@@ -1,7 +1,7 @@
 #pragma once
 
 #define CLASS SparseMatrixCSR
-#define BASE  SparseCSR<I>
+#define BASE  SparsityPatternCSR<I>
 
 namespace Tensors
 {

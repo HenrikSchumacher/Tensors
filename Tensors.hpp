@@ -37,12 +37,18 @@
     #include "src/DenseBLAS.hpp"
 
     #include "src/SparseBLAS.hpp"
-    #include "src/SparseCSR.hpp"
+    #include "src/SparsityPatternCSR.hpp"
     #include "src/SparseBinaryMatrixCSR.hpp"
     #include "src/SparseBinaryMatrixVBSR.hpp"
     #include "src/SparseMatrixCSR.hpp"
 
     #include "src/SparseBlockBLAS.hpp"
     #include "src/SparseMatrixBSR.hpp"
+
+    #include "src/BlockKernels/BlockKernel.hpp"
+    #include "src/BlockKernels/SquareBlockKernel.hpp"
+    #include "src/BlockKernels/ScalarBlockKernel.hpp"
+    #include "src/BlockKernels/DenseSquareBlockKernel.hpp"
+    #include "src/SparseKernelMatrixCSR.hpp"
 
 #endif
