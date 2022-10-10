@@ -57,6 +57,7 @@
     #include "src/BlockKernels/LowRankSquareBlockKernel.hpp"
     #include "src/BlockKernels/DenseSquareBlockKernel.hpp"
     #include "src/BlockKernels/DenseSquareBlockKernel_BLAS.hpp"
+    #include "src/BlockKernels/ExperimentalTPBlockKernel.hpp"
 //    #include "src/BlockKernels/DenseSquareBlockKernel_Eigen.hpp"
     #include "src/SparseKernelMatrixCSR.hpp"
 
