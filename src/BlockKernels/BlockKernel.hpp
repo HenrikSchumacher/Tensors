@@ -85,7 +85,7 @@ namespace Tensors
         ,   beta_flag ( other.beta_flag )
         {}
         
-        ~CLASS() = default;
+        virtual ~CLASS() = default;
 
 
     public:
@@ -100,7 +100,7 @@ namespace Tensors
             return COLS;
         }
         
-//        virtual Int NonzeroCount() const = 0;
+        virtual Int NonzeroCount() const = 0;
         
         force_inline void CleanseVector()
         {
@@ -194,9 +194,11 @@ namespace Tensors
             }
         }
         
+        virtual void ApplyBlock( const Int k, const Int j ) = 0;
+        
     public:
         
-        std::string ClassName() const
+        virtual std::string ClassName() const
         {
             return TO_STD_STRING(CLASS)+"<"+ToString(ROWS)+","+ToString(COLS)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }

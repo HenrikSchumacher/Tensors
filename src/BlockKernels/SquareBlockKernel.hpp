@@ -48,19 +48,19 @@ namespace Tensors
         // Copy constructor
         CLASS( const CLASS & other ) : BASE(other) {}
         
-        ~CLASS() = default;
+        virtual ~CLASS() override = default;
         
     public:
         
-//        virtual Int NonzeroCount() const override = 0;
+        virtual Int NonzeroCount() const override = 0;
         
-//        virtual void TransposeBlock( const Int from, const Int to ) = 0;
+        virtual void ApplyBlock( const Int k, const Int j ) override = 0;
         
-//        virtual void ApplyBlock( const Int k, const Int j ) override = 0;
-        
+        virtual void TransposeBlock( const Int from, const Int to ) const = 0;
+
     public:
         
-        std::string ClassName() const
+        virtual std::string ClassName() const override
         {
             return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }

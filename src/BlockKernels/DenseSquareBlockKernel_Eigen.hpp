@@ -49,16 +49,16 @@ namespace Tensors
         // Copy constructor
         CLASS( const CLASS & other ) : BASE(other) {}
         
-        ~CLASS() = default;
+        virtual ~CLASS() override = default;
         
     public:
         
-        static constexpr Int NonzeroCount()
+        virtual Int NonzeroCount() const override
         {
             return NONZERO_COUNT;
         }
         
-        force_inline void TransposeBlock( const Int from, const Int to ) const
+        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
         {
             const Scalar * restrict const a_from = &A[ NONZERO_COUNT * from];
                   Scalar * restrict const a_to   = &A[ NONZERO_COUNT * to  ];
@@ -72,7 +72,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ApplyBlock( const Int block_id, const Int j_global )
+        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) const override
         {
             
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
@@ -94,7 +94,7 @@ namespace Tensors
         
     public:
         
-        std::string ClassName() const
+        virtual std::string ClassName() const override
         {
             return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }

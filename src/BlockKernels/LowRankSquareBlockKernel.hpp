@@ -50,25 +50,25 @@ namespace Tensors
         // Copy constructor
         CLASS( const CLASS & other ) : BASE(other) {}
         
-        ~CLASS() = default;
+        virtual ~CLASS() override = default;
         
     public:
         
-        static constexpr Int NonzeroCount()
+        virtual Int NonzeroCount() const override
         {
             return NONZERO_COUNT;
         }
         
-        force_inline void TransposeBlock( const Int from, const Int to ) const
+        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
         {
             // U_in is of size RANK x SIZE
             // V_in is of size SIZE x RANK
             
-            const Scalar * restrict const U_in  = &A_const[NONZERO_COUNT * from            ];
-            const Scalar * restrict const V_in  = &A_const[NONZERO_COUNT * from + RANK*SIZE];
+            const Scalar * restrict const U_in  = &A[NONZERO_COUNT * from            ];
+            const Scalar * restrict const V_in  = &A[NONZERO_COUNT * from + RANK*SIZE];
             
-                  Scalar * restrict const U_out = &A_const[NONZERO_COUNT * to              ];
-                  Scalar * restrict const V_out = &A_const[NONZERO_COUNT * to   + RANK*SIZE];
+                  Scalar * restrict const U_out = &A[NONZERO_COUNT * to              ];
+                  Scalar * restrict const V_out = &A[NONZERO_COUNT * to   + RANK*SIZE];
 
             #pragma unroll
             for( Int i = 0; i < RANK; ++i )
@@ -92,7 +92,7 @@ namespace Tensors
             
         }
         
-        force_inline void ApplyBlock( const Int block_id, const Int j_global )
+        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
         {
             alignas(ALIGNMENT) Scalar x [ SIZE ];
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
@@ -130,7 +130,7 @@ namespace Tensors
         
     public:
         
-        std::string ClassName() const
+        virtual std::string ClassName() const override
         {
             return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }
