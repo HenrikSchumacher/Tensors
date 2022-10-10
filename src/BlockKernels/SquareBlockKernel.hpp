@@ -1,11 +1,11 @@
 #pragma once
 
 #define CLASS SquareBlockKernel
-#define BASE  BlockKernel<SIZE_,SIZE_,Scalar_,Int_,Scalar_in_,Scalar_out_>
+#define BASE  BlockKernel<SIZE_,SIZE_,RHS_COUNT_,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
 namespace Tensors
 {
-    template<int SIZE_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
+    template<int SIZE_, int RHS_COUNT_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
     class CLASS : public BASE
     {
     public:
@@ -15,9 +15,15 @@ namespace Tensors
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
         
-    protected:
-        
         static constexpr Int SIZE = SIZE_;
+        
+        using BASE::RHS_COUNT;
+        using BASE::ROWS;
+        using BASE::COLS;
+        using BASE::ROWS_SIZE;
+        using BASE::COLS_SIZE;
+        
+    protected:
     
         using BASE::A;
         using BASE::A_const;

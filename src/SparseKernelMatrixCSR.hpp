@@ -54,7 +54,7 @@ namespace Tensors
         
         Int NonzeroCount() const
         {
-            return pattern.NonzeroCount() * Kernel_T::NonzeroCount();
+            return pattern.NonzeroCount() * Kernel_T::NONZERO_COUNT;
         }
     
         
@@ -129,20 +129,27 @@ namespace Tensors
 //      Matrix multiplication
 //##############################################################################################
 
-        void Scale( T_out * restrict const Y, const T_out beta  ) const
+        void Scale( Scalar_out * restrict const Y, const Scalar_out beta ) const
         {
             const Int size = RowCount();
             
-            #pragma omp parallel for num_threads( pattern.ThreadCount() ) schedule( static )
-            for( Int i = 0; i < size; ++i )
+            if( beta == static_cast<Scalar_out>(0) )
             {
-                Y[i] *= beta;
+                zerofy_buffer(Y, size);
+            }
+            else
+            {
+                #pragma omp parallel for simd num_threads( pattern.ThreadCount() ) schedule( static )
+                for( Int i = 0; i < size; ++i )
+                {
+                    Y[i] *= beta;
+                }
             }
         }
         
         void Dot(
             const Scalar     * restrict const A,
-            const Scalar                      alpha,
+            const Scalar_out                  alpha,
             const Scalar_in  * restrict const X,
             const Scalar_out                  beta,
                   Scalar_out * restrict const Y
@@ -150,7 +157,7 @@ namespace Tensors
         {
             ptic(ClassName()+"::Dot" );
             
-            if( (alpha == static_cast<Scalar>(0)) || (pattern.nnz == 0) )
+            if( (alpha == static_cast<Scalar_out>(0)) || (NonzeroCount() <= 0) )
             {
                 Scale( Y, beta );
                 
@@ -163,14 +170,15 @@ namespace Tensors
             
             const Int thread_count = job_ptr.Size()-1;
             
+            
             #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
                 // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                 Kernel_T ker ( A, alpha, X, beta, Y );
                 
-                const Int    * restrict const rp = pattern.Outer().data();
-                const Int    * restrict const ci = pattern.Inner().data();
+                const Int * restrict const rp = pattern.Outer().data();
+                const Int * restrict const ci = pattern.Inner().data();
                 
                 // Kernel is supposed the following rows of pattern:
                 const Int i_begin = job_ptr[thread  ];
@@ -193,7 +201,7 @@ namespace Tensors
                             const Int j = ci[k];
 
                             // X is accessed in an unpredictable way; let's help with a prefetch statement.
-                            prefetch_range<Kernel_T::ColCount(),0,0>( &X[Kernel_T::ColCount() * ci[k+1]] );
+                            prefetch_range<Kernel_T::COLS_SIZE,0,0>( &X[Kernel_T::COLS_SIZE * ci[k+1]] );
 
                             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetecher.
                             // prefetch_range<Kernel_T::NonzeroCount(),0,0>( &A[Kernel_T::NonzeroCount() * (k+1)] );

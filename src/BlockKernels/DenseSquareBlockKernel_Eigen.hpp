@@ -14,6 +14,8 @@ namespace Tensors
         using Int        = Int_;
         using Scalar_out = Scalar_out_;
         using Scalar_in  = Scalar_in_;
+        
+        static constexpr Int NONZERO_COUNT = SIZE_ * SIZE_;
 
     protected:
         
@@ -22,9 +24,6 @@ namespace Tensors
         using BASE::X;
         using BASE::Y;
         using BASE::z;
-        using BASE::SIZE;
-        
-        static constexpr Int NONZERO_COUNT = SIZE * SIZE;
         
     public:
         
@@ -74,22 +73,26 @@ namespace Tensors
         
         virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) const override
         {
+            // Caution!!! Should only work correctly if Scalar == Scalar_in!
             
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
-            Eigen::Matrix<Scalar,SIZE,1> x ( &X[SIZE * j_global] );
+            Eigen::Matrix<Scalar,COLS,RHS_COUNT> x ( &X[COLS_SIZE * j_global] );
             
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
-            Eigen::Matrix<Scalar,SIZE,SIZE,Eigen::RowMajor> a ( &A_const[NONZERO_COUNT * block_id] );
+            Eigen::Matrix<Scalar,ROWS,COLS,Eigen::RowMajor> a ( &A_const[NONZERO_COUNT * block_id] );
             
-            Eigen::Matrix<Scalar,SIZE,1> z_vec;
+            Eigen::Map<Eigen::Matrix<Scalar,ROWS,COLS>> z_eigen (&z[0][0]);
             
-            z_vec = a * x;
+            z_eigen += a * x;
             
-            for( Int i = 0; i < SIZE; ++i )
-            {
-                z[i] += z_vec(i,0);
-            }
+//            for( Int i = 0; i < ROWS; ++i )
+//            {
+//                for( Int j = 0; j < RHS_COUNT; ++j )
+//                {
+//                    z[i][j] += z_eigen(i,j);
+//                }
+//            }
         }
         
     public:

@@ -4,7 +4,7 @@
 
 namespace Tensors
 {
-    template<int ROWS_, int COLS_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
+    template<int ROWS_, int COLS_, int RHS_COUNT_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
     class alignas( OBJECT_ALIGNMENT ) CLASS
     {
         ASSERT_ARITHMETIC(Scalar_)
@@ -21,10 +21,14 @@ namespace Tensors
         
     protected:
         
-        static constexpr Int ROWS = ROWS_;
-        static constexpr Int COLS = COLS_;
+        static constexpr Int ROWS      = ROWS_;
+        static constexpr Int COLS      = COLS_;
+        static constexpr Int RHS_COUNT = RHS_COUNT_;
         
-        alignas(ALIGNMENT) Scalar z[ ROWS ] = {};
+        static constexpr Int COLS_SIZE = COLS * RHS_COUNT;
+        static constexpr Int ROWS_SIZE = ROWS * RHS_COUNT;
+        
+        alignas(ALIGNMENT) Scalar z[ROWS][RHS_COUNT] = {};
         
               Scalar     * restrict const A       = nullptr;
         const Scalar     * restrict const A_const = nullptr;
@@ -100,17 +104,23 @@ namespace Tensors
             return COLS;
         }
         
+        static constexpr Int RightHandSideCount()
+        {
+            return RHS_COUNT;
+        }
+        
         virtual Int NonzeroCount() const = 0;
         
         force_inline void CleanseVector()
         {
-            zerofy_buffer( &z[0], ROWS );
+            zerofy_buffer( &z[0][0], ROWS_SIZE );
         }
 
         
         force_inline void WriteVector( const Int i ) const
         {
-            Scalar_out * restrict const y = &Y[ROWS*i];
+                  Scalar_out * restrict const y = &Y[ ROWS_SIZE * i];
+            const Scalar     * restrict const z_ = &z[0][0];
             
             if( alpha_flag == 1 )
             {
@@ -118,25 +128,25 @@ namespace Tensors
                 if( beta_flag == 0 )
                 {
                     #pragma omp simd
-                    for( Int k = 0; k < ROWS; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
-                        y[k] = static_cast<Scalar_out>(z[k]);
+                        y[k] = static_cast<Scalar_out>(z_[k]);
                     }
                 }
                 else if( beta_flag == 1 )
                 {
                     #pragma omp simd
-                    for( Int k = 0; k < ROWS; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
-                        y[k] += static_cast<Scalar_out>(z[k]);
+                        y[k] += static_cast<Scalar_out>(z_[k]);
                     }
                 }
                 else
                 {
                     #pragma omp simd
-                    for( Int k = 0; k < ROWS; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
-                        y[k] = static_cast<Scalar_out>(z[k]) + beta * y[k];
+                        y[k] = static_cast<Scalar_out>(z_[k]) + beta * y[k];
                     }
                 }
             }
@@ -145,7 +155,7 @@ namespace Tensors
                 if( beta_flag == 0 )
                 {
                     #pragma omp simd
-                    for( Int k = 0; k < ROWS; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] = static_cast<Scalar_out>(0);
                     }
@@ -157,7 +167,7 @@ namespace Tensors
                 else
                 {
                     #pragma omp simd
-                    for( Int k = 0; k < ROWS; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] *= beta;
                     }
@@ -169,26 +179,26 @@ namespace Tensors
                 if( beta_flag == 0 )
                 {
                     #pragma omp simd
-                    for( Int k = 0; k < ROWS; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
-                        y[k] = alpha * static_cast<Scalar_out>(z[k]);
+                        y[k] = alpha * static_cast<Scalar_out>(z_[k]);
                     }
                 }
                 else if( beta_flag == 1 )
                 {
                     #pragma omp simd
-                    for( Int k = 0; k < ROWS; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
-                        y[k] += alpha * static_cast<Scalar_out>(z[k]);
+                        y[k] += alpha * static_cast<Scalar_out>(z_[k]);
                     }
                 }
                 else
                 {
                     // general alpha and general beta
                     #pragma omp simd
-                    for( Int k = 0; k < ROWS; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
-                        y[k] = alpha * static_cast<Scalar_out>(z[k]) + beta * y[k];
+                        y[k] = alpha * static_cast<Scalar_out>(z_[k]) + beta * y[k];
                     }
                 }
             }
@@ -200,7 +210,7 @@ namespace Tensors
         
         virtual std::string ClassName() const
         {
-            return TO_STD_STRING(CLASS)+"<"+ToString(ROWS)+","+ToString(COLS)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+ToString(ROWS)+","+ToString(COLS)+","+ToString(RHS_COUNT)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }
   
     };

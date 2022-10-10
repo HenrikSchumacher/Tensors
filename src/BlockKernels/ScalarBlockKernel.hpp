@@ -1,11 +1,11 @@
 #pragma once
 
 #define CLASS ScalarBlockKernel
-#define BASE  SquareBlockKernel<SIZE_,Scalar_,Int_,Scalar_in_,Scalar_out_>
+#define BASE  SquareBlockKernel<SIZE_,RHS_COUNT_,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
 namespace Tensors
 {
-    template<int SIZE_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
+    template<int SIZE_, int RHS_COUNT_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_ >
     class CLASS : public BASE
     {
     public:
@@ -14,17 +14,23 @@ namespace Tensors
         using Int        = Int_;
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
-
-    protected:
         
         static constexpr Int NONZERO_COUNT = 1;
         
+        using BASE::SIZE;
+        using BASE::RHS_COUNT;
+        using BASE::ROWS;
+        using BASE::COLS;
+        using BASE::ROWS_SIZE;
+        using BASE::COLS_SIZE;
+        
+    protected:
+
         using BASE::A;
         using BASE::A_const;
         using BASE::X;
         using BASE::Y;
         using BASE::z;
-        using BASE::SIZE;
         
     public:
         
@@ -64,16 +70,20 @@ namespace Tensors
             A[to] = A[from];
         }
         
-        virtual force_inline void ApplyBlock( const Int k, const Int j ) override
+        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
         {
-            const Scalar a_k = A_const[k];
+            const Scalar a = A_const[block_id];
             
-            const Scalar_in * restrict x = &X[SIZE * j];
+            Scalar x[COLS][RHS_COUNT];
             
-            #pragma unroll
-            for( Int l = 0; l < SIZE; ++l )
+            copy_cast_buffer( &X[COLS_SIZE * j_global], &x[0][0], COLS_SIZE );
+            
+            for( Int i = 0; i < COLS; ++i )
             {
-                z[l] += a_k * static_cast<Scalar>(x[l]);
+                for( Int j = 0; j < RHS_COUNT; ++j )
+                {
+                    z[i][j] += a * x[i][j];
+                }
             }
         }
         
@@ -81,7 +91,7 @@ namespace Tensors
         
         virtual std::string ClassName() const override
         {
-            return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+ToString(RHS_COUNT)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }
 
     };

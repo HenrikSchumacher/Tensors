@@ -1,11 +1,11 @@
 #pragma once
 
 #define CLASS DenseSquareBlockKernel
-#define BASE  SquareBlockKernel<SIZE_,Scalar_,Int_,Scalar_in_,Scalar_out_>
+#define BASE  SquareBlockKernel<SIZE_,RHS_COUNT_,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
 namespace Tensors
 {
-    template<int SIZE_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
+    template<int SIZE_, int RHS_COUNT_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
     class CLASS : public BASE
     {
     public:
@@ -15,6 +15,15 @@ namespace Tensors
         using Scalar_out = Scalar_out_;
         using Scalar_in  = Scalar_in_;
 
+        using BASE::SIZE;
+        using BASE::RHS_COUNT;
+        using BASE::ROWS;
+        using BASE::COLS;
+        using BASE::ROWS_SIZE;
+        using BASE::COLS_SIZE;
+        
+        
+        static constexpr Int NONZERO_COUNT = ROWS * COLS;
     protected:
         
         using BASE::A;
@@ -22,9 +31,6 @@ namespace Tensors
         using BASE::X;
         using BASE::Y;
         using BASE::z;
-        using BASE::SIZE;
-        
-        static constexpr Int NONZERO_COUNT = SIZE * SIZE;
         
     public:
         
@@ -63,32 +69,37 @@ namespace Tensors
             const Scalar * restrict const a_from = &A[ NONZERO_COUNT * from];
                   Scalar * restrict const a_to   = &A[ NONZERO_COUNT * to  ];
             
-            for( Int j = 0; j < SIZE; ++j )
+            for( Int j = 0; j < COLS; ++j )
             {
-                for( Int i = 0; i < SIZE; ++i )
+                for( Int i = 0; i < ROWS; ++i )
                 {
-                    a_to[SIZE * j + i ] = a_from[SIZE * i + j ];
+                    a_to[ROWS * j + i ] = a_from[COLS * i + j ];
                 }
             }
         }
         
         virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
         {
-            alignas(ALIGNMENT) Scalar x [ SIZE ];
+            alignas(ALIGNMENT) Scalar x [COLS][RHS_COUNT];
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
-            copy_cast_buffer( &X[SIZE * j_global], &x[0], SIZE );
+            copy_cast_buffer( &X[COLS_SIZE * j_global], &x[0][0], COLS_SIZE );
             
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
-            alignas(ALIGNMENT) Scalar a [SIZE][SIZE];
+            alignas(ALIGNMENT) Scalar a [ROWS][COLS];
             
-            copy_buffer( &A_const[NONZERO_COUNT * block_id], &a[0][0], SIZE*SIZE );
+            copy_buffer( &A_const[NONZERO_COUNT * block_id], &a[0][0], ROWS*COLS );
             
-            for( Int i = 0; i < SIZE; ++i )
+            for( Int i = 0; i < ROWS; ++i )
             {
-                for( Int j = 0; j < SIZE; ++j )
+                for( Int j = 0; j < COLS; ++j )
                 {
-                    z[i] += a[i][j] * x[j];
+                    const Scalar a_i_j = a[i][j];
+                    
+                    for( Int k = 0; k < RHS_COUNT; ++k )
+                    {
+                        z[i][k] += a_i_j * x[j][k];
+                    }
                 }
             }
         }

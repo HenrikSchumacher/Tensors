@@ -1,11 +1,11 @@
 #pragma once
 
 #define CLASS DenseSquareBlockKernel_BLAS
-#define BASE  SquareBlockKernel<SIZE_,Scalar_,Int_,Scalar_in_,Scalar_out_>
+#define BASE  SquareBlockKernel<SIZE_,RHS_COUNT_,Scalar_,Int_,Scalar_in_,Scalar_out_>
 
 namespace Tensors
 {
-    template<int SIZE_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
+    template<int SIZE_, int RHS_COUNT_, typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_>
     class CLASS : public BASE
     {
     public:
@@ -15,6 +15,16 @@ namespace Tensors
         using Scalar_out = Scalar_out_;
         using Scalar_in  = Scalar_in_;
         
+        using BASE::SIZE;
+        using BASE::RHS_COUNT;
+        using BASE::ROWS;
+        using BASE::COLS;
+        using BASE::ROWS_SIZE;
+        using BASE::COLS_SIZE;
+        
+        
+        static constexpr Int NONZERO_COUNT = ROWS * COLS;
+        
     protected:
 
         using BASE::A;
@@ -22,9 +32,6 @@ namespace Tensors
         using BASE::X;
         using BASE::Y;
         using BASE::z;
-        using BASE::SIZE;
-
-        static constexpr Int NONZERO_COUNT = SIZE * SIZE;
         
     public:
         
@@ -64,29 +71,43 @@ namespace Tensors
             const Scalar * restrict const a_from = &A[ NONZERO_COUNT * from];
                   Scalar * restrict const a_to   = &A[ NONZERO_COUNT * to  ];
             
-            for( Int j = 0; j < SIZE; ++j )
+            for( Int j = 0; j < COLS; ++j )
             {
-                for( Int i = 0; i < SIZE; ++i )
+                for( Int i = 0; i < ROWS; ++i )
                 {
-                    a_to[SIZE * j + i ] = a_from[SIZE * i + j ];
+                    a_to[ROWS * j + i ] = a_from[COLS * i + j ];
                 }
             }
         }
         
         virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
         {
-            cblas_dgemv( CblasRowMajor, CblasNoTrans, SIZE, SIZE,
-                        1.0, &A_const[NONZERO_COUNT * block_id], SIZE,
-                             &X[SIZE * j_global], 1,
-                        1.0, &z[0], 1
-            );
+            // Caution!!! Should only work correctly if Scalar == Scalar_in == double!
+            if constexpr ( RHS_COUNT == 1 )
+            {
+                cblas_dgemv( CblasRowMajor, CblasNoTrans,
+                    ROWS, COLS,
+                    1.0, &A_const[NONZERO_COUNT * block_id], COLS,
+                         &X[COLS * j_global],                1,
+                    1.0, &z[0][0],                           1
+                );
+            }
+            else
+            {
+                cblas_dgemm (CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                    ROWS, RHS_COUNT, COLS,
+                    1.0, &A_const[NONZERO_COUNT * block_id], COLS,
+                         &X[COLS_SIZE * j_global],           RHS_COUNT,
+                    1.0, &z[0][0],                           RHS_COUNT
+                );
+            }
         }
         
     public:
         
         virtual std::string ClassName() const override
         {
-            return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+ToString(RHS_COUNT)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }
 
     };
