@@ -183,7 +183,7 @@ namespace Tensors {
             }
         }
         
-        T * data( const I i )
+        force_inline T * data( const I i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -191,7 +191,7 @@ namespace Tensors {
             return tensors[i].data();
         }
         
-        const T * data( const I i ) const
+        force_inline const T * data( const I i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -199,7 +199,7 @@ namespace Tensors {
             return tensors[i].data();
         }
 
-        T * data( const I i, const I j)
+        force_inline T * data( const I i, const I j)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -207,7 +207,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        const T * data( const I i, const I j) const
+        force_inline const T * data( const I i, const I j) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -215,7 +215,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        T * data( const I i, const I j, const I k)
+        force_inline T * data( const I i, const I j, const I k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -223,7 +223,7 @@ namespace Tensors {
             return tensors[i].data(j,k);
         }
         
-        const T * data( const I i, const I j, const I k) const
+        force_inline const T * data( const I i, const I j, const I k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -231,7 +231,7 @@ namespace Tensors {
             return tensors[i].data(j,k);
         }
 
-        T & operator()( const I i, const I j, const I k)
+        force_inline T & operator()( const I i, const I j, const I k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -239,7 +239,7 @@ namespace Tensors {
             return tensors[i](j,k);
         }
     
-        const T & operator()( const I i, const I j, const I k) const
+        force_inline const T & operator()( const I i, const I j, const I k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -306,12 +306,12 @@ namespace Tensors {
         
     public:
         
-        const I * Dimensions() const
+        force_inline const I * Dimensions() const
         {
             return &dims[0];
         }
         
-        I Dimension( const I i ) const
+        force_inline I Dimension( const I i ) const
         {
             return i < Rank() ? dims[i] : static_cast<I>(0);
         }

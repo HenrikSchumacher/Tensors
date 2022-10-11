@@ -123,7 +123,7 @@ namespace Tensors {
         
     public:
 
-        T * restrict data( const I i )
+        force_inline T * restrict data( const I i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -131,7 +131,7 @@ namespace Tensors {
             return &a[i * dims[1]];
         }
         
-        const T * restrict data( const I i ) const
+        force_inline const T * restrict data( const I i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -139,7 +139,7 @@ namespace Tensors {
             return &a[i * dims[1]];
         }
         
-        T & operator()(const I i, const I j)
+        force_inline T & operator()(const I i, const I j)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -147,7 +147,7 @@ namespace Tensors {
             return a[ i * dims[1] + j];
         }
         
-        const T & operator()( const I i, const I j) const
+        force_inline const T & operator()( const I i, const I j) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -155,7 +155,7 @@ namespace Tensors {
             return a[i * dims[1] + j];
         }
         
-        T * restrict operator[](const I i)
+        force_inline T * restrict operator[](const I i)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -163,7 +163,7 @@ namespace Tensors {
             return data(i);
         }
         
-        const T * restrict operator[](const I i) const
+        force_inline const T * restrict operator[](const I i) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);

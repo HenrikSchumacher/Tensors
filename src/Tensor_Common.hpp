@@ -138,29 +138,29 @@ void Random()
 
 protected:
 
-void allocate()
+force_inline void allocate()
 {
     safe_alloc( a, std::max( static_cast<size_t>(0), static_cast<size_t>(n) ) );
 }
 
 public:
 
-T * begin()
+force_inline T * begin()
 {
     return a;
 }
 
-const T * begin() const
+force_inline const T * begin() const
 {
     return a;
 }
 
-T * end()
+force_inline T * end()
 {
     return &a[n];
 }
 
-const T * end() const
+force_inline const T * end() const
 {
     return &a[n];
 }
@@ -170,24 +170,24 @@ const T * end() const
 //    return &dims[0];
 //}
 
-const I * Dimensions() const
+force_inline const I * Dimensions() const
 {
     return &dims[0];
 }
 
-I Dimension( const I i ) const
+force_inline I Dimension( const I i ) const
 {
     return ( i < Rank() ) ? dims[static_cast<size_t>(i)] : static_cast<I>(0);
 }
 
 public:
 
-T * data()
+force_inline T * data()
 {
     return a;
 }
 
-const T * data() const
+force_inline const T * data() const
 {
     return a;
 }
@@ -195,6 +195,7 @@ const T * data() const
 
 void AddFrom( const T * restrict const b )
 {
+    #pragma omp parallel for simd schedule( static )
     for( I i = 0; i < n; ++i )
     {
         // cppcheck-suppress [arithOperationsOnVoidPointer]
@@ -204,7 +205,7 @@ void AddFrom( const T * restrict const b )
 
 void AddTo( const T * const b )
 {
-     
+    #pragma omp parallel for simd schedule( static )
     for( I i = 0; i < n; ++i )
     {
         // cppcheck-suppress [arithOperationsOnVoidPointer]

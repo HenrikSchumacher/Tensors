@@ -56,7 +56,7 @@ namespace Tensors {
         }
         
 
-        T * data( const I i )
+        force_inline T * data( const I i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -64,7 +64,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        const T * data( const I i ) const
+        force_inline const T * data( const I i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -72,7 +72,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        T & operator()(const I i)
+        force_inline T & operator()(const I i)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -80,7 +80,7 @@ namespace Tensors {
             return a[i];
         }
         
-        const T & operator()(const I i) const
+        force_inline const T & operator()(const I i) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -88,7 +88,7 @@ namespace Tensors {
             return a[i];
         }
         
-        T & operator[](const I i)
+        force_inline T & operator[](const I i)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -96,7 +96,7 @@ namespace Tensors {
             return a[i];
         }
         
-        const T & operator[](const I i) const
+        force_inline const T & operator[](const I i) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -106,7 +106,7 @@ namespace Tensors {
         
 
         
-        T & First()
+        force_inline T & First()
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(0);
@@ -114,7 +114,7 @@ namespace Tensors {
             return a[0];
         }
         
-        const T & First() const
+        force_inline const T & First() const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(0);
@@ -122,7 +122,7 @@ namespace Tensors {
             return a[0];
         }
 
-        T & Last()
+        force_inline T & Last()
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(n-1);
@@ -130,7 +130,7 @@ namespace Tensors {
             return a[n-1];
         }
         
-        const T & Last() const
+        force_inline const T & Last() const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(n-1);
@@ -166,7 +166,7 @@ namespace Tensors {
             parallel_accumulate(a, n, thread_count );
         }
         
-        void Scale( const T alpha )
+        force_inline void Scale( const T alpha )
         {
             T * restrict const a_ = a;
             
