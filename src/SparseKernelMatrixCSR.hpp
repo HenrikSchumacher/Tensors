@@ -20,7 +20,7 @@ namespace Tensors
         :   kernel { nullptr, 0, nullptr, 0, nullptr }
         {}
         
-        CLASS(
+        explicit CLASS(
             const SparsityPattern_T & pattern_
         )
         :   pattern ( pattern_ )
@@ -131,7 +131,7 @@ namespace Tensors
 
         void Scale( Scalar_out * restrict const Y, const Scalar_out beta ) const
         {
-            const Int size = RowCount();
+            const Int size = RowCount() * Kernel_T::RightHandSideCount();
             
             if( beta == static_cast<Scalar_out>(0) )
             {

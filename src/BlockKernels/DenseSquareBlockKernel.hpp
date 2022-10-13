@@ -32,6 +32,9 @@ namespace Tensors
         using BASE::Y;
         using BASE::z;
         
+        alignas(ALIGNMENT) Scalar x [COLS][RHS_COUNT];
+        alignas(ALIGNMENT) Scalar a [ROWS][COLS];
+        
     public:
         
         CLASS() = delete;
@@ -78,37 +81,48 @@ namespace Tensors
             }
         }
         
-        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
+        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override __attribute__ ((hot))
         {
-            alignas(ALIGNMENT) Scalar x [COLS][RHS_COUNT];
+            
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             copy_cast_buffer( &X[COLS_SIZE * j_global], &x[0][0], COLS_SIZE );
             
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
-            alignas(ALIGNMENT) Scalar a [ROWS][COLS];
-            
-            copy_buffer( &A_const[NONZERO_COUNT * block_id], &a[0][0], ROWS*COLS );
-            
-            for( Int i = 0; i < ROWS; ++i )
+            copy_buffer( &A_const[NONZERO_COUNT * block_id], &a[0][0], NONZERO_COUNT );
+  
+
+//            for( Int k = 0; k < RHS_COUNT; ++k )
+//            {
+//                for( Int i = 0; i < ROWS; ++i )
+//                {
+//                    for( Int j = 0; j < COLS; ++j )
+//                    {
+////                        z[k][i] += a[i][j] * x[j][k];
+//                        z[i][k] = std::fma( a[i][j], x[j][k], z[i][k] );
+//                    }
+//                }
+//            }
+//
+            for( Int k = 0; k < RHS_COUNT; ++k )
             {
-                for( Int j = 0; j < COLS; ++j )
+                for( Int i = 0; i < ROWS; ++i )
                 {
-                    const Scalar a_i_j = a[i][j];
-                    
-                    for( Int k = 0; k < RHS_COUNT; ++k )
+                    for( Int j = 0; j < COLS; ++j )
                     {
-                        z[i][k] += a_i_j * x[j][k];
+//                        z[i][k] += a[i][j] * x[j][k]; 
+                        z[i][k] = std::fma( a[i][j], x[j][k], z[i][k] );
                     }
                 }
             }
+            
         }
         
     public:
         
         virtual std::string ClassName() const override
         {
-            return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+ToString(SIZE)+","+ToString(RHS_COUNT)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()+">";
         }
 
     };

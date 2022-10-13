@@ -76,7 +76,15 @@ namespace Tensors
         ,   beta_flag(
                 (beta  == static_cast<Scalar_out>(1)) ? 1 : ((beta  == static_cast<Scalar_out>(0)) ? 0 : -1)
             )
-        {}
+        {
+//            #pragma omp single
+//            {
+//                valprint("alpha     ",alpha);
+//                valprint("alpha_flag",alpha_flag);
+//                valprint("beta      ",beta);
+//                valprint("beta_flag ",beta_flag);
+//            }
+        }
         
         // Copy constructor
         CLASS( const CLASS & other )
@@ -127,15 +135,10 @@ namespace Tensors
                 // alpha == 1;
                 if( beta_flag == 0 )
                 {
-                    #pragma omp simd
-                    for( Int k = 0; k < ROWS_SIZE; ++k )
-                    {
-                        y[k] = static_cast<Scalar_out>(z_[k]);
-                    }
+                    copy_cast_buffer( z_, y, ROWS_SIZE );
                 }
                 else if( beta_flag == 1 )
                 {
-                    #pragma omp simd
                     for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] += static_cast<Scalar_out>(z_[k]);
@@ -143,7 +146,6 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp simd
                     for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] = static_cast<Scalar_out>(z_[k]) + beta * y[k];
@@ -154,11 +156,7 @@ namespace Tensors
             {
                 if( beta_flag == 0 )
                 {
-                    #pragma omp simd
-                    for( Int k = 0; k < ROWS_SIZE; ++k )
-                    {
-                        y[k] = static_cast<Scalar_out>(0);
-                    }
+                    zerofy_buffer( y, ROWS_SIZE );
                 }
                 else if( beta_flag == 1 )
                 {
@@ -166,7 +164,6 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp simd
                     for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] *= beta;
@@ -178,7 +175,6 @@ namespace Tensors
                 // alpha arbitrary;
                 if( beta_flag == 0 )
                 {
-                    #pragma omp simd
                     for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] = alpha * static_cast<Scalar_out>(z_[k]);
@@ -186,7 +182,6 @@ namespace Tensors
                 }
                 else if( beta_flag == 1 )
                 {
-                    #pragma omp simd
                     for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] += alpha * static_cast<Scalar_out>(z_[k]);
@@ -195,7 +190,6 @@ namespace Tensors
                 else
                 {
                     // general alpha and general beta
-                    #pragma omp simd
                     for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] = alpha * static_cast<Scalar_out>(z_[k]) + beta * y[k];
