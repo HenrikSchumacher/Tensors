@@ -31,8 +31,8 @@ namespace Tensors {
             Fill( static_cast<T>(init) );
         }
         
-        template<typename J0, typename J1, typename J2, IsInt(J0), IsInt(J1), IsInt(J2)>
-        TENSOR_T( const T * a_, const J0 d0, const J1 d1, const J2 d2 )
+        template<typename S, typename J0, typename J1, typename J2, IsInt(J0), IsInt(J1), IsInt(J2)>
+        TENSOR_T( const S * a_, const J0 d0, const J1 d1, const J2 d2 )
         :   TENSOR_T(static_cast<I>(d0),static_cast<I>(d1),static_cast<I>(d2))
         {
             Read(a_);
