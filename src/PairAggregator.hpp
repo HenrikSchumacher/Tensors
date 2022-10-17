@@ -37,10 +37,10 @@ namespace Tensors
         PairAggregator( const PairAggregator & other )
         :   current_size ( other.current_size              )
         ,   capacity     ( other.capacity                  )
-        ,   container_0  ( other.container_0               )
-        ,   container_1  ( other.container_1               )
         ,   buffer_0     ( other.buffer_0                  )
         ,   buffer_1     ( other.buffer_1                  )
+        ,   container_0  ( other.container_0               )
+        ,   container_1  ( other.container_1               )
         {}
 
         friend void swap ( PairAggregator & A, PairAggregator & B ) noexcept
@@ -49,10 +49,10 @@ namespace Tensors
             
             swap( A.current_size, B.current_size );
             swap( A.capacity,     B.capacity     );
-            swap( A.container_0,  B.container_0  );
-            swap( A.container_1,  B.container_1  );
             swap( A.buffer_0,     B.buffer_0     );
             swap( A.buffer_1,     B.buffer_1     );
+            swap( A.container_0,  B.container_0  );
+            swap( A.container_1,  B.container_1  );
         }
 
         // Move constructor

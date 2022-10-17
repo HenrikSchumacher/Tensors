@@ -175,7 +175,7 @@ namespace Tensors
                 i[thread] = triples[thread].Get_0().data();
                 j[thread] = triples[thread].Get_1().data();
                 a[thread] = triples[thread].Get_2().data();
-                entry_counts[thread] = static_cast<I>(triples[thread].size());
+                entry_counts[thread] = static_cast<I>(triples[thread].Size());
             }
             
             FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),

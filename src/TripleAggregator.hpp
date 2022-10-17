@@ -41,12 +41,12 @@ namespace Tensors
         TripleAggregator( const TripleAggregator & other )
         :   current_size ( other.current_size              )
         ,   capacity     ( other.capacity                  )
-        ,   container_0  ( other.container_0               )
-        ,   container_1  ( other.container_1               )
-        ,   container_2  ( other.container_2               )
         ,   buffer_0     ( other.buffer_0                  )
         ,   buffer_1     ( other.buffer_1                  )
         ,   buffer_2     ( other.buffer_2                  )
+        ,   container_0  ( other.container_0               )
+        ,   container_1  ( other.container_1               )
+        ,   container_2  ( other.container_2               )
         {}
 
         friend void swap ( TripleAggregator & A, TripleAggregator & B ) noexcept
@@ -55,12 +55,12 @@ namespace Tensors
             
             swap( A.current_size, B.current_size );
             swap( A.capacity,     B.capacity     );
-            swap( A.container_0,  B.container_0  );
-            swap( A.container_1,  B.container_1  );
-            swap( A.container_2,  B.container_2  );
             swap( A.buffer_0,     B.buffer_0     );
             swap( A.buffer_1,     B.buffer_1     );
             swap( A.buffer_2,     B.buffer_2     );
+            swap( A.container_0,  B.container_0  );
+            swap( A.container_1,  B.container_1  );
+            swap( A.container_2,  B.container_2  );
         }
 
         // Move constructor
