@@ -37,6 +37,9 @@
     //#include "src/SmallSymmetricMatrix.hpp"
     #include "src/SmallMatrixList.hpp"
 
+    #include "src/PairAggregator.hpp"
+    #include "src/TripleAggregator.hpp"
+
     #include "src/TwoArrayQuickSort.hpp"
     #include "src/TimSort.hpp"
 

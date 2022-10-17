@@ -154,6 +154,34 @@ namespace Tensors
                     list_count, final_thread_count, compress, symmetrize );
         }
         
+        CLASS(
+            const std::vector<TripleAggregator<Int,Int,T>> & triples,
+            const I m_,
+            const I n_,
+            const I final_thread_count,
+            const bool compress   = true,
+            const int  symmetrize = 0
+        )
+        :   BASE ( m_, n_, static_cast<I>(triples.size()) )
+        {
+            I list_count = static_cast<I>(triples.size());
+            Tensor1<const I*,I> i (list_count);
+            Tensor1<const I*,I> j (list_count);
+            Tensor1<const T*,I> a (list_count);
+            Tensor1<I ,I> entry_counts (list_count);
+            
+            for( I thread = 0; thread < list_count; ++thread )
+            {
+                i[thread] = triples[thread].Get_0().data();
+                j[thread] = triples[thread].Get_1().data();
+                a[thread] = triples[thread].Get_2().data();
+                entry_counts[thread] = static_cast<I>(triples[thread].size());
+            }
+            
+            FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
+                    list_count, final_thread_count, compress, symmetrize );
+        }
+        
         virtual ~CLASS() override = default;
 
     protected:
