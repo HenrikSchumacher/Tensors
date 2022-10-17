@@ -46,7 +46,7 @@ namespace Tensors
         ,   container_2  ( other.container_2               )
         ,   buffer_0     ( other.buffer_0                  )
         ,   buffer_1     ( other.buffer_1                  )
-        ,   buffer_2     ( other.buffer_1                  )
+        ,   buffer_2     ( other.buffer_2                  )
         {}
 
         friend void swap ( TripleAggregator & A, TripleAggregator & B ) noexcept
