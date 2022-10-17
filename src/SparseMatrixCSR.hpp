@@ -155,7 +155,7 @@ namespace Tensors
         }
         
         CLASS(
-            const std::vector<TripleAggregator<Int,Int,T>> & triples,
+            const std::vector<TripleAggregator<I,I,T,I>> & triples,
             const I m_,
             const I n_,
             const I final_thread_count,
