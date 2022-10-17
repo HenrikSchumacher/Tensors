@@ -137,9 +137,9 @@ namespace Tensors
         :   BASE ( m_, n_, static_cast<I>(idx.size()) )
         {
             I list_count = static_cast<I>(idx.size());
-            Tensor1<const I*, I> i (list_count);
-            Tensor1<const I*, I> j (list_count);
-            Tensor1<const T*, I> a (list_count);
+            Tensor1<const I*,I> i (list_count);
+            Tensor1<const I*,I> j (list_count);
+            Tensor1<const T*,I> a (list_count);
             Tensor1<I ,I> entry_counts (list_count);
             
             for( I thread = 0; thread < list_count; ++thread )

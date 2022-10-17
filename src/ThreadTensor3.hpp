@@ -59,6 +59,21 @@ namespace Tensors {
                 tensors[thread].Read( a_ + thread * dims[1] * dims[2]);
             }
         }
+
+        // Copy constructor
+        explicit ThreadTensor3( const ThreadTensor3<T,I> & other )
+        :   ThreadTensor3(other.dims)
+        {
+            print(ClassName()+" copy constructor");
+            
+            const I thread_count = dims[0];
+            
+            #pragma omp parallel for num_threads( thread_count )
+            for( I thread = 0; thread < thread_count; ++thread )
+            {
+                tensors[thread].Read( other[thread].data() );
+            }
+        }
         
         // Copy constructor
         template<typename S, typename J, IsInt(J)>

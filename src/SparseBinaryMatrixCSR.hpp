@@ -139,6 +139,16 @@ namespace Tensors
             const int  symmetrize = 0
         )
         :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize ) {};
+        
+        CLASS(
+            const std::vector<PairAggregator<Int, Int, Int>> & idx,
+            const Int m_,
+            const Int n_,
+            const Int final_thread_count,
+            const bool compress   = true,
+            const int  symmetrize = 0
+        )
+        :   BASE( idx, m_, n_, final_thread_count, compress, symmetrize ) {};
     
         virtual ~CLASS() = default;
         
