@@ -688,10 +688,8 @@ namespace Tensors
         // Use own nonzero values.
         template<typename T_in, typename T_out>
         void Dot(
-            const T alpha,
-            const T_in  * X,
-            const T_out beta,
-                  T_out * Y,
+            const T alpha,     const T_in  * X,
+            const T_out beta,        T_out * Y,
             const I cols = static_cast<I>(1)
         ) const
         {
@@ -701,10 +699,8 @@ namespace Tensors
         // Use own nonzero values.
         template<typename T_in, typename T_out>
         void Dot(
-            const T alpha,
-            const Tensor1<T_in, I> & X,
-            const T_out beta,
-                  Tensor1<T_out,I> & Y
+            const T alpha,     const Tensor1<T_in, I> & X,
+            const T_out beta,        Tensor1<T_out,I> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )

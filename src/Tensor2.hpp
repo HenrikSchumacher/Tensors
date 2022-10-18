@@ -18,7 +18,7 @@ namespace Tensors {
         
         template<typename J0, typename J1, IsInt(J0), IsInt(J1)>
         TENSOR_T( const J0 d0, const J1 d1)
-        :   n   { static_cast<I>(d0) * static_cast<I>(d1) }
+        :   n   { static_cast<I>(static_cast<I>(d0) * static_cast<I>(d1)) }
         ,   dims{ static_cast<I>(d0),  static_cast<I>(d1) }
         {
             allocate();

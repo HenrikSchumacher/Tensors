@@ -1,6 +1,6 @@
-protected:
+public:
 
-    void SpMV
+    force_inline  void SpMV
     (
         Int const * restrict const rp,
         Int const * restrict const ci,
