@@ -203,7 +203,7 @@ namespace Tensors
                         ker.CleanseVector();
                         
                         // Perform all but the last calculation in row with prefetch.
-                        for( int k = k_begin; k < k_end-1; ++k )
+                        for( Int k = k_begin; k < k_end-1; ++k )
                         {
                             const Int j = ci[k];
 
