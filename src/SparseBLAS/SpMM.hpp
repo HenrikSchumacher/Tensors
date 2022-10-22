@@ -4,7 +4,7 @@ public:
     force_inline void SpMM
     (
         const Int   * restrict const rp,
-        const Int   * restrict const ci,
+        const SInt  * restrict const ci,
         const T     * restrict const a,
         const Int                    m,
         const Int                    n,
@@ -231,7 +231,7 @@ public:
     template<Int cols, bool a_flag, int alpha_flag, int beta_flag >
     force_inline void SpMM_implementation(
         const Int   * restrict const rp,
-        const Int   * restrict const ci,
+        const SInt  * restrict const ci,
         const T     * restrict const a,
         const Int                    m,
         const Int                    n,
@@ -288,7 +288,7 @@ public:
                     
                     for( Int k = k_begin; k < k_end-1; ++k )
                     {
-                        const Int j = ci[k];
+                        const SInt j = ci[k];
                         
 //                        prefetch_range<cols,0,0>( &X[cols * ci[k+1]] );
                         
@@ -304,9 +304,9 @@ public:
                     
                     // perform last calculation in row without prefetch
                     {
-                        const Int k = k_end-1;
+                        const Int  k = k_end-1;
                         
-                        const Int j   = ci[k];
+                        const SInt j = ci[k];
                         
                         if constexpr ( a_flag )
                         {

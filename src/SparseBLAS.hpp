@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename T, typename Int, typename T_in, typename T_out>
+    template<typename T, typename Int, typename SInt, typename T_in, typename T_out>
     class SparseBLAS
     {
         ASSERT_INT(Int);
@@ -65,7 +65,7 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return "SparseBLAS<"+TypeName<T>::Get()+","+TypeName<Int>::Get()+","+TypeName<T_in>::Get()+","+TypeName<T_out>::Get()+">";
+            return "SparseBLAS<"+TypeName<T>::Get()+","+TypeName<Int>::Get()+","+TypeName<SInt>::Get()+","+TypeName<T_in>::Get()+","+TypeName<T_out>::Get()+">";
         }
         
 

@@ -2,8 +2,8 @@
 
 #define CLASS DenseBlockKernel_gen
 #define BASE  BlockKernel_gen<ROWS_,COLS_,MAX_RHS_COUNT_,Scalar_,Int_,Scalar_in_,Scalar_out_,   \
-    x_RM,  y_RM,                    \
-    alpha_flag, beta_flag           \
+    x_RM,  y_RM,                                                                                \
+    alpha_flag, beta_flag                                                                       \
 >
 
 ////    x_RowMajor,y_RowMajor,
@@ -46,9 +46,7 @@ namespace Tensors
         
         CLASS() = delete;
         
-        explicit CLASS(
-            const Scalar     * restrict const A_
-        )
+        explicit CLASS( Scalar * restrict const A_ )
         :   BASE( A_ )
         {}
         

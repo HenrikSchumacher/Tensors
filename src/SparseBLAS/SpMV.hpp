@@ -2,15 +2,15 @@ public:
 
     force_inline  void SpMV
     (
-        Int const * restrict const rp,
-        Int const * restrict const ci,
-        T const * restrict const a,
-        Int const m,
-        Int const n,
-        const T alpha,
-        T_in  const * restrict const x,
-        const T_out beta,
-        T_out       * restrict const y,
+        const Int   * restrict const rp,
+        const SInt  * restrict const ci,
+        const T     * restrict const a,
+        const Int                    m,
+        const Int                    n,
+        const T                      alpha,
+        const T_in  * restrict const x,
+        const T_out                  beta,
+              T_out * restrict const y,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -63,13 +63,13 @@ public:
                         const Int l_begin = rp[i  ];
                         const Int l_end   = rp[i+1];
                         
-                        __builtin_prefetch( ci + l_end );
-                        __builtin_prefetch( a  + l_end );
+                        __builtin_prefetch( &ci[l_end] );
+                        __builtin_prefetch( &a[l_end] );
                     
                         #pragma omp simd reduction( + : sum )
                         for( Int l = l_begin; l < l_end; ++l )
                         {
-                            const Int j = ci[l];
+                            const SInt j = ci[l];
                             
                             sum += a[l] * static_cast<T>(x[j]);
     //                                sum = std::fma(a[l], x[j], sum);
@@ -101,13 +101,13 @@ public:
                         const Int l_begin = rp[i  ];
                         const Int l_end   = rp[i+1];
                         
-                        __builtin_prefetch( ci + l_end );
-                        __builtin_prefetch( a  + l_end );
+                        __builtin_prefetch( &ci[l_end] );
+                        __builtin_prefetch( &a [l_end] );
                     
                         #pragma omp simd reduction( + : sum )
                         for( Int l = l_begin; l < l_end; ++l )
                         {
-                            const Int j = ci[l];
+                            const SInt j = ci[l];
                             
                             sum += a[l] * static_cast<T>(x[j]);
     //                                sum = std::fma(a[l], x[j], sum);

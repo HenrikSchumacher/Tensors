@@ -1067,7 +1067,7 @@ namespace Tensors
         {
             if( WellFormed() )
             {
-                SparseBLAS<T_ext,Int,T_in,T_out> sblas ( thread_count );
+                SparseBLAS<T_ext,Int,Int,T_in,T_out> sblas ( thread_count );
                 
                 sblas.Multiply_BinaryMatrix_DenseMatrix(
                     outer.data(),inner.data(),m,n,alpha,X,beta,Y,cols,JobPtr()
@@ -1092,7 +1092,7 @@ namespace Tensors
         {
             if( WellFormed() )
             {
-                auto sblas = SparseBLAS<T_ext,Int,T_in,T_out>( thread_count );
+                auto sblas = SparseBLAS<T_ext,Int,Int,T_in,T_out>( thread_count );
                 
                 sblas.Multiply_GeneralMatrix_DenseMatrix(
                     outer.data(),inner.data(),values,m,n,alpha,X,beta,Y,cols,JobPtr()
