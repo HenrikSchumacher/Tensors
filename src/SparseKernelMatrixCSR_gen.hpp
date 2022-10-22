@@ -84,7 +84,7 @@ namespace Tensors
                 #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    Kernel_T ker ( values, 0, nullptr, 0, nullptr );
+                    Kernel_T ker ( values );
                     
                     const Int i_begin = job_ptr[thread];
                     const Int i_end   = job_ptr[thread+1];
