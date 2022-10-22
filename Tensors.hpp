@@ -62,6 +62,7 @@
     #include "src/SparseKernelMatrixCSR.hpp"
 
     #include "src/BlockKernels_gen/BlockKernel_gen.hpp"
+    #include "src/BlockKernels_gen/BlockKernel_fixed.hpp"
     #include "src/BlockKernels_gen/DenseBlockKernel_gen.hpp"
     #include "src/SparseKernelMatrixCSR_gen.hpp"
 
