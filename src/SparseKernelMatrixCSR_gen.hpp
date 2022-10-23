@@ -17,14 +17,14 @@ namespace Tensors
         using SparsityPattern_T = SparsityPatternCSR<Int>;
         
         CLASS()
-        :   kernel { nullptr, 0, nullptr, 0, nullptr, 0 }
+        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
         
         explicit CLASS(
             const SparsityPattern_T & pattern_
         )
         :   pattern ( pattern_ )
-        ,   kernel { nullptr, 0, nullptr, 0, nullptr, 0 }
+        ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {
 //            print("Creating class "+TO_STD_STRING(CLASS));
 //            print(kernel.ClassName());
@@ -33,7 +33,7 @@ namespace Tensors
         // Copy constructor
         CLASS( const CLASS & other )
         :   pattern ( other.pattern )
-        ,   kernel { nullptr, 0, nullptr, 0, nullptr, 0 }
+        ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
 
         ~CLASS() = default;
@@ -41,7 +41,7 @@ namespace Tensors
     protected:
         
         const SparsityPattern_T   & pattern;
-        Kernel_T                    kernel { nullptr, 0, nullptr, 0, nullptr, 0 };
+        Kernel_T kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT };
         
     public:
         
@@ -174,7 +174,7 @@ namespace Tensors
             
             const Int thread_count = job_ptr.Size()-1;
 
-            const Int rows_size = Kernel_T::RowCount() * rhs_count;
+//            const Int rows_size = Kernel_T::RowCount() * rhs_count;
             const Int cols_size = Kernel_T::ColCount() * rhs_count;
 
             #pragma omp parallel for num_threads( thread_count )
@@ -206,12 +206,11 @@ namespace Tensors
                         for( Int k = k_begin; k < k_end-1; ++k )
                         {
                             const Int j = ci[k];
-
+                            
                             // X is accessed in an unpredictable way; let's help with a prefetch statement.
                             prefetch_range<0,0>( &X[cols_size * ci[k+1]], cols_size );
-
+                            
                             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
-//                            prefetch_range<0,0>( &A[Kernel_T::NONZERO_COUNT * (k+1)], Kernel_T::NONZERO_COUNT );
                             
                             // Let the kernel apply to the k-th block to the j-th chunk of the input.
                             // The result is stored in the kernel's local vector chunk X.
@@ -237,11 +236,8 @@ namespace Tensors
                     }
                     else
                     {
-                        // Just zerofy the i-th chunk if the output Y.
-                        zerofy_buffer( &Y[rows_size * i], rows_size );
+                        ker.WriteZero(i);
                     }
-                    
-                    // Incoporate the local vector chunk into the i-th chunk of the output.
                     
                 }
             }

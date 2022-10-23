@@ -5,7 +5,7 @@
 namespace Tensors
 {
     template<
-        int ROWS_, int COLS_, int MAX_RHS_COUNT_,
+        int ROWS_, int COLS_, int RHS_COUNT_,
         typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
         bool x_RM, bool y_RM,
         int alpha_flag, int beta_flag
@@ -24,15 +24,14 @@ namespace Tensors
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
         
-        static constexpr Int MAX_RHS_COUNT = MAX_RHS_COUNT_;
-        
-    protected:
-        
+        static constexpr Int RHS_COUNT = RHS_COUNT_;
+        static constexpr Int MAX_RHS_COUNT = RHS_COUNT_;
         static constexpr Int ROWS = ROWS_;
         static constexpr Int COLS = COLS_;
-        static constexpr Int MAX_ROWS_SIZE = ROWS_ * MAX_RHS_COUNT_;
-        static constexpr Int MAX_COLS_SIZE = COLS_ * MAX_RHS_COUNT_;
+        static constexpr Int ROWS_SIZE = ROWS_ * RHS_COUNT_;
+        static constexpr Int COLS_SIZE = COLS_ * RHS_COUNT_;
 
+    protected:
         
               Scalar     * restrict const A       = nullptr;
         const Scalar     * restrict const A_const = nullptr;
@@ -40,13 +39,10 @@ namespace Tensors
         const Scalar_in  * restrict const X       = nullptr;
         const Scalar_out                  beta    = 0;
               Scalar_out * restrict const Y       = nullptr;
+
         
-        const Int rhs_count = 0;
-        const Int rows_size = 0;
-        const Int cols_size = 0;
-        
-        alignas(ALIGNMENT) Scalar z [MAX_RHS_COUNT][ROWS] = {};
-        alignas(ALIGNMENT) Scalar x [MAX_RHS_COUNT][COLS] = {};
+        alignas(ALIGNMENT) Scalar z [RHS_COUNT][ROWS] = {};
+        alignas(ALIGNMENT) Scalar x [RHS_COUNT][COLS] = {};
         
     public:
         
@@ -61,9 +57,6 @@ namespace Tensors
         ,   X( nullptr )
         ,   beta( 0 )
         ,   Y( nullptr )
-        ,   rhs_count ( 0 )
-        ,   rows_size ( 0 )
-        ,   cols_size ( 0 )
         {}
 
         CLASS(
@@ -72,7 +65,7 @@ namespace Tensors
             const Scalar_in  * restrict const X_,
             const Scalar_out                  beta_,
                   Scalar_out * restrict const Y_,
-            const Int                         rhs_count_
+                  Int                         rhs_count
         )
         :   A ( nullptr )
         ,   A_const( A_ )
@@ -80,10 +73,8 @@ namespace Tensors
         ,   X( X_ )
         ,   beta( beta_ )
         ,   Y( Y_ )
-        ,   rhs_count  ( rhs_count_       )
-        ,   rows_size  ( rhs_count * ROWS )
-        ,   cols_size  ( rhs_count * COLS )
         {
+            assert( RHS_COUNT == rhs_count );
         }
         
         // Copy constructor
@@ -93,9 +84,6 @@ namespace Tensors
         ,   X          ( other.X          )
         ,   beta       ( other.beta       )
         ,   Y          ( other.Y          )
-        ,   rhs_count  ( other.rhs_count  )
-        ,   rows_size  ( other.rows_size  )
-        ,   cols_size  ( other.cols_size  )
         {}
         
         virtual ~CLASS() = default;
@@ -115,7 +103,7 @@ namespace Tensors
         
         Int RightHandSideCount() const
         {
-            return MAX_RHS_COUNT;
+            return RHS_COUNT;
         }
         
         virtual Int NonzeroCount() const = 0;
@@ -124,32 +112,32 @@ namespace Tensors
         
         force_inline void CleanseVector()
         {
-            zerofy_buffer( &z[0][0], MAX_ROWS_SIZE );
+            zerofy_buffer( &z[0][0], ROWS_SIZE );
         }
         
         force_inline void ReadVector( const Int j_global )
         {
-            const Scalar_in * restrict const x_from = &X[MAX_COLS_SIZE * j_global];
+            const Scalar_in * restrict const x_from = &X[COLS_SIZE * j_global];
             
             if constexpr ( x_RM )
             {
                 for( Int j = 0; j < COLS; ++j )
                 {
-                    for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                    for( Int k = 0; k < RHS_COUNT; ++k )
                     {
-                        x[k][j] = static_cast<Scalar>( x_from[MAX_RHS_COUNT*j+k] );
+                        x[k][j] = static_cast<Scalar>( x_from[RHS_COUNT*j+k] );
                     }
                 }
             }
             else
             {
-                copy_cast_buffer( x_from, &x[0][0], MAX_COLS_SIZE );
+                copy_cast_buffer( x_from, &x[0][0], COLS_SIZE );
             }
         }
 
         force_inline void WriteVector( const Int i ) const
         {
-            Scalar_out * restrict const y  = &Y[ MAX_ROWS_SIZE * i];
+            Scalar_out * restrict const y  = &Y[ ROWS_SIZE * i];
             
             if constexpr ( alpha_flag == 1 )
             {
@@ -160,15 +148,15 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                            for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y[MAX_RHS_COUNT*i+k] = static_cast<Scalar_out>(z[k][i]);
+                                y[RHS_COUNT*i+k] = static_cast<Scalar_out>(z[k][i]);
                             }
                         }
                     }
                     else
                     {
-                        copy_cast_buffer( &z[0][0], y, MAX_ROWS_SIZE );
+                        copy_cast_buffer( &z[0][0], y, ROWS_SIZE );
                     }
                 }
                 else if constexpr ( beta_flag == 1 )
@@ -177,15 +165,15 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                            for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y[MAX_RHS_COUNT*i+k] += static_cast<Scalar_out>(z[k][i]);
+                                y[RHS_COUNT*i+k] += static_cast<Scalar_out>(z[k][i]);
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                        for( Int k = 0; k < RHS_COUNT; ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
@@ -200,15 +188,15 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                            for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y[MAX_RHS_COUNT*i+k] = static_cast<Scalar_out>(z[k][i]) + beta * y[MAX_RHS_COUNT*i+k];
+                                y[RHS_COUNT*i+k] = static_cast<Scalar_out>(z[k][i]) + beta * y[RHS_COUNT*i+k];
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                        for( Int k = 0; k < RHS_COUNT; ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
@@ -222,7 +210,7 @@ namespace Tensors
             {
                 if constexpr ( beta_flag == 0 )
                 {
-                    zerofy_buffer( y, MAX_ROWS_SIZE );
+                    zerofy_buffer( y, ROWS_SIZE );
                 }
                 else if constexpr ( beta_flag == 1 )
                 {
@@ -230,7 +218,7 @@ namespace Tensors
                 }
                 else
                 {
-                    for( Int k = 0; k < MAX_ROWS_SIZE; ++k )
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
                     {
                         y[k] *= beta;
                     }
@@ -245,15 +233,15 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                            for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y[MAX_RHS_COUNT*i+k] = alpha * static_cast<Scalar_out>(z[k][i]);
+                                y[RHS_COUNT*i+k] = alpha * static_cast<Scalar_out>(z[k][i]);
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                        for( Int k = 0; k < RHS_COUNT; ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
@@ -268,15 +256,15 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                            for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y[MAX_RHS_COUNT*i+k] += alpha * static_cast<Scalar_out>(z[k][i]);
+                                y[RHS_COUNT*i+k] += alpha * static_cast<Scalar_out>(z[k][i]);
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                        for( Int k = 0; k < RHS_COUNT; ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
@@ -292,21 +280,83 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                            for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y[MAX_RHS_COUNT*i+k] = alpha * static_cast<Scalar_out>(z[k][i]) + beta * y[MAX_RHS_COUNT*i+k];
+                                y[RHS_COUNT*i+k] = alpha * static_cast<Scalar_out>(z[k][i]) + beta * y[RHS_COUNT*i+k];
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < MAX_RHS_COUNT; ++k )
+                        for( Int k = 0; k < RHS_COUNT; ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
                                 y[ROWS*k+i] = alpha * static_cast<Scalar_out>(z[k][i]) + beta * y[ROWS*k+i];
                             }
                         }
+                    }
+                }
+            }
+        }
+        
+        force_inline void WriteZero( const Int i ) const
+        {
+            Scalar_out * restrict const y  = &Y[ ROWS_SIZE * i];
+            
+            if constexpr ( alpha_flag == 1 )
+            {
+                // alpha == 1;
+                if constexpr ( beta_flag == 0 )
+                {
+                    zerofy_buffer( y, ROWS_SIZE );
+                }
+                else if constexpr ( beta_flag == 1 )
+                {
+                    // Do nothing.
+                }
+                else
+                {
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
+                    {
+                        y[k] *= beta;
+                    }
+                }
+            }
+            else if constexpr ( alpha_flag == 0 )
+            {
+                if constexpr ( beta_flag == 0 )
+                {
+                    zerofy_buffer( y, ROWS_SIZE );
+                }
+                else if constexpr ( beta_flag == 1 )
+                {
+                    // do nothing;
+                }
+                else
+                {
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
+                    {
+                        y[k] *= beta;
+                    }
+                }
+            }
+            else // alpha_flag == -1
+            {
+                // alpha arbitrary;
+                if constexpr ( beta_flag == 0 )
+                {
+                    zerofy_buffer( y, ROWS_SIZE );
+                }
+                else if constexpr ( beta_flag == 1 )
+                {
+                    // Do nothing.
+                }
+                else // beta_flag == -1
+                {
+                    for( Int k = 0; k < ROWS_SIZE; ++k )
+                    {
+                        y[k] *= beta;
                     }
                 }
             }
@@ -321,7 +371,7 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+ToString(MAX_RHS_COUNT)
+            +","+ToString(RHS_COUNT)
             +","+TypeName<Scalar>::Get()
             +","+TypeName<Int>::Get()
             +","+TypeName<Scalar_in>::Get()

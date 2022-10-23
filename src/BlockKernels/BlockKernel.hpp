@@ -19,14 +19,14 @@ namespace Tensors
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
         
-    protected:
-        
         static constexpr Int ROWS      = ROWS_;
         static constexpr Int COLS      = COLS_;
         static constexpr Int RHS_COUNT = RHS_COUNT_;
         
         static constexpr Int COLS_SIZE = COLS * RHS_COUNT;
         static constexpr Int ROWS_SIZE = ROWS * RHS_COUNT;
+        
+    protected:
         
         alignas(ALIGNMENT) Scalar z[ROWS][RHS_COUNT] = {};
         

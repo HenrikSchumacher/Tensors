@@ -25,14 +25,12 @@ namespace Tensors
         using Scalar_out = Scalar_out_;
         
         static constexpr Int MAX_RHS_COUNT = MAX_RHS_COUNT_;
-        
-    protected:
-        
         static constexpr Int ROWS = ROWS_;
         static constexpr Int COLS = COLS_;
         static constexpr Int MAX_ROWS_SIZE = ROWS_ * MAX_RHS_COUNT_;
         static constexpr Int MAX_COLS_SIZE = COLS_ * MAX_RHS_COUNT_;
 
+    protected:
         
               Scalar     * restrict const A       = nullptr;
         const Scalar     * restrict const A_const = nullptr;
@@ -307,6 +305,68 @@ namespace Tensors
                                 y[ROWS*k+i] = alpha * static_cast<Scalar_out>(z[k][i]) + beta * y[ROWS*k+i];
                             }
                         }
+                    }
+                }
+            }
+        }
+        
+        force_inline void WriteZero( const Int i ) const
+        {
+            Scalar_out * restrict const y  = &Y[ rows_size * i];
+            
+            if constexpr ( alpha_flag == 1 )
+            {
+                // alpha == 1;
+                if constexpr ( beta_flag == 0 )
+                {
+                    zerofy_buffer( y, rows_size );
+                }
+                else if constexpr ( beta_flag == 1 )
+                {
+                    // Do nothing.
+                }
+                else
+                {
+                    for( Int k = 0; k < rows_size; ++k )
+                    {
+                        y[k] *= beta;
+                    }
+                }
+            }
+            else if constexpr ( alpha_flag == 0 )
+            {
+                if constexpr ( beta_flag == 0 )
+                {
+                    zerofy_buffer( y, rows_size );
+                }
+                else if constexpr ( beta_flag == 1 )
+                {
+                    // do nothing;
+                }
+                else
+                {
+                    for( Int k = 0; k < rows_size; ++k )
+                    {
+                        y[k] *= beta;
+                    }
+                }
+            }
+            else // alpha_flag == -1
+            {
+                // alpha arbitrary;
+                if constexpr ( beta_flag == 0 )
+                {
+                    zerofy_buffer( y, rows_size );
+                }
+                else if constexpr ( beta_flag == 1 )
+                {
+                    // Do nothing.
+                }
+                else // beta_flag == -1
+                {
+                    for( Int k = 0; k < rows_size; ++k )
+                    {
+                        y[k] *= beta;
                     }
                 }
             }

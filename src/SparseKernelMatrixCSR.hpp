@@ -199,16 +199,15 @@ namespace Tensors
                         for( Int k = k_begin; k < k_end-1; ++k )
                         {
                             const Int j = ci[k];
-
+                            
                             // X is accessed in an unpredictable way; let's help with a prefetch statement.
                             prefetch_range<Kernel_T::COLS_SIZE,0,0>( &X[Kernel_T::COLS_SIZE * ci[k+1]] );
-
+                            
                             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetecher.
-                            // prefetch_range<Kernel_T::NonzeroCount(),0,0>( &A[Kernel_T::NonzeroCount() * (k+1)] );
                             
                             // Let the kernel apply to the k-th block to the j-th chunk of the input.
                             // The result is stored in the kernel's local vector chunk X.
-                            ker.ApplyBlock( k, j );
+                            ker.ApplyBlock(k,j);
                         }
                         
                         // Perform last calculation in row without prefetch.
@@ -227,11 +226,8 @@ namespace Tensors
                     }
                     else
                     {
-                        // Just zerofy the i-th chunk if the output Y.
-                        zerofy_buffer( &Y[Kernel_T::RowCount() * i], Kernel_T::RowCount() );
+                        ker.WriteZero(i);
                     }
-                    
-                    // Incoporate the local vector chunk into the i-th chunk of the output.
                     
                 }
             }
