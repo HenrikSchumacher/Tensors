@@ -336,34 +336,35 @@ namespace Tensors {
             return n;
         }
         
-//        void AdditiveReduction( Tensor2<T,I> & B ) const
-//        {
-//            if( (Dimension(1) == B.Dimension(0)) && (Dimension(2) == B.Dimension(1)) )
-//            {
-//                // Write first slice.
-//                B.Read( tensors[0].data() );
-//                
-//                for( I i = 1; i < dims[0]; ++ i)
-//                {
-//                    B.AddFrom( tensors[i].data() );
-//                }
-//            }
-//            else
-//            {
-//                eprint(ClassName()+"::AdditiveReduction : Dimensions not compatible.");
-//            }
-//        }
-//        
-//        void AdditiveReduction( T * const B ) const
-//        {
-//            // Write first slice.
-//            tensors[0].Write(B);
-//            
-//            for( I i = 1; i < dims[0]; ++ i )
-//            {
-//                tensors[i].AddTo( B );
-//            }
-//        }
+        Tensor2<T,I> AdditiveReduction() const
+        {
+            Tensor2<T,I> B (B.Dimension(1),B.Dimension(2));
+            
+            AdditiveReduction( B.data(), false );
+             
+            return B;
+        }
+        
+        void AdditiveReduction( T * const B, const bool addto = false ) const
+        {
+            if( addto )
+            {
+                for( I i = 0; i < dims[0]; ++ i )
+                {
+                    tensors[i].AddTo( B );
+                }
+            }
+            else
+            {
+                // Write first slice.
+                tensors[0].Write(B);
+                
+                for( I i = 1; i < dims[0]; ++ i )
+                {
+                    tensors[i].AddTo( B );
+                }
+            }
+        }
         
         I CountNan() const
         {
