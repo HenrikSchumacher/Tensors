@@ -1,39 +1,28 @@
 #pragma once
 
-#define CLASS DenseBlockKernel_fixed
-#define BASE  BlockKernel_fixed<                            \
-    ROWS_,COLS_,RHS_COUNT_,fixed,                           \
+#define CLASS DenseBlockKernel_RM
+#define BASE  BlockKernel_RM<                               \
+    ROWS_,COLS_,                                            \
     Scalar_,Int_,Scalar_in_,Scalar_out_,                    \
     alpha_flag, beta_flag,                                  \
-    x_RM, x_intRM, x_copy, x_prefetch,                      \
-    y_RM, y_intRM,                                          \
-    useFMA                                                  \
+    x_RM, x_copy, x_prefetch,                               \
+    y_RM                                                   \
 >
 
-//template<
-//    int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
-//    typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
-//    int alpha_flag, int beta_flag,
-//    bool a_RM  = true, bool a_intRM = false,  bool a_copy = true,
-//    bool x_RM  = true, bool x_intRM = false,  bool x_copy = true,  bool x_prefetch = true,
-//    bool y_RM  = true, bool y_intRM = false,
-//    int method = 1, int loop   = 2,
-//    bool useFMA = false
-//>
-
+////    x_RowMajor,y_RowMajor,
 namespace Tensors
 {
     // I picked the default values from benchmarks for
     // ROWS_ = 4, COLS_ = 4, RHS_COUNT_ = 3, alpha_flag = 1, beta_flag = 0, and doubles for all floating point types.
     template<
-        int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
+        int ROWS_, int COLS_,
         typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
         int alpha_flag, int beta_flag,
-        bool a_RM,      bool a_intRM,   bool a_copy,
-        bool x_RM,      bool x_intRM,   bool x_copy,    bool x_prefetch,
-        bool y_RM,      bool y_intRM,
-        int method,     int loop,
-        bool useFMA
+        bool a_RM  = true, bool a_intRM = false,  bool a_copy = true,
+        bool x_RM  = true,                        bool x_copy = true,  bool x_prefetch = true,
+        bool y_RM  = true,
+        int method = 1,
+        int loop   = 2
     >
     class CLASS : public BASE
     {
@@ -46,7 +35,6 @@ namespace Tensors
 
         using BASE::ROWS;
         using BASE::COLS;
-        using BASE::RHS_COUNT;
         
         using BASE::RowsSize;
         using BASE::ColsSize;
@@ -54,6 +42,8 @@ namespace Tensors
         
         static constexpr Int BLOCK_NNZ = ROWS * COLS;
         
+        // Dummy variable.
+        static constexpr Int MAX_RHS_COUNT = 0;
     protected:
         
         using BASE::A;
@@ -68,6 +58,7 @@ namespace Tensors
         using BASE::get_y;
         
         const Scalar * restrict a_from = nullptr;
+        
         
         alignas(ALIGNMENT) Scalar a [(a_intRM)?ROWS:COLS][(a_intRM)?COLS:ROWS];
         
@@ -363,19 +354,17 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+ToString(RHS_COUNT)
-            +","+ToString(fixed)
             +","+TypeName<Scalar>::Get()
             +","+TypeName<Int>::Get()
             +","+TypeName<Scalar_in>::Get()
             +","+TypeName<Scalar_out>::Get()
-            +","+ToString(alpha_flag)
-            +","+ToString(beta_flag)
             +","+ToString(a_RM)+","+ToString(a_intRM)+","+ToString(a_copy)
-            +","+ToString(x_RM)+","+ToString(x_intRM)+","+ToString(x_copy)+","+ToString(x_prefetch)
-            +","+ToString(y_RM)+","+ToString(y_intRM)
+            +","+ToString(x_RM)+","+ToString(x_copy)
+            +","+ToString(y_RM)
             +","+ToString(method)
             +","+ToString(loop)
+            +","+ToString(alpha_flag)
+            +","+ToString(beta_flag)
             +">";
         }
 

@@ -64,7 +64,10 @@
     #include "src/SparseKernelMatrixCSR.hpp"
 
     #include "src/BlockKernels/BlockKernel_fixed.hpp"
-
     #include "src/BlockKernels/DenseBlockKernel_fixed.hpp"
+    #include "src/BlockKernels/ArrowheadBlockKernel_fixed.hpp"
+
+    #include "src/BlockKernels/BlockKernel_RM.hpp"
+    #include "src/BlockKernels/DenseBlockKernel_RM.hpp"
 
 #endif
