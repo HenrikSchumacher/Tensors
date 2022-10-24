@@ -1,19 +1,28 @@
 #pragma once
 
-#define CLASS DenseBlockKernel_gen
-#define BASE  BlockKernel_gen<ROWS_,COLS_,MAX_RHS_COUNT_,Scalar_,Int_,Scalar_in_,Scalar_out_,   \
-    x_RM,  y_RM,                                                                                \
-    alpha_flag, beta_flag                                                                       \
+#define CLASS DenseBlockKernel_fixed
+#define BASE  BlockKernel_fixed<                            \
+    ROWS_,COLS_,RHS_COUNT_,fixed,                           \
+    Scalar_,Int_,Scalar_in_,Scalar_out_,                    \
+    alpha_flag, beta_flag,                                  \
+    x_RM, x_intRM, x_copy, x_prefetch,                      \
+    y_RM, y_intRM                                           \
 >
 
 ////    x_RowMajor,y_RowMajor,
 namespace Tensors
 {
+    // I picked the default values from benchmarks for
+    // ROWS_ = 4, COLS_ = 4, RHS_COUNT_ = 3, alpha_flag = 1, beta_flag = 0, and doubles for all floating point types.
     template<
-        int ROWS_, int COLS_, int MAX_RHS_COUNT_,
+        int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
         typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
-        bool a_RM, bool x_RM, bool y_RM, bool a_internal_RM,
-        int method, int loop_order, int alpha_flag, int beta_flag
+        int alpha_flag, int beta_flag,
+        bool a_RM  = true, bool a_intRM = false,  bool a_copy = true,
+        bool x_RM  = true, bool x_intRM = false,  bool x_copy = true,  bool x_prefetch = true,
+        bool y_RM  = true, bool y_intRM = false,
+        int method = 1,
+        int loop   = 2
     >
     class CLASS : public BASE
     {
@@ -26,7 +35,7 @@ namespace Tensors
 
         using BASE::ROWS;
         using BASE::COLS;
-        using BASE::MAX_RHS_COUNT;
+        using BASE::RHS_COUNT;
         
         static constexpr Int BLOCK_NNZ = ROWS * COLS;
         
@@ -37,10 +46,15 @@ namespace Tensors
         using BASE::X;
         using BASE::Y;
         using BASE::x;
-        using BASE::z;
-        using BASE::rhs_count;
+        using BASE::y;
         
-        alignas(ALIGNMENT) Scalar a [(a_internal_RM)?ROWS:COLS][(a_internal_RM)?COLS:ROWS];
+        using BASE::ReadX;
+        using BASE::get_x;
+        using BASE::get_y;
+        
+        const Scalar * restrict a_from = nullptr;
+        
+        alignas(ALIGNMENT) Scalar a [(a_intRM)?ROWS:COLS][(a_intRM)?COLS:ROWS];
         
     public:
         
@@ -74,7 +88,7 @@ namespace Tensors
             return BLOCK_NNZ;
         }
                 
-        virtual void TransposeBlock( const Int from, const Int to ) const override
+        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
         {
             const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
                   Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
@@ -101,56 +115,95 @@ namespace Tensors
             }
         }
         
-        virtual void ReadMatrix( const Int block_id )
+        force_inline void ReadA( const Int k_global )
         {
             // Read matrix.
-            const Scalar * restrict const a_from = &A_const[BLOCK_NNZ * block_id];
-            
-            if constexpr ( a_RM )
+            if constexpr ( a_copy )
             {
-                if constexpr ( a_internal_RM )
+                const Scalar * restrict const a_from = &A_const[BLOCK_NNZ * k_global];
+                
+                if constexpr ( a_RM )
                 {
-                    copy_buffer( a_from, &a[0][0], BLOCK_NNZ );
-                }
-                else
-                {
-                    for( Int i = 0; i < ROWS; ++i )
+                    if constexpr ( a_intRM )
                     {
-                        for( Int j = 0; j < COLS; ++j )
-                        {
-                            a[j][i] = a_from[COLS*i+j];
-                        }
+                        copy_buffer( a_from, &a[0][0], BLOCK_NNZ );
                     }
-                }
-            }
-            else // !a_RM
-            {
-                if constexpr ( a_internal_RM )
-                {
-                    
-                    for( Int j = 0; j < COLS; ++j )
+                    else
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            a[i][j] = a_from[ROWS*j+i];
+                            for( Int j = 0; j < COLS; ++j )
+                            {
+                                a[j][i] = a_from[COLS*i+j];
+                            }
                         }
                     }
                 }
+                else // !a_RM
+                {
+                    if constexpr ( a_intRM )
+                    {
+                        
+                        for( Int j = 0; j < COLS; ++j )
+                        {
+                            for( Int i = 0; i < ROWS; ++i )
+                            {
+                                a[i][j] = a_from[ROWS*j+i];
+                            }
+                        }
+                    }
+                    else
+                    {
+                        copy_buffer( a_from, &a[0][0], BLOCK_NNZ );
+                    }
+                }
+            }
+            else
+            {
+                a_from = &A_const[BLOCK_NNZ * k_global];
+            }
+        }
+        
+        force_inline Scalar get_a( const Int i, const Int j ) const
+        {
+            if constexpr ( a_copy )
+            {
+                if constexpr ( a_intRM )
+                {
+                    return a[i][j];
+                }
                 else
                 {
-                    copy_buffer( a_from, &a[0][0], BLOCK_NNZ );
+                    return a[j][i];
+                }
+            }
+            else
+            {
+                if constexpr ( a_RM )
+                {
+                    return a_from[COLS*i+j];
+                }
+                else
+                {
+                    return a_from[ROWS*j+i];
                 }
             }
         }
         
-        virtual void ApplyBlock( const Int block_id, const Int j_global ) override
+        virtual force_inline void begin_row( const Int i_global ) override
+        {}
+        
+        virtual force_inline void end_row( const Int j_global ) override
+        {}
+        
+        virtual force_inline void apply_block( const Int k_global, const Int j_global ) override
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
-            this->ReadX( j_global );
+            ReadX( j_global );
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
             
-            this->ReadA( block_id );
+            ReadA( k_global );
             
             switch( method )
             {
@@ -161,7 +214,7 @@ namespace Tensors
                 }
                 case 1:
                 {
-                    switch ( loop_order )
+                    switch ( loop )
                     {
                         case 0:
                         {
@@ -169,16 +222,9 @@ namespace Tensors
                             {
                                 for( Int j = 0; j < COLS; ++j )
                                 {
-                                    for( Int k = 0; k < rhs_count; ++k )
+                                    for( Int k = 0; k < RHS_COUNT; ++k )
                                     {
-                                        if constexpr ( a_internal_RM )
-                                        {
-                                            z[k][i] += a[i][j] * x[k][j];
-                                        }
-                                        else
-                                        {
-                                            z[k][i] += a[j][i] * x[k][j];
-                                        }
+                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
                                 }
                             }
@@ -188,18 +234,11 @@ namespace Tensors
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                for( Int k = 0; k < rhs_count; ++k )
+                                for( Int k = 0; k < RHS_COUNT; ++k )
                                 {
                                     for( Int j = 0; j < COLS; ++j )
                                     {
-                                        if constexpr ( a_internal_RM )
-                                        {
-                                            z[k][i] += a[i][j] * x[k][j];
-                                        }
-                                        else
-                                        {
-                                            z[k][i] += a[j][i] * x[k][j];
-                                        }
+                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
                                 }
                             }
@@ -212,16 +251,9 @@ namespace Tensors
                             {
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
-                                    for( Int k = 0; k < rhs_count; ++k )
+                                    for( Int k = 0; k < RHS_COUNT; ++k )
                                     {
-                                        if constexpr ( a_internal_RM )
-                                        {
-                                            z[k][i] += a[i][j] * x[k][j];
-                                        }
-                                        else
-                                        {
-                                            z[k][i] += a[j][i] * x[k][j];
-                                        }
+                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
                                 }
                             }
@@ -231,18 +263,11 @@ namespace Tensors
                         {
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                for( Int k = 0; k < rhs_count; ++k )
+                                for( Int k = 0; k < RHS_COUNT; ++k )
                                 {
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
-                                        if constexpr ( a_internal_RM )
-                                        {
-                                            z[k][i] += a[i][j] * x[k][j];
-                                        }
-                                        else
-                                        {
-                                            z[k][i] += a[j][i] * x[k][j];
-                                        }
+                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
                                 }
                             }
@@ -250,20 +275,13 @@ namespace Tensors
                         }
                         case 4:
                         {
-                            for( Int k = 0; k < rhs_count; ++k )
+                            for( Int k = 0; k < RHS_COUNT; ++k )
                             {
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
                                     for( Int j = 0; j < COLS; ++j )
                                     {
-                                        if constexpr ( a_internal_RM )
-                                        {
-                                            z[k][i] += a[i][j] * x[k][j];
-                                        }
-                                        else
-                                        {
-                                            z[k][i] += a[j][i] * x[k][j];
-                                        }
+                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
                                 }
                             }
@@ -271,20 +289,13 @@ namespace Tensors
                         }
                         case 5:
                         {
-                            for( Int k = 0; k < rhs_count; ++k )
+                            for( Int k = 0; k < RHS_COUNT; ++k )
                             {
                                 for( Int j = 0; j < COLS; ++j )
                                 {
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
-                                        if constexpr ( a_internal_RM )
-                                        {
-                                            z[k][i] += a[i][j] * x[k][j];
-                                        }
-                                        else
-                                        {
-                                            z[k][i] += a[j][i] * x[k][j];
-                                        }
+                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
                                 }
                             }
@@ -295,35 +306,36 @@ namespace Tensors
                 }
                 default:
                 {
-                    if constexpr ( std::is_same_v<Scalar,double> )
-                    {
-                        cblas_dgemm(
-                            CblasColMajor,
-                            a_internal_RM ? CblasTrans : CblasNoTrans,
-                            CblasNoTrans,
-                            a_internal_RM ? ROWS : COLS,
-                            rhs_count,
-                            a_internal_RM ? COLS : ROWS,
-                            1.0, &a[0][0], a_internal_RM ? COLS : ROWS,
-                                 &x[0][0], COLS,
-                            1.0, &z[0][0], ROWS
-                        );
-                    }
-                    else
-                    {
-                        cblas_sgemm(
-                            CblasColMajor,
-                            a_internal_RM ? CblasTrans : CblasNoTrans,
-                            CblasNoTrans,
-                            a_internal_RM ? ROWS : COLS,
-                            rhs_count,
-                            a_internal_RM ? COLS : ROWS,
-                            1.0f, &a[0][0], a_internal_RM ? COLS : ROWS,
-                                  &x[0][0], COLS,
-                            1.0f, &z[0][0], ROWS
-                        );
-                    }
-                    break;
+//                    if constexpr ( std::is_same_v<Scalar,double> )
+//                    {
+//                        cblas_dgemm(
+//                            CblasColMajor,
+//                            a_intRM ? CblasTrans : CblasNoTrans,
+//                            CblasNoTrans,
+//                            a_intRM ? ROWS : COLS,
+//                            RHS_COUNT,
+//                            a_intRM ? COLS : ROWS,
+//                            1.0, &a[0][0], a_intRM ? COLS : ROWS,
+//                                 &x[0][0], COLS,
+//                            1.0, &y[0][0], ROWS
+//                        );
+//                    }
+//                    else
+//                    {
+//                        cblas_sgemm(
+//                            CblasColMajor,
+//                            a_intRM ? CblasTrans : CblasNoTrans,
+//                            CblasNoTrans,
+//                            a_intRM ? ROWS : COLS,
+//                            RHS_COUNT,
+//                            a_intRM ? COLS : ROWS,
+//                            1.0f, &a[0][0], a_intRM ? COLS : ROWS,
+//                                  &x[0][0], COLS,
+//                            1.0f, &y[0][0], ROWS
+//                        );
+//                    }
+//                    break;
+                    
                 }
             }
 
@@ -336,17 +348,16 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+ToString(MAX_RHS_COUNT)
+            +","+ToString(RHS_COUNT)
             +","+TypeName<Scalar>::Get()
             +","+TypeName<Int>::Get()
             +","+TypeName<Scalar_in>::Get()
             +","+TypeName<Scalar_out>::Get()
-            +","+ToString(a_RM)
-            +","+ToString(x_RM)
-            +","+ToString(y_RM)
+            +","+ToString(a_RM)+","+ToString(a_intRM)+","+ToString(a_copy)
+            +","+ToString(x_RM)+","+ToString(x_intRM)+","+ToString(x_copy)
+            +","+ToString(y_RM)+","+ToString(y_intRM)
             +","+ToString(method)
-            +","+ToString(a_internal_RM)
-            +","+ToString(loop_order)
+            +","+ToString(loop)
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
             +">";

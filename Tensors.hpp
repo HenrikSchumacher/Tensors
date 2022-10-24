@@ -51,19 +51,20 @@
     #include "src/SparseBinaryMatrixVBSR.hpp"
     #include "src/SparseMatrixCSR.hpp"
 
-    #include "src/BlockKernels/BlockKernel.hpp"
-    #include "src/BlockKernels/SquareBlockKernel.hpp"
-    #include "src/BlockKernels/ScalarBlockKernel.hpp"
-    #include "src/BlockKernels/LowRankSquareBlockKernel.hpp"
-    #include "src/BlockKernels/DenseSquareBlockKernel.hpp"
-    #include "src/BlockKernels/DenseSquareBlockKernel_BLAS.hpp"
-    #include "src/BlockKernels/TP_ExperimentalBlockKernel.hpp"
-//    #include "src/BlockKernels/DenseSquareBlockKernel_Eigen.hpp"
+//    #include "src/BlockKernels_old/BlockKernel.hpp"
+//    #include "src/BlockKernels_old/SquareBlockKernel.hpp"
+//    #include "src/BlockKernels_old/ScalarBlockKernel.hpp"
+//    #include "src/BlockKernels_old/LowRankSquareBlockKernel.hpp"
+//    #include "src/BlockKernels_old/DenseSquareBlockKernel.hpp"
+//    #include "src/BlockKernels_old/DenseSquareBlockKernel_BLAS.hpp"
+//    #include "src/BlockKernels_old/TP_ExperimentalBlockKernel.hpp"
+//    #include "src/BlockKernels_old/DenseSquareBlockKernel_Eigen.hpp"
+
+
     #include "src/SparseKernelMatrixCSR.hpp"
 
-    #include "src/BlockKernels_gen/BlockKernel_gen.hpp"
-    #include "src/BlockKernels_gen/BlockKernel_fixed.hpp"
-    #include "src/BlockKernels_gen/DenseBlockKernel_gen.hpp"
-    #include "src/SparseKernelMatrixCSR_gen.hpp"
+    #include "src/BlockKernels/BlockKernel_fixed.hpp"
+
+    #include "src/BlockKernels/DenseBlockKernel_fixed.hpp"
 
 #endif

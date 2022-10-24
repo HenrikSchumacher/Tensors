@@ -5,10 +5,11 @@
 namespace Tensors
 {
     template<
-        int ROWS_, int COLS_, int RHS_COUNT_,
+        int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
         typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
-        bool x_RM, bool y_RM,
-        int alpha_flag, int beta_flag
+        int alpha_flag, int beta_flag,
+        bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
+        bool y_RM, bool y_intRM
     >
     class alignas( OBJECT_ALIGNMENT ) CLASS
     {
@@ -30,7 +31,7 @@ namespace Tensors
         static constexpr Int COLS = COLS_;
         static constexpr Int ROWS_SIZE = ROWS_ * RHS_COUNT_;
         static constexpr Int COLS_SIZE = COLS_ * RHS_COUNT_;
-
+        
     protected:
         
               Scalar     * restrict const A       = nullptr;
@@ -42,12 +43,15 @@ namespace Tensors
               Scalar_out * restrict const Y       = nullptr;
 
         
-        alignas(ALIGNMENT) Scalar y [RHS_COUNT][ROWS] = {};
-        alignas(ALIGNMENT) Scalar x [RHS_COUNT][COLS] = {};
+        const Scalar_in  * restrict x_from = nullptr;
+//              Scalar_out * restrict y_to   = nullptr;
         
-//        Int i_global = -1;
-//        Int j_global = -1;
-//        Int k_global = -1;
+        alignas(ALIGNMENT) Scalar x [x_intRM ? COLS : RHS_COUNT][x_intRM ? RHS_COUNT : COLS] = {};
+        alignas(ALIGNMENT) Scalar y [y_intRM ? ROWS : RHS_COUNT][y_intRM ? RHS_COUNT : ROWS] = {};
+
+        const Int rhs_count = 1;
+        const Int rows_size = ROWS;
+        const Int cols_size = COLS;
         
     public:
         
@@ -70,17 +74,28 @@ namespace Tensors
             const Scalar_in  * restrict const X_,
             const Scalar_out                  beta_,
                   Scalar_out * restrict const Y_,
-                  Int                         rhs_count
+                  Int                         rhs_count_
         )
-        :   A       ( nullptr )
-        ,   A_const ( A_ )
-        ,   A_diag  ( A_diag_ )
-        ,   alpha   ( alpha_ )
-        ,   X       ( X_ )
-        ,   beta    ( beta_ )
-        ,   Y       ( Y_ )
+        :   A         ( nullptr          )
+        ,   A_const   ( A_               )
+        ,   A_diag    ( A_diag_          )
+        ,   alpha     ( alpha_           )
+        ,   X         ( X_               )
+        ,   beta      ( beta_            )
+        ,   Y         ( Y_               )
+        ,   rhs_count ( rhs_count_       )
+        ,   rows_size ( ROWS * rhs_count )
+        ,   cols_size ( COLS * rhs_count )
         {
-            assert( RHS_COUNT == rhs_count );
+            if( fixed && (RHS_COUNT != rhs_count) )
+            {
+                eprint(ClassName()+"rhs_count != RHS_COUNT");
+            }
+            
+            if( rhs_count > RHS_COUNT)
+            {
+                eprint(ClassName()+"rhs_count > RHS_COUNT");
+            }
         }
         
         // Copy constructor
@@ -118,27 +133,108 @@ namespace Tensors
         
         virtual void TransposeBlock( const Int from, const Int to ) const = 0;
         
-        void force_inline ReadX( const Int j_global )
+        
+        
+        force_inline Int ColsSize()
         {
-            const Scalar_in * restrict const x_from = &X[COLS_SIZE * j_global];
-            
-            if constexpr ( x_RM )
+            if constexpr ( fixed )
             {
-                for( Int j = 0; j < COLS; ++j )
+                return COLS_SIZE;
+            }
+            else
+            {
+                return cols_size;
+            }
+        }
+    
+        force_inline Int RowsSize()
+        {
+            if constexpr ( fixed )
+            {
+                return ROWS_SIZE;
+            }
+            else
+            {
+                return rows_size;
+            }
+        }
+
+        force_inline Int RhsCount()
+        {
+            if constexpr ( fixed )
+            {
+                return RHS_COUNT;
+            }
+            else
+            {
+                return rhs_count;
+            }
+        }
+        
+        
+        force_inline void ReadX( const Int j_global )
+        {
+            if constexpr ( x_copy )
+            {
+                // CAUTION: Shadowing global variable here!
+                const Scalar_in * restrict const x_from = &X[COLS_SIZE * j_global];
+                
+                if constexpr ( x_RM )
                 {
-                    for( Int k = 0; k < RHS_COUNT; ++k )
+                    if constexpr ( x_intRM )
                     {
-                        x[k][j] = static_cast<Scalar>( x_from[RHS_COUNT*j+k] );
+                        if constexpr ( fixed )
+                        {
+                            copy_cast_buffer( x_from, &x[0][0], COLS_SIZE );
+                        }
+                        else
+                        {
+                            for( Int j = 0; j < COLS; ++j )
+                            {
+                                for( Int k = 0; k < RHS_COUNT; ++k )
+                                {
+                                    x[k][j] = static_cast<Scalar>( x_from[RHS_COUNT*j+k] );
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for( Int j = 0; j < COLS; ++j )
+                        {
+                            for( Int k = 0; k < RHS_COUNT; ++k )
+                            {
+                                x[k][j] = static_cast<Scalar>( x_from[RHS_COUNT*j+k] );
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    if constexpr ( x_intRM )
+                    {
+                        for( Int k = 0; k < RHS_COUNT; ++k )
+                        {
+                            for( Int j = 0; j < COLS; ++j )
+                            {
+                                x[j][k] = static_cast<Scalar>( x_from[COLS*k+j] );
+                            }
+                        }
+                    }
+                    else
+                    {
+                        copy_cast_buffer( x_from, &x[0][0], COLS_SIZE );
                     }
                 }
             }
             else
             {
-                copy_cast_buffer( x_from, &x[0][0], COLS_SIZE );
+                x_from = &X[COLS_SIZE * j_global];
             }
         }
+        
 
-        void force_inline BeginRow( const Int i_global )
+        force_inline void BeginRow( const Int i_global )
         {
             // Store the row index for later use.
 //            i_global = i_global_;
@@ -150,10 +246,10 @@ namespace Tensors
             begin_row( i_global );
         }
         
-        virtual force_inline void begin_row( const Int i_global ) = 0;
+        virtual force_inline  void begin_row( const Int i_global ) = 0;
         
         
-        void force_inline EndRow( const Int i_global )
+        force_inline void EndRow( const Int i_global )
         {
             // Allow the descendant kernels to do their own thing at row end.
             end_row( i_global );
@@ -167,9 +263,11 @@ namespace Tensors
         
         virtual force_inline void Prefetch( const Int k_global, const Int j_next )
         {
-            // X is accessed in an unpredictable way; let's help with a prefetch statement.
-            prefetch_range<COLS_SIZE,0,0>( &X[COLS_SIZE * j_next] );
-            
+            if constexpr ( x_prefetch )
+            {
+                // X is accessed in an unpredictable way; let's help with a prefetch statement.
+                prefetch_range<COLS_SIZE,0,0>( &X[COLS_SIZE * j_next] );
+            }
             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
         }
         
@@ -182,9 +280,72 @@ namespace Tensors
         virtual force_inline void apply_block( const Int k_global, const Int j_global ) = 0;
         
         
-        void force_inline WriteY( const Int i_global ) const
+        force_inline Scalar_out get_cast_y( const Int i, const Int k ) const
         {
-            Scalar_out * restrict const y_to  = &Y[ ROWS_SIZE * i_global];
+            if constexpr ( y_intRM )
+            {
+                return static_cast<Scalar_out>(y[i][k]);
+            }
+            else
+            {
+                return static_cast<Scalar_out>(y[k][i]);
+            }
+        }
+        
+        force_inline Scalar & get_y( const Int i, const Int k )
+        {
+            if constexpr ( y_intRM )
+            {
+                return y[i][k];
+            }
+            else
+            {
+                return y[k][i];
+            }
+        }
+        
+//        force_inline Scalar get_cast_x( const Int j, const Int k )
+//        {
+//            if constexpr ( x_intRM )
+//            {
+//                return static_cast<Scalar>( x_from[RHS_COUNT*j+k];
+//            }
+//            else
+//            {
+//                return static_cast<Scalar>( x_from[COLS*k+j];
+//            }
+//        }
+        
+        force_inline Scalar get_x( const Int j, const Int k )
+        {
+            if constexpr ( x_copy )
+            {
+                if constexpr ( x_intRM )
+                {
+                    return x[j][k];
+                }
+                else
+                {
+                    return x[k][j];
+                }
+            }
+            else
+            {
+                if constexpr ( x_intRM )
+                {
+                    return static_cast<Scalar>(x_from[RHS_COUNT*j+k]);
+                }
+                else
+                {
+                    return static_cast<Scalar>(x_from[COLS*k+j]);
+                }
+            }
+        }
+        
+        
+        force_inline void WriteY( const Int i_global ) const
+        {
+            Scalar_out * restrict const y_to = &Y[ ROWS_SIZE * i_global];
             
             if constexpr ( alpha_flag == 1 )
             {
@@ -193,17 +354,30 @@ namespace Tensors
                 {
                     if constexpr (y_RM)
                     {
-                        for( Int i = 0; i < ROWS; ++i )
+                        if constexpr ( y_intRM)
                         {
-                            for( Int k = 0; k < RHS_COUNT; ++k )
+                            copy_cast_buffer( &y[0][0], y_to, ROWS_SIZE );
+                        }
+                        else
+                        {
+                            for( Int i = 0; i < ROWS; ++i )
                             {
-                                y_to[RHS_COUNT*i+k] = static_cast<Scalar_out>(y[k][i]);
+                                for( Int k = 0; k < RHS_COUNT; ++k )
+                                {
+                                    y_to[RHS_COUNT*i+k] = get_cast_y(i,k);
+                                }
                             }
                         }
                     }
                     else
                     {
-                        copy_cast_buffer( &y[0][0], y_to, ROWS_SIZE );
+                        for( Int k = 0; k < RHS_COUNT; ++k )
+                        {
+                            for( Int i = 0; i < ROWS; ++i )
+                            {
+                                y_to[ROWS*k+i] = get_cast_y(i,k);
+                            }
+                        }
                     }
                 }
                 else if constexpr ( beta_flag == 1 )
@@ -214,7 +388,7 @@ namespace Tensors
                         {
                             for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y_to[RHS_COUNT*i+k] += static_cast<Scalar_out>(y[k][i]);
+                                y_to[RHS_COUNT*i+k] += get_cast_y(i,k);
                             }
                         }
                     }
@@ -224,7 +398,7 @@ namespace Tensors
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                y_to[ROWS*k+i] += static_cast<Scalar_out>(y[k][i]);
+                                y_to[ROWS*k+i] += get_cast_y(i,k);
                             }
                         }
                     }
@@ -237,7 +411,7 @@ namespace Tensors
                         {
                             for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y_to[RHS_COUNT*i+k] = static_cast<Scalar_out>(y[k][i]) + beta * y_to[RHS_COUNT*i+k];
+                                y_to[RHS_COUNT*i+k] = get_cast_y(i,k) + beta * y_to[RHS_COUNT*i+k];
                             }
                         }
                     }
@@ -247,7 +421,7 @@ namespace Tensors
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                y_to[ROWS*k+i] = static_cast<Scalar_out>(y[k][i]) + beta * y_to[ROWS*k+i];
+                                y_to[ROWS*k+i] = get_cast_y(i,k) + beta * y_to[ROWS*k+i];
                             }
                         }
                     }
@@ -282,7 +456,7 @@ namespace Tensors
                         {
                             for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y_to[RHS_COUNT*i+k] = alpha * static_cast<Scalar_out>(y[k][i]);
+                                y_to[RHS_COUNT*i+k] = alpha * get_cast_y(i,k);
                             }
                         }
                     }
@@ -292,7 +466,7 @@ namespace Tensors
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                y_to[ROWS*k+i] = alpha * static_cast<Scalar_out>(y[k][i]);
+                                y_to[ROWS*k+i] = alpha * get_cast_y(i,k);
                             }
                         }
                     }
@@ -305,7 +479,7 @@ namespace Tensors
                         {
                             for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y_to[RHS_COUNT*i+k] += alpha * static_cast<Scalar_out>(y[k][i]);
+                                y_to[RHS_COUNT*i+k] += alpha * get_cast_y(i,k);
                             }
                         }
                     }
@@ -315,7 +489,7 @@ namespace Tensors
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                y_to[ROWS*k+i] += alpha * static_cast<Scalar_out>(y[k][i]);
+                                y_to[ROWS*k+i] += alpha * get_cast_y(i,k);
                             }
                         }
                     }
@@ -329,7 +503,7 @@ namespace Tensors
                         {
                             for( Int k = 0; k < RHS_COUNT; ++k )
                             {
-                                y_to[RHS_COUNT*i+k] = alpha * static_cast<Scalar_out>(y[k][i]) + beta * y_to[RHS_COUNT*i+k];
+                                y_to[RHS_COUNT*i+k] = alpha * get_cast_y(i,k) + beta * y_to[RHS_COUNT*i+k];
                             }
                         }
                     }
@@ -339,7 +513,7 @@ namespace Tensors
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                y_to[ROWS*k+i] = alpha * static_cast<Scalar_out>(y[k][i]) + beta * y_to[ROWS*k+i];
+                                y_to[ROWS*k+i] = alpha * get_cast_y(i,k) + beta * y_to[ROWS*k+i];
                             }
                         }
                     }
@@ -347,7 +521,7 @@ namespace Tensors
             }
         }
         
-        void force_inline WriteYZero( const Int i_global ) const
+        force_inline void WriteYZero( const Int i_global ) const
         {
             // CAUTION! We cannot use i_global here because BeginRow() has not been in an empty row!
             Scalar_out * restrict const y_to = &Y[ ROWS_SIZE * i_global ];
