@@ -15,7 +15,7 @@ namespace Tensors
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
         
-        static constexpr Int NONZERO_COUNT = 1;
+        static constexpr Int BLOCK_NNZ = 1;
         
         using BASE::SIZE;
         using BASE::RHS_COUNT;
@@ -62,15 +62,15 @@ namespace Tensors
         
         virtual Int NonzeroCount() const override
         {
-            return NONZERO_COUNT;
+            return BLOCK_NNZ;
         };
         
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual void TransposeBlock( const Int from, const Int to ) const override
         {
             A[to] = A[from];
         }
         
-        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
+        virtual void ApplyBlock( const Int block_id, const Int j_global ) override
         {
             const Scalar a = A_const[block_id];
             

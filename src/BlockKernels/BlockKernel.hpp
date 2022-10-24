@@ -119,15 +119,15 @@ namespace Tensors
         
         virtual Int NonzeroCount() const = 0;
         
-        force_inline void CleanseVector()
+        void CleanseY()
         {
             zerofy_buffer( &z[0][0], ROWS_SIZE );
         }
 
         
-        force_inline void WriteVector( const Int i ) const
+        void WriteY( const Int i_global_ ) const
         {
-                  Scalar_out * restrict const y = &Y[ ROWS_SIZE * i];
+                  Scalar_out * restrict const y = &Y[ ROWS_SIZE * i_global_];
             const Scalar     * restrict const z_ = &z[0][0];
             
             if( alpha_flag == 1 )

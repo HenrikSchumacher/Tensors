@@ -22,7 +22,7 @@ namespace Tensors
         using BASE::ROWS_SIZE;
         using BASE::COLS_SIZE;
         
-        static constexpr Int NONZERO_COUNT = 2;
+        static constexpr Int BLOCK_NNZ = 2;
         
     protected:
         
@@ -62,27 +62,27 @@ namespace Tensors
         
         virtual Int NonzeroCount() const override
         {
-            return NONZERO_COUNT;
+            return BLOCK_NNZ;
         }
         
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual void TransposeBlock( const Int from, const Int to ) const override
         {
-            const Scalar * restrict const a_from = &A[NONZERO_COUNT * from ];
-                  Scalar * restrict const a_to   = &A[NONZERO_COUNT * to   ];
+            const Scalar * restrict const a_from = &A[BLOCK_NNZ * from ];
+                  Scalar * restrict const a_to   = &A[BLOCK_NNZ * to   ];
             
             a_to[0] = a_from[0];
             a_to[1] = a_from[1];
         }
         
-        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
+        virtual void ApplyBlock( const Int block_id, const Int j_global ) override
         {
             alignas(ALIGNMENT) Scalar x [SIZE][RHS_COUNT];
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             copy_cast_buffer( &X[ROWS_SIZE * j_global], &x[0][0], ROWS_SIZE );
             
-            alignas(ALIGNMENT) Scalar a [NONZERO_COUNT];
+            alignas(ALIGNMENT) Scalar a [BLOCK_NNZ];
             
-            copy_buffer( &A_const[NONZERO_COUNT * block_id ], &a[0], NONZERO_COUNT );
+            copy_buffer( &A_const[BLOCK_NNZ * block_id ], &a[0], BLOCK_NNZ );
 
             
             for( Int k = 0; k < RHS_COUNT; ++k )

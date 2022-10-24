@@ -28,7 +28,7 @@ namespace Tensors
         using BASE::COLS;
         using BASE::MAX_RHS_COUNT;
         
-        static constexpr Int NONZERO_COUNT = ROWS * COLS;
+        static constexpr Int BLOCK_NNZ = ROWS * COLS;
         
     protected:
         
@@ -52,23 +52,15 @@ namespace Tensors
         
         CLASS(
             const Scalar     * restrict const A_,
+            const Scalar     * restrict const A_diag_,
             const Scalar_out                  alpha_,
             const Scalar_in  * restrict const X_,
             const Scalar_out                  beta_,
                   Scalar_out * restrict const Y_,
             const Int                         rhs_count_
         )
-        :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
-        {
-//            #pragma omp single
-//            {
-//                print(ClassName());
-//                valprint("alpha     ",alpha);
-//                valprint("alpha_flag",alpha_flag);
-//                valprint("beta      ",beta);
-//                valprint("beta_flag ",beta_flag);
-//            }
-        }
+        :   BASE( A_, A_diag_, alpha_, X_, beta_, Y_, rhs_count_ )
+        {}
         
         // Copy constructor
         CLASS( const CLASS & other ) : BASE(other) {}
@@ -79,13 +71,13 @@ namespace Tensors
         
         virtual Int NonzeroCount() const override
         {
-            return NONZERO_COUNT;
+            return BLOCK_NNZ;
         }
                 
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual void TransposeBlock( const Int from, const Int to ) const override
         {
-            const Scalar * restrict const a_from = &A[ NONZERO_COUNT * from];
-                  Scalar * restrict const a_to   = &A[ NONZERO_COUNT * to  ];
+            const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
+                  Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
             
             if constexpr ( a_RM )
             {
@@ -109,16 +101,16 @@ namespace Tensors
             }
         }
         
-        virtual force_inline void ReadMatrix( const Int block_id )
+        virtual void ReadMatrix( const Int block_id )
         {
             // Read matrix.
-            const Scalar * restrict const a_from = &A_const[NONZERO_COUNT * block_id];
+            const Scalar * restrict const a_from = &A_const[BLOCK_NNZ * block_id];
             
             if constexpr ( a_RM )
             {
                 if constexpr ( a_internal_RM )
                 {
-                    copy_buffer( a_from, &a[0][0], NONZERO_COUNT );
+                    copy_buffer( a_from, &a[0][0], BLOCK_NNZ );
                 }
                 else
                 {
@@ -146,19 +138,19 @@ namespace Tensors
                 }
                 else
                 {
-                    copy_buffer( a_from, &a[0][0], NONZERO_COUNT );
+                    copy_buffer( a_from, &a[0][0], BLOCK_NNZ );
                 }
             }
         }
         
-        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override __attribute__ ((hot))
+        virtual void ApplyBlock( const Int block_id, const Int j_global ) override
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
-            this->ReadVector( j_global );
+            this->ReadX( j_global );
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
             
-            this->ReadMatrix( block_id );
+            this->ReadA( block_id );
             
             switch( method )
             {

@@ -203,7 +203,7 @@ void AddFrom( const T * restrict const b )
     }
 }
 
-void AddTo( const T * const b )
+void AddTo( T * restrict const b ) const
 {
     #pragma omp parallel for simd schedule( static )
     for( I i = 0; i < n; ++i )

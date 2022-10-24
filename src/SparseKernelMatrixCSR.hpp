@@ -54,7 +54,7 @@ namespace Tensors
         
         Int NonzeroCount() const
         {
-            return pattern.NonzeroCount() * Kernel_T::NONZERO_COUNT;
+            return pattern.NonzeroCount() * Kernel_T::BLOCK_NNZ;
         }
     
         
@@ -147,7 +147,7 @@ namespace Tensors
             }
         }
         
-        void Dot(
+        void force_inline Dot(
             const Scalar     * restrict const A,
             const Scalar_out                  alpha,
             const Scalar_in  * restrict const X,
@@ -218,15 +218,15 @@ namespace Tensors
                             
                             // Let the kernel apply to the k-th block to the j-th chunk of the input X.
                             // The result is stored in the kernel's local vector chunk.
-                            ker.ApplyBlock( k, j );
+                            ker.ApplyBlock(k,j);
                         }
                         
                         // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
-                        ker.WriteVector(i);
+                        ker.WriteY(i);
                     }
                     else
                     {
-                        ker.WriteZero(i);
+                        ker.WriteYZero(i);
                     }
                     
                 }

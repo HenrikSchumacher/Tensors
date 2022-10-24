@@ -1,7 +1,7 @@
 public:
 
     template<int cols>
-    force_inline void SpMM
+    void SpMM
     (
         const Int   * restrict const rp,
         const SInt  * restrict const ci,
@@ -229,7 +229,7 @@ public:
 
 
     template<Int cols, bool a_flag, int alpha_flag, int beta_flag >
-    force_inline void SpMM_implementation(
+    void SpMM_implementation(
         const Int   * restrict const rp,
         const SInt  * restrict const ci,
         const T     * restrict const a,

@@ -336,16 +336,21 @@ namespace Tensors {
             return n;
         }
         
-        Tensor2<T,I> AdditiveReduction() const
+        Tensor2<T,I> AddReduce() const
         {
-            Tensor2<T,I> B (B.Dimension(1),B.Dimension(2));
+            Tensor2<T,I> B ( dims[1], dims[2] );
             
-            AdditiveReduction( B.data(), false );
+            AddReduce( B.data(), false );
              
             return B;
         }
         
-        void AdditiveReduction( T * const B, const bool addto = false ) const
+        void AddReduce( Tensor2<T,I> & B, const bool addto ) const
+        {
+            AddReduce( B.data(), addto );
+        }
+        
+        void AddReduce( T * const B, const bool addto ) const
         {
             if( addto )
             {
@@ -386,7 +391,6 @@ namespace Tensors {
         {
             return tensors[thread];
         }
-        
         
     public:
         

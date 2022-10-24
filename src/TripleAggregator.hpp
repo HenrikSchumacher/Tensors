@@ -87,7 +87,7 @@ namespace Tensors
             return current_size;
         }
 
-        void force_inline Push( const T_0 a, const T_1 b, const T_2 c )
+        void Push( const T_0 a, const T_1 b, const T_2 c )
         {
             if( current_buffer_size >= BUFFER_CAPACITY )
             {

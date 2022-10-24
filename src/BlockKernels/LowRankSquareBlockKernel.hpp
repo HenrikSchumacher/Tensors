@@ -23,7 +23,7 @@ namespace Tensors
         using BASE::COLS_SIZE;
         
         static constexpr Int RANK = RANK_;
-        static constexpr Int NONZERO_COUNT = 2 * SIZE_ * RANK;
+        static constexpr Int BLOCK_NNZ = 2 * SIZE_ * RANK;
         
     protected:
         
@@ -63,10 +63,10 @@ namespace Tensors
         
         virtual Int NonzeroCount() const override
         {
-            return NONZERO_COUNT;
+            return BLOCK_NNZ;
         }
         
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual void TransposeBlock( const Int from, const Int to ) const override
         {
             // U_in is of size RANK x COLS
             // V_in is of size ROWS x RANK
@@ -74,11 +74,11 @@ namespace Tensors
             // U_out is of size RANK x ROWS
             // V_out is of size COLS x RANK
             
-            const Scalar * restrict const U_in  = &A[NONZERO_COUNT * from            ];
-            const Scalar * restrict const V_in  = &A[NONZERO_COUNT * from + RANK*COLS];
+            const Scalar * restrict const U_in  = &A[BLOCK_NNZ * from            ];
+            const Scalar * restrict const V_in  = &A[BLOCK_NNZ * from + RANK*COLS];
             
-                  Scalar * restrict const U_out = &A[NONZERO_COUNT * to              ];
-                  Scalar * restrict const V_out = &A[NONZERO_COUNT * to   + RANK*COLS];
+                  Scalar * restrict const U_out = &A[BLOCK_NNZ * to              ];
+                  Scalar * restrict const V_out = &A[BLOCK_NNZ * to   + RANK*COLS];
 
             for( Int i = 0; i < RANK; ++i )
             {
@@ -98,7 +98,7 @@ namespace Tensors
             
         }
         
-        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
+        virtual void ApplyBlock( const Int block_id, const Int j_global ) override
         {
             alignas(ALIGNMENT) Scalar x [ROWS][RHS_COUNT];
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
@@ -109,8 +109,8 @@ namespace Tensors
             alignas(ALIGNMENT) Scalar U [RANK][COLS];
             alignas(ALIGNMENT) Scalar V [ROWS][RANK];
             
-            copy_buffer( &A_const[NONZERO_COUNT * block_id            ], &U[0][0], RANK*COLS );
-            copy_buffer( &A_const[NONZERO_COUNT * block_id + RANK*COLS], &V[0][0], ROWS*RANK );
+            copy_buffer( &A_const[BLOCK_NNZ * block_id            ], &U[0][0], RANK*COLS );
+            copy_buffer( &A_const[BLOCK_NNZ * block_id + RANK*COLS], &V[0][0], ROWS*RANK );
             
             for( Int i = 0; i < RANK; ++i )
             {

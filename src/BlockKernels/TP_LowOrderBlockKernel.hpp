@@ -22,7 +22,7 @@ namespace Tensors
         using BASE::ROWS_SIZE;
         using BASE::COLS_SIZE;
         
-        static constexpr Int NONZERO_COUNT = 1;
+        static constexpr Int BLOCK_NNZ = 1;
         
     protected:
         
@@ -62,15 +62,15 @@ namespace Tensors
         
         virtual Int NonzeroCount() const override
         {
-            return NONZERO_COUNT;
+            return BLOCK_NNZ;
         }
         
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual void TransposeBlock( const Int from, const Int to ) const override
         {
             A[to] = A[from];
         }
         
-        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override
+        virtual void ApplyBlock( const Int block_id, const Int j_global ) override
         {
             alignas(ALIGNMENT) Scalar x_0 [RHS_COUNT];
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.

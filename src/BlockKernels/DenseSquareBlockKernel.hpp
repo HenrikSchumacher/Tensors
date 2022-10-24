@@ -23,7 +23,7 @@ namespace Tensors
         using BASE::COLS_SIZE;
         
         
-        static constexpr Int NONZERO_COUNT = ROWS * COLS;
+        static constexpr Int BLOCK_NNZ = ROWS * COLS;
     protected:
         
         using BASE::A;
@@ -64,13 +64,13 @@ namespace Tensors
         
         virtual Int NonzeroCount() const override
         {
-            return NONZERO_COUNT;
+            return BLOCK_NNZ;
         }
         
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual void TransposeBlock( const Int from, const Int to ) const override
         {
-            const Scalar * restrict const a_from = &A[ NONZERO_COUNT * from];
-                  Scalar * restrict const a_to   = &A[ NONZERO_COUNT * to  ];
+            const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
+                  Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
             
             for( Int j = 0; j < COLS; ++j )
             {
@@ -81,7 +81,7 @@ namespace Tensors
             }
         }
         
-        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) override __attribute__ ((hot))
+        virtual void ApplyBlock( const Int block_id, const Int j_global ) override
         {
             
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
@@ -89,7 +89,7 @@ namespace Tensors
             
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
-            copy_buffer( &A_const[NONZERO_COUNT * block_id], &a[0][0], NONZERO_COUNT );
+            copy_buffer( &A_const[BLOCK_NNZ * block_id], &a[0][0], BLOCK_NNZ );
   
 
 //            for( Int k = 0; k < RHS_COUNT; ++k )

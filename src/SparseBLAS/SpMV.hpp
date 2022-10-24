@@ -1,6 +1,6 @@
 public:
 
-    force_inline  void SpMV
+    void SpMV
     (
         const Int   * restrict const rp,
         const SInt  * restrict const ci,

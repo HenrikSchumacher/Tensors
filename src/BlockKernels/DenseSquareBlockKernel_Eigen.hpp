@@ -15,7 +15,7 @@ namespace Tensors
         using Scalar_out = Scalar_out_;
         using Scalar_in  = Scalar_in_;
         
-        static constexpr Int NONZERO_COUNT = SIZE_ * SIZE_;
+        static constexpr Int BLOCK_NNZ = SIZE_ * SIZE_;
 
     protected:
         
@@ -54,13 +54,13 @@ namespace Tensors
         
         virtual Int NonzeroCount() const override
         {
-            return NONZERO_COUNT;
+            return BLOCK_NNZ;
         }
         
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual void TransposeBlock( const Int from, const Int to ) const override
         {
-            const Scalar * restrict const a_from = &A[ NONZERO_COUNT * from];
-                  Scalar * restrict const a_to   = &A[ NONZERO_COUNT * to  ];
+            const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
+                  Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
             
             for( Int j = 0; j < SIZE; ++j )
             {
@@ -71,7 +71,7 @@ namespace Tensors
             }
         }
         
-        virtual force_inline void ApplyBlock( const Int block_id, const Int j_global ) const override
+        virtual void ApplyBlock( const Int block_id, const Int j_global ) const override
         {
             // Caution!!! Should only work correctly if Scalar == Scalar_in!
             
@@ -80,7 +80,7 @@ namespace Tensors
             
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
-            Eigen::Matrix<Scalar,ROWS,COLS,Eigen::RowMajor> a ( &A_const[NONZERO_COUNT * block_id] );
+            Eigen::Matrix<Scalar,ROWS,COLS,Eigen::RowMajor> a ( &A_const[BLOCK_NNZ * block_id] );
             
             Eigen::Map<Eigen::Matrix<Scalar,ROWS,COLS>> z_eigen (&z[0][0]);
             

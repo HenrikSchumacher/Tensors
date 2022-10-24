@@ -17,14 +17,14 @@ namespace Tensors
         using SparsityPattern_T = SparsityPatternCSR<Int>;
         
         CLASS()
-        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+        :   kernel { nullptr, nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
         
         explicit CLASS(
             const SparsityPattern_T & pattern_
         )
         :   pattern ( pattern_ )
-        ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+        ,   kernel { nullptr, nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {
 //            print("Creating class "+TO_STD_STRING(CLASS));
 //            print(kernel.ClassName());
@@ -33,7 +33,7 @@ namespace Tensors
         // Copy constructor
         CLASS( const CLASS & other )
         :   pattern ( other.pattern )
-        ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+        ,   kernel { nullptr, nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
 
         ~CLASS() = default;
@@ -41,7 +41,7 @@ namespace Tensors
     protected:
         
         const SparsityPattern_T   & pattern;
-        Kernel_T kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT };
+        Kernel_T kernel { nullptr, nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT };
         
     public:
         
@@ -57,7 +57,7 @@ namespace Tensors
         
         Int NonzeroCount() const
         {
-            return pattern.NonzeroCount() * Kernel_T::NONZERO_COUNT;
+            return pattern.NonzeroCount() * Kernel_T::BLOCK_NNZ;
         }
     
         
@@ -86,7 +86,7 @@ namespace Tensors
                 {
                     Kernel_T ker ( values );
                     
-                    const Int i_begin = job_ptr[thread];
+                    const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
                     for( Int i = i_begin; i < i_end; ++i )
@@ -103,10 +103,10 @@ namespace Tensors
                             
                             while( L < R )
                             {
-                                const Int M   = R - (R-L)/static_cast<Int>(2);
-                                const Int col = inner[M];
+                                const Int M = R - (R-L)/static_cast<Int>(2);
+                                const Int j = inner[M];
 
-                                if( col > i )
+                                if( j > i )
                                 {
                                     R = M-1;
                                 }
@@ -116,7 +116,7 @@ namespace Tensors
                                 }
                             }
                             
-                            ker.TransposeBlock(L, k);
+                            ker.TransposeBlock(L,k);
                             
                         } // for( Int k = k_begin; k < k_end; ++k )
 
@@ -150,8 +150,9 @@ namespace Tensors
             }
         }
         
-        void Dot(
+        void force_inline Dot(
             const Scalar     * restrict const A,
+            const Scalar     * restrict const A_diag,
             const Scalar_out                  alpha,
             const Scalar_in  * restrict const X,
             const Scalar_out                  beta,
@@ -173,17 +174,13 @@ namespace Tensors
             const auto & job_ptr = pattern.JobPtr();
             
             const Int thread_count = job_ptr.Size()-1;
-
-//            const Int rows_size = Kernel_T::RowCount() * rhs_count;
-            const Int cols_size = Kernel_T::ColCount() * rhs_count;
-
+            
             #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
                 // Initialize local kernel and feed it all the information that is going to be constant along its life time.
-                Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
+                Kernel_T ker ( A, A_diag, alpha, X, beta, Y, rhs_count );
 
-                
                 const Int * restrict const rp = pattern.Outer().data();
                 const Int * restrict const ci = pattern.Inner().data();
                 
@@ -200,17 +197,14 @@ namespace Tensors
                     if( k_end > k_begin )
                     {
                         // Clear the local vector chunk of the kernel.
-                        ker.CleanseVector();
+                        ker.BeginRow(i);
                         
                         // Perform all but the last calculation in row with prefetch.
                         for( Int k = k_begin; k < k_end-1; ++k )
                         {
                             const Int j = ci[k];
                             
-                            // X is accessed in an unpredictable way; let's help with a prefetch statement.
-                            prefetch_range<0,0>( &X[cols_size * ci[k+1]], cols_size );
-                            
-                            // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
+                            ker.Prefetch(k,ci[k+1]);
                             
                             // Let the kernel apply to the k-th block to the j-th chunk of the input.
                             // The result is stored in the kernel's local vector chunk X.
@@ -232,11 +226,12 @@ namespace Tensors
                         
                         // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
                         
-                        ker.WriteVector(i);
+                        ker.EndRow(i);
                     }
                     else
                     {
-                        ker.WriteZero(i);
+                        // Make sure that Y(i) is correctly overwritten in the case that there are not entries in the row.
+                        ker.WriteYZero(i);
                     }
                     
                 }
