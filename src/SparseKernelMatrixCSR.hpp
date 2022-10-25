@@ -24,13 +24,13 @@ namespace Tensors
             const SparsityPattern_T & pattern_
         )
         :   pattern ( pattern_ )
-        ,   kernel { nullptr, nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+        ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
         
         // Copy constructor
         CLASS( const CLASS & other )
         :   pattern ( other.pattern )
-        ,   kernel { nullptr, nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+        ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
 
         ~CLASS() = default;
@@ -38,7 +38,7 @@ namespace Tensors
     protected:
         
         const SparsityPattern_T   & pattern;
-        Kernel_T kernel { nullptr, nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT };
+        Kernel_T kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT };
         
     public:
         
@@ -149,7 +149,6 @@ namespace Tensors
         
         void force_inline Dot(
             const Scalar     * restrict const A,
-            const Scalar     * restrict const A_diag,
             const Scalar_out                  alpha,
             const Scalar_in  * restrict const X,
             const Scalar_out                  beta,
@@ -176,7 +175,7 @@ namespace Tensors
             for( Int thread = 0; thread < thread_count; ++thread )
             {
                 // Initialize local kernel and feed it all the information that is going to be constant along its life time.
-                Kernel_T ker ( A, A_diag, alpha, X, beta, Y, rhs_count );
+                Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
                 
                 const Int * restrict const rp = pattern.Outer().data();
                 const Int * restrict const ci = pattern.Inner().data();

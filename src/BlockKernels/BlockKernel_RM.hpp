@@ -33,7 +33,6 @@ namespace Tensors
         
               Scalar     * restrict const A       = nullptr;
         const Scalar     * restrict const A_const = nullptr;
-        const Scalar     * restrict const A_diag  = nullptr;
         const Scalar_out                  alpha   = 0;
         const Scalar_in  * restrict const X       = nullptr;
         const Scalar_out                  beta    = 0;
@@ -59,7 +58,6 @@ namespace Tensors
         explicit CLASS( Scalar * restrict const A_ )
         :   A (A_)
         ,   A_const( nullptr )
-        ,   A_diag ( nullptr )
         ,   alpha( 0 )
         ,   X( nullptr )
         ,   beta( 0 )
@@ -68,7 +66,6 @@ namespace Tensors
 
         CLASS(
             const Scalar     * restrict const A_,
-            const Scalar     * restrict const A_diag_,
             const Scalar_out                  alpha_,
             const Scalar_in  * restrict const X_,
             const Scalar_out                  beta_,
@@ -77,7 +74,6 @@ namespace Tensors
         )
         :   A         ( nullptr          )
         ,   A_const   ( A_               )
-        ,   A_diag    ( A_diag_          )
         ,   alpha     ( alpha_           )
         ,   X         ( X_               )
         ,   beta      ( beta_            )
@@ -93,7 +89,6 @@ namespace Tensors
         CLASS( const CLASS & other )
         :   A          ( other.A          )
         ,   A_const    ( other.A_const    )
-        ,   A_diag     ( other.A_diag     )
         ,   alpha      ( other.alpha      )
         ,   X          ( other.X          )
         ,   beta       ( other.beta       )

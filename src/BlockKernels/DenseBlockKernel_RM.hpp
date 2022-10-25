@@ -72,14 +72,13 @@ namespace Tensors
         
         CLASS(
             const Scalar     * restrict const A_,
-            const Scalar     * restrict const A_diag_,
             const Scalar_out                  alpha_,
             const Scalar_in  * restrict const X_,
             const Scalar_out                  beta_,
                   Scalar_out * restrict const Y_,
             const Int                         rhs_count_
         )
-        :   BASE( A_, A_diag_, alpha_, X_, beta_, Y_, rhs_count_ )
+        :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
         {}
         
         // Copy constructor
