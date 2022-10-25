@@ -1,13 +1,13 @@
 protected:
 
     template<int alpha_flag, int beta_flag>
-    void axpbz_gen(
+    force_inline void axpbz_gen(
         const T                     alpha,
         const T_in * restrict const x,
         const T                     beta,
               T    * restrict const z,
               Int                   N
-    )
+    ) const
     {
         if constexpr ( alpha_flag == 1 )
         {

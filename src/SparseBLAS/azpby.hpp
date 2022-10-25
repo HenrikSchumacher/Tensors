@@ -1,12 +1,12 @@
 protected:
 
     template<Int cols, int alpha_flag, int beta_flag>
-    void azpby(
+    force_inline void azpby(
         const T                      alpha,
         const T     * restrict const z,
         const T_out                  beta,
               T_out * restrict const y
-    )
+    ) const
     {
         if constexpr ( alpha_flag == 1 )
         {

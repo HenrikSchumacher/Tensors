@@ -1,13 +1,13 @@
 protected:
 
     template<int alpha_flag, int beta_flag>
-    void azpby_gen(
+    force_inline void azpby_gen(
         const T                      alpha,
         const T     * restrict const z,
         const T_out                  beta,
               T_out * restrict const y,
         const Int                    N
-    )
+    ) const
     {
         if constexpr ( alpha_flag == 1 )
         {

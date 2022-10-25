@@ -1,12 +1,12 @@
 protected:
 
     template<Int cols, int alpha_flag, int beta_flag>
-    void axpbz(
+    force_inline void axpbz(
         const T                     alpha,
         const T_in * restrict const x,
         const T                     beta,
               T    * restrict const z
-    )
+    ) const
     {
         if constexpr ( alpha_flag == 1 )
         {
