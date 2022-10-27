@@ -246,7 +246,7 @@ namespace Tensors
                                 for( Int j = 0; j < COLS; ++j )
                                 {
                                     UNROLL
-                                    for( Int k = 0; k < RhsCount(); ++k )
+                                    for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
@@ -260,7 +260,7 @@ namespace Tensors
                             for( Int i = 0; i < ROWS; ++i )
                             {
                                 UNROLL
-                                for( Int k = 0; k < RhsCount(); ++k )
+                                for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
                                     UNROLL
                                     for( Int j = 0; j < COLS; ++j )
@@ -280,7 +280,7 @@ namespace Tensors
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
                                     UNROLL
-                                    for( Int k = 0; k < RhsCount(); ++k )
+                                    for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
@@ -294,7 +294,7 @@ namespace Tensors
                             for( Int j = 0; j < COLS; ++j )
                             {
                                 UNROLL
-                                for( Int k = 0; k < RhsCount(); ++k )
+                                for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
                                     UNROLL
                                     for( Int i = 0; i < ROWS; ++i )
@@ -308,7 +308,7 @@ namespace Tensors
                         case 4:
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
                                 UNROLL
                                 for( Int i = 0; i < ROWS; ++i )
@@ -325,7 +325,7 @@ namespace Tensors
                         case 5:
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
                                 UNROLL
                                 for( Int j = 0; j < COLS; ++j )
@@ -351,7 +351,7 @@ namespace Tensors
 //                            a_intRM ? CblasTrans : CblasNoTrans,
 //                            CblasNoTrans,
 //                            a_intRM ? ROWS : COLS,
-//                            RhsCount(),
+//                            COND(fixed,RHS_COUNT,rhs_count),
 //                            a_intRM ? COLS : ROWS,
 //                            1.0, &a[0][0], a_intRM ? COLS : ROWS,
 //                                 &x[0][0], COLS,
@@ -365,7 +365,7 @@ namespace Tensors
 //                            a_intRM ? CblasTrans : CblasNoTrans,
 //                            CblasNoTrans,
 //                            a_intRM ? ROWS : COLS,
-//                            RhsCount(),
+//                            COND(fixed,RHS_COUNT,rhs_count),
 //                            a_intRM ? COLS : ROWS,
 //                            1.0f, &a[0][0], a_intRM ? COLS : ROWS,
 //                                  &x[0][0], COLS,

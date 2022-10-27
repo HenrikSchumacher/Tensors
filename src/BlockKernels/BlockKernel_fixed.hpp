@@ -216,9 +216,9 @@ namespace Tensors
                             for( Int j = 0; j < COLS; ++j )
                             {
                                 UNROLL
-                                for( Int k = 0; k < RhsCount(); ++k )
+                                for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
-                                    x[j][k] = static_cast<Scalar>( x_from[RhsCount()*j+k] );
+                                    x[j][k] = static_cast<Scalar>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k] );
                                 }
                             }
                         }
@@ -229,9 +229,9 @@ namespace Tensors
                         for( Int j = 0; j < COLS; ++j )
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                x[k][j] = static_cast<Scalar>( x_from[RhsCount()*j+k] );
+                                x[k][j] = static_cast<Scalar>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k] );
                             }
                         }
                     }
@@ -241,7 +241,7 @@ namespace Tensors
                     if constexpr ( x_intRM )
                     {
                         UNROLL
-                        for( Int k = 0; k < RhsCount(); ++k )
+                        for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                         {
                             UNROLL
                             for( Int j = 0; j < COLS; ++j )
@@ -345,7 +345,7 @@ namespace Tensors
 //        {
 //            if constexpr ( x_intRM )
 //            {
-//                return static_cast<Scalar>( x_from[RhsCount()*j+k];
+//                return static_cast<Scalar>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k];
 //            }
 //            else
 //            {
@@ -370,7 +370,7 @@ namespace Tensors
             {
                 if constexpr ( x_RM )
                 {
-                    return static_cast<Scalar>(x_from[RhsCount()*j+k]);
+                    return static_cast<Scalar>(x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k]);
                 }
                 else
                 {
@@ -403,9 +403,9 @@ namespace Tensors
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
                                     UNROLL
-                                    for( Int k = 0; k < RhsCount(); ++k )
+                                    for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                     {
-                                        y_to[RhsCount()*i+k] = get_cast_y(i,k);
+                                        y_to[COND(fixed,RHS_COUNT,rhs_count)*i+k] = get_cast_y(i,k);
                                     }
                                 }
                             }
@@ -416,9 +416,9 @@ namespace Tensors
                             for( Int i = 0; i < ROWS; ++i )
                             {
                                 UNROLL
-                                for( Int k = 0; k < RhsCount(); ++k )
+                                for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
-                                    y_to[RhsCount()*i+k] = get_cast_y(i,k);
+                                    y_to[COND(fixed,RHS_COUNT,rhs_count)*i+k] = get_cast_y(i,k);
                                 }
                             }
                         }
@@ -427,12 +427,12 @@ namespace Tensors
                     {
                         if constexpr ( fixed || y_intRM )
                         {
-                            copy_cast_buffer( &y[0][0], y_to, RhsCount() );
+                            copy_cast_buffer( &y[0][0], y_to, COND(fixed,RHS_COUNT,rhs_count) );
                         }
                         else
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
                                 UNROLL
                                 for( Int i = 0; i < ROWS; ++i )
@@ -451,16 +451,16 @@ namespace Tensors
                         for( Int i = 0; i < ROWS; ++i )
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                y_to[RhsCount()*i+k] += get_cast_y(i,k);
+                                y_to[COND(fixed,RHS_COUNT,rhs_count)*i+k] += get_cast_y(i,k);
                             }
                         }
                     }
                     else
                     {
                         UNROLL
-                        for( Int k = 0; k < RhsCount(); ++k )
+                        for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                         {
                             UNROLL
                             for( Int i = 0; i < ROWS; ++i )
@@ -478,16 +478,16 @@ namespace Tensors
                         for( Int i = 0; i < ROWS; ++i )
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                y_to[RhsCount()*i+k] = get_cast_y(i,k) + beta * y_to[RhsCount()*i+k];
+                                y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k] = get_cast_y(i,k) + beta * y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k];
                             }
                         }
                     }
                     else
                     {
                         UNROLL
-                        for( Int k = 0; k < RhsCount(); ++k )
+                        for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count)(); ++k )
                         {
                             UNROLL
                             for( Int i = 0; i < ROWS; ++i )
@@ -528,16 +528,16 @@ namespace Tensors
                         for( Int i = 0; i < ROWS; ++i )
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count)(); ++k )
                             {
-                                y_to[RhsCount()*i+k] = alpha * get_cast_y(i,k);
+                                y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k] = alpha * get_cast_y(i,k);
                             }
                         }
                     }
                     else
                     {
                         UNROLL
-                        for( Int k = 0; k < RhsCount(); ++k )
+                        for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count)(); ++k )
                         {
                             UNROLL
                             for( Int i = 0; i < ROWS; ++i )
@@ -555,16 +555,16 @@ namespace Tensors
                         for( Int i = 0; i < ROWS; ++i )
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count)(); ++k )
                             {
-                                y_to[RhsCount()*i+k] += alpha * get_cast_y(i,k);
+                                y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k] += alpha * get_cast_y(i,k);
                             }
                         }
                     }
                     else
                     {
                         UNROLL
-                        for( Int k = 0; k < RhsCount(); ++k )
+                        for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count)(); ++k )
                         {
                             UNROLL
                             for( Int i = 0; i < ROWS; ++i )
@@ -583,16 +583,16 @@ namespace Tensors
                         for( Int i = 0; i < ROWS; ++i )
                         {
                             UNROLL
-                            for( Int k = 0; k < RhsCount(); ++k )
+                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count)(); ++k )
                             {
-                                y_to[RhsCount()*i+k] = alpha * get_cast_y(i,k) + beta * y_to[RhsCount()*i+k];
+                                y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k] = alpha * get_cast_y(i,k) + beta * y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k];
                             }
                         }
                     }
                     else
                     {
                         UNROLL
-                        for( Int k = 0; k < RhsCount(); ++k )
+                        for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count)(); ++k )
                         {
                             UNROLL
                             for( Int i = 0; i < ROWS; ++i )

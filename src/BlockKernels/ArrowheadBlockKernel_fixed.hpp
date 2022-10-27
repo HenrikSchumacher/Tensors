@@ -104,6 +104,7 @@ namespace Tensors
             
             a_to[0] = a_from[0];
             
+            UNROLL
             for( Int i = 1; i < ROWS; ++i )
             {
                 a_to[       i] = a_from[ROWS-1+i];
@@ -153,7 +154,8 @@ namespace Tensors
             
             ReadA( k_global );
             
-            for( Int k = 0; k < RhsCount(); ++k )
+            UNROLL
+            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
             {
 //                get_y(0,k) += get_a(0) * get_x(0,k);
                 
@@ -161,7 +163,7 @@ namespace Tensors
                 
 //                get_y(0,k) = FMA( get_a(0), get_x(0,k), get_y(0,k) );
 
-
+                UNROLL
                 for( Int j = 1; j < COLS; ++j )
                 {
 //                    get_y(0,k) += get_a(j-1) * get_x(j,k);
@@ -171,6 +173,7 @@ namespace Tensors
 //                    get_y(0,k) = FMA( get_a(j-1),  get_x(j,k), get_y(0,k) );
                 }
 
+                UNROLL
                 for( Int i = 1; i < ROWS; ++i )
                 {
 //                    get_y(i,k) += get_a(COLS+i-2) * get_x(0,k);
