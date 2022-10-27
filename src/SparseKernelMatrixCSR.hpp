@@ -165,12 +165,13 @@ namespace Tensors
                             
                         } // for( Int i = i_begin; i < i_end; ++i )
                         
-                    } for( Int thread = 0; thread < thread_count; ++thread )
+                    }
                 }
             }
             
             ptoc(ClassName()+"::FillLowerTriangleFromUpperTriangle");
         }
+        
         
 //##############################################################################################
 //      Matrix multiplication
