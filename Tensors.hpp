@@ -7,15 +7,16 @@
     #include <array>
     
 
-    #include <Accelerate/Accelerate.h>
+//    #include <Accelerate/Accelerate.h>
 //    #include <cblas.h>
 //    #include <lapacke.h>
 
 //    #define EIGEN_USE_BLAS
 //    #define EIGEN_USE_LAPACKE
 //    #include <eigen3/Eigen/Dense>
-    
 
+#define UNROLL _Pragma("unroll")
+//#define UNROLL
 
     #include "Tools/Tools.hpp"
 

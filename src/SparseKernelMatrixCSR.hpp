@@ -17,7 +17,7 @@ namespace Tensors
         using SparsityPattern_T = SparsityPatternCSR<Int>;
         
         CLASS()
-        :   kernel { nullptr, nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
         
         explicit CLASS(
@@ -78,48 +78,95 @@ namespace Tensors
                 
                 const Int thread_count = job_ptr.Size()-1;
                 
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
+                if( thread_count > 1)
                 {
-                    Kernel_T ker ( values );
-                    
-                    const Int i_begin = job_ptr[thread  ];
-                    const Int i_end   = job_ptr[thread+1];
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+                    #pragma omp parallel for num_threads( thread_count )
+                    for( Int thread = 0; thread < thread_count; ++thread )
                     {
-                        const Int k_begin = outer[i];
-                        const Int k_end   =  diag[i];
+                        Kernel_T ker ( values );
                         
-                        for( Int k = k_begin; k < k_end; ++k )
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
                         {
-                            const Int j = inner[k];
+                            const Int k_begin = outer[i];
+                            const Int k_end   =  diag[i];
                             
-                            Int L =  diag[j];
-                            Int R = outer[j+1]-1;
-                            
-                            while( L < R )
+                            for( Int k = k_begin; k < k_end; ++k )
                             {
-                                const Int M = R - (R-L)/static_cast<Int>(2);
-                                const Int j = inner[M];
-
-                                if( j > i )
+                                const Int j = inner[k];
+                                
+                                Int L =  diag[j];
+                                Int R = outer[j+1]-1;
+                                
+                                while( L < R )
                                 {
-                                    R = M-1;
+                                    const Int M = R - (R-L)/static_cast<Int>(2);
+                                    const Int j = inner[M];
+                                    
+                                    if( j > i )
+                                    {
+                                        R = M-1;
+                                    }
+                                    else
+                                    {
+                                        L = M;
+                                    }
                                 }
-                                else
+                                
+                                ker.TransposeBlock(L,k);
+                                
+                            } // for( Int k = k_begin; k < k_end; ++k )
+                            
+                        } // for( Int i = i_begin; i < i_end; ++i )
+                        
+                    } // #pragma omp parallel
+                }
+                else
+                {
+                    for( Int thread = 0; thread < thread_count; ++thread )
+                    {
+                        Kernel_T ker ( values );
+                        
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            const Int k_begin = outer[i];
+                            const Int k_end   =  diag[i];
+                            
+                            for( Int k = k_begin; k < k_end; ++k )
+                            {
+                                const Int j = inner[k];
+                                
+                                Int L =  diag[j];
+                                Int R = outer[j+1]-1;
+                                
+                                while( L < R )
                                 {
-                                    L = M;
+                                    const Int M = R - (R-L)/static_cast<Int>(2);
+                                    const Int j = inner[M];
+                                    
+                                    if( j > i )
+                                    {
+                                        R = M-1;
+                                    }
+                                    else
+                                    {
+                                        L = M;
+                                    }
                                 }
-                            }
+                                
+                                ker.TransposeBlock(L,k);
+                                
+                            } // for( Int k = k_begin; k < k_end; ++k )
                             
-                            ker.TransposeBlock(L,k);
-                            
-                        } // for( Int k = k_begin; k < k_end; ++k )
-
-                    } // for( Int i = i_begin; i < i_end; ++i )
-                    
-                } // #pragma omp parallel
+                        } // for( Int i = i_begin; i < i_end; ++i )
+                        
+                    } for( Int thread = 0; thread < thread_count; ++thread )
+                }
             }
             
             ptoc(ClassName()+"::FillLowerTriangleFromUpperTriangle");
@@ -139,10 +186,20 @@ namespace Tensors
             }
             else
             {
-                #pragma omp parallel for simd num_threads( pattern.ThreadCount() ) schedule( static )
-                for( Int i = 0; i < size; ++i )
+                if( thread_count > 1)
                 {
-                    Y[i] *= beta;
+                    #pragma omp parallel for simd num_threads( pattern.ThreadCount() ) schedule( static )
+                    for( Int i = 0; i < size; ++i )
+                    {
+                        Y[i] *= beta;
+                    }
+                }
+                else
+                {
+                    for( Int i = 0; i < size; ++i )
+                    {
+                        Y[i] *= beta;
+                    }
                 }
             }
         }
@@ -171,65 +228,131 @@ namespace Tensors
             
             const Int thread_count = job_ptr.Size()-1;
 
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
+            if( thread_count > 1)
             {
-                // Initialize local kernel and feed it all the information that is going to be constant along its life time.
-                Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
-                
-                const Int * restrict const rp = pattern.Outer().data();
-                const Int * restrict const ci = pattern.Inner().data();
-                
-                // Kernel is supposed the following rows of pattern:
-                const Int i_begin = job_ptr[thread  ];
-                const Int i_end   = job_ptr[thread+1];
-                
-                for( Int i = i_begin; i < i_end; ++i )
+                // OpenMP has a considerable overhead at launching the threads...
+                #pragma omp parallel for num_threads( thread_count )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    // These are the corresponding nonzero blocks in i-th row.
-                    const Int k_begin = rp[i  ];
-                    const Int k_end   = rp[i+1];
+                    // Initialize local kernel and feed it all the information that is going to be constant along its life time.
+                    Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
                     
-                    if( k_end > k_begin )
+                    const Int * restrict const rp = pattern.Outer().data();
+                    const Int * restrict const ci = pattern.Inner().data();
+                    
+                    // Kernel is supposed the following rows of pattern:
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        // Clear the local vector chunk of the kernel.
-                        ker.BeginRow(i);
+                        // These are the corresponding nonzero blocks in i-th row.
+                        const Int k_begin = rp[i  ];
+                        const Int k_end   = rp[i+1];
                         
-                        // Perform all but the last calculation in row with prefetch.
-                        for( Int k = k_begin; k < k_end-1; ++k )
+                        if( k_end > k_begin )
                         {
-                            const Int j = ci[k];
+                            // Clear the local vector chunk of the kernel.
+                            ker.BeginRow(i);
                             
-                            ker.Prefetch(k,ci[k+1]);
+                            // Perform all but the last calculation in row with prefetch.
+                            for( Int k = k_begin; k < k_end-1; ++k )
+                            {
+                                const Int j = ci[k];
+                                
+                                ker.Prefetch(k,ci[k+1]);
+                                
+                                // Let the kernel apply to the k-th block to the j-th chunk of the input.
+                                // The result is stored in the kernel's local vector chunk X.
+                                ker.ApplyBlock(k,j);
+                            }
                             
-                            // Let the kernel apply to the k-th block to the j-th chunk of the input.
-                            // The result is stored in the kernel's local vector chunk X.
-                            ker.ApplyBlock(k,j);
+                            // Perform last calculation in row without prefetch.
+                            {
+                                const Int k = k_end-1;
+                                
+                                const Int j = ci[k];
+                                
+                                // Let the kernel apply to the k-th block to the j-th chunk of the input X.
+                                // The result is stored in the kernel's local vector chunk.
+                                ker.ApplyBlock(k,j);
+                            }
+                            
+                            // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
+                            
+                            ker.EndRow(i);
+                        }
+                        else
+                        {
+                            // Make sure that Y(i) is correctly overwritten in the case that there are not entries in the row.
+                            ker.WriteYZero(i);
                         }
                         
-                        // Perform last calculation in row without prefetch.
-                        {
-                            const Int k = k_end-1;
-                            
-                            const Int j = ci[k];
-                            
-                            // Let the kernel apply to the k-th block to the j-th chunk of the input X.
-                            // The result is stored in the kernel's local vector chunk.
-                            ker.ApplyBlock(k,j);
-                        }
-                        
-                        // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
-                        
-                        ker.EndRow(i);
                     }
-                    else
-                    {
-                        // Make sure that Y(i) is correctly overwritten in the case that there are not entries in the row.
-                        ker.WriteYZero(i);
-                    }
-                    
                 }
             }
+            else
+            {
+                for( Int thread = 0; thread < thread_count; ++thread )
+                {
+                    // Initialize local kernel and feed it all the information that is going to be constant along its life time.
+                    Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
+                    
+                    const Int * restrict const rp = pattern.Outer().data();
+                    const Int * restrict const ci = pattern.Inner().data();
+                    
+                    // Kernel is supposed the following rows of pattern:
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        // These are the corresponding nonzero blocks in i-th row.
+                        const Int k_begin = rp[i  ];
+                        const Int k_end   = rp[i+1];
+                        
+                        if( k_end > k_begin )
+                        {
+                            // Clear the local vector chunk of the kernel.
+                            ker.BeginRow(i);
+                            
+                            // Perform all but the last calculation in row with prefetch.
+                            for( Int k = k_begin; k < k_end-1; ++k )
+                            {
+                                const Int j = ci[k];
+                                
+                                ker.Prefetch(k,ci[k+1]);
+                                
+                                // Let the kernel apply to the k-th block to the j-th chunk of the input.
+                                // The result is stored in the kernel's local vector chunk X.
+                                ker.ApplyBlock(k,j);
+                            }
+                            
+                            // Perform last calculation in row without prefetch.
+                            {
+                                const Int k = k_end-1;
+                                
+                                const Int j = ci[k];
+                                
+                                // Let the kernel apply to the k-th block to the j-th chunk of the input X.
+                                // The result is stored in the kernel's local vector chunk.
+                                ker.ApplyBlock(k,j);
+                            }
+                            
+                            // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
+                            
+                            ker.EndRow(i);
+                        }
+                        else
+                        {
+                            // Make sure that Y(i) is correctly overwritten in the case that there are not entries in the row.
+                            ker.WriteYZero(i);
+                        }
+                        
+                    }
+                    
+                } // for( Int thread = 0; thread < thread_count; ++thread )
+                
             ptoc(ClassName()+"::Dot" );
         }
         

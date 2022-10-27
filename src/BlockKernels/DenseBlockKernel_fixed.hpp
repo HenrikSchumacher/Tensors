@@ -109,8 +109,10 @@ namespace Tensors
             
             if constexpr ( a_RM )
             {
+                UNROLL
                 for( Int j = 0; j < COLS; ++j )
                 {
+                    UNROLL
                     for( Int i = 0; i < ROWS; ++i )
                     {
                         a_to[ROWS * j + i ] = a_from[COLS * i + j ];
@@ -119,8 +121,10 @@ namespace Tensors
             }
             else
             {
+                UNROLL
                 for( Int i = 0; i < ROWS; ++i )
                 {
+                    UNROLL
                     for( Int j = 0; j < COLS; ++j )
                     {
                         a_to[COLS * i + j] = a_from[ROWS * j + i];
@@ -144,8 +148,10 @@ namespace Tensors
                     }
                     else
                     {
+                        UNROLL
                         for( Int i = 0; i < ROWS; ++i )
                         {
+                            UNROLL
                             for( Int j = 0; j < COLS; ++j )
                             {
                                 a[j][i] = a_from[COLS*i+j];
@@ -157,9 +163,10 @@ namespace Tensors
                 {
                     if constexpr ( a_intRM )
                     {
-                        
+                        UNROLL
                         for( Int j = 0; j < COLS; ++j )
                         {
+                            UNROLL
                             for( Int i = 0; i < ROWS; ++i )
                             {
                                 a[i][j] = a_from[ROWS*j+i];
@@ -232,10 +239,13 @@ namespace Tensors
                     {
                         case 0:
                         {
+                            UNROLL
                             for( Int i = 0; i < ROWS; ++i )
                             {
+                                UNROLL
                                 for( Int j = 0; j < COLS; ++j )
                                 {
+                                    UNROLL
                                     for( Int k = 0; k < RhsCount(); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -246,10 +256,13 @@ namespace Tensors
                         }
                         case 1:
                         {
+                            UNROLL
                             for( Int i = 0; i < ROWS; ++i )
                             {
+                                UNROLL
                                 for( Int k = 0; k < RhsCount(); ++k )
                                 {
+                                    UNROLL
                                     for( Int j = 0; j < COLS; ++j )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -260,11 +273,13 @@ namespace Tensors
                         }
                         case 2:
                         {
-                            
+                            UNROLL
                             for( Int j = 0; j < COLS; ++j )
                             {
+                                UNROLL
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
+                                    UNROLL
                                     for( Int k = 0; k < RhsCount(); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -275,10 +290,13 @@ namespace Tensors
                         }
                         case 3:
                         {
+                            UNROLL
                             for( Int j = 0; j < COLS; ++j )
                             {
+                                UNROLL
                                 for( Int k = 0; k < RhsCount(); ++k )
                                 {
+                                    UNROLL
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -289,10 +307,13 @@ namespace Tensors
                         }
                         case 4:
                         {
+                            UNROLL
                             for( Int k = 0; k < RhsCount(); ++k )
                             {
+                                UNROLL
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
+                                    UNROLL
                                     for( Int j = 0; j < COLS; ++j )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -303,10 +324,13 @@ namespace Tensors
                         }
                         case 5:
                         {
+                            UNROLL
                             for( Int k = 0; k < RhsCount(); ++k )
                             {
+                                UNROLL
                                 for( Int j = 0; j < COLS; ++j )
                                 {
+                                    UNROLL
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
