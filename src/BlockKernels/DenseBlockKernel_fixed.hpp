@@ -110,10 +110,10 @@ namespace Tensors
             
             if constexpr ( a_RM )
             {
-                UNROLL
+                #pragma unroll
                 for( Int j = 0; j < COLS; ++j )
                 {
-                    UNROLL
+                    #pragma unroll
                     for( Int i = 0; i < ROWS; ++i )
                     {
                         a_to[ROWS * j + i ] = a_from[COLS * i + j ];
@@ -122,10 +122,10 @@ namespace Tensors
             }
             else
             {
-                UNROLL
+                #pragma unroll
                 for( Int i = 0; i < ROWS; ++i )
                 {
-                    UNROLL
+                    #pragma unroll
                     for( Int j = 0; j < COLS; ++j )
                     {
                         a_to[COLS * i + j] = a_from[ROWS * j + i];
@@ -149,10 +149,10 @@ namespace Tensors
                     }
                     else
                     {
-                        UNROLL
+                        #pragma unroll
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            UNROLL
+                            #pragma unroll
                             for( Int j = 0; j < COLS; ++j )
                             {
                                 a[j][i] = a_from[COLS*i+j];
@@ -164,10 +164,10 @@ namespace Tensors
                 {
                     if constexpr ( a_intRM )
                     {
-                        UNROLL
+                        #pragma unroll
                         for( Int j = 0; j < COLS; ++j )
                         {
-                            UNROLL
+                            #pragma unroll
                             for( Int i = 0; i < ROWS; ++i )
                             {
                                 a[i][j] = a_from[ROWS*j+i];
@@ -240,13 +240,13 @@ namespace Tensors
                     {
                         case 0:
                         {
-                            UNROLL
+                            #pragma unroll
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                UNROLL
+                                #pragma unroll
                                 for( Int j = 0; j < COLS; ++j )
                                 {
-                                    UNROLL
+                                    #pragma unroll
                                     for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -257,13 +257,13 @@ namespace Tensors
                         }
                         case 1:
                         {
-                            UNROLL
+                            #pragma unroll
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                UNROLL
+                                #pragma unroll
                                 for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
-                                    UNROLL
+                                    #pragma unroll
                                     for( Int j = 0; j < COLS; ++j )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -274,13 +274,13 @@ namespace Tensors
                         }
                         case 2:
                         {
-                            UNROLL
+                            #pragma unroll
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                UNROLL
+                                #pragma unroll
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
-                                    UNROLL
+                                    #pragma unroll
                                     for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -291,13 +291,13 @@ namespace Tensors
                         }
                         case 3:
                         {
-                            UNROLL
+                            #pragma unroll
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                UNROLL
+                                #pragma unroll
                                 for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
-                                    UNROLL
+                                    #pragma unroll
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -308,13 +308,13 @@ namespace Tensors
                         }
                         case 4:
                         {
-                            UNROLL
+                            #pragma unroll
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                UNROLL
+                                #pragma unroll
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
-                                    UNROLL
+                                    #pragma unroll
                                     for( Int j = 0; j < COLS; ++j )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -325,13 +325,13 @@ namespace Tensors
                         }
                         case 5:
                         {
-                            UNROLL
+                            #pragma unroll
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                UNROLL
+                                #pragma unroll
                                 for( Int j = 0; j < COLS; ++j )
                                 {
-                                    UNROLL
+                                    #pragma unroll
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);

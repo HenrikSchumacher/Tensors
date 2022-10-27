@@ -15,9 +15,6 @@
 //    #define EIGEN_USE_LAPACKE
 //    #include <eigen3/Eigen/Dense>
 
-#define UNROLL _Pragma("unroll")
-//#define UNROLL
-
     #include "Tools/Tools.hpp"
 
     namespace Tensors {
