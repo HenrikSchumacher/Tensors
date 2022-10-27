@@ -217,7 +217,7 @@ namespace Tensors
         ) const
         {
             ptic(ClassName()+"::Dot" );
-
+            
             if( (alpha == static_cast<Scalar_out>(0)) || (NonzeroCount() <= 0) )
             {
                 Scale( Y, beta, rhs_count );
@@ -230,7 +230,7 @@ namespace Tensors
             const auto & job_ptr = pattern.JobPtr();
             
             const Int thread_count = job_ptr.Size()-1;
-
+            
             if( thread_count > 1)
             {
                 // OpenMP has a considerable overhead at launching the threads...
@@ -356,6 +356,7 @@ namespace Tensors
                     
                 } // for( Int thread = 0; thread < thread_count; ++thread )
                 
+            }
             ptoc(ClassName()+"::Dot" );
         }
         
