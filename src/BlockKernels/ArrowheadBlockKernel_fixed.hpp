@@ -61,6 +61,7 @@ namespace Tensors
         using BASE::ReadX;
         using BASE::get_x;
         using BASE::get_y;
+        using BASE::rhs_count;
         
         const Scalar * restrict a_from = nullptr;
         
