@@ -60,7 +60,7 @@
 
 
     #include "src/SparseKernelMatrixCSR.hpp"
-    #include "src/DiagonalKernelMatrixCSR.hpp"
+    #include "src/DiagonalKernelMatrix.hpp"
 
     #include "src/BlockKernels/BlockKernel_fixed.hpp"
     #include "src/BlockKernels/DenseBlockKernel_fixed.hpp"
