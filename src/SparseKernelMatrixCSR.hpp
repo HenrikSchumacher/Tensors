@@ -37,7 +37,7 @@ namespace Tensors
         
     protected:
         
-        const SparsityPattern_T   & pattern;
+        const SparsityPattern_T & pattern;
         Kernel_T kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT };
         
     public:
@@ -187,9 +187,11 @@ namespace Tensors
             }
             else
             {
+                const Int thread_count = pattern.ThreadCount();
+                
                 if( thread_count > 1)
                 {
-                    #pragma omp parallel for simd num_threads( pattern.ThreadCount() ) schedule( static )
+                    #pragma omp parallel for simd num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < size; ++i )
                     {
                         Y[i] *= beta;
