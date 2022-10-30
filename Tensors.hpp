@@ -35,6 +35,7 @@
     //#include "src/SmallSymmetricMatrix.hpp"
     #include "src/SmallMatrixList.hpp"
 
+    #include "src/AssemblyCounters.hpp"
     #include "src/PairAggregator.hpp"
     #include "src/TripleAggregator.hpp"
 
