@@ -11,10 +11,11 @@ namespace Tensors
         
         using Scalar     = typename Kernel_T::Scalar;
         using Int        = typename Kernel_T::Int;
+        using LInt       = typename Kernel_T::LInt;
         using Scalar_in  = typename Kernel_T::Scalar_in;
         using Scalar_out = typename Kernel_T::Scalar_out;
         
-        using SparsityPattern_T = SparsityPatternCSR<Int>;
+        using SparsityPattern_T = SparsityPatternCSR<Int,LInt>;
         
         CLASS()
         :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
@@ -52,7 +53,7 @@ namespace Tensors
             return pattern.ColCount() * Kernel_T::ColCount();
         }
         
-        Int NonzeroCount() const
+        LInt NonzeroCount() const
         {
             return pattern.NonzeroCount() * Kernel_T::BLOCK_NNZ;
         }
@@ -70,9 +71,9 @@ namespace Tensors
             
             if( pattern.WellFormed() && (pattern.RowCount()>= pattern.ColCount()) )
             {
-                const Int * restrict const diag   = pattern.Diag().data();
-                const Int * restrict const outer  = pattern.Outer().data();
-                const Int * restrict const inner  = pattern.Inner().data();
+                const LInt * restrict const diag   = pattern.Diag().data();
+                const LInt * restrict const outer  = pattern.Outer().data();
+                const  Int * restrict const inner  = pattern.Inner().data();
                 
                 const auto & job_ptr = pattern.LowerTriangularJobPtr();
                 
@@ -90,20 +91,20 @@ namespace Tensors
                         
                         for( Int i = i_begin; i < i_end; ++i )
                         {
-                            const Int k_begin = outer[i];
-                            const Int k_end   =  diag[i];
+                            const LInt k_begin = outer[i];
+                            const LInt k_end   =  diag[i];
                             
-                            for( Int k = k_begin; k < k_end; ++k )
+                            for( LInt k = k_begin; k < k_end; ++k )
                             {
                                 const Int j = inner[k];
                                 
-                                Int L =  diag[j];
-                                Int R = outer[j+1]-1;
+                                LInt L =  diag[j];
+                                LInt R = outer[j+1]-1;
                                 
                                 while( L < R )
                                 {
-                                    const Int M = R - (R-L)/static_cast<Int>(2);
-                                    const Int j = inner[M];
+                                    const LInt M = R - (R-L)/static_cast<LInt>(2);
+                                    const  Int j = inner[M];
                                     
                                     if( j > i )
                                     {
@@ -117,7 +118,7 @@ namespace Tensors
                                 
                                 ker.TransposeBlock(L,k);
                                 
-                            } // for( Int k = k_begin; k < k_end; ++k )
+                            } // for( LInt k = k_begin; k < k_end; ++k )
                             
                         } // for( Int i = i_begin; i < i_end; ++i )
                         
@@ -134,20 +135,20 @@ namespace Tensors
                         
                         for( Int i = i_begin; i < i_end; ++i )
                         {
-                            const Int k_begin = outer[i];
-                            const Int k_end   =  diag[i];
+                            const LInt k_begin = outer[i];
+                            const LInt k_end   =  diag[i];
                             
-                            for( Int k = k_begin; k < k_end; ++k )
+                            for( LInt k = k_begin; k < k_end; ++k )
                             {
                                 const Int j = inner[k];
                                 
-                                Int L =  diag[j];
-                                Int R = outer[j+1]-1;
+                                LInt L =  diag[j];
+                                LInt R = outer[j+1]-1;
                                 
                                 while( L < R )
                                 {
-                                    const Int M = R - (R-L)/static_cast<Int>(2);
-                                    const Int j = inner[M];
+                                    const LInt M = R - (R-L)/static_cast<LInt>(2);
+                                    const  Int j = inner[M];
                                     
                                     if( j > i )
                                     {
@@ -207,7 +208,7 @@ namespace Tensors
             }
         }
         
-        void force_inline Dot(
+        void Dot(
             const Scalar     * restrict const A,
             const Scalar_out                  alpha,
             const Scalar_in  * restrict const X,
@@ -240,8 +241,8 @@ namespace Tensors
                     // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                     Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
                     
-                    const Int * restrict const rp = pattern.Outer().data();
-                    const Int * restrict const ci = pattern.Inner().data();
+                    const LInt * restrict const rp = pattern.Outer().data();
+                    const  Int * restrict const ci = pattern.Inner().data();
                     
                     // Kernel is supposed the following rows of pattern:
                     const Int i_begin = job_ptr[thread  ];
@@ -250,8 +251,8 @@ namespace Tensors
                     for( Int i = i_begin; i < i_end; ++i )
                     {
                         // These are the corresponding nonzero blocks in i-th row.
-                        const Int k_begin = rp[i  ];
-                        const Int k_end   = rp[i+1];
+                        const LInt k_begin = rp[i  ];
+                        const LInt k_end   = rp[i+1];
                         
                         if( k_end > k_begin )
                         {
@@ -259,7 +260,7 @@ namespace Tensors
                             ker.BeginRow(i);
                             
                             // Perform all but the last calculation in row with prefetch.
-                            for( Int k = k_begin; k < k_end-1; ++k )
+                            for( LInt k = k_begin; k < k_end-1; ++k )
                             {
                                 const Int j = ci[k];
                                 
@@ -272,7 +273,7 @@ namespace Tensors
                             
                             // Perform last calculation in row without prefetch.
                             {
-                                const Int k = k_end-1;
+                                const LInt k = k_end-1;
                                 
                                 const Int j = ci[k];
                                 
@@ -301,8 +302,8 @@ namespace Tensors
                     // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                     Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
                     
-                    const Int * restrict const rp = pattern.Outer().data();
-                    const Int * restrict const ci = pattern.Inner().data();
+                    const LInt * restrict const rp = pattern.Outer().data();
+                    const  Int * restrict const ci = pattern.Inner().data();
                     
                     // Kernel is supposed the following rows of pattern:
                     const Int i_begin = job_ptr[thread  ];
@@ -311,8 +312,8 @@ namespace Tensors
                     for( Int i = i_begin; i < i_end; ++i )
                     {
                         // These are the corresponding nonzero blocks in i-th row.
-                        const Int k_begin = rp[i  ];
-                        const Int k_end   = rp[i+1];
+                        const LInt k_begin = rp[i  ];
+                        const LInt k_end   = rp[i+1];
                         
                         if( k_end > k_begin )
                         {
@@ -320,7 +321,7 @@ namespace Tensors
                             ker.BeginRow(i);
                             
                             // Perform all but the last calculation in row with prefetch.
-                            for( Int k = k_begin; k < k_end-1; ++k )
+                            for( LInt k = k_begin; k < k_end-1; ++k )
                             {
                                 const Int j = ci[k];
                                 

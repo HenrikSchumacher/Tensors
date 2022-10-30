@@ -166,7 +166,7 @@ namespace Tensors {
         {
             if( (i < 0) || (i > dims[0]) )
             {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(dims[0]-1) +" }.");
+                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
         }
         
@@ -174,11 +174,11 @@ namespace Tensors {
         {
             if( (i < 0) || (i > dims[0]) )
             {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(dims[0]-1) +" }.");
+                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
             if( (j < 0) || (j > dims[1]) )
             {
-                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds { 0, " + std::to_string(dims[1]-1) +" }.");
+                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
         }
         
@@ -186,15 +186,15 @@ namespace Tensors {
         {
             if( (i < 0) || (i > dims[0]) )
             {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(dims[0]-1) +" }.");
+                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
             if( (j < 0) || (j > dims[1]) )
             {
-                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds { 0, " + std::to_string(dims[1]-1) +" }.");
+                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
             if( (k < 0) || (k > dims[2]) )
             {
-                eprint(ClassName()+": third index " + std::to_string(k) + " is out of bounds { 0, " + std::to_string(dims[2]-1) +" }.");
+                eprint(ClassName()+": third index " + std::to_string(k) + " is out of bounds [ 0, " + std::to_string(dims[2]) +" [.");
             }
         }
         
@@ -336,16 +336,18 @@ namespace Tensors {
             return n;
         }
         
-        Tensor2<T,I> AddReduce() const
+        template<typename J>
+        Tensor2<T,J> AddReduce() const
         {
-            Tensor2<T,I> B ( dims[1], dims[2] );
+            Tensor2<T,J> B ( dims[1], dims[2] );
             
             AddReduce( B.data(), false );
              
             return B;
         }
         
-        void AddReduce( Tensor2<T,I> & B, const bool addto ) const
+        template<typename J>
+        void AddReduce( Tensor2<T,J> & B, const bool addto ) const
         {
             AddReduce( B.data(), addto );
         }

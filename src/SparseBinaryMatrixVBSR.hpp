@@ -3,7 +3,7 @@
 #pragma once
 
 #define CLASS SparseBinaryMatrixVBSR
-#define BASE  SparseBinaryMatrixCSR<I>
+#define BASE  SparseBinaryMatrixCSR<I,I>
 
 namespace Tensors
 {

@@ -49,7 +49,7 @@ namespace Tensors {
         {
             if( (i < 0) || (i > dims[0]) )
             {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(dims[0]-1) +" }.");
+                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
         }
         
@@ -57,11 +57,11 @@ namespace Tensors {
         {
             if( (i < 0) || (i > dims[0]) )
             {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(dims[0]-1) +" }.");
+                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
             if( (j < 0) || (j > dims[1]) )
             {
-                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds { 0, " + std::to_string(dims[1]-1) +" }.");
+                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
         }
         
@@ -69,15 +69,15 @@ namespace Tensors {
         {
             if( (i < 0) || (i > dims[0]) )
             {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(dims[0]-1) +" }.");
+                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
             if( (j < 0) || (j > dims[1]) )
             {
-                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds { 0, " + std::to_string(dims[1]-1) +" }.");
+                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
             if( (k < 0) || (k > dims[2]) )
             {
-                eprint(ClassName()+": third index " + std::to_string(k) + " is out of bounds { 0, " + std::to_string(dims[2]-1) +" }.");
+                eprint(ClassName()+": third index " + std::to_string(k) + " is out of bounds [ 0, " + std::to_string(dims[2]) +" [.");
             }
         }
         

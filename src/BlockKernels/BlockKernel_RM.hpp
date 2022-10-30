@@ -7,7 +7,7 @@ namespace Tensors
 {
     template<
         int ROWS_, int COLS_,
-        typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
+        typename Scalar_, typename Scalar_in_, typename Scalar_out_, typename Int_, typename LInt_,
         int alpha_flag, int beta_flag,
         bool x_RM, bool x_copy, bool x_prefetch,
         bool y_RM
@@ -15,14 +15,15 @@ namespace Tensors
     class alignas( OBJECT_ALIGNMENT ) CLASS
     {
         ASSERT_ARITHMETIC(Scalar_)
-        ASSERT_INT(Int_);
         ASSERT_ARITHMETIC(Scalar_in_)
         ASSERT_ARITHMETIC(Scalar_out_)
-        
+        ASSERT_INT(Int_);
+        ASSERT_INT(LInt_);
     public:
         
         using Scalar     = Scalar_;
         using Int        = Int_;
+        using LInt       = LInt_;
         using Scalar_in  = Scalar_in_;
         using Scalar_out = Scalar_out_;
         
@@ -56,12 +57,12 @@ namespace Tensors
         CLASS() = delete;
         
         explicit CLASS( Scalar * restrict const A_ )
-        :   A (A_)
-        ,   A_const( nullptr )
-        ,   alpha( 0 )
-        ,   X( nullptr )
-        ,   beta( 0 )
-        ,   Y( nullptr )
+        :   A       ( A_      )
+        ,   A_const ( nullptr )
+        ,   alpha   ( 0       )
+        ,   X       ( nullptr )
+        ,   beta    ( 0       )
+        ,   Y       ( nullptr )
         {}
 
         CLASS(
@@ -120,9 +121,9 @@ namespace Tensors
             return RhsCount();
         }
         
-        virtual Int NonzeroCount() const = 0;
+        virtual LInt NonzeroCount() const = 0;
         
-        virtual void TransposeBlock( const Int from, const Int to ) const = 0;
+        virtual void TransposeBlock( const LInt from, const LInt to ) const = 0;
         
         
         
@@ -201,7 +202,7 @@ namespace Tensors
         virtual force_inline void end_row( const Int i_global ) = 0;
         
         
-        virtual force_inline void Prefetch( const Int k_global, const Int j_next )
+        virtual force_inline void Prefetch( const LInt k_global, const Int j_next )
         {
             if constexpr ( x_prefetch )
             {
@@ -212,12 +213,12 @@ namespace Tensors
         }
         
         
-        virtual force_inline void ApplyBlock( const Int k_global, const Int j_global )
+        virtual force_inline void ApplyBlock( const LInt k_global, const Int j_global )
         {
             apply_block( k_global, j_global );
         }
         
-        virtual force_inline void apply_block( const Int k_global, const Int j_global ) = 0;
+        virtual force_inline void apply_block( const LInt k_global, const LInt j_global ) = 0;
         
         
         force_inline Scalar_out get_cast_y( const Int i, const Int k ) const
@@ -465,10 +466,8 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+TypeName<Scalar>::Get()
-            +","+TypeName<Int>::Get()
-            +","+TypeName<Scalar_in>::Get()
-            +","+TypeName<Scalar_out>::Get()
+            +","+TypeName<Scalar>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()
+            +","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
             +","+ToString(x_RM)+","+ToString(x_copy)+","+ToString(x_prefetch)

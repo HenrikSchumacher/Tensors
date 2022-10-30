@@ -11,6 +11,7 @@ namespace Tensors
         
         using Scalar     = typename Kernel_T::Scalar;
         using Int        = typename Kernel_T::Int;
+        using LInt       = typename Kernel_T::LInt;
         using Scalar_in  = typename Kernel_T::Scalar_in;
         using Scalar_out = typename Kernel_T::Scalar_out;
         
@@ -18,17 +19,19 @@ namespace Tensors
         :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
         
-        explicit CLASS(
+        CLASS(
             const Int n_,
-            const Int thread_count
+            const Int thread_count_
         )
-        ,   n ( n_ )
+        :   n ( n_ )
+        ,   thread_count(thread_count_)
         ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
         
         // Copy constructor
         CLASS( const CLASS & other )
-        :   pattern ( other.pattern )
+        :   n ( other.n )
+        ,   thread_count( other.thread_count )
         ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
 
@@ -160,7 +163,7 @@ namespace Tensors
         }
         
         
-        void force_inline Dot(
+        void Dot(
             const Scalar     * restrict const A,
             const Scalar_out                  alpha,
             const Scalar_in  * restrict const X,
@@ -170,7 +173,7 @@ namespace Tensors
         ) const
         {
             ptic(ClassName()+"::Dot" );
-
+            
             if( (alpha == static_cast<Scalar_out>(0)) || (NonzeroCount() <= 0) )
             {
                 Scale( Y, beta, rhs_count );
@@ -179,8 +182,8 @@ namespace Tensors
                 
                 return;
             }
-            
-            const auto & job_ptr = JobPointers<Int>(n,n);
+
+            const auto & job_ptr = JobPointers<Int>(n,thread_count);
             
             const Int thread_count = job_ptr.Size()-1;
 
@@ -195,13 +198,10 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    for( Int k = k_begin; k < k_end; ++k )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const Int i = k;
-                        const Int j = k;
-                        
                         ker.BeginRow(i);
-                        ker.ApplyBlock(k,j);
+                        ker.ApplyBlock(i,i);
                         ker.EndRow(i);
                     }
                 }
@@ -216,17 +216,15 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    for( Int k = k_begin; k < k_end; ++k )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const Int i = k;
-                        const Int j = k;
-                        
                         ker.BeginRow(i);
-                        ker.ApplyBlock(k,j);
+                        ker.ApplyBlock(i,i);
                         ker.EndRow(i);
                     }
                 }
             }
+    
             ptoc(ClassName()+"::Dot" );
         }
         

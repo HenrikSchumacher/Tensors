@@ -2,23 +2,23 @@
 
 namespace Tensors
 {
-    template<typename T_0, typename T_1, typename Int, int BUFFER_CAPACITY = 128>
+    template<typename T_0, typename T_1, typename LInt, int BUFFER_CAPACITY = 128>
     class alignas(OBJECT_ALIGNMENT) PairAggregator
     {
-        ASSERT_INT(Int);
+        ASSERT_INT(LInt);
 
-        using Container_0_T = Tensor1<T_0,Int>;
-        using Container_1_T = Tensor1<T_1,Int>;
+        using Container_0_T = Tensor1<T_0,LInt>;
+        using Container_1_T = Tensor1<T_1,LInt>;
 
-        Int current_size = static_cast<Int>(0);
-        Int capacity     = static_cast<Int>(1);
+        LInt current_size = static_cast<LInt>(0);
+        LInt capacity     = static_cast<LInt>(1);
 
-        Int current_buffer_size = static_cast<Int>(0);
+        LInt current_buffer_size = static_cast<LInt>(0);
         std::array<T_0,BUFFER_CAPACITY> buffer_0;
         std::array<T_0,BUFFER_CAPACITY> buffer_1;
         
-        Container_0_T container_0 {static_cast<Int>(BUFFER_CAPACITY)};
-        Container_1_T container_1 {static_cast<Int>(BUFFER_CAPACITY)};
+        Container_0_T container_0 {static_cast<LInt>(BUFFER_CAPACITY)};
+        Container_1_T container_1 {static_cast<LInt>(BUFFER_CAPACITY)};
 
     public:
 
@@ -26,11 +26,11 @@ namespace Tensors
 
         ~PairAggregator() = default;
 
-        PairAggregator( const Int n )
-        :   current_size ( static_cast<Int>(0)             )
-        ,   capacity     ( std::max(static_cast<Int>(BUFFER_CAPACITY),n) )
-        ,   container_0  ( std::max(static_cast<Int>(BUFFER_CAPACITY),n) )
-        ,   container_1  ( std::max(static_cast<Int>(BUFFER_CAPACITY),n) )
+        PairAggregator( const LInt n )
+        :   current_size ( static_cast<LInt>(0)             )
+        ,   capacity     ( std::max(static_cast<LInt>(BUFFER_CAPACITY),n) )
+        ,   container_0  ( std::max(static_cast<LInt>(BUFFER_CAPACITY),n) )
+        ,   container_1  ( std::max(static_cast<LInt>(BUFFER_CAPACITY),n) )
         {}
 
         // Copy contructor
@@ -74,7 +74,7 @@ namespace Tensors
 
 
 
-        Int Size() const
+        LInt Size() const
         {
             return current_size;
         }
@@ -113,12 +113,12 @@ namespace Tensors
 
     public:
 
-        Int Capacity() const
+        LInt Capacity() const
         {
             return capacity;
         }
         
-        void RequireCapacity( const Int new_capacity )
+        void RequireCapacity( const LInt new_capacity )
         {
             if( new_capacity > capacity)
             {
@@ -168,93 +168,8 @@ namespace Tensors
         
         void Expand()
         {
-            RequireCapacity( static_cast<Int>(2) * capacity );
+            RequireCapacity( static_cast<LInt>(2) * capacity );
         }
     };
-
-//    template<typename T_0, typename T_1, typename Int>
-//    class alignas(OBJECT_ALIGNMENT) PairAggregator
-//    {
-//        ASSERT_INT(Int);
-//
-//        using Container_0_T = std::vector<T_0>;
-//        using Container_1_T = std::vector<T_1>;
-//
-//        Container_0_T container_0;
-//        Container_1_T container_1;
-//
-//    public:
-//
-//        PairAggregator() = default;
-//
-//        ~PairAggregator() = default;
-//
-//        PairAggregator( const Int n )
-//        {
-//            container_0.reserve(std::max(static_cast<Int>(1),n));
-//            container_1.reserve(std::max(static_cast<Int>(1),n));
-//        }
-//
-//        PairAggregator( const PairAggregator & other )
-//        :   container_0 ( other.container_0 )
-//        ,   container_1 ( other.container_1 )
-//        {}
-//
-//        friend void swap ( PairAggregator & A, PairAggregator & B ) noexcept
-//        {
-//            using std::swap;
-//            swap( A.container_0,  B.container_0  );
-//            swap( A.container_1,  B.container_1  );
-//        }
-//
-//        // Move constructor
-//        PairAggregator( PairAggregator && other ) noexcept
-//        :   PairAggregator()
-//        {
-//            swap(*this, other);
-//        }
-//
-//        // Move assignment operator
-//        PairAggregator & operator=( PairAggregator && other ) noexcept
-//        {
-//            if( this != &other )
-//            {
-//                swap( *this, other );
-//            }
-//            return *this;
-//        }
-//
-//        Int Size() const
-//        {
-//            return container_0.size();
-//        }
-//
-//        void Push( const T_0 a, const T_1 b )
-//        {
-//            container_0.push_back(a);
-//            container_1.push_back(b);
-//        }
-//
-//        Container_0_T& Get_0()
-//        {
-//            return container_0;
-//        }
-//
-//        const Container_0_T & Get_0() const
-//        {
-//            return container_0;
-//        }
-//
-//        Container_1_T & Get_1()
-//        {
-//            return container_1;
-//        }
-//
-//        const Container_1_T & Get_1() const
-//        {
-//            return container_1;
-//        }
-//    };
-
     
 } // namespace Tensors

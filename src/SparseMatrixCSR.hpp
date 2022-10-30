@@ -1,14 +1,21 @@
 #pragma once
 
 #define CLASS SparseMatrixCSR
-#define BASE  SparsityPatternCSR<I>
+#define BASE  SparsityPatternCSR<Int_,LInt_>
 
 namespace Tensors
 {
 
-    template<typename T, typename I>
+    template<typename Scalar_, typename Int_, typename LInt_>
     class CLASS : public BASE
     {
+        
+    public:
+        
+        using Scalar = Scalar_;
+        using Int    = Int_;
+        using LInt   = LInt_;
+        
     protected:
         
         using BASE::m;
@@ -20,7 +27,7 @@ namespace Tensors
         using BASE::upper_triangular_job_ptr;
         using BASE::lower_triangular_job_ptr;
 
-        Tensor1<T,I> values;
+        Tensor1<Scalar,LInt> values;
         
     public:
         
@@ -53,11 +60,11 @@ namespace Tensors
         CLASS(
             const long long m_,
             const long long n_,
-            const long long nnz_,
+            const LInt      nnz_,
             const long long thread_count_
         )
         :   BASE    ( m_, n_, nnz_, thread_count_ )
-        ,   values  ( Tensor1<T,I>(static_cast<I>(nnz_)) )
+        ,   values  ( Tensor1<Scalar,LInt>(static_cast<LInt>(nnz_)) )
         {}
         
         template<typename S, typename J0, typename J1>
@@ -70,7 +77,7 @@ namespace Tensors
                   long long thread_count_
         )
         :   BASE    (outer_, inner_, m_, n_, thread_count_)
-        ,   values  ( ToTensor1<T,I>(values_,outer_[static_cast<I>(m_)]) )
+        ,   values  ( ToTensor1<Scalar,LInt>(values_,outer_[static_cast<Int>(m_)]) )
         {}
         
         // Copy constructor
@@ -107,14 +114,14 @@ namespace Tensors
         
         
         CLASS(
-          const I * const * const idx,
-          const I * const * const jdx,
-          const T * const * const val,
-          const I * entry_counts,
-          const I list_count,
-          const I m_,
-          const I n_,
-          const I final_thread_count,
+          const Int * const * const idx,
+          const Int * const * const jdx,
+          const Scalar * const * const val,
+          const Int * entry_counts,
+          const Int list_count,
+          const Int m_,
+          const Int n_,
+          const Int final_thread_count,
           const bool compress   = true,
           const int  symmetrize = 0
         )
@@ -125,29 +132,29 @@ namespace Tensors
         }
 
         CLASS(
-            const std::vector<std::vector<I>> & idx,
-            const std::vector<std::vector<I>> & jdx,
-            const std::vector<std::vector<T>> & val,
-            const I m_,
-            const I n_,
-            const I final_thread_count,
+            const std::vector<std::vector<Int>> & idx,
+            const std::vector<std::vector<Int>> & jdx,
+            const std::vector<std::vector<Scalar>> & val,
+            const Int m_,
+            const Int n_,
+            const Int final_thread_count,
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        :   BASE ( m_, n_, static_cast<I>(idx.size()) )
+        :   BASE ( m_, n_, static_cast<Int>(idx.size()) )
         {
-            I list_count = static_cast<I>(idx.size());
-            Tensor1<const I*,I> i (list_count);
-            Tensor1<const I*,I> j (list_count);
-            Tensor1<const T*,I> a (list_count);
-            Tensor1<I ,I> entry_counts (list_count);
+            Int list_count = static_cast<Int>(idx.size());
+            Tensor1<const Int*,Int> i      (list_count);
+            Tensor1<const Int*,Int> j      (list_count);
+            Tensor1<const Scalar*,Int> a   (list_count);
+            Tensor1<Int ,Int> entry_counts (list_count);
             
-            for( I thread = 0; thread < list_count; ++thread )
+            for( Int thread = 0; thread < list_count; ++thread )
             {
                 i[thread] = idx[thread].data();
                 j[thread] = jdx[thread].data();
                 a[thread] = val[thread].data();
-                entry_counts[thread] = static_cast<I>(idx[thread].size());
+                entry_counts[thread] = static_cast<Int>(idx[thread].size());
             }
             
             FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
@@ -155,27 +162,27 @@ namespace Tensors
         }
         
         CLASS(
-            const std::vector<TripleAggregator<I,I,T,I>> & triples,
-            const I m_,
-            const I n_,
-            const I final_thread_count,
+            const std::vector<TripleAggregator<Int,Int,Scalar,LInt>> & triples,
+            const Int m_,
+            const Int n_,
+            const Int final_thread_count,
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        :   BASE ( m_, n_, static_cast<I>(triples.size()) )
+        :   BASE ( m_, n_, static_cast<Int>(triples.size()) )
         {
-            I list_count = static_cast<I>(triples.size());
-            Tensor1<const I*,I> i (list_count);
-            Tensor1<const I*,I> j (list_count);
-            Tensor1<const T*,I> a (list_count);
-            Tensor1<I ,I> entry_counts (list_count);
+            Int list_count = static_cast<Int>(triples.size());
+            Tensor1<const Int*,Int> i      (list_count);
+            Tensor1<const Int*,Int> j      (list_count);
+            Tensor1<const Scalar*,Int> a   (list_count);
+            Tensor1<Int ,Int> entry_counts (list_count);
             
-            for( I thread = 0; thread < list_count; ++thread )
+            for( Int thread = 0; thread < list_count; ++thread )
             {
                 i[thread] = triples[thread].Get_0().data();
                 j[thread] = triples[thread].Get_1().data();
                 a[thread] = triples[thread].Get_2().data();
-                entry_counts[thread] = static_cast<I>(triples[thread].Size());
+                entry_counts[thread] = static_cast<Int>(triples[thread].Size());
             }
             
             FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
@@ -187,12 +194,12 @@ namespace Tensors
     protected:
         
         void FromTriples(
-            const I * const * const idx,    // list of lists of i-indices
-            const I * const * const jdx,    // list of lists of j-indices
-            const T * const * const val,    // list of lists of nonzero values
-            const I * entry_counts,         // list of lengths of the lists above
-            const I list_count,             // number of lists
-            const I final_thread_count,     // number of threads that the matrix shall use
+            const Int * const * const idx,    // list of lists of i-indices
+            const Int * const * const jdx,    // list of lists of j-indices
+            const Scalar * const * const val,    // list of lists of nonzero values
+            const Int * entry_counts,         // list of lengths of the lists above
+            const Int list_count,             // number of lists
+            const Int final_thread_count,     // number of threads that the matrix shall use
             const bool compress   = true,   // whether to do additive assembly or not
             const int  symmetrize = 0       // whether to symmetrize the matrix
         )
@@ -225,20 +232,20 @@ namespace Tensors
                 logprint(ClassName()+"::FromTriples no compress");
             }
             
-            Tensor2<I,I> counters = AssemblyCounters(
+            Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
                 idx, jdx, entry_counts, list_count, m, symmetrize
             );
             
-            const I nnz = counters(list_count-1,m-1);
+            const Int nnz = counters(list_count-1,m-1);
             
             if( nnz > 0 )
             {
-                inner  = Tensor1<I,I>( nnz );
-                values = Tensor1<T,I>( nnz );
+                inner  = Tensor1   <Int,LInt>( nnz );
+                values = Tensor1<Scalar,LInt>( nnz );
             
-                I * restrict const outer__ = outer.data();
-                I * restrict const inner__ = inner.data();
-                T * restrict const value__ = values.data();
+                  LInt * restrict const outer__ = outer.data();
+                   Int * restrict const inner__ = inner.data();
+                Scalar * restrict const value__ = values.data();
 
                 copy_buffer( counters.data(list_count-1), &outer__[1], m );
 
@@ -252,24 +259,24 @@ namespace Tensors
                 ptic(ClassName()+"::FromTriples -- writing reordered data");
                 
                 #pragma omp parallel for num_threads( list_count )
-                for( I thread = 0; thread < list_count; ++thread )
+                for( Int thread = 0; thread < list_count; ++thread )
                 {
-                    const I entry_count = entry_counts[thread];
+                    const Int entry_count = entry_counts[thread];
                     
-                    const I * restrict const thread_idx = idx[thread];
-                    const I * restrict const thread_jdx = jdx[thread];
-                    const T * restrict const thread_val = val[thread];
+                    const    Int * restrict const thread_idx = idx[thread];
+                    const    Int * restrict const thread_jdx = jdx[thread];
+                    const Scalar * restrict const thread_val = val[thread];
                     
-                          I * restrict const c = counters.data(thread);
+                            LInt * restrict const c = counters.data(thread);
                     
-                    for( I k = entry_count - 1; k > -1; --k )
+                    for( Int k = entry_count - 1; k > -1; --k )
                     {
-                        const I i = thread_idx[k];
-                        const I j = thread_jdx[k];
-                        const T a = thread_val[k];
+                        const Int i = thread_idx[k];
+                        const Int j = thread_jdx[k];
+                        const Scalar a = thread_val[k];
                         
                         {
-                            const I pos  = --c[i];
+                            const LInt pos  = --c[i];
                             inner__[pos] = j;
                             value__[pos] = a;
                         }
@@ -277,7 +284,7 @@ namespace Tensors
                         // Write the transposed matrix (diagonal excluded) in the same go in order to symmetrize the matrix. (Typical use case: Only the upper triangular part of a symmetric matrix is stored in idx, jdx, and val, but we need the full, symmetrized matrix.)
                         if( (symmetrize != 0) && (i != j) )
                         {
-                            const I pos  = --c[j];
+                            const LInt pos  = --c[j];
                             inner__[pos] = i;
                             value__[pos] = a;
                         }
@@ -310,32 +317,32 @@ namespace Tensors
         
     public:
         
-        Tensor1<T,I> & Values()
+        Tensor1<Scalar,LInt> & Values()
         {
             return values;
         }
         
-        const Tensor1<T,I> & Values() const
+        const Tensor1<Scalar,LInt> & Values() const
         {
             return values;
         }
         
-        Tensor1<T,I> & Value()
+        Tensor1<Scalar,LInt> & Value()
         {
             return values;
         }
         
-        const Tensor1<T,I> & Value() const
+        const Tensor1<Scalar,LInt> & Value() const
         {
             return values;
         }
         
         
-        T operator()( const I i, const I j ) const
+        Scalar operator()( const Int i, const Int j ) const
         {
-            const I index = this->FindNonzeroPosition(i,j);
+            const Int index = this->FindNonzeroPosition(i,j);
             
-            return (index>=static_cast<I>(0)) ? values[index] : static_cast<T>(0) ;
+            return (index>=static_cast<Int>(0)) ? values[index] : static_cast<Scalar>(0) ;
         }
         
         
@@ -347,36 +354,36 @@ namespace Tensors
             {
                 RequireJobPtr();
 
-                Tensor2<I,I> counters = CreateTransposeCounters();
+                Tensor2<Int,Int> counters = CreateTransposeCounters();
 
-                CLASS<T,I> B ( n, m, outer[m], thread_count );
+                CLASS B ( n, m, outer[m], thread_count );
 
                 copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
                 
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
                     
-                          I * restrict const c = counters.data(thread);
+                          Int * restrict const c = counters.data(thread);
 
-                          I * restrict const B_inner  = B.Inner().data();
-                          T * restrict const B_values = B.Value().data();
+                          Int * restrict const B_inner  = B.Inner().data();
+                          Scalar * restrict const B_values = B.Value().data();
 
-                    const I * restrict const A_outer  = Outer().data();
-                    const I * restrict const A_inner  = Inner().data();
-                    const T * restrict const A_values = Value().data();
+                    const Int * restrict const A_outer  = Outer().data();
+                    const Int * restrict const A_inner  = Inner().data();
+                    const Scalar * restrict const A_values = Value().data();
                     
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const I k_begin = A_outer[i  ];
-                        const I k_end   = A_outer[i+1];
+                        const Int k_begin = A_outer[i  ];
+                        const Int k_end   = A_outer[i+1];
                         
-                        for( I k = k_end-1; k > k_begin-1; --k )
+                        for( Int k = k_end-1; k > k_begin-1; --k )
                         {
-                            const I j = A_inner[k];
-                            const I pos = --c[ j ];
+                            const Int j = A_inner[k];
+                            const Int pos = --c[ j ];
                             B_inner [pos] = i;
                             B_values[pos] = A_values[k];
                         }
@@ -394,7 +401,7 @@ namespace Tensors
             }
             else
             {
-                CLASS<T,I> B ( n, m, 0, thread_count );
+                CLASS B ( n, m, 0, thread_count );
                 return B;
             }
         }
@@ -409,21 +416,21 @@ namespace Tensors
                 RequireJobPtr();
                 
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    TwoArrayQuickSort<I,T,I> quick_sort;
+                    TwoArrayQuickSort<Int,Scalar,Int> quick_sort;
 
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
                     
-                    const I * restrict const outer__  = outer.data();
-                          I * restrict const inner__  = inner.data();
-                          T * restrict const values__ = values.data();
+                    const   LInt * restrict const outer__  = outer.data();
+                             Int * restrict const inner__  = inner.data();
+                          Scalar * restrict const values__ = values.data();
                     
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const I begin = outer__[i  ];
-                        const I end   = outer__[i+1];
+                        const Int begin = outer__[i  ];
+                        const Int end   = outer__[i+1];
                         
                         quick_sort( inner__ + begin, values__ + begin, end - begin );
                     }
@@ -444,52 +451,52 @@ namespace Tensors
             {
                 RequireJobPtr();
 
-                Tensor1<I,I> new_outer (outer.Size(),0);
+                Tensor1<LInt,Int> new_outer (outer.Size(),0);
                 
-                const I * restrict const outer__     = outer.data();
-                      I * restrict const inner__     = inner.data();
-                      T * restrict const values__    = values.data();
-                      I * restrict const new_outer__ = new_outer.data();
+                const   LInt * restrict const outer__     = outer.data();
+                         Int * restrict const inner__     = inner.data();
+                      Scalar * restrict const values__    = values.data();
+                        LInt * restrict const new_outer__ = new_outer.data();
                 
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
                     
     //                // Starting position of thread in inner list.
     //                thread_info(thread,0)= outer[i_begin];
     //                // End position of thread in inner list (not important).
     //                thread_info(thread,1)= outer[i_end  ];
     //                // Number of nonzeroes in thread after compression.
-    //                thread_info(thread,2)= static_cast<I>(0);
+    //                thread_info(thread,2)= static_cast<Int>(0);
                     
                     // To where we write.
-                    I jj_new        = outer__[i_begin];
-                    I next_jj_begin = outer__[i_begin];
+                    LInt jj_new        = outer__[i_begin];
+                    LInt next_jj_begin = outer__[i_begin];
                     
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const I jj_begin = next_jj_begin;
-                        const I jj_end   = outer__[i+1];
+                        const LInt jj_begin = next_jj_begin;
+                        const LInt jj_end   = outer__[i+1];
                         
                         // Memoize the next entry in outer because outer will be overwritten
                         next_jj_begin = jj_end;
                         
-                        I row_nonzero_counter = static_cast<I>(0);
+                        LInt row_nonzero_counter = static_cast<Int>(0);
                         
                         // From where we read.
-                        I jj = jj_begin;
+                        LInt jj = jj_begin;
                         
                         while( jj< jj_end )
                         {
-                            I j = inner__ [jj];
-                            T a = values__[jj];
+                               Int j = inner__ [jj];
+                            Scalar a = values__[jj];
                             
                             if( jj > jj_new )
                             {
-                                inner__ [jj] = static_cast<I>(0);
-                                values__[jj] = static_cast<T>(0);
+                                inner__ [jj] = static_cast<Int>(0);
+                                values__[jj] = static_cast<Scalar>(0);
                             }
                             
                             ++jj;
@@ -499,8 +506,8 @@ namespace Tensors
                                 a+= values__[jj];
                                 if( jj > jj_new )
                                 {
-                                    inner__ [jj] = static_cast<I>(0);
-                                    values__[jj] = static_cast<T>(0);
+                                    inner__ [jj] = static_cast<Int>(0);
+                                    values__[jj] = static_cast<Scalar>(0);
                                 }
                                 ++jj;
                             }
@@ -521,25 +528,25 @@ namespace Tensors
                 // This is the new array of outer indices.
                 new_outer.Accumulate( thread_count );
                 
-                const I nnz = new_outer[m];
+                const LInt nnz = new_outer[m];
                 
-                Tensor1<I,I> new_inner  (nnz,0);
-                Tensor1<T,I> new_values (nnz,0);
+                Tensor1<   Int,LInt> new_inner  (nnz,0);
+                Tensor1<Scalar,LInt> new_values (nnz,0);
                 
-                I * restrict const new_inner__  = new_inner.data();
-                T * restrict const new_values__ = new_values.data();
+                   Int * restrict const new_inner__  = new_inner.data();
+                Scalar * restrict const new_values__ = new_values.data();
                   
                 //TODO: Parallelization might be a bad idea here.
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const  Int i_begin = job_ptr[thread  ];
+                    const  Int i_end   = job_ptr[thread+1];
 
-                    const I new_pos = new_outer__[i_begin];
-                    const I     pos =     outer__[i_begin];
+                    const LInt new_pos = new_outer__[i_begin];
+                    const LInt     pos =     outer__[i_begin];
 
-                    const I thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
+                    const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
 
                     // Starting position of thread in inner list.
                     
@@ -552,14 +559,14 @@ namespace Tensors
                 swap( new_inner,  inner  );
                 swap( new_values, values );
                 
-                job_ptr = JobPointers<I>();
+                job_ptr = JobPointers<Int>();
             }
             
             ptoc(ClassName()+"::Compress");
         }
         
         
-        CLASS Dot( const CLASS<T,I> & B ) const
+        CLASS Dot( const CLASS & B ) const
         {
             ptic(ClassName()+"::Dot");
                         
@@ -567,31 +574,31 @@ namespace Tensors
             {
                 RequireJobPtr();
                 
-                Tensor2<I,I> counters ( thread_count, m, static_cast<I>(0) );
+                Tensor2<LInt,Int> counters ( thread_count, m, static_cast<Int>(0) );
                 
                 // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                 // https://en.wikipedia.org/wiki/Counting_sort
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
                     
-                          I * restrict const c = counters.data(thread);
+                          LInt * restrict const c = counters.data(thread);
                     
-                    const I * restrict const A_outer  = Outer().data();
-                    const I * restrict const A_inner  = Inner().data();
+                    const LInt * restrict const A_outer  = Outer().data();
+                    const  Int * restrict const A_inner  = Inner().data();
                     
-                    const I * restrict const B_outer  = B.Outer().data();
+                    const LInt * restrict const B_outer  = B.Outer().data();
                     
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const I jj_begin = A_outer[i  ];
-                        const I jj_end   = A_outer[i+1];
+                        const LInt jj_begin = A_outer[i  ];
+                        const LInt jj_end   = A_outer[i+1];
                         
-                        for( I jj = jj_begin; jj < jj_end; ++jj )
+                        for( LInt jj = jj_begin; jj < jj_end; ++jj )
                         {
-                            const I j = A_inner[jj];
+                            const Int j = A_inner[jj];
                             
                             c[i] += (B_outer[j+1] - B_outer[j]);
                         }
@@ -600,47 +607,48 @@ namespace Tensors
                 
                 AccumulateAssemblyCounters_Parallel( counters );
                 
-                const I nnz = counters.data(thread_count-1)[m-1];
+                const LInt nnz = counters.data(thread_count-1)[m-1];
                 
-                CLASS<T,I> C ( m, B.ColCount(), nnz, thread_count );
+                CLASS C ( m, B.ColCount(), nnz, thread_count );
                 
                 copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
                 
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const I i_begin = job_ptr[thread  ];
-                    const I i_end   = job_ptr[thread+1];
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
                     
-                          I * restrict const c = counters.data(thread);
+                          LInt * restrict const c = counters.data(thread);
 
-                    const I * restrict const A_outer  = Outer().data();
-                    const I * restrict const A_inner  = Inner().data();
-                    const T * restrict const A_values = Value().data();
+                    const   LInt * restrict const A_outer  = Outer().data();
+                    const    Int * restrict const A_inner  = Inner().data();
+                    const Scalar * restrict const A_values = Value().data();
                     
-                    const I * restrict const B_outer  = B.Outer().data();
-                    const I * restrict const B_inner  = B.Inner().data();
-                    const T * restrict const B_values = B.Value().data();
+                    const   LInt * restrict const B_outer  = B.Outer().data();
+                    const    Int * restrict const B_inner  = B.Inner().data();
+                    const Scalar * restrict const B_values = B.Value().data();
                     
-                          I * restrict const C_inner  = C.Inner().data();
-                          T * restrict const C_values = C.Value().data();
+                            LInt * restrict const C_inner  = C.Inner().data();
+                          Scalar * restrict const C_values = C.Value().data();
                     
-                    for( I i = i_begin; i < i_end; ++i )
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const I jj_begin = A_outer[i  ];
-                        const I jj_end   = A_outer[i+1];
+                        const LInt jj_begin = A_outer[i  ];
+                        const LInt jj_end   = A_outer[i+1];
                         
-                        for( I jj = jj_begin; jj < jj_end; ++jj )
+                        for( LInt jj = jj_begin; jj < jj_end; ++jj )
                         {
-                            const I j = A_inner[jj];
+                            const Int j = A_inner[jj];
                             
-                            const I kk_begin = B_outer[j  ];
-                            const I kk_end   = B_outer[j+1];
+                            const LInt kk_begin = B_outer[j  ];
+                            const LInt kk_end   = B_outer[j+1];
                             
-                            for( I kk = kk_end-1; kk > kk_begin-1; --kk )
+//                            for( LInt kk = kk_end-1; kk > kk_begin-1; --kk )
+                            for( LInt kk = kk_end; kk --> kk_begin; )
                             {
-                                const I k = B_inner[kk];
-                                const I pos = --c[ i ];
+                                const Int k = B_inner[kk];
+                                const LInt pos = --c[ i ];
                                 
                                 C_inner [pos] = k;
                                 C_values[pos] = A_values[jj] * B_values[kk];
@@ -662,13 +670,13 @@ namespace Tensors
             }
             else
             {
-                return CLASS<T,I> ();
+                return CLASS ();
             }
         }
         
-        SparseBinaryMatrixCSR<I> DotBinary( const CLASS<T,I> & B ) const
+        SparseBinaryMatrixCSR<Int,LInt> DotBinary( const CLASS & B ) const
         {
-            SparseBinaryMatrixCSR<I> result;
+            SparseBinaryMatrixCSR<Int,LInt> result;
             
             BASE C = this->DotBinary_(B);
             
@@ -688,9 +696,9 @@ namespace Tensors
         // Use own nonzero values.
         template<typename T_in, typename T_out>
         void Dot(
-            const T alpha,     const T_in  * X,
+            const Scalar alpha,     const T_in  * X,
             const T_out beta,        T_out * Y,
-            const I cols = static_cast<I>(1)
+            const Int cols = static_cast<Int>(1)
         ) const
         {
             Dot_( values.data(), alpha, X, beta, Y, cols );
@@ -699,13 +707,13 @@ namespace Tensors
         // Use own nonzero values.
         template<typename T_in, typename T_out>
         void Dot(
-            const T alpha,     const Tensor1<T_in, I> & X,
-            const T_out beta,        Tensor1<T_out,I> & Y
+            const Scalar alpha,     const Tensor1<T_in, Int> & X,
+            const T_out beta,        Tensor1<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )
             {
-                Dot_( values.data(), alpha, X.data(), beta, Y.data(), static_cast<I>(1) );
+                Dot_( values.data(), alpha, X.data(), beta, Y.data(), static_cast<Int>(1) );
             }
             else
             {
@@ -716,10 +724,10 @@ namespace Tensors
         // Use own nonzero values.
         template<typename T_in, typename T_out>
         void Dot(
-            const T alpha,
-            const Tensor2<T_in, I> & X,
+            const Scalar alpha,
+            const Tensor2<T_in, Int> & X,
             const T_out beta,
-                  Tensor2<T_out,I> & Y
+                  Tensor2<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -742,7 +750,7 @@ namespace Tensors
             const T_in  * X,
             const T_out beta,
                   T_out * Y,
-            const I cols = static_cast<I>(1)
+            const Int cols = static_cast<Int>(1)
         ) const
         {
             Dot_( ext_values, alpha, X, beta, Y, cols );
@@ -751,15 +759,15 @@ namespace Tensors
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
             const T_ext alpha,
-            const Tensor1<T_ext,    I> & ext_values,
-            const Tensor1<T_in, I> & X,
+            const Tensor1<T_ext,    Int> & ext_values,
+            const Tensor1<T_in, Int> & X,
             const T_out beta,
-                  Tensor1<T_out,I> & Y
+                  Tensor1<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )
             {
-                Dot_( ext_values.data(), alpha, X.data(), beta, Y.data(), static_cast<I>(1) );
+                Dot_( ext_values.data(), alpha, X.data(), beta, Y.data(), static_cast<Int>(1) );
             }
             else
             {
@@ -770,10 +778,10 @@ namespace Tensors
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
             const T_ext alpha,
-            const Tensor1<T_ext,I> & ext_values,
-            const Tensor2<T_in, I> & X,
+            const Tensor1<T_ext,Int> & ext_values,
+            const Tensor2<T_in, Int> & X,
             const T_out beta,
-                  Tensor2<T_out,I> & Y
+                  Tensor2<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -819,7 +827,7 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return TO_STD_STRING(CLASS)+"<"+TypeName<T>::Get()+","+TypeName<I>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
         }
         
     }; // CLASS

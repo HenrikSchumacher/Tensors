@@ -2,11 +2,11 @@
 
 #define CLASS DenseBlockKernel_RM
 #define BASE  BlockKernel_RM<                               \
-    ROWS_,COLS_,                                            \
-    Scalar_,Int_,Scalar_in_,Scalar_out_,                    \
+    ROWS_, COLS_,                                           \
+    Scalar_, Scalar_in_, Scalar_out_, Int_, LInt_,          \
     alpha_flag, beta_flag,                                  \
     x_RM, x_copy, x_prefetch,                               \
-    y_RM                                                   \
+    y_RM                                                    \
 >
 
 ////    x_RowMajor,y_RowMajor,
@@ -16,7 +16,7 @@ namespace Tensors
     // ROWS_ = 4, COLS_ = 4, RHS_COUNT_ = 3, alpha_flag = 1, beta_flag = 0, and doubles for all floating point types.
     template<
         int ROWS_, int COLS_,
-        typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
+        typename Scalar_, typename Scalar_in_, typename Scalar_out_, typename Int_, typename LInt_,
         int alpha_flag, int beta_flag,
         bool a_RM  = true, bool a_intRM = false,  bool a_copy = true,
         bool x_RM  = true,                        bool x_copy = true,  bool x_prefetch = true,
@@ -29,10 +29,11 @@ namespace Tensors
     public:
 
         using Scalar     = Scalar_;
-        using Int        = Int_;
         using Scalar_out = Scalar_out_;
         using Scalar_in  = Scalar_in_;
-
+        using Int        = Int_;
+        using LInt       = LInt_;
+        
         using BASE::ROWS;
         using BASE::COLS;
         
@@ -40,7 +41,7 @@ namespace Tensors
         using BASE::ColsSize;
         using BASE::RhsCount;
         
-        static constexpr Int BLOCK_NNZ = ROWS * COLS;
+        static constexpr LInt BLOCK_NNZ = ROWS * COLS;
         
         // Dummy variable.
         static constexpr Int MAX_RHS_COUNT = 0;
@@ -88,12 +89,12 @@ namespace Tensors
         
     public:
         
-        virtual Int NonzeroCount() const override
+        virtual LInt NonzeroCount() const override
         {
             return BLOCK_NNZ;
         }
                 
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual force_inline void TransposeBlock( const LInt from, const LInt to ) const override
         {
             const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
                   Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
@@ -120,7 +121,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ReadA( const Int k_global )
+        force_inline void ReadA( const LInt k_global )
         {
             // Read matrix.
             if constexpr ( a_copy )
@@ -201,7 +202,7 @@ namespace Tensors
         virtual force_inline void end_row( const Int j_global ) override
         {}
         
-        virtual force_inline void apply_block( const Int k_global, const Int j_global ) override
+        virtual force_inline void apply_block( const LInt k_global, const Int j_global ) override
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );
@@ -353,10 +354,8 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+TypeName<Scalar>::Get()
-            +","+TypeName<Int>::Get()
-            +","+TypeName<Scalar_in>::Get()
-            +","+TypeName<Scalar_out>::Get()
+            +","+TypeName<Scalar>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()
+            +","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()
             +","+ToString(a_RM)+","+ToString(a_intRM)+","+ToString(a_copy)
             +","+ToString(x_RM)+","+ToString(x_copy)
             +","+ToString(y_RM)

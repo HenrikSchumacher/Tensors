@@ -3,7 +3,8 @@
 #define CLASS ArrowheadBlockKernel_fixed
 #define BASE  BlockKernel_fixed<                            \
     ROWS_,COLS_,RHS_COUNT_,fixed,                           \
-    Scalar_,Int_,Scalar_in_,Scalar_out_,                    \
+    Scalar_,Scalar_in_,Scalar_out_,                         \
+    Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
     x_RM, x_intRM, x_copy, x_prefetch,                      \
     y_RM, y_intRM,                                          \
@@ -22,7 +23,8 @@ namespace Tensors
 {
     template<
         int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
-        typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
+        typename Scalar_, typename Scalar_in_, typename Scalar_out_,
+        typename Int_, typename LInt_,
         int alpha_flag, int beta_flag,
                                               bool a_copy,
         bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
@@ -34,9 +36,10 @@ namespace Tensors
     public:
 
         using Scalar     = Scalar_;
-        using Int        = Int_;
         using Scalar_out = Scalar_out_;
         using Scalar_in  = Scalar_in_;
+        using Int        = Int_;
+        using LInt       = LInt_;
 
         using BASE::ROWS;
         using BASE::COLS;
@@ -47,7 +50,7 @@ namespace Tensors
         using BASE::RhsCount;
         using BASE::FMA;
         
-        static constexpr Int BLOCK_NNZ = COLS + ROWS - 1;
+        static constexpr LInt BLOCK_NNZ = COLS + ROWS - 1;
         
     protected:
         
@@ -93,12 +96,12 @@ namespace Tensors
         
     public:
         
-        virtual Int NonzeroCount() const override
+        virtual LInt NonzeroCount() const override
         {
             return BLOCK_NNZ;
         }
                 
-        virtual force_inline void TransposeBlock( const Int from, const Int to ) const override
+        virtual force_inline void TransposeBlock( const LInt from, const LInt to ) const override
         {
             const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
                   Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
@@ -112,7 +115,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ReadA( const Int k_global )
+        force_inline void ReadA( const LInt k_global )
         {
             // Read matrix.
             if constexpr ( a_copy )
@@ -145,7 +148,7 @@ namespace Tensors
         virtual force_inline void end_row( const Int j_global ) override
         {}
         
-        virtual force_inline void apply_block( const Int k_global, const Int j_global ) override
+        virtual force_inline void apply_block( const LInt k_global, const Int j_global ) override
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );
@@ -192,9 +195,10 @@ namespace Tensors
             +","+ToString(RHS_COUNT)
             +","+ToString(fixed)
             +","+TypeName<Scalar>::Get()
-            +","+TypeName<Int>::Get()
             +","+TypeName<Scalar_in>::Get()
             +","+TypeName<Scalar_out>::Get()
+            +","+TypeName<Int>::Get()
+            +","+TypeName<LInt>::Get()
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
                                                      +","+ToString(a_copy)

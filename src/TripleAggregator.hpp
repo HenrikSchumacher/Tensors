@@ -2,26 +2,28 @@
 
 namespace Tensors
 {
-    template<typename T_0, typename T_1, typename T_2, typename Int, int BUFFER_CAPACITY = 128>
+    template<typename T_0, typename T_1, typename T_2, typename LInt, int BUFFER_CAPACITY = 128>
     class alignas(OBJECT_ALIGNMENT) TripleAggregator
     {
-        ASSERT_INT(Int);
+        ASSERT_INT(LInt);
+        
+        // LInt -- an integer type capable of storing the number of triples to aggregate.
+        
+        using Container_0_T = Tensor1<T_0,LInt>;
+        using Container_1_T = Tensor1<T_1,LInt>;
+        using Container_2_T = Tensor1<T_2,LInt>;
 
-        using Container_0_T = Tensor1<T_0,Int>;
-        using Container_1_T = Tensor1<T_1,Int>;
-        using Container_2_T = Tensor1<T_2,Int>;
+        LInt current_size = static_cast<LInt>(0);
+        LInt capacity     = static_cast<LInt>(1);
 
-        Int current_size = static_cast<Int>(0);
-        Int capacity     = static_cast<Int>(1);
-
-        Int current_buffer_size = static_cast<Int>(0);
+        LInt current_buffer_size = static_cast<LInt>(0);
         std::array<T_0,BUFFER_CAPACITY> buffer_0;
         std::array<T_0,BUFFER_CAPACITY> buffer_1;
         std::array<T_2,BUFFER_CAPACITY> buffer_2;
         
-        Container_0_T container_0 {static_cast<Int>(BUFFER_CAPACITY)};
-        Container_1_T container_1 {static_cast<Int>(BUFFER_CAPACITY)};
-        Container_2_T container_2 {static_cast<Int>(BUFFER_CAPACITY)};
+        Container_0_T container_0 {static_cast<LInt>(BUFFER_CAPACITY)};
+        Container_1_T container_1 {static_cast<LInt>(BUFFER_CAPACITY)};
+        Container_2_T container_2 {static_cast<LInt>(BUFFER_CAPACITY)};
 
     public:
 
@@ -29,9 +31,9 @@ namespace Tensors
 
         ~TripleAggregator() = default;
 
-        TripleAggregator( const Int n )
-        :   current_size ( static_cast<Int>(0)             )
-        ,   capacity     ( std::max(static_cast<Int>(BUFFER_CAPACITY),n) )
+        TripleAggregator( const LInt n )
+        :   current_size ( static_cast<LInt>(0)             )
+        ,   capacity     ( std::max(static_cast<LInt>(BUFFER_CAPACITY),n) )
         ,   container_0  ( capacity )
         ,   container_1  ( capacity )
         ,   container_2  ( capacity )
@@ -82,7 +84,7 @@ namespace Tensors
 
 
 
-        Int Size() const
+        LInt Size() const
         {
             return current_size;
         }
@@ -132,12 +134,12 @@ namespace Tensors
 
     public:
 
-        Int Capacity() const
+        LInt Capacity() const
         {
             return capacity;
         }
         
-        void RequireCapacity( const Int new_capacity )
+        void RequireCapacity( const LInt new_capacity )
         {
             if( new_capacity > capacity)
             {
@@ -192,7 +194,7 @@ namespace Tensors
         
         void Expand()
         {
-            RequireCapacity( static_cast<Int>(2) * capacity );
+            RequireCapacity( static_cast<LInt>(2) * capacity );
         }
     };
 
