@@ -157,30 +157,28 @@ namespace Tensors
             
             ReadA( k_global );
             
+            //    /                                                                  \
+            //    |   get_a(0)          get_a(1)       get_a(2)      get_a(COLS-1)   |
+            //    |                                                                  |
+            //    |   get_a(COLS)          0              0              0           |
+            //    |                                                                  |
+            //    |   get_a(COLS+1)        0              0              0           |
+            //    |                                                                  |
+            //    |   get_a(ROWS+COLS-2)   0              0              0           |
+            //    \                                                                  /
+            
             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
             {
-//                get_y(0,k) += get_a(0) * get_x(0,k);
-                
                 FMA( get_a(0), get_x(0,k), get_y(0,k) );
-                
-//                get_y(0,k) = FMA( get_a(0), get_x(0,k), get_y(0,k) );
 
                 for( Int j = 1; j < COLS; ++j )
                 {
-//                    get_y(0,k) += get_a(j-1) * get_x(j,k);
-                    
-                    FMA( get_a(j-1),  get_x(j,k), get_y(0,k) );
-                    
-//                    get_y(0,k) = FMA( get_a(j-1),  get_x(j,k), get_y(0,k) );
+                    FMA( get_a(j), get_x(j,k), get_y(0,k) );
                 }
 
                 for( Int i = 1; i < ROWS; ++i )
                 {
-//                    get_y(i,k) += get_a(COLS+i-2) * get_x(0,k);
-                    
-                    FMA( get_a(COLS+i-2),  get_x(0,k), get_y(i,k) );
-                    
-//                    get_y(i,k) = FMA( get_a(COLS+i-2),  get_x(0,k), get_y(i,k) );
+                    FMA( get_a(COLS-1+i), get_x(0,k), get_y(i,k) );
                 }
             }
         }

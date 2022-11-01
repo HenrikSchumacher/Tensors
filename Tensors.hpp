@@ -47,7 +47,7 @@
     #include "src/SparseBLAS.hpp"
     #include "src/SparsityPatternCSR.hpp"
     #include "src/SparseBinaryMatrixCSR.hpp"
-//    #include "src/SparseBinaryMatrixVBSR.hpp"
+    #include "src/SparseBinaryMatrixVBSR.hpp"
     #include "src/SparseMatrixCSR.hpp"
 
 //    #include "src/BlockKernels_old/BlockKernel.hpp"

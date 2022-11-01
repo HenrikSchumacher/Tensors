@@ -3,12 +3,12 @@
 #pragma once
 
 #define CLASS SparseBinaryMatrixVBSR
-#define BASE  SparseBinaryMatrixCSR<I,I>
+#define BASE  SparseBinaryMatrixCSR<Int,Int,Int>
 
 namespace Tensors
 {
 
-    template<typename I>
+    template<typename Int>
     class CLASS : public BASE
     {
     protected:
@@ -23,29 +23,29 @@ namespace Tensors
         
         BASE blk_pat;
         
-        Tensor1<I,I> blk_row_ptr;
-        Tensor1<I,I> blk_col_ptr;
+        Tensor1<Int,Int> blk_row_ptr;
+        Tensor1<Int,Int> blk_col_ptr;
         
-        mutable Tensor1<I,I> blk_ptr;
+        mutable Tensor1<Int,Int> blk_ptr;
         // blk_ptr[k] is the index of the first nonzero entry of the
         
         // work load distribution among block rows for cycles over blocks
-        mutable JobPointers<I>         blk_job_ptr;
-        mutable JobPointers<I> upp_tri_blk_job_ptr;
-        mutable JobPointers<I> low_tri_blk_job_ptr;
+        mutable JobPointers<Int>         blk_job_ptr;
+        mutable JobPointers<Int> upp_tri_blk_job_ptr;
+        mutable JobPointers<Int> low_tri_blk_job_ptr;
         
-        mutable I max_row_count = 0;
+        mutable Int max_row_count = 0;
 
     public:
         
         CLASS() : BASE() {}
         
         CLASS(
-          const std::vector<std::vector<I>> & idx,
-          const std::vector<std::vector<I>> & jdx,
-          const Tensor1<I,I> & blk_row_ptr_,
-          const Tensor1<I,I> & blk_col_ptr_,
-          const I thread_count_,
+          const std::vector<std::vector<Int>> & idx,
+          const std::vector<std::vector<Int>> & jdx,
+          const Tensor1<Int,Int> & blk_row_ptr_,
+          const Tensor1<Int,Int> & blk_col_ptr_,
+          const Int thread_count_,
           const bool compress   = true,
           const int  symmetrize = 0
         )
@@ -121,52 +121,52 @@ namespace Tensors
             return blk_pat;
         }
         
-        I BlockRowCount() const
+        Int BlockRowCount() const
         {
             return BlockPattern().RowCount();
         }
         
-        I BlockColCount() const
+        Int BlockColCount() const
         {
             return BlockPattern().ColCount();
         }
         
-        I BlockNonzeroCount() const
+        Int BlockNonzeroCount() const
         {
             return BlockPattern().NonzeroCount();
         }
         
-        const Tensor1<I,I> & BlockRowPtr() const
+        const Tensor1<Int,Int> & BlockRowPtr() const
         {
             return blk_row_ptr;
         }
         
-        const Tensor1<I,I> & BlockColPtr() const
+        const Tensor1<Int,Int> & BlockColPtr() const
         {
             return blk_col_ptr;
         }
         
-        const Tensor1<I,I> & BlockJobPtr() const
+        const Tensor1<Int,Int> & BlockJobPtr() const
         {
             return blk_job_ptr;
         }
         
-        const Tensor1<I,I> & BlockOuter() const
+        const Tensor1<Int,Int> & BlockOuter() const
         {
             return BlockPattern().Outer();
         }
         
-        const Tensor1<I,I> & BlockInner() const
+        const Tensor1<Int,Int> & BlockInner() const
         {
             return BlockPattern().Inner();
         }
         
-        const Tensor1<I,I> & UpperTriangularBlockJobPtr() const
+        const Tensor1<Int,Int> & UpperTriangularBlockJobPtr() const
         {
             return upp_tri_blk_job_ptr;
         }
         
-        const Tensor1<I,I> & LowerTriangularBlockJobPtr() const
+        const Tensor1<Int,Int> & LowerTriangularBlockJobPtr() const
         {
             return low_tri_blk_job_ptr;
         }
@@ -178,15 +178,15 @@ namespace Tensors
         {
             ptic(ClassName()+"::FullSparsityPattern");
             
-            const I b_m = blk_pat.RowCount();
+            const Int b_m = blk_pat.RowCount();
             
-            outer[0] = static_cast<I>(0);
+            outer[0] = static_cast<Int>(0);
             
-            Tensor1<I,I>         blk_row_ctr (b_m);
+            Tensor1<Int,Int>         blk_row_ctr (b_m);
             // blk_row_ctr[b_i] for block row b_i is the number of nonzero elements
             // (which is constant among the rows contained in the block row_.
             
-            Tensor1<I,I> upp_tri_blk_row_ctr (b_m);
+            Tensor1<Int,Int> upp_tri_blk_row_ctr (b_m);
             // upp_tri_blk_row_ctr[b_i] for block row b_i is the number of nonzero elements on or
             // above the diagonal; it is constant among the rows contained in the block row_.
 
@@ -197,40 +197,40 @@ namespace Tensors
                 return;
             }
             
-            const I * restrict const         b_row_ptr =          blk_row_ptr.data();
-            const I * restrict const         b_col_ptr =          blk_col_ptr.data();
-            const I * restrict const           b_outer =      blk_pat.Outer().data();
-            const I * restrict const           b_inner =      blk_pat.Inner().data();
-                  I * restrict const           outer__ =                outer.data();
-                  I * restrict const         b_row_ctr =          blk_row_ctr.data();
-                  I * restrict const upp_tri_b_row_ctr =  upp_tri_blk_row_ctr.data();
+            const Int * restrict const         b_row_ptr =          blk_row_ptr.data();
+            const Int * restrict const         b_col_ptr =          blk_col_ptr.data();
+            const Int * restrict const           b_outer =      blk_pat.Outer().data();
+            const Int * restrict const           b_inner =      blk_pat.Inner().data();
+                  Int * restrict const           outer__ =                outer.data();
+                  Int * restrict const         b_row_ctr =          blk_row_ctr.data();
+                  Int * restrict const upp_tri_b_row_ctr =  upp_tri_blk_row_ctr.data();
             
             const auto & b_job_ptr = blk_pat.JobPtr();
             
-            const I thread_count = b_job_ptr.Size()-1;
+            const Int thread_count = b_job_ptr.Size()-1;
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
                 
-                const I b_i_begin = b_job_ptr[thread  ];
-                const I b_i_end   = b_job_ptr[thread+1];
+                const Int b_i_begin = b_job_ptr[thread  ];
+                const Int b_i_end   = b_job_ptr[thread+1];
                 
-                for( I b_i = b_i_begin; b_i < b_i_end; ++b_i )
+                for( Int b_i = b_i_begin; b_i < b_i_end; ++b_i )
                 {
-                    I         b_row_counter = static_cast<I>(0);
-                    I upp_tri_b_row_counter = static_cast<I>(0);
+                    Int         b_row_counter = static_cast<Int>(0);
+                    Int upp_tri_b_row_counter = static_cast<Int>(0);
                     
                     // Counting the number of entries per row in each block row to prepare outer.
                     {
-                        const I b_k_begin = b_outer[b_i  ];
-                        const I b_k_end   = b_outer[b_i+1];
+                        const Int b_k_begin = b_outer[b_i  ];
+                        const Int b_k_end   = b_outer[b_i+1];
                                     
-                        for( I b_k = b_k_begin; b_k < b_k_end; ++b_k )
+                        for( Int b_k = b_k_begin; b_k < b_k_end; ++b_k )
                         {
-                            const I b_j = b_inner[b_k];
+                            const Int b_j = b_inner[b_k];
 
-                            const I b_n_j = b_col_ptr[b_j+1] - b_col_ptr[b_j];
+                            const Int b_n_j = b_col_ptr[b_j+1] - b_col_ptr[b_j];
 
                             b_row_counter += b_n_j;
                             
@@ -245,11 +245,11 @@ namespace Tensors
                     upp_tri_b_row_ctr[b_i] = upp_tri_b_row_counter;
                     
                     {
-                        const I b_k_begin = b_row_ptr[b_i];
-                        const I b_k_end   = b_row_ptr[b_i+1];
+                        const Int b_k_begin = b_row_ptr[b_i];
+                        const Int b_k_end   = b_row_ptr[b_i+1];
                         // Each row in a block row has the same number of entries.
                         #pragma omp simd
-                        for( I b_k = b_k_begin; b_k < b_k_end; ++b_k )
+                        for( Int b_k = b_k_begin; b_k < b_k_end; ++b_k )
                         {
                             outer__[b_k+1] = b_row_counter;
                         }
@@ -259,44 +259,44 @@ namespace Tensors
 
             outer.Accumulate( thread_count );
 
-            const I nnz = outer.Last();
+            const Int nnz = outer.Last();
 
             if( nnz > 0 )
             {
-                inner = Tensor1<I,I>( nnz );
-                I * restrict const inner__ = inner.data();
+                inner = Tensor1<Int,Int>( nnz );
+                Int * restrict const inner__ = inner.data();
                 
                 // Computing inner for CSR format.
                 
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     
-                    const I b_i_begin = b_job_ptr[thread  ];
-                    const I b_i_end   = b_job_ptr[thread+1];
+                    const Int b_i_begin = b_job_ptr[thread  ];
+                    const Int b_i_end   = b_job_ptr[thread+1];
                     
-                    for( I b_i = b_i_begin; b_i < b_i_end; ++b_i )
+                    for( Int b_i = b_i_begin; b_i < b_i_end; ++b_i )
                     {
                         // for each row i, write the column indices consecutively
                         
-                        const I i_begin = b_row_ptr[b_i  ];
-                        const I i_end   = b_row_ptr[b_i+1];
+                        const Int i_begin = b_row_ptr[b_i  ];
+                        const Int i_end   = b_row_ptr[b_i+1];
                         
-                        const I k_begin = b_outer[b_i  ];
-                        const I k_end   = b_outer[b_i+1];
+                        const Int k_begin = b_outer[b_i  ];
+                        const Int k_end   = b_outer[b_i+1];
                         
-                        for( I i = i_begin; i < i_end; ++i ) // looping over all rows i in block row b_i
+                        for( Int i = i_begin; i < i_end; ++i ) // looping over all rows i in block row b_i
                         {
-                            I ptr = outer__[i];                           // get first nonzero position in row i; ptr will be used to keep track of the current position within inner
+                            Int ptr = outer__[i];                           // get first nonzero position in row i; ptr will be used to keep track of the current position within inner
                             
-                            for( I k = k_begin; k < k_end; ++k )          // loop over all blocks in block row b_i
+                            for( Int k = k_begin; k < k_end; ++k )          // loop over all blocks in block row b_i
                             {
-                                const I b_j = b_inner[k];               // we are in block {b_i, b_j}
+                                const Int b_j = b_inner[k];               // we are in block {b_i, b_j}
                                 
-                                const I j_begin = b_col_ptr[b_j  ];
-                                const I j_end   = b_col_ptr[b_j+1];
+                                const Int j_begin = b_col_ptr[b_j  ];
+                                const Int j_end   = b_col_ptr[b_j+1];
                                 
-                                for( I j = j_begin; j < j_end; ++j )      // write the column indices for row i
+                                for( Int j = j_begin; j < j_end; ++j )      // write the column indices for row i
                                 {
         //                                if( has_diagonal && (i == j) )
         //                                {
@@ -310,17 +310,17 @@ namespace Tensors
                     }
                 }
                 
-                blk_ptr = Tensor1<I,I>(blk_pat.NonzeroCount()+1);
-                I * restrict const b_ptr = blk_ptr.data();
+                blk_ptr = Tensor1<Int,Int>(blk_pat.NonzeroCount()+1);
+                Int * restrict const b_ptr = blk_ptr.data();
                 blk_ptr[0] = 0;
 
-                auto num_bef_b_row = Tensor1<I,I>(b_m+1);
-                I * restrict const num_bef_b_row__ = num_bef_b_row.data();
+                auto num_bef_b_row = Tensor1<Int,Int>(b_m+1);
+                Int * restrict const num_bef_b_row__ = num_bef_b_row.data();
                 
                 #pragma omp parallel for num_threads(thread_count)
-                for( I b_i = 0; b_i < b_m; ++b_i )
+                for( Int b_i = 0; b_i < b_m; ++b_i )
                 {
-                    const I m_i = b_row_ptr[b_i+1] - b_row_ptr[b_i];
+                    const Int m_i = b_row_ptr[b_i+1] - b_row_ptr[b_i];
                     
                     num_bef_b_row__[b_i+1] = m_i * b_row_ctr[b_i];
                 }
@@ -328,25 +328,25 @@ namespace Tensors
                 num_bef_b_row.Accumulate( thread_count );
                 
                 #pragma omp parallel for num_threads( thread_count )
-                for( I thread = 0; thread < thread_count; ++thread )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const I b_i_begin = b_job_ptr[thread  ];
-                    const I b_i_end   = b_job_ptr[thread+1];
+                    const Int b_i_begin = b_job_ptr[thread  ];
+                    const Int b_i_end   = b_job_ptr[thread+1];
                     
-                    for( I b_i = b_i_begin; b_i < b_i_end; ++b_i )
+                    for( Int b_i = b_i_begin; b_i < b_i_end; ++b_i )
                     {
-                        I num_bef_kth_b = num_bef_b_row__[b_i];
+                        Int num_bef_kth_b = num_bef_b_row__[b_i];
                         
-                        const I m_b_i = b_row_ptr[b_i+1] - b_row_ptr[b_i];
+                        const Int m_b_i = b_row_ptr[b_i+1] - b_row_ptr[b_i];
                         
-                        const I b_k_begin = b_outer[b_i  ];
-                        const I b_k_end   = b_outer[b_i+1];
+                        const Int b_k_begin = b_outer[b_i  ];
+                        const Int b_k_end   = b_outer[b_i+1];
                         
-                        for( I b_k = b_k_begin; b_k < b_k_end; ++b_k )
+                        for( Int b_k = b_k_begin; b_k < b_k_end; ++b_k )
                         {
                             // b_k-th block is {b_i, b_j}
-                            I   b_j = b_inner[b_k];
-                            I n_b_j = b_col_ptr[b_j+1] - b_col_ptr[b_j];
+                            Int   b_j = b_inner[b_k];
+                            Int n_b_j = b_col_ptr[b_j+1] - b_col_ptr[b_j];
                             // k-th block has size mi * nj
                             num_bef_kth_b += m_b_i * n_b_j;
                             b_ptr[b_k+1] = num_bef_kth_b;
@@ -355,25 +355,25 @@ namespace Tensors
                 }
 
                 // distribute workload
-                Tensor1<I,I>         blk_costs (b_m+1);
-                Tensor1<I,I> upp_tri_blk_costs (b_m+1);
-                Tensor1<I,I> low_tri_blk_costs (b_m+1);
+                Tensor1<Int,Int>         blk_costs (b_m+1);
+                Tensor1<Int,Int> upp_tri_blk_costs (b_m+1);
+                Tensor1<Int,Int> low_tri_blk_costs (b_m+1);
                 
-                        blk_costs[0] = static_cast<I>(0);
-                upp_tri_blk_costs[0] = static_cast<I>(0);
-                low_tri_blk_costs[0] = static_cast<I>(0);
+                        blk_costs[0] = static_cast<Int>(0);
+                upp_tri_blk_costs[0] = static_cast<Int>(0);
+                low_tri_blk_costs[0] = static_cast<Int>(0);
                 
-                I * restrict const         b_costs =         blk_costs.data();
-                I * restrict const upp_tri_b_costs = upp_tri_blk_costs.data();
-                I * restrict const low_tri_b_costs = low_tri_blk_costs.data();
+                Int * restrict const         b_costs =         blk_costs.data();
+                Int * restrict const upp_tri_b_costs = upp_tri_blk_costs.data();
+                Int * restrict const low_tri_b_costs = low_tri_blk_costs.data();
                 
                 #pragma omp parallel for num_threads(thread_count)
-                for( I b_i = 0; b_i < b_m; ++b_i )
+                for( Int b_i = 0; b_i < b_m; ++b_i )
                 {
-                    const I rows = b_row_ptr[b_i+1] - b_row_ptr[b_i];
+                    const Int rows = b_row_ptr[b_i+1] - b_row_ptr[b_i];
                     
-                    const I cols     =         b_row_ctr[b_i];
-                    const I upp_cols = upp_tri_b_row_ctr[b_i];
+                    const Int cols     =         b_row_ctr[b_i];
+                    const Int upp_cols = upp_tri_b_row_ctr[b_i];
                     
                             b_costs[b_i+1] = rows * cols;
                     
@@ -386,11 +386,11 @@ namespace Tensors
                 upp_tri_blk_costs.Accumulate( thread_count );
                 low_tri_blk_costs.Accumulate( thread_count );
                 
-                        blk_job_ptr = JobPointers<I>(
+                        blk_job_ptr = JobPointers<Int>(
                                 b_m,         blk_costs.data(), thread_count, false );
-                upp_tri_blk_job_ptr = JobPointers<I>(
+                upp_tri_blk_job_ptr = JobPointers<Int>(
                                 b_m, upp_tri_blk_costs.data(), thread_count, false );
-                low_tri_blk_job_ptr = JobPointers<I>(
+                low_tri_blk_job_ptr = JobPointers<Int>(
                                 b_m, low_tri_blk_costs.data(), thread_count, false );
                 
                 max_row_count = *std::max_element( b_row_ctr, b_row_ctr + b_m );
@@ -403,7 +403,7 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return TO_STD_STRING(CLASS)+"<"+TypeName<I>::Get()+">";
+            return TO_STD_STRING(CLASS)+"<"+TypeName<Int>::Get()+">";
         }
         
     }; // CLASS

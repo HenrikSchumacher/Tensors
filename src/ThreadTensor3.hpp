@@ -336,23 +336,24 @@ namespace Tensors {
             return n;
         }
         
-        template<typename J>
-        Tensor2<T,J> AddReduce() const
+        template<typename S, typename J>
+        Tensor2<S,J> AddReduce() const
         {
-            Tensor2<T,J> B ( dims[1], dims[2] );
+            Tensor2<S,J> B ( dims[1], dims[2] );
             
             AddReduce( B.data(), false );
              
             return B;
         }
         
-        template<typename J>
-        void AddReduce( Tensor2<T,J> & B, const bool addto ) const
+        template<typename S, typename J>
+        void AddReduce( Tensor2<S,J> & B, const bool addto ) const
         {
             AddReduce( B.data(), addto );
         }
         
-        void AddReduce( T * const B, const bool addto ) const
+        template<typename S>
+        void AddReduce( S * const B, const bool addto ) const
         {
             if( addto )
             {

@@ -439,7 +439,7 @@ namespace Tensors
         
         force_inline void WriteYZero( const Int i_global ) const
         {
-            // CAUTION! We cannot use i_global here because BeginRow() has not been in an empty row!
+            // CAUTION! We cannot use i_global here because BeginRow() has not been called in an empty row!
             Scalar_out * restrict const y_to = &Y[ RowsSize() * i_global ];
             
             if constexpr ( beta_flag == 0 )
