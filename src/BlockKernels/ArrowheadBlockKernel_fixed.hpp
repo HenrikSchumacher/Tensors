@@ -26,7 +26,7 @@ namespace Tensors
         typename Scalar_, typename Scalar_in_, typename Scalar_out_,
         typename Int_, typename LInt_,
         int alpha_flag, int beta_flag,
-                                              bool a_copy,
+                                 bool a_copy,
         bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
         bool y_RM, bool y_intRM,
         bool use_fma
@@ -43,11 +43,10 @@ namespace Tensors
 
         using BASE::ROWS;
         using BASE::COLS;
+        using BASE::ROWS_SIZE;
+        using BASE::COLS_SIZE;
         using BASE::RHS_COUNT;
         
-        using BASE::RowsSize;
-        using BASE::ColsSize;
-        using BASE::RhsCount;
         using BASE::FMA;
         
         static constexpr LInt BLOCK_NNZ = COLS + ROWS - 1;
@@ -68,7 +67,7 @@ namespace Tensors
         
         const Scalar * restrict a_from = nullptr;
         
-        alignas(ALIGNMENT) Scalar a [BLOCK_NNZ];
+        Scalar a [BLOCK_NNZ];
         
     public:
         
@@ -92,22 +91,23 @@ namespace Tensors
         // Copy constructor
         CLASS( const CLASS & other ) : BASE(other) {}
         
-        virtual ~CLASS() override = default;
+        ~CLASS() = default;
         
     public:
         
-        virtual LInt NonzeroCount() const override
+        static constexpr LInt NonzeroCount()
         {
             return BLOCK_NNZ;
         }
                 
-        virtual force_inline void TransposeBlock( const LInt from, const LInt to ) const override
+        force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
-                  Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
+            const Scalar * restrict const a_from = &A[BLOCK_NNZ * from];
+                  Scalar * restrict const a_to   = &A[BLOCK_NNZ * to  ];
             
             a_to[0] = a_from[0];
             
+            #pragma unroll
             for( Int i = 1; i < ROWS; ++i )
             {
                 a_to[       i] = a_from[ROWS-1+i];
@@ -142,13 +142,8 @@ namespace Tensors
             }
         }
         
-        virtual force_inline void begin_row( const Int i_global ) override
-        {}
         
-        virtual force_inline void end_row( const Int j_global ) override
-        {}
-        
-        virtual force_inline void apply_block( const LInt k_global, const Int j_global ) override
+        force_inline void ApplyBlock( const LInt k_global, const Int j_global )
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );
@@ -167,15 +162,18 @@ namespace Tensors
             //    |   get_a(ROWS+COLS-2)   0              0              0           |
             //    \                                                                  /
             
-            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
+            #pragma unroll
+            for( Int k = 0; k < RHS_COUNT; ++k )
             {
                 FMA( get_a(0), get_x(0,k), get_y(0,k) );
 
+                #pragma unroll
                 for( Int j = 1; j < COLS; ++j )
                 {
                     FMA( get_a(j), get_x(j,k), get_y(0,k) );
                 }
 
+                #pragma unroll
                 for( Int i = 1; i < ROWS; ++i )
                 {
                     FMA( get_a(COLS-1+i), get_x(0,k), get_y(i,k) );
@@ -185,7 +183,7 @@ namespace Tensors
         
     public:
         
-        virtual std::string ClassName() const override
+        std::string ClassName() const
         {
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)

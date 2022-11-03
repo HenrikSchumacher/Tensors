@@ -101,7 +101,7 @@ namespace Tensors
         ,   y          ( other.y          )
         {}
         
-        virtual ~CLASS() = default;
+        ~CLASS() = default;
 
 
     public:
@@ -121,9 +121,9 @@ namespace Tensors
             return RhsCount();
         }
         
-        virtual LInt NonzeroCount() const = 0;
+        LInt NonzeroCount() const = 0;
         
-        virtual void TransposeBlock( const LInt from, const LInt to ) const = 0;
+        void TransposeBlock( const LInt from, const LInt to ) const = 0;
         
         
         
@@ -175,34 +175,14 @@ namespace Tensors
         }
         
 
-        force_inline void BeginRow( const Int i_global )
+        force_inline void CleanseY()
         {
-            // Store the row index for later use.
-//            i_global = i_global_;
-            
             // Clear the local vector chunk of the kernel.
             y.SetZero();
-            
-            // Allow the descendant kernels to do their own thing at row start.
-            begin_row( i_global );
         }
+
         
-        virtual force_inline  void begin_row( const Int i_global ) = 0;
-        
-        
-        force_inline void EndRow( const Int i_global )
-        {
-            // Allow the descendant kernels to do their own thing at row end.
-            end_row( i_global );
-            
-            // Write the Y-slice according to i_global_.
-            WriteY( i_global );
-        }
-        
-        virtual force_inline void end_row( const Int i_global ) = 0;
-        
-        
-        virtual force_inline void Prefetch( const LInt k_global, const Int j_next )
+        force_inline void Prefetch( const LInt k_global, const Int j_next )
         {
             if constexpr ( x_prefetch )
             {
@@ -211,15 +191,6 @@ namespace Tensors
             }
             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
         }
-        
-        
-        virtual force_inline void ApplyBlock( const LInt k_global, const Int j_global )
-        {
-            apply_block( k_global, j_global );
-        }
-        
-        virtual force_inline void apply_block( const LInt k_global, const LInt j_global ) = 0;
-        
         
         force_inline Scalar_out get_cast_y( const Int i, const Int k ) const
         {
@@ -461,7 +432,7 @@ namespace Tensors
         
     public:
         
-        virtual std::string ClassName() const
+        std::string ClassName() const
         {
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)

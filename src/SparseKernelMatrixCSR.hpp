@@ -208,7 +208,7 @@ namespace Tensors
             }
         }
         
-        void Dot(
+        __attribute__((flatten)) void Dot(
             const Scalar     * restrict const A,
             const Scalar_out                  alpha,
             const Scalar_in  * restrict const X,
@@ -257,7 +257,7 @@ namespace Tensors
                         if( k_end > k_begin )
                         {
                             // Clear the local vector chunk of the kernel.
-                            ker.BeginRow(i);
+                            ker.CleanseY();
                             
                             // Perform all but the last calculation in row with prefetch.
                             for( LInt k = k_begin; k < k_end-1; ++k )
@@ -284,7 +284,7 @@ namespace Tensors
                             
                             // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
                             
-                            ker.EndRow(i);
+                            ker.WriteY(i);
                         }
                         else
                         {
@@ -318,7 +318,7 @@ namespace Tensors
                         if( k_end > k_begin )
                         {
                             // Clear the local vector chunk of the kernel.
-                            ker.BeginRow(i);
+                            ker.CleanseY();
                             
                             // Perform all but the last calculation in row with prefetch.
                             for( LInt k = k_begin; k < k_end-1; ++k )
@@ -345,7 +345,7 @@ namespace Tensors
                             
                             // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
                             
-                            ker.EndRow(i);
+                            ker.WriteY(i);
                         }
                         else
                         {

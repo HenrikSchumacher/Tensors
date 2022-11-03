@@ -49,8 +49,8 @@ namespace Tensors
         const Scalar_in  * restrict x_from = nullptr;
 //              Scalar_out * restrict y_to   = nullptr;
         
-        alignas(ALIGNMENT) Scalar x [x_intRM ? COLS : RHS_COUNT][x_intRM ? RHS_COUNT : COLS] = {};
-        alignas(ALIGNMENT) Scalar y [y_intRM ? ROWS : RHS_COUNT][y_intRM ? RHS_COUNT : ROWS] = {};
+        Scalar x [x_intRM ? COLS : RHS_COUNT][x_intRM ? RHS_COUNT : COLS] = {};
+        Scalar y [y_intRM ? ROWS : RHS_COUNT][y_intRM ? RHS_COUNT : ROWS] = {};
 
         const Int rhs_count = 1;
         const Int rows_size = ROWS;
@@ -108,7 +108,7 @@ namespace Tensors
         ,   Y          ( other.Y          )
         {}
         
-        virtual ~CLASS() = default;
+        ~CLASS() = default;
 
 
     public:
@@ -128,9 +128,9 @@ namespace Tensors
             return RhsCount();
         }
         
-        virtual LInt NonzeroCount() const = 0;
+//        LInt NonzeroCount() const = 0;
         
-        virtual void TransposeBlock( const LInt from, const LInt to ) const = 0;
+//        void TransposeBlock( const LInt from, const LInt to ) const = 0;
         
         
         
@@ -182,21 +182,6 @@ namespace Tensors
                 c += a * b;
             }
         }
-        
-//        force_inline void FMA( const Scalar a, const Scalar b, Scalar & c )
-//        {
-//            c += a * b;
-//        }
-        
-//        force_inline Scalar FMA( const Scalar a, const Scalar b, const Scalar c ) const
-//        {
-//           return std::fma(a,b,c);
-//        }
-        
-//        force_inline Scalar FMA( const Scalar a, const Scalar b, const Scalar c ) const
-//        {
-//            return a * b + c;
-//        }
         
         force_inline void ReadX( const Int j_global )
         {
@@ -266,35 +251,7 @@ namespace Tensors
             }
         }
         
-
-        force_inline void BeginRow( const Int i_global )
-        {
-            // Store the row index for later use.
-//            i_global = i_global_;
-            
-            // Clear the local vector chunk of the kernel.
-            zerofy_buffer( &y[0][0], ROWS_SIZE );           // TODO: Might be inefficient.
-            
-            // Allow the descendant kernels to do their own thing at row start.
-            begin_row( i_global );
-        }
-        
-        virtual force_inline  void begin_row( const Int i_global ) = 0;
-        
-        
-        force_inline void EndRow( const Int i_global )
-        {
-            // Allow the descendant kernels to do their own thing at row end.
-            end_row( i_global );
-            
-            // Write the Y-slice according to i_global_.
-            WriteY( i_global );
-        }
-        
-        virtual force_inline void end_row( const Int i_global ) = 0;
-        
-        
-        virtual force_inline void Prefetch( const LInt k_global, const Int j_next )
+        force_inline void Prefetch( const LInt k_global, const Int j_next )
         {
             if constexpr ( x_prefetch )
             {
@@ -310,15 +267,6 @@ namespace Tensors
             }
             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
         }
-        
-        
-        virtual force_inline void ApplyBlock( const LInt k_global, const Int j_global )
-        {
-            apply_block( k_global, j_global );
-        }
-        
-        virtual force_inline void apply_block( const LInt k_global, const Int j_global ) = 0;
-        
         
         force_inline Scalar_out get_cast_y( const Int i, const Int k ) const
         {
@@ -382,6 +330,12 @@ namespace Tensors
             }
         }
         
+        
+        force_inline void CleanseY()
+        {
+            // Clear the local vector chunk of the kernel.
+            zerofy_buffer( &y[0][0], ROWS_SIZE );           // TODO: Might be inefficient.
+        }
         
         force_inline void WriteY( const Int i_global ) const
         {
@@ -603,10 +557,11 @@ namespace Tensors
                 }
             }
         }
+
         
     public:
         
-        virtual std::string ClassName() const
+        std::string ClassName() const
         {
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)+","+ToString(COLS)+","+ToString(RHS_COUNT)+","+ToString(fixed)

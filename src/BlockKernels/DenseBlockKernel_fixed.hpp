@@ -55,6 +55,8 @@ namespace Tensors
         
         using BASE::RowsSize;
         using BASE::ColsSize;
+        using BASE::ROWS_SIZE;
+        using BASE::COLS_SIZE;
         using BASE::RhsCount;
         
         static constexpr LInt BLOCK_NNZ = ROWS * COLS;
@@ -99,16 +101,16 @@ namespace Tensors
         // Copy constructor
         CLASS( const CLASS & other ) : BASE(other) {}
         
-        virtual ~CLASS() override = default;
+        ~CLASS()  = default;
         
     public:
         
-        virtual LInt NonzeroCount() const override
+        LInt NonzeroCount() const
         {
             return BLOCK_NNZ;
         }
                 
-        virtual force_inline void TransposeBlock( const LInt from, const LInt to ) const override
+        force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
             const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
                   Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
@@ -217,13 +219,7 @@ namespace Tensors
             }
         }
         
-        virtual force_inline void begin_row( const Int i_global ) override
-        {}
-        
-        virtual force_inline void end_row( const Int j_global ) override
-        {}
-        
-        virtual force_inline void apply_block( const LInt k_global, const Int j_global ) override
+        force_inline void ApplyBlock( const LInt k_global, const Int j_global )
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );
@@ -387,7 +383,7 @@ namespace Tensors
         
     public:
         
-        virtual std::string ClassName() const override
+        std::string ClassName() const  
         {
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)

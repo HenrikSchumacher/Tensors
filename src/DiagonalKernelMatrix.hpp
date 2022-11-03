@@ -163,7 +163,7 @@ namespace Tensors
         }
         
         
-        void Dot(
+        __attribute__((flatten)) void Dot(
             const Scalar     * restrict const A,
             const Scalar_out                  alpha,
             const Scalar_in  * restrict const X,
@@ -200,9 +200,9 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        ker.BeginRow(i);
+                        ker.CleanseY();
                         ker.ApplyBlock(i,i);
-                        ker.EndRow(i);
+                        ker.WriteY(i);
                     }
                 }
             }
@@ -218,9 +218,9 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        ker.BeginRow(i);
+                        ker.CleanseY();
                         ker.ApplyBlock(i,i);
-                        ker.EndRow(i);
+                        ker.WriteY(i);
                     }
                 }
             }
