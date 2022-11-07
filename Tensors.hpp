@@ -36,6 +36,7 @@
     #include "src/SmallMatrixList.hpp"
 
     #include "src/AssemblyCounters.hpp"
+    #include "src/Aggregator.hpp"
     #include "src/PairAggregator.hpp"
     #include "src/TripleAggregator.hpp"
 
@@ -69,5 +70,12 @@
 
     #include "src/BlockKernels/BlockKernel_RM.hpp"
     #include "src/BlockKernels/DenseBlockKernel_RM.hpp"
+
+
+    #include "src/LUDecomposition.hpp"
+    #include "src/CholeskyDecomposition.hpp"
+
+    #include "src/SparseCholeskyDecomposition/UniteSortedBuffers.hpp"
+    #include "src/SparseCholeskyDecomposition.hpp"
 
 #endif

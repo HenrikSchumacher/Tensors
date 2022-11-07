@@ -43,13 +43,22 @@ namespace Tensors
         using BASE::CreateTransposeCounters;
         using BASE::WellFormed;
         
-        CLASS() : BASE() {};
+        CLASS()
+        :   BASE()
+        {}
 
+        template<typename I_0, typename I_1, typename I_3>
         CLASS(
-            const long long m_,
-            const long long n_,
-            const long long thread_count_
-        ) : BASE( m_, n_, thread_count_ ) {}
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
+        :   BASE( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+        }
         
         template<typename I_0, typename I_1, typename I_2, typename I_3>
         CLASS(
@@ -57,25 +66,49 @@ namespace Tensors
             const I_1 n_,
             const I_2 nnz_,
             const I_3 thread_count_
-        ) : BASE( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) ) {}
+        )
+        :   BASE( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_2);
+            ASSERT_INT(I_3);
+        }
         
         
-        template<typename J0, typename J1, typename I_0, typename I_1, typename I_3>
+        template<typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
         CLASS(
-            const J0 * const outer_,
-            const J1 * const inner_,
+            const J_0 * const outer_,
+            const J_1 * const inner_,
             const I_0 m_,
             const I_1 n_,
             const I_3 thread_count_
-        ) : BASE(outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) ) {};
+        )
+        :   BASE( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+        }
+        
+        template<typename I_0, typename I_1, typename I_3>
+        CLASS(
+            Tensor1<LInt, Int> && outer_,
+            Tensor1< Int,LInt> && inner_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
+        :   BASE( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+        }
         
         // Copy constructor
-        CLASS( const CLASS & other ) : BASE( other )
-//        :   outer       ( other.outer         )
-//        ,   inner       ( other.inner         )
-//        ,   m           ( other.m             )
-//        ,   n           ( other.n             )
-//        ,   thread_count( other.thread_count  )
+        CLASS( const CLASS & other )
+        :   BASE( other )
         {}
         
         friend void swap (CLASS &A, CLASS &B ) noexcept
@@ -159,12 +192,10 @@ namespace Tensors
         {
             ptic(ClassName()+"::Transpose");
             
-            RequireJobPtr();
-            
             Tensor2<LInt,Int> counters = CreateTransposeCounters();
             
             CLASS<Int,LInt> B ( n, m, outer[m], thread_count );
-
+            
             copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
             
             if( WellFormed() )
@@ -196,7 +227,7 @@ namespace Tensors
                     }
                 }
             }
-            
+
             // Finished counting sort.
 
             // We only have to care about the correct ordering of inner indices and values.

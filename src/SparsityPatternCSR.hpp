@@ -44,52 +44,87 @@ namespace Tensors
         
         friend class SparseBinaryMatrixCSR<Int,LInt>;
         
-        CLASS() : m(static_cast<Int>(0)), n(static_cast<Int>(0)) {}
+        CLASS()
+        :   m ( static_cast<Int>(0) )
+        ,   n ( static_cast<Int>(0) )
+        {}
 
+        template<typename I_0, typename I_1, typename I_3, IsInt(I_0), IsInt(I_1), IsInt(I_3)>
         CLASS(
-            const long long m_,
-            const long long n_,
-            const long long thread_count_
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
         )
-        :   outer       ( Tensor1<LInt,Int>(static_cast<Int>(m_+1),static_cast<LInt>(0)) )
-        ,   m           ( static_cast<Int>(m_)                                           )
-        ,   n           ( static_cast<Int>(n_)                                           )
-        ,   thread_count( static_cast<Int>(thread_count_)                                )
+        :   outer       ( static_cast<Int>(m_+1),static_cast<LInt>(0) )
+        ,   m           ( static_cast<Int>(m_)                        )
+        ,   n           ( static_cast<Int>(n_)                        )
+        ,   thread_count( static_cast<Int>(thread_count_)             )
         {
             Init();
         }
         
+        template<typename I_0, typename I_1, typename I_2, typename I_3>
         CLASS(
-            const long long m_,
-            const long long n_,
-            const LInt    nnz_,
-            const long long thread_count_
+            const I_0 m_,
+            const I_1 n_,
+            const I_2 nnz_,
+            const I_3 thread_count_
         )
-        :   outer       ( Tensor1<LInt, Int>(static_cast<Int>(m_+1),static_cast<LInt>(0)) )
-        ,   inner       ( Tensor1< Int,LInt>(static_cast<LInt>(nnz_) )                    )
-        ,   m           ( static_cast<Int>(m_)                                            )
-        ,   n           ( static_cast<Int>(n_)                                            )
-        ,   thread_count( static_cast<Int>(thread_count_)                                 )
+        :   outer       ( static_cast<Int>(m_+1), static_cast<LInt>(0) )
+        ,   inner       ( static_cast<LInt>(nnz_)                      )
+        ,   m           ( static_cast<Int>(m_)                         )
+        ,   n           ( static_cast<Int>(n_)                         )
+        ,   thread_count( static_cast<Int>(thread_count_)              )
         {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_2);
+            ASSERT_INT(I_3);
             Init();
         }
         
-        
-        template<typename J0, typename J1>
+        template<typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
         CLASS(
-            const J0 * const outer_,
-            const J1 * const inner_,
-            const long long m_,
-            const long long n_,
-            const long long thread_count_
+            const J_0 * const outer_,
+            const J_1 * const inner_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
         )
-        :   outer       ( ToTensor1<LInt, Int>(outer_,static_cast<Int>(m_+1))        )
-        ,   inner       ( ToTensor1< Int,LInt>(inner_,static_cast<LInt>(outer_[m_])) )
-        ,   m           ( static_cast<Int>(m_)                                       )
-        ,   n           ( static_cast<Int>(n_)                                       )
-        ,   thread_count( static_cast<Int>(thread_count_)                            )
+        :   outer       ( m_+1                            )
+        ,   inner       ( static_cast<LInt>(outer_[m_])   )
+        ,   m           ( static_cast<Int>(m_)            )
+        ,   n           ( static_cast<Int>(n_)            )
+        ,   thread_count( static_cast<Int>(thread_count_) )
         {
-            Init();
+            ASSERT_INT(J_0);
+            ASSERT_INT(J_1);
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+            
+            outer.Read(outer_);
+            inner.Read(inner_);
+        }
+        
+        template<typename I_0, typename I_1, typename I_3>
+        CLASS(
+            Tensor1<LInt, Int> && outer_,
+            Tensor1< Int,LInt> && inner_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
+        :   m           ( static_cast<Int>(m_)            )
+        ,   n           ( static_cast<Int>(n_)            )
+        ,   thread_count( static_cast<Int>(thread_count_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+            
+            swap( outer, outer_ );
+            swap( inner, inner_ );
         }
         
         // Copy constructor
@@ -147,8 +182,7 @@ namespace Tensors
             
             Tensor1<Int,Int> entry_counts (1, static_cast<Int>(idx.size()));
                         
-            FromPairs( &i, &j, entry_counts.data(),
-                    1, final_thread_count, compress, symmetrize );
+            FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compress, symmetrize );
         }
         
         CLASS(
@@ -160,7 +194,7 @@ namespace Tensors
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        : CLASS ( m_, n_, static_cast<Int>(idx.size()) )
+        :   CLASS ( m_, n_, static_cast<Int>(idx.size()) )
         {
             Int list_count = static_cast<Int>(idx.size());
             Tensor1<const Int*,Int> i (list_count);
@@ -175,8 +209,7 @@ namespace Tensors
                 entry_counts[thread] = static_cast<Int>(idx[thread].size());
             }
             
-            FromPairs( i.data(), j.data(), entry_counts.data(),
-                    list_count, final_thread_count, compress, symmetrize );
+            FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compress, symmetrize );
         }
         
         CLASS(
@@ -187,7 +220,7 @@ namespace Tensors
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        : CLASS ( m_, n_, static_cast<Int>(idx.size()) )
+        :   CLASS ( m_, n_, static_cast<Int>(idx.size()) )
         {
             Int list_count = static_cast<Int>(idx.size());
             Tensor1<const Int*,Int> i (list_count);
@@ -203,8 +236,7 @@ namespace Tensors
                 entry_counts[thread] = idx[thread].Size();
             }
             
-            FromPairs( i.data(), j.data(), entry_counts.data(),
-                    list_count, final_thread_count, compress, symmetrize );
+            FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compress, symmetrize );
         }
     
         virtual ~CLASS() = default;
@@ -226,7 +258,7 @@ namespace Tensors
         
         void Init()
         {
-            outer[0] = static_cast<Int>(0);
+            outer[0] = static_cast<LInt>(0);
         }
         
         void FromPairs(
@@ -241,9 +273,7 @@ namespace Tensors
         {
             ptic(ClassName()+"::FromPairs");
             
-            Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
-                idx, jdx, entry_counts, list_count, m, symmetrize
-            );
+            Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>( idx, jdx, entry_counts, list_count, m, symmetrize );
             
             const LInt nnz = counters(list_count-1,m-1);
             
@@ -267,8 +297,8 @@ namespace Tensors
                     {
                         const Int entry_count = entry_counts[thread];
                         
-                        const    Int * restrict const thread_idx = idx[thread];
-                        const    Int * restrict const thread_jdx = jdx[thread];
+                        const  Int * restrict const thread_idx = idx[thread];
+                        const  Int * restrict const thread_jdx = jdx[thread];
                         
                               LInt * restrict const c = counters.data(thread);
                         
@@ -371,7 +401,7 @@ namespace Tensors
                     
                     diag_ptr = Tensor1<LInt,Int>( m );
                     
-                        LInt * restrict const diag_ptr__ = diag_ptr.data();
+                          LInt * restrict const diag_ptr__ = diag_ptr.data();
                     const LInt * restrict const outer__    = outer.data();
                     const  Int * restrict const inner__    = inner.data();
 
@@ -409,7 +439,7 @@ namespace Tensors
                 
                 RequireDiag();
                 
-                Tensor1<LInt,Int> costs = Tensor1<LInt,Int>(m + 1);
+                Tensor1<LInt,Int> costs (m + 1);
                 costs[0]=0;
                 
                 const LInt * restrict const diag_ptr__ = diag_ptr.data();
@@ -444,7 +474,7 @@ namespace Tensors
                 
                 RequireDiag();
                                 
-                Tensor1<LInt,Int> costs = Tensor1<LInt,Int>(m + 1);
+                Tensor1<LInt,Int> costs (m + 1);
                 costs[0]=0;
                 
                 const LInt * restrict const diag_ptr__ = diag_ptr.data();
@@ -559,7 +589,6 @@ namespace Tensors
                 // https://en.wikipedia.org/wiki/Counting_sort
     //            ptic("Counting");
                 
-                
                 #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
@@ -570,12 +599,12 @@ namespace Tensors
                     
                     const LInt * restrict const A_outer  = Outer().data();
                     const  Int * restrict const A_inner  = Inner().data();
-                                    
+                    
                     for( Int i = i_begin; i < i_end; ++i )
                     {
                         const LInt jj_begin = A_outer[i  ];
                         const LInt jj_end   = A_outer[i+1];
-                        
+                                                
                         for( LInt jj = jj_begin; jj < jj_end; ++jj )
                         {
                             const Int j = A_inner[jj];
@@ -642,7 +671,7 @@ namespace Tensors
             {
                 RequireJobPtr();
                 
-                Tensor1<LInt,Int> new_outer (outer.Size(),0);
+                Tensor1<LInt,Int> new_outer (outer.Size(), 0);
                 
                 LInt * restrict const new_outer__ = new_outer.data();
                 LInt * restrict const     outer__ = outer.data();
@@ -710,7 +739,7 @@ namespace Tensors
                 
                 const LInt nnz = new_outer[m];
                 
-                Tensor1<Int,LInt> new_inner (nnz,0);
+                Tensor1<Int,LInt> new_inner (nnz, 0);
                 
                 //TODO: Parallelization might be a bad idea here.
                 
@@ -929,7 +958,7 @@ namespace Tensors
         
     public:
         
-        Int FindNonzeroPosition( const Int i, const Int j ) const
+        LInt FindNonzeroPosition( const Int i, const Int j ) const
         {
             // Looks up the entry {i,j}. If existent, its index within the list of nonzeroes is returned. Otherwise, a negative number is returned (-1 if simply not found and -2 if i is out of bounds).
             
@@ -941,11 +970,11 @@ namespace Tensors
             {
                 const Int * restrict const inner__ = inner.data();
 
-                Int L = outer[i  ];
-                Int R = outer[i+1]-1;
+                LInt L = outer[i  ];
+                LInt R = outer[i+1]-1;
                 while( L < R )
                 {
-                    const Int k = R - (R-L)/static_cast<Int>(2);
+                    const LInt k = R - (R-L)/static_cast<Int>(2);
                     const Int col = inner__[k];
 
                     if( col > j )
@@ -957,7 +986,7 @@ namespace Tensors
                         L = k;
                     }
                 }
-                return (inner__[L]==j) ? L : static_cast<Int>(-1);
+                return (inner__[L]==j) ? L : static_cast<LInt>(-1);
             }
             else
             {

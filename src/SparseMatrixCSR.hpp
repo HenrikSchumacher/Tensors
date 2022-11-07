@@ -48,42 +48,78 @@ namespace Tensors
         using BASE::WellFormed;
         using BASE::Dot_;
         
-        CLASS() : BASE() {}
-        
-        CLASS(
-            const long long m_,
-            const long long n_,
-            const long long thread_count_
-        )
-        :   BASE(m_,n_,thread_count) {}
-        
-        CLASS(
-            const long long m_,
-            const long long n_,
-            const LInt      nnz_,
-            const long long thread_count_
-        )
-        :   BASE    ( m_, n_, nnz_, thread_count_ )
-        ,   values  ( Tensor1<Scalar,LInt>(static_cast<LInt>(nnz_)) )
+        CLASS()
+        :   BASE()
         {}
         
-        template<typename S, typename J0, typename J1>
+        template<typename I_0, typename I_1, typename I_3>
         CLASS(
-            const J0 * const outer_,
-            const J1 * const inner_,
-            const S  * const values_,
-            const long long m_,
-            const long long n_,
-                  long long thread_count_
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
         )
-        :   BASE    (outer_, inner_, m_, n_, thread_count_)
-        ,   values  ( ToTensor1<Scalar,LInt>(values_,outer_[static_cast<Int>(m_)]) )
-        {}
+        :   BASE( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+        }
+        
+        template<typename I_0, typename I_1, typename I_2, typename I_3>
+        CLASS(
+            const I_0 m_,
+            const I_1 n_,
+            const I_2 nnz_,
+            const I_3 thread_count_
+        )
+        :   BASE   ( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) )
+        ,   values ( static_cast<LInt>(nnz_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_2);
+            ASSERT_INT(I_3);
+        }
+        
+        template<typename S, typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
+        CLASS(
+            const J_0 * const outer_,
+            const J_1 * const inner_,
+            const S   * const values_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
+        :   BASE    ( outer_,  inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        ,   values  ( values_, outer_[static_cast<Int>(m_)] )
+        {
+            ASSERT_ARITHMETIC(S);
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+        }
+        
+        template<typename I_0, typename I_1, typename I_3>
+        CLASS(
+            Tensor1<LInt  , Int> && outer_,
+            Tensor1< Int  ,LInt> && inner_,
+            Tensor1<Scalar, Int> && values_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
+        :   BASE   ( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        ,   values ( std::move(values_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+        }
         
         // Copy constructor
         CLASS( const CLASS & other )
-        :   BASE( other )
-        ,   values  ( other.values  )
+        :   BASE    ( other        )
+        ,   values  ( other.values )
         {}
         
         friend void swap (CLASS &A, CLASS &B ) noexcept
@@ -127,13 +163,12 @@ namespace Tensors
         )
         :   BASE ( m_, n_, list_count )
         {
-            FromTriples( idx, jdx, val, entry_counts,
-                    list_count, final_thread_count, compress, symmetrize );
+            FromTriples( idx, jdx, val, entry_counts, list_count, final_thread_count, compress, symmetrize );
         }
 
         CLASS(
-            const std::vector<std::vector<Int>> & idx,
-            const std::vector<std::vector<Int>> & jdx,
+            const std::vector<std::vector<Int>>    & idx,
+            const std::vector<std::vector<Int>>    & jdx,
             const std::vector<std::vector<Scalar>> & val,
             const Int m_,
             const Int n_,
@@ -340,9 +375,9 @@ namespace Tensors
         
         Scalar operator()( const Int i, const Int j ) const
         {
-            const Int index = this->FindNonzeroPosition(i,j);
+            const LInt index = this->FindNonzeroPosition(i,j);
             
-            return (index>=static_cast<Int>(0)) ? values[index] : static_cast<Scalar>(0) ;
+            return (index>=static_cast<LInt>(0)) ? values[index] : static_cast<Scalar>(0) ;
         }
         
         
@@ -429,8 +464,8 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const Int begin = outer__[i  ];
-                        const Int end   = outer__[i+1];
+                        const LInt begin = outer__[i  ];
+                        const LInt end   = outer__[i+1];
                         
                         quick_sort( inner__ + begin, values__ + begin, end - begin );
                     }
