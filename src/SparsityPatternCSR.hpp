@@ -106,6 +106,26 @@ namespace Tensors
             outer.Read(outer_);
             inner.Read(inner_);
         }
+
+        template<typename I_0, typename I_1, typename I_3>
+        CLASS(
+            const Tensor1<LInt, Int> & outer_,
+            const Tensor1< Int,LInt> & inner_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
+        :   outer       ( outer_                          )
+        ,   inner       ( inner_                          )
+        ,   m           ( static_cast<Int>(m_)            )
+        ,   n           ( static_cast<Int>(n_)            )
+        ,   thread_count( static_cast<Int>(thread_count_) )
+        {
+            print("copy");
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+        }
         
         template<typename I_0, typename I_1, typename I_3>
         CLASS(
@@ -115,16 +135,16 @@ namespace Tensors
             const I_1 n_,
             const I_3 thread_count_
         )
-        :   m           ( static_cast<Int>(m_)            )
+        :   outer       ( std::move(outer_)               )
+        ,   inner       ( std::move(inner_)               )
+        ,   m           ( static_cast<Int>(m_)            )
         ,   n           ( static_cast<Int>(n_)            )
         ,   thread_count( static_cast<Int>(thread_count_) )
         {
+            print("move");
             ASSERT_INT(I_0);
             ASSERT_INT(I_1);
             ASSERT_INT(I_3);
-            
-            swap( outer, outer_ );
-            swap( inner, inner_ );
         }
         
         // Copy constructor
@@ -644,15 +664,11 @@ namespace Tensors
                     const Int i_end   = job_ptr[thread+1];
                 
                     const LInt * restrict const rp = outer.data();
-                             Int * restrict const ci = inner.data();
+                           Int * restrict const ci = inner.data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const LInt begin = rp[i  ];
-                        const LInt end   = rp[i+1];
-                        
-                        std::sort( &ci[begin], &ci[end] );
-//                        tim_sort( &ci[begin], &ci[end] );
+                        std::sort( &ci[rp[i]], &ci[rp[i+1]] );
                     }
                 }
             }
@@ -835,12 +851,12 @@ namespace Tensors
                           LInt * restrict const c        = counters.data(thread);
 
                     const LInt * restrict const A_outer  = Outer().data();
-                    const    Int * restrict const A_inner  = Inner().data();
+                    const  Int * restrict const A_inner  = Inner().data();
                     
                     const LInt * restrict const B_outer  = B.Outer().data();
-                    const    Int * restrict const B_inner  = B.Inner().data();
+                    const  Int * restrict const B_inner  = B.Inner().data();
                     
-                             Int * restrict const C_inner  = C.Inner().data();
+                           Int * restrict const C_inner  = C.Inner().data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -1061,6 +1077,101 @@ namespace Tensors
         bool WellFormed() const
         {
             return ( ( outer.Size() > 1 ) && ( outer.Last() > 0 ) );
+        }
+        
+    public:
+        
+        CLASS Permute( const Tensor1<Int,Int> & p, const Tensor1<Int,Int> & q, bool sort = true ) const
+        {
+            if( p.Dimension(0) != m )
+            {
+                eprint(ClassName()+"::Permute: Length of first argument does not coincide with RowCount().");
+                return CLASS();
+            }
+            
+            if( q.Dimension(0) != n )
+            {
+                eprint(ClassName()+"::Permute: Length of second argument does not coincide with ColCount().");
+                return CLASS();
+            }
+            
+            Permute( p.data(), q.data(), sort );
+        }
+        
+        CLASS Permute( const Int * restrict const p, const Int * restrict const q, bool sort = true ) const
+        {
+            CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
+            
+            Tensor1<Int,Int> q_inv_buffer ( ColCount() );
+            Int * restrict const q_inv = q_inv_buffer.data();
+
+            {
+                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
+                for( Int j = 0; j < n; ++j )
+                {
+                    q_inv[q[j]] = j;
+                }
+            }
+            
+            {
+                const LInt * restrict const A_outer = outer.data();
+                      LInt * restrict const B_outer = B.Outer().data();
+                
+                B_outer[0] = 0;
+                
+                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
+                for( Int i = 0; i < m; ++i )
+                {
+                    const Int p_i = p[i];
+                    
+                    B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
+                }
+            }
+
+            B.Outer().Accumulate();
+            
+            {
+                auto & B_job_ptr = B.JobPtr();
+
+                const Int thread_count = B_job_ptr.ThreadCount();
+                
+                const LInt * restrict const A_outer = outer.data();
+                const  Int * restrict const A_inner = inner.data();
+
+                const LInt * restrict const B_outer = B.Outer().data();
+                       Int * restrict const B_inner = B.Inner().data();
+
+                #pragma omp parallel for num_threads( thread_count )
+                for( Int thread = 0; thread < thread_count; ++thread )
+                {
+                    const Int i_begin = B_job_ptr[thread  ];
+                    const Int i_end   = B_job_ptr[thread+1];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        const Int p_i = p[i];
+                        const LInt A_begin = A_outer[p_i  ];
+//                        const LInt A_end   = A_outer[p_i+1];
+
+                        const LInt B_begin = B_outer[i  ];
+                        const LInt B_end   = B_outer[i+1];
+
+                        const LInt k_max = B_end - B_begin;
+
+                        for( LInt k = 0; k < k_max; ++k )
+                        {
+                            B_inner[B_begin+k] = q_inv[A_inner[A_begin+k]];
+                        }
+
+                        if( sort )
+                        {
+                            std::sort( &B_inner[B_begin], &B_inner[B_end] );
+                        }
+                    }
+                }
+            }
+
+            return B;
         }
         
     public:

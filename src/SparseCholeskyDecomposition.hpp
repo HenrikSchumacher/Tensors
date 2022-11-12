@@ -12,6 +12,8 @@
 
 // TODO: https://hal.inria.fr/hal-01114413/document
 
+// TODO: https://www.jstor.org/stable/2132786 !!
+
 namespace Tensors
 {
     enum class Triangular : bool
@@ -93,7 +95,11 @@ namespace Tensors
         
         void FactorizeSymbolically()
         {
-            // https://en.wikipedia.org/wiki/Symbolic_Cholesky_decomposition
+            // This is Aglorithm 8.1 from  Liu - The Role of Elimination Trees in Sparse Factorizations
+            
+            // TODO: Read about parallel variant in :
+            //
+            // Tarjan and Yannakakis - Simple linear-time algorithms to test chordality of graphs, test acyclicity of hypergraphs, and selectively reduce acyclic hypergraphs
             tic("FactorizeSymbolically");
 
             tic("Prepare");
@@ -132,6 +138,7 @@ namespace Tensors
                     // Merge row pointers of child j into U_i
                     const Int _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
                     const Int _end   = U_rp[j+1];
+
                     if( _end > _begin )
                     {
                         row_counter = UniteSortedBuffers(
@@ -139,11 +146,9 @@ namespace Tensors
                             &U_ci[_begin], _end - _begin,
                             buffer.data()
                         );
-
-                        std::swap( U_i, buffer );
+                        swap( U_i, buffer );
                     }
                 }
-
                 // Copy U_i to i-th row of U.
                 U_ci.Push( U_i.data(), row_counter );
                 U_rp[i+1] = U_ci.Size();
@@ -166,17 +171,15 @@ namespace Tensors
                     }
                     ++child_info(j,0);
                 }
-
             } // for( Int i = 0; i < n; ++i )
 
             toc("Main loop");
 
             // rows_to_cols encodes now G_{n}(A); we are done.
 
-            // TODO: Devise constrctor for SparseMatrix_T that moves U_rp and U_ci (instead of copying).
-            // TODO: Tensor1 needs a PushBack method.
+
             tic("Create U");
-            U = SparseMatrix_T( &U_rp[0], &U_ci[0], n, n, thread_count );
+            U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), n, n, thread_count );
             toc("Create U");
 
             toc("FactorizeSymbolically");
@@ -185,7 +188,7 @@ namespace Tensors
         
 //        void FactorizeSymbolically2()
 //        {
-//            // https://en.wikipedia.org/wiki/Symbolic_Cholesky_decomposition
+//            This is Aglorithm 8.1 from  Liu - The Role of Elimination Trees in Sparse Factorizations
 //            tic("FactorizeSymbolically2");
 //
 //            tic("Prepare");
@@ -204,6 +207,7 @@ namespace Tensors
 //            std::vector<std::vector<Int>> children (n);
 //
 //            // Idea of using "baby_sitter" is taken from Stewart - Building an Old-Fashioned Sparse Solver
+              // It is also mentioned as CLIST on page 159 of  Liu - The Role of Elimination Trees in Sparse Factorizations
 //            const Int no_child = n + 1;
 //            Tensor1<Int,Int> baby_sitter ( n, no_child );
 //

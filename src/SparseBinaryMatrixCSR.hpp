@@ -90,6 +90,21 @@ namespace Tensors
             ASSERT_INT(I_1);
             ASSERT_INT(I_3);
         }
+
+        template<typename I_0, typename I_1, typename I_3>
+        CLASS(
+            const Tensor1<LInt, Int> & outer_,
+            const Tensor1< Int,LInt> & inner_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
+        :   BASE( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        {
+            ASSERT_INT(I_0);
+            ASSERT_INT(I_1);
+            ASSERT_INT(I_3);
+        }
         
         template<typename I_0, typename I_1, typename I_3>
         CLASS(

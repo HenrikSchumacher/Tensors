@@ -453,7 +453,7 @@ namespace Tensors
                 #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    TwoArrayQuickSort<Int,Scalar,Int> quick_sort;
+                    TwoArrayQuickSort<Int,Scalar,LInt> quick_sort;
 
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
@@ -600,6 +600,104 @@ namespace Tensors
             ptoc(ClassName()+"::Compress");
         }
         
+        CLASS Permute( const Tensor1<Int,Int> & p, const Tensor1<Int,Int> & q, bool sort = true ) const
+        {
+            if( p.Dimension(0) != m )
+            {
+                eprint(ClassName()+"::Permute: Length of first argument does not coincide with RowCount().");
+                return CLASS();
+            }
+            
+            if( q.Dimension(0) != n )
+            {
+                eprint(ClassName()+"::Permute: Length of second argument does not coincide with ColCount().");
+                return CLASS();
+            }
+            
+            Permute( p.data(), q.data(), sort );
+        }
+        
+        CLASS Permute( const Int * restrict const p, const Int * restrict const q, bool sort = true ) const
+        {
+            CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
+            
+            Tensor1<Int,Int> q_inv_buffer ( ColCount() );
+            Int * restrict const q_inv = q_inv_buffer.data();
+
+            {
+                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
+                for( Int j = 0; j < n; ++j )
+                {
+                    q_inv[q[j]] = j;
+                }
+            }
+            
+            {
+                const LInt * restrict const A_outer = outer.data();
+                      LInt * restrict const B_outer = B.Outer().data();
+                
+                B_outer[0] = 0;
+                
+                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
+                for( Int i = 0; i < m; ++i )
+                {
+                    const Int p_i = p[i];
+                    
+                    B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
+                }
+            }
+
+            B.Outer().Accumulate();
+            
+            {
+                auto & B_job_ptr = B.JobPtr();
+
+                const Int thread_count = B_job_ptr.ThreadCount();
+                
+                const   LInt * restrict const A_outer  = outer.data();
+                const    Int * restrict const A_inner  = inner.data();
+                const Scalar * restrict const A_values = values.data();
+
+                const   LInt * restrict const B_outer  = B.Outer().data();
+                         Int * restrict const B_inner  = B.Inner().data();
+                      Scalar * restrict const B_values = B.Values().data();
+                
+                #pragma omp parallel for num_threads( thread_count )
+                for( Int thread = 0; thread < thread_count; ++thread )
+                {
+                    TwoArrayQuickSort<Int,Scalar,LInt> quick_sort;
+                    
+                    const Int i_begin = B_job_ptr[thread  ];
+                    const Int i_end   = B_job_ptr[thread+1];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        const Int p_i = p[i];
+                        const LInt A_begin = A_outer[p_i  ];
+//                        const LInt A_end   = A_outer[p_i+1];
+
+                        const LInt B_begin = B_outer[i  ];
+                        const LInt B_end   = B_outer[i+1];
+
+                        const LInt k_max = B_end - B_begin;
+
+                        for( LInt k = 0; k < k_max; ++k )
+                        {
+                            B_inner [B_begin+k] = q_inv[A_inner[A_begin+k]];
+                        }
+                        
+                        copy_buffer( &A_values[A_begin], &B_values[B_begin], k_max );
+
+                        if( sort )
+                        {
+                            quick_sort( &B_inner[B_begin], &B_values[B_begin], k_max );
+                        }
+                    }
+                }
+            }
+
+            return B;
+        }
         
         CLASS Dot( const CLASS & B ) const
         {

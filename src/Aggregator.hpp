@@ -87,13 +87,17 @@ namespace Tensors
             current_size += n;
         }
 
-        Container_0_T& Get()
+        Container_0_T & Get()
         {
+            ShrinkToFit();
+            
             return container_0;
         }
 
         const Container_0_T & Get() const
         {
+            ShrinkToFit();
+            
             return container_0;
         }
 
@@ -127,6 +131,16 @@ namespace Tensors
         force_inline const T_0 & operator[]( const LInt i ) const
         {
             return container_0[i];
+        }
+        
+        void ShrinkToFit()
+        {
+            tic("ShrinkToFit");
+            Container_0_T new_container_0 ( container_0.data(), current_size );
+            
+            using std::swap;
+            swap( container_0, new_container_0 );
+            toc("ShrinkToFit");
         }
         
         

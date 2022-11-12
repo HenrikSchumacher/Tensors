@@ -24,6 +24,7 @@ TENSOR_T( const TENSOR_T & other )
 :   n(other.n)
 ,   dims(other.dims)
 {
+    print("copy");
     allocate();
     
     Read(other.a);
@@ -40,11 +41,11 @@ explicit TENSOR_T( const TENSOR_T<S,J> & other )
     Read(other.a);
 }
 
-inline friend void swap(TENSOR_T &A, TENSOR_T &B) noexcept
+inline friend void swap(TENSOR_T & A, TENSOR_T & B) noexcept
 {
+//    print("swap");
     // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
     using std::swap;
-
     std::swap_ranges( &A.dims[0], &A.dims[Rank()], &B.dims[0] );
     swap( A.n, B.n );
     swap( A.a, B.a );
@@ -54,12 +55,14 @@ inline friend void swap(TENSOR_T &A, TENSOR_T &B) noexcept
 TENSOR_T( TENSOR_T && other ) noexcept
 :   TENSOR_T()
 {
+//    print("move");
     swap(*this, other);
 }
 
 /* Copy assignment operator */
 TENSOR_T & operator=( const TENSOR_T & other )
 {
+//    print("copy+assign");
     if( this != &other )
     {
         if( dims != other.dims )
@@ -78,6 +81,7 @@ TENSOR_T & operator=( const TENSOR_T & other )
 /* Move assignment operator */
 TENSOR_T & operator=( TENSOR_T && other ) noexcept
 {
+//    print("move+assign");
     if( this == &other )
     {
         wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
