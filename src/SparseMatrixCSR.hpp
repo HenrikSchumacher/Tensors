@@ -600,6 +600,13 @@ namespace Tensors
             ptoc(ClassName()+"::Compress");
         }
                 
+        
+//##############################################################################################
+//####          Permute
+//##############################################################################################
+        
+    public:
+        
         CLASS Permute( const Tensor1<Int,Int> & p, const Tensor1<Int,Int> & q, bool sort = true ) const
         {
             if( p.Dimension(0) != m )
@@ -693,8 +700,8 @@ namespace Tensors
                         const LInt B_begin = B_outer[i  ];
                         const LInt B_end   = B_outer[i+1];
                         
-                        copy_buffer( &B_inner [B_begin], &A_inner [A_begin], B_end - B_begin);
-                        copy_buffer( &B_values[B_begin], &A_values[A_begin], B_end - B_begin);
+                        copy_buffer( &A_inner [A_begin], &B_inner [B_begin], B_end - B_begin);
+                        copy_buffer( &A_values[A_begin], &B_values[B_begin], B_end - B_begin);
                     }
                 }
             }
@@ -717,7 +724,7 @@ namespace Tensors
                 }
             }
              
-            copy_buffer( outer.data(), B.Outer().data() );
+            copy_buffer( outer.data(), B.Outer().data(), m+1 );
            
             {
                 auto & B_job_ptr = B.JobPtr();
@@ -742,6 +749,8 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
+                        const LInt A_begin = A_outer[i  ];
+                        
                         const LInt B_begin = B_outer[i  ];
                         const LInt B_end   = B_outer[i+1];
 
@@ -765,7 +774,7 @@ namespace Tensors
             return B;
         }
         
-        CLASS PermuteRowCols( const Int * restrict const p, const Int * restrict const q, bool sort = true ) const
+        CLASS PermuteRowsCols( const Int * restrict const p, const Int * restrict const q, bool sort = true ) const
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
             
