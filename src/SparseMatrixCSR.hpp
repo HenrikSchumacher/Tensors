@@ -731,7 +731,7 @@ namespace Tensors
 
                 const Int thread_count = B_job_ptr.ThreadCount();
                 
-                const   LInt * restrict const A_outer  = outer.data();
+//                const   LInt * restrict const A_outer  = outer.data();
                 const    Int * restrict const A_inner  = inner.data();
                 const Scalar * restrict const A_values = values.data();
 
@@ -757,6 +757,8 @@ namespace Tensors
                             B_inner[B_begin] = q_inv[A_inner[B_begin]];
                         }
 
+                        const LInt k_max = B_end - B_begin;
+                        
                         copy_buffer( &A_values[B_begin], &B_values[B_begin], k_max );
 
                         if( sort )
