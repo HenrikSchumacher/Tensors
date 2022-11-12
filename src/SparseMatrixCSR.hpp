@@ -150,10 +150,10 @@ namespace Tensors
         
         
         CLASS(
-          const Int * const * const idx,
-          const Int * const * const jdx,
+          const Int    * const * const idx,
+          const Int    * const * const jdx,
           const Scalar * const * const val,
-          const Int * entry_counts,
+          const Int    *         const entry_counts,
           const Int list_count,
           const Int m_,
           const Int n_,
@@ -229,14 +229,14 @@ namespace Tensors
     protected:
         
         void FromTriples(
-            const Int * const * const idx,    // list of lists of i-indices
-            const Int * const * const jdx,    // list of lists of j-indices
-            const Scalar * const * const val,    // list of lists of nonzero values
-            const Int * entry_counts,         // list of lengths of the lists above
-            const Int list_count,             // number of lists
-            const Int final_thread_count,     // number of threads that the matrix shall use
-            const bool compress   = true,   // whether to do additive assembly or not
-            const int  symmetrize = 0       // whether to symmetrize the matrix
+            const Int    * const * const idx,               // list of lists of i-indices
+            const Int    * const * const jdx,               // list of lists of j-indices
+            const Scalar * const * const val,               // list of lists of nonzero values
+            const Int            * const entry_counts,      // list of lengths of the lists above
+            const Int list_count,                           // number of lists
+            const Int final_thread_count,                   // number of threads that the matrix shall use
+            const bool compress   = true,                   // whether to do additive assembly or not
+            const int  symmetrize = 0                       // whether to symmetrize the matrix
         )
         {
             // Parallel sparse matrix assembly using counting sort.
@@ -401,24 +401,24 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                          Int * restrict const c = counters.data(thread);
+                            LInt * restrict const c = counters.data(thread);
 
-                          Int * restrict const B_inner  = B.Inner().data();
+                             Int * restrict const B_inner  = B.Inner().data();
                           Scalar * restrict const B_values = B.Value().data();
 
-                    const Int * restrict const A_outer  = Outer().data();
-                    const Int * restrict const A_inner  = Inner().data();
+                    const   LInt * restrict const A_outer  = Outer().data();
+                    const    Int * restrict const A_inner  = Inner().data();
                     const Scalar * restrict const A_values = Value().data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const Int k_begin = A_outer[i  ];
-                        const Int k_end   = A_outer[i+1];
+                        const LInt k_begin = A_outer[i  ];
+                        const LInt k_end   = A_outer[i+1];
                         
-                        for( Int k = k_end-1; k > k_begin-1; --k )
+                        for( LInt k = k_end-1; k > k_begin-1; --k )
                         {
                             const Int j = A_inner[k];
-                            const Int pos = --c[ j ];
+                            const LInt pos = --c[ j ];
                             B_inner [pos] = i;
                             B_values[pos] = A_values[k];
                         }
@@ -749,19 +749,15 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        const LInt A_begin = A_outer[i  ];
-                        
                         const LInt B_begin = B_outer[i  ];
-                        const LInt B_end   = B_outer[i+1];
+                        const LInt B_end   = B_outer[i+1];;
 
-                        const LInt k_max = B_end - B_begin;
-
-                        for( LInt k = 0; k < k_max; ++k )
+                        for( LInt k = B_begin; k < B_begin; ++k )
                         {
-                            B_inner[B_begin+k] = q_inv[A_inner[B_begin+k]];
+                            B_inner[B_begin] = q_inv[A_inner[B_begin]];
                         }
 
-                        copy_buffer( &A_values[A_begin], &B_values[B_begin], k_max );
+                        copy_buffer( &A_values[B_begin], &B_values[B_begin], k_max );
 
                         if( sort )
                         {

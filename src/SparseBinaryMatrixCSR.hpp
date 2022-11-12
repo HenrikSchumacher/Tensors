@@ -397,11 +397,9 @@ namespace Tensors
                         const LInt B_begin = B_outer[i  ];
                         const LInt B_end   = B_outer[i+1];
 
-                        const LInt k_max = B_end - B_begin;
-
-                        for( LInt k = 0; k < k_max; ++k )
+                        for( LInt k = B_begin; k < B_end; ++k )
                         {
-                            B_inner[B_begin+k] = q_inv[A_inner[B_begin+k]];
+                            B_inner[k] = q_inv[A_inner[k]];
                         }
 
                         if( sort )
