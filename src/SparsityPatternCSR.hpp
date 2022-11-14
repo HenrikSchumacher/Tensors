@@ -30,6 +30,8 @@ namespace Tensors
         
         Int thread_count = 1;
         
+        bool inner_sorted    = false;
+        bool duplicate_free  = false;
         bool symmetric       = false;
         bool uppertriangular = false;
         bool lowertriangular = false;
@@ -141,7 +143,6 @@ namespace Tensors
         ,   n           ( static_cast<Int>(n_)            )
         ,   thread_count( static_cast<Int>(thread_count_) )
         {
-            print("move");
             ASSERT_INT(I_0);
             ASSERT_INT(I_1);
             ASSERT_INT(I_3);
@@ -368,13 +369,19 @@ namespace Tensors
                 // From here on, we may use as many threads as we want.
                 SetThreadCount( final_thread_count );
 
+                
+                // We have to sort b_inner to be compatible with the CSR format.
+                SortInner();
+                
                 if( compress )
                 {
                     Compress();
                 }
+                else
+                {
+                    duplicate_free = true; // We have to rely on the caller here...
+                }
 
-                // We have to sort b_inner to be compatible with the CSR format.
-                SortInner();
             }
             else
             {
@@ -405,11 +412,21 @@ namespace Tensors
             }
         }
         
+        void CheckOrdering() const
+        {
+            if( !inner_sorted)
+            {
+                eprint(ClassName()+"::RequireDiag: Column indices are not sorted appropriately. Call SortInner() first.");
+            }
+        }
+        
         void RequireDiag() const
         {
             if( diag_ptr.Size() != m )
             {
                 ptic(ClassName()+"::RequireDiag");
+                
+                CheckOrdering();
                 
                 if( outer.Last() <= 0 )
                 {
@@ -431,11 +448,11 @@ namespace Tensors
                         const Int i_begin = job_ptr[thread  ];
                         const Int i_end   = job_ptr[thread+1];
 
-                        for( Int i = i_begin; i < i_end; ++ i )
+                        for( Int i = i_begin; i < i_end; ++i )
                         {
                             const LInt k_begin = outer__[i  ];
                             const LInt k_end   = outer__[i+1];
-
+                            
                             LInt k = k_begin;
 
                             while( (k < k_end) && (inner__[k] < i)  )
@@ -647,33 +664,37 @@ namespace Tensors
         {
             // Sorts the column indices of each matrix row.
             
-            ptic(ClassName()+"::SortInner");
-            
-//            print("TimSort");
-            
-            if( WellFormed() )
+            if( !inner_sorted )
             {
-                RequireJobPtr();
+                ptic(ClassName()+"::SortInner");
                 
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
+                if( WellFormed() )
                 {
-//                    TimSort<Int,Int> tim_sort(512);
+                    RequireJobPtr();
                     
-                    const Int i_begin = job_ptr[thread  ];
-                    const Int i_end   = job_ptr[thread+1];
-                
-                    const LInt * restrict const rp = outer.data();
-                           Int * restrict const ci = inner.data();
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+                    #pragma omp parallel for num_threads( thread_count )
+                    for( Int thread = 0; thread < thread_count; ++thread )
                     {
-                        std::sort( &ci[rp[i]], &ci[rp[i+1]] );
+                        //                    TimSort<Int,Int> tim_sort(512);
+                        
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        const LInt * restrict const rp = outer.data();
+                        Int * restrict const ci = inner.data();
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            std::sort( &ci[rp[i]], &ci[rp[i+1]] );
+                        }
                     }
                 }
+             
+                inner_sorted = true;
+                
+                ptoc(ClassName()+"::SortInner");
+                
             }
-            
-            ptoc(ClassName()+"::SortInner");
         }
         
     public:
@@ -685,6 +706,7 @@ namespace Tensors
             
             if( WellFormed() )
             {
+                SortInner();
                 RequireJobPtr();
                 
                 Tensor1<LInt,Int> new_outer (outer.Size(), 0);
@@ -884,10 +906,7 @@ namespace Tensors
                 // Finished expansion phase (counting sort).
                 ptoc("Counting sort");
                 
-                // Now we have to care about the correct ordering of inner indices and values.
-                C.SortInner();
-                
-                // Finally we compress duplicates in inner and values.
+                // Finally we rwo-sort inner and remove duplicates in inner and values.
                 C.Compress();
                 
                 ptoc(ClassName()+"::DotBinary_");

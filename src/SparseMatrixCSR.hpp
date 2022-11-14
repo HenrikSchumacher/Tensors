@@ -24,6 +24,9 @@ namespace Tensors
         using BASE::inner;
         using BASE::thread_count;
         using BASE::job_ptr;
+        using BASE::diag_ptr;
+        using BASE::inner_sorted;
+        using BASE::duplicate_free;
         using BASE::upper_triangular_job_ptr;
         using BASE::lower_triangular_job_ptr;
 
@@ -38,6 +41,7 @@ namespace Tensors
         using BASE::SetThreadCount;
         using BASE::Outer;
         using BASE::Inner;
+        using BASE::RequireDiag;
         using BASE::JobPtr;
         using BASE::RequireJobPtr;
         using BASE::RequireUpperTriangularJobPtr;
@@ -341,6 +345,10 @@ namespace Tensors
                 {
                     Compress();
                 }
+                else
+                {
+                    duplicate_free = true; // We have to rely on the user here...
+                }
             }
             else
             {
@@ -377,7 +385,7 @@ namespace Tensors
         {
             const LInt index = this->FindNonzeroPosition(i,j);
             
-            return (index>=static_cast<LInt>(0)) ? values[index] : static_cast<Scalar>(0) ;
+            return ( (index>=static_cast<LInt>(0)) ) ? values[index] : static_cast<Scalar>(0) ;
         }
         
         
@@ -444,35 +452,40 @@ namespace Tensors
         
         void SortInner() override
         {
-            ptic(ClassName()+"::SortInner");
-            
-            if( WellFormed() )
+            if( !inner_sorted )
             {
-                RequireJobPtr();
+                ptic(ClassName()+"::SortInner");
                 
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
+                if( WellFormed() )
                 {
-                    TwoArrayQuickSort<Int,Scalar,LInt> quick_sort;
-
-                    const Int i_begin = job_ptr[thread  ];
-                    const Int i_end   = job_ptr[thread+1];
+                    RequireJobPtr();
                     
-                    const   LInt * restrict const outer__  = outer.data();
-                             Int * restrict const inner__  = inner.data();
-                          Scalar * restrict const values__ = values.data();
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+                    #pragma omp parallel for num_threads( thread_count )
+                    for( Int thread = 0; thread < thread_count; ++thread )
                     {
-                        const LInt begin = outer__[i  ];
-                        const LInt end   = outer__[i+1];
+                        TwoArrayQuickSort<Int,Scalar,LInt> quick_sort;
                         
-                        quick_sort( inner__ + begin, values__ + begin, end - begin );
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        const   LInt * restrict const outer__  = outer.data();
+                                 Int * restrict const inner__  = inner.data();
+                              Scalar * restrict const values__ = values.data();
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            const LInt begin = outer__[i  ];
+                            const LInt end   = outer__[i+1];
+                            
+                            quick_sort( inner__ + begin, values__ + begin, end - begin );
+                        }
                     }
                 }
+                
+                inner_sorted = true;
+                
+                ptoc(ClassName()+"::SortInner");
             }
-            
-            ptoc(ClassName()+"::SortInner");
         }
         
         
@@ -484,6 +497,8 @@ namespace Tensors
             
             if( WellFormed() )
             {
+                SortInner();
+                
                 RequireJobPtr();
 
                 Tensor1<LInt,Int> new_outer (outer.Size(),0);
@@ -595,7 +610,10 @@ namespace Tensors
                 swap( new_values, values );
                 
                 job_ptr = JobPointers<Int>();
+                
+                duplicate_free = true;
             }
+            
             
             ptoc(ClassName()+"::Compress");
         }
@@ -695,13 +713,15 @@ namespace Tensors
                     {
                         const Int p_i = p[i];
                         const LInt A_begin = A_outer[p_i  ];
-//                        const LInt A_end   = A_outer[p_i+1];
+                        const LInt A_end   = A_outer[p_i+1];
 
                         const LInt B_begin = B_outer[i  ];
-                        const LInt B_end   = B_outer[i+1];
+//                        const LInt B_end   = B_outer[i+1];
+//                        const LInt B_end   = B_outer[i+1];
                         
-                        copy_buffer( &A_inner [A_begin], &B_inner [B_begin], B_end - B_begin);
-                        copy_buffer( &A_values[A_begin], &B_values[B_begin], B_end - B_begin);
+                        copy_buffer( &A_inner [A_begin], &A_inner [A_end], &B_inner [B_begin] );
+                        copy_buffer( &A_values[A_begin], &A_values[A_end], &B_values[B_begin] );
+                        B.inner_sorted = true;
                     }
                 }
             }
@@ -764,6 +784,7 @@ namespace Tensors
                         if( sort )
                         {
                             quick_sort( &B_inner[B_begin], &B_values[B_begin], k_max );
+                            B.inner_sorted = true;
                         }
                     }
                 }
@@ -846,6 +867,7 @@ namespace Tensors
                         if( sort )
                         {
                             quick_sort( &B_inner[B_begin], &B_values[B_begin], k_max );
+                            B.inner_sorted = true;
                         }
                     }
                 }
@@ -948,10 +970,7 @@ namespace Tensors
                 }
                 // Finished expansion phase (counting sort).
                 
-                // Now we have to care about the correct ordering of inner indices and values.
-                C.SortInner();
-                
-                // Finally we compress duplicates in inner and values.
+                // Finally we row-sort inner and compress duplicates in inner and values.
                 C.Compress();
                 
                 ptoc(ClassName()+"::Dot");
@@ -1094,6 +1113,76 @@ namespace Tensors
             FillUpperTriangleFromLowerTriangle( values.data() );
         }
         
+    
+    public:
+        
+        template< Int RHS_COUNT, bool unitDiag = false>
+        void SolveUpperTriangular_Sequential_0( const Scalar * restrict const b, Scalar * restrict const x )
+        {
+            if( m != n )
+            {
+                eprint(ClassName()+"::SolveUpper: Matrix is not square.");
+                return;
+            }
+            
+            if( x != b )
+            {
+                copy_buffer( b, x, n * RHS_COUNT );
+            }
+            
+            SortInner();
+            
+            RequireDiag();
+            
+            const   LInt * restrict const diag_ptr__ = diag_ptr.data();
+            const   LInt * restrict const outer__    = outer.data();
+            const    Int * restrict const inner__    = inner.data();
+            const Scalar * restrict const values__   = values.data();
+            
+            for( Int i = m; i --> 0; )
+            {
+                const LInt diag = diag_ptr__[i];
+                
+                if constexpr ( !unitDiag )
+                {
+                    if( inner__[diag] != i )
+                    {
+                        eprint(ClassName()+"::SolveUpper: Row "+ToString(i)+" is missing a diagonal entry.");
+                        return;
+                    }
+                }
+                
+                const LInt l_begin = ( inner__[diag] > i ) ? diag : diag+1; // Implicitly assumes correct ordering of inner__.
+                const LInt l_end   = outer__[i+1];
+
+                Scalar * restrict const x_i = &x[RHS_COUNT * i];
+
+                // We do this in reverse order so that the value of a_ii will be likely hot after this loop.
+                for( LInt l = l_end; l --> l_begin; )
+                {
+                    const Int j = inner__[l];
+                    
+                    const Scalar a_ij = values__[l];
+                    
+                    const Scalar * restrict const x_j = &x[RHS_COUNT*j];
+                    
+                    for( Int k = RHS_COUNT; k --> 0; )
+                    {
+                        x_i[k] -= a_ij * x_j[k];
+                    }
+                }
+                
+                if constexpr ( !unitDiag )
+                {
+                    const Scalar a_ii_inv = static_cast<Scalar>(1) / values__[diag];
+                    
+                    for( Int k = RHS_COUNT; k --> 0;  )
+                    {
+                        x_i[k] *= a_ii_inv;
+                    }
+                }
+            }
+        }
         
     public:
         
