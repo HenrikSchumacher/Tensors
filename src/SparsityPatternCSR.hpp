@@ -25,8 +25,8 @@ namespace Tensors
                 Tensor1<LInt, Int> outer;
         mutable Tensor1< Int,LInt> inner; // I have to make this mutable so that methods that depend on SortInner can be called also from const instances of the class.
         
-        const Int m = 0;
-        const Int n = 0;
+        Int m = 0;
+        Int n = 0;
         
         Int thread_count = 1;
         
