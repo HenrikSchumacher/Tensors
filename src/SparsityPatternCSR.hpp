@@ -22,19 +22,19 @@ namespace Tensors
         
     protected:
         
-        Tensor1<LInt, Int> outer;
-        Tensor1< Int,LInt> inner;
+                Tensor1<LInt, Int> outer;
+        mutable Tensor1< Int,LInt> inner; // I have to make this mutable so that methods that depend on SortInner can be called also from const instances of the class.
         
-        Int m;
-        Int n;
+        const Int m = 0;
+        const Int n = 0;
         
         Int thread_count = 1;
         
-        bool inner_sorted    = false;
-        bool duplicate_free  = false;
-        bool symmetric       = false;
-        bool uppertriangular = false;
-        bool lowertriangular = false;
+        mutable bool inner_sorted    = false;
+                bool duplicate_free  = false;
+                bool symmetric       = false;
+                bool uppertriangular = false;
+                bool lowertriangular = false;
         
         // diag_ptr[i] is the first nonzero element in row i such that inner[diag_ptr[i]] >= i
         mutable Tensor1<LInt,Int> diag_ptr;
@@ -46,10 +46,7 @@ namespace Tensors
         
         friend class SparseBinaryMatrixCSR<Int,LInt>;
         
-        CLASS()
-        :   m ( static_cast<Int>(0) )
-        ,   n ( static_cast<Int>(0) )
-        {}
+        CLASS() {}
 
         template<typename I_0, typename I_1, typename I_3, IsInt(I_0), IsInt(I_1), IsInt(I_3)>
         CLASS(
