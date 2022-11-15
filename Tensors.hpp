@@ -75,6 +75,7 @@
     #include "src/LUDecomposition.hpp"
     #include "src/CholeskyDecomposition.hpp"
 
+    #include "src/SparseCholeskyDecomposition/EliminationTree.hpp"
     #include "src/SparseCholeskyDecomposition/UniteSortedBuffers.hpp"
     #include "src/SparseCholeskyDecomposition.hpp"
 

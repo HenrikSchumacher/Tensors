@@ -39,14 +39,14 @@ namespace Tensors
         const Int thread_count = 1;
         const Triangular uplo  = Triangular::Upper;
         
-        Tensor1<Int,Int> eTree;
-        
         SparseMatrix_T A_lo;
         SparseMatrix_T A_up;
         
         SparseMatrix_T L;
         SparseMatrix_T U;
         
+        bool eTree_initialized = false;
+        EliminationTree<Int> eTree;
         
     public:
         
@@ -88,9 +88,57 @@ namespace Tensors
                 toc("Transpose");
             }
 
-            FactorizeSymbolically();
+//            FactorizeSymbolically();
             
 //            FactorizeSymbolically2();
+        }
+        
+        const EliminationTree<Int> & GetEliminationTree()
+        {
+            if( ! eTree_initialized )
+            {
+                tic(ClassName()+":GetEliminationTree");
+                
+                // See Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
+                
+                Tensor1<Int,Int> parents ( n, n );
+                Tensor1<Int,Int> buffer  ( n, n );
+                
+                const LInt * restrict const A_outer = A_lo.Outer().data();
+                const  Int * restrict const A_inner = A_lo.Inner().data();
+                
+                for( Int i = 1; i < n; ++i )
+                {
+                    const LInt k_begin = A_outer[i  ];
+                    const LInt k_end   = A_outer[i+1];
+                    
+                    for( LInt k = k_begin; k < k_end; ++k )
+                    {
+                        Int j = A_inner[k];
+                        
+                        while( j != n && j < i)
+                        {
+                            Int j_temp = buffer[j];
+                            
+                            buffer[j] = i;
+                            
+                            if( j_temp == n )
+                            {
+                                parents[j] = i;
+                            }
+                            j = j_temp;
+                        }
+                    }
+                }
+
+                eTree = EliminationTree<Int> ( std::move(parents) );
+
+                eTree_initialized = true;
+
+                toc(ClassName()+":GetEliminationTree");
+            }
+
+            return eTree;
         }
         
         void FactorizeSymbolically()
@@ -111,7 +159,7 @@ namespace Tensors
             Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
             Int row_counter;                // Holds the current number of indices in U_i.
 
-            eTree = Tensor1<Int,Int>( n, n );
+            Tensor1<Int,Int> parents ( n, n );
 
             constexpr Int child_threshold = 2;
             Tensor2<Int,Int> child_info (n, child_threshold+1, 0);      // First entry in row is no. of children; followed by the children.
@@ -157,7 +205,7 @@ namespace Tensors
                 if( row_counter > 1 )       // U_i is sorted, thus U_i[0] = i. But i cannot be parent if i.
                 {
                     const Int j = U_i[1];    // First row entry strictly right of column i.
-                    eTree[i] = j;
+                    parents[i] = j;
 
                     const Int child_count = child_info(j,0);
 
@@ -172,11 +220,14 @@ namespace Tensors
                     ++child_info(j,0);
                 }
             } // for( Int i = 0; i < n; ++i )
-
             toc("Main loop");
 
             // rows_to_cols encodes now G_{n}(A); we are done.
 
+            eTree = EliminationTree<Int>( std::move(parents) );
+            
+            eTree_initialized = true;
+            
 
             tic("Create U");
             U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), n, n, thread_count );
@@ -425,11 +476,6 @@ namespace Tensors
             return A_up;
         }
         
-        const Tensor1<Int,Int> & GetEliminationTree() const
-        {
-            return eTree;
-        }
-        
         void FillGraph()
         {
             tic("FillGraph");
@@ -624,6 +670,11 @@ namespace Tensors
             toc("FillGraph2");
         }
         
+        
+        std::string ClassName()
+        {
+            return "SparseCholeskyDecomposition<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+        }
         
         
         

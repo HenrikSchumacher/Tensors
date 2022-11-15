@@ -123,7 +123,6 @@ namespace Tensors
         ,   n           ( static_cast<Int>(n_)            )
         ,   thread_count( static_cast<Int>(thread_count_) )
         {
-            print("copy");
             ASSERT_INT(I_0);
             ASSERT_INT(I_1);
             ASSERT_INT(I_3);
@@ -185,11 +184,27 @@ namespace Tensors
         {
             swap(*this, other);
         }
-        
+    
         
         CLASS(
-            std::vector<Int> & idx,
-            std::vector<Int> & jdx,
+          const Int    * const * const idx,
+          const Int    * const * const jdx,
+          const LInt   *         const entry_counts,
+          const Int list_count,
+          const Int m_,
+          const Int n_,
+          const Int final_thread_count,
+          const bool compress   = true,
+          const int  symmetrize = 0
+        )
+        :   CLASS ( m_, n_, list_count )
+        {
+            FromPairs( idx, jdx, entry_counts, list_count, final_thread_count, compress, symmetrize );
+        }
+        
+        CLASS(
+            const std::vector<Int> & idx,
+            const std::vector<Int> & jdx,
             const Int m_,
             const Int n_,
             const Int final_thread_count,
@@ -201,7 +216,7 @@ namespace Tensors
             const Int * i = idx.data();
             const Int * j = jdx.data();
             
-            Tensor1<Int,Int> entry_counts (1, static_cast<Int>(idx.size()));
+            Tensor1<LInt,Int> entry_counts (1, static_cast<LInt>(idx.size()));
                         
             FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compress, symmetrize );
         }
@@ -221,7 +236,7 @@ namespace Tensors
             Tensor1<const Int*,Int> i (list_count);
             Tensor1<const Int*,Int> j (list_count);
 
-            Tensor1<Int,Int> entry_counts (list_count);
+            Tensor1<LInt,Int> entry_counts (list_count);
             
             for( Int thread = 0; thread < list_count; ++thread )
             {
@@ -283,11 +298,11 @@ namespace Tensors
         }
         
         void FromPairs(
-            const Int * const * const idx,
-            const Int * const * const jdx,
-            const Int * entry_counts,
-            const Int list_count,
-            const Int final_thread_count,
+            const  Int * const * const idx,
+            const  Int * const * const jdx,
+            const LInt * entry_counts,
+            const  Int list_count,
+            const  Int final_thread_count,
             const bool compress   = true,
             const int  symmetrize = 0
         )
@@ -833,9 +848,9 @@ namespace Tensors
                           LInt * restrict const c = counters.data(thread);
                     
                     const LInt * restrict const A_outer  = Outer().data();
-                    const    Int * restrict const A_inner  = Inner().data();
+                    const  Int * restrict const A_inner  = Inner().data();
                     
-                    const Int * restrict const B_outer  = B.Outer().data();
+                    const LInt * restrict const B_outer  = B.Outer().data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {

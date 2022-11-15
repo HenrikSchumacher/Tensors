@@ -86,6 +86,8 @@ namespace Tensors
         )
         :   BASE( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
         {
+            ASSERT_INT(J_0);
+            ASSERT_INT(J_1);
             ASSERT_INT(I_0);
             ASSERT_INT(I_1);
             ASSERT_INT(I_3);
@@ -167,6 +169,18 @@ namespace Tensors
             swap(*this, other);
         }
         
+        CLASS(
+          const Int    * const * const idx,
+          const Int    * const * const jdx,
+          const LInt   *         const entry_counts,
+          const Int list_count,
+          const Int m_,
+          const Int n_,
+          const Int final_thread_count,
+          const bool compress   = true,
+          const int  symmetrize = 0
+        )
+        :   BASE ( idx, jdx, entry_counts, list_count, m_, n_, final_thread_count, compress, symmetrize ) {}
         
         CLASS(
             std::vector<Int> & idx,
@@ -177,7 +191,7 @@ namespace Tensors
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize ) {};
+        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize ) {}
         
         CLASS(
             const std::vector<std::vector<Int>> & idx,
@@ -188,7 +202,7 @@ namespace Tensors
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize ) {};
+        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize ) {}
         
         CLASS(
             const std::vector<PairAggregator<Int, Int, LInt>> & idx,
@@ -198,7 +212,7 @@ namespace Tensors
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        :   BASE( idx, m_, n_, final_thread_count, compress, symmetrize ) {};
+        :   BASE( idx, m_, n_, final_thread_count, compress, symmetrize ) {}
     
         virtual ~CLASS() = default;
         

@@ -157,7 +157,7 @@ namespace Tensors
           const Int    * const * const idx,
           const Int    * const * const jdx,
           const Scalar * const * const val,
-          const Int    *         const entry_counts,
+          const LInt   *         const entry_counts,
           const Int list_count,
           const Int m_,
           const Int n_,
@@ -211,8 +211,8 @@ namespace Tensors
         :   BASE ( m_, n_, static_cast<Int>(triples.size()) )
         {
             Int list_count = static_cast<Int>(triples.size());
-            Tensor1<const Int*,Int> i      (list_count);
-            Tensor1<const Int*,Int> j      (list_count);
+            Tensor1<const Int*,Int>    i   (list_count);
+            Tensor1<const Int*,Int>    j   (list_count);
             Tensor1<const Scalar*,Int> a   (list_count);
             Tensor1<Int ,Int> entry_counts (list_count);
             
@@ -236,7 +236,7 @@ namespace Tensors
             const Int    * const * const idx,               // list of lists of i-indices
             const Int    * const * const jdx,               // list of lists of j-indices
             const Scalar * const * const val,               // list of lists of nonzero values
-            const Int            * const entry_counts,      // list of lengths of the lists above
+            const LInt           * const entry_counts,      // list of lengths of the lists above
             const Int list_count,                           // number of lists
             const Int final_thread_count,                   // number of threads that the matrix shall use
             const bool compress   = true,                   // whether to do additive assembly or not
@@ -275,7 +275,7 @@ namespace Tensors
                 idx, jdx, entry_counts, list_count, m, symmetrize
             );
             
-            const Int nnz = counters(list_count-1,m-1);
+            const LInt nnz = counters(list_count-1,m-1);
             
             if( nnz > 0 )
             {
@@ -300,7 +300,7 @@ namespace Tensors
                 #pragma omp parallel for num_threads( list_count )
                 for( Int thread = 0; thread < list_count; ++thread )
                 {
-                    const Int entry_count = entry_counts[thread];
+                    const LInt entry_count = entry_counts[thread];
                     
                     const    Int * restrict const thread_idx = idx[thread];
                     const    Int * restrict const thread_jdx = jdx[thread];
@@ -308,7 +308,7 @@ namespace Tensors
                     
                             LInt * restrict const c = counters.data(thread);
                     
-                    for( Int k = entry_count - 1; k > -1; --k )
+                    for( LInt k = entry_count - 1; k > -1; --k )
                     {
                         const Int i = thread_idx[k];
                         const Int j = thread_jdx[k];

@@ -2,8 +2,8 @@
 
 namespace Tensors {
     
-    template<typename T, typename Int>
-    inline void AccumulateAssemblyCounters( Tensor2<T,Int> & counters )
+    template<typename LInt, typename Int>
+    inline void AccumulateAssemblyCounters( Tensor2<LInt,Int> & counters )
     {
         ptic("AccumulateAssemblyCounters");
 
@@ -29,12 +29,12 @@ namespace Tensors {
     }
 
 
-    template<typename T, typename Int>
-    inline void AccumulateAssemblyCounters_Parallel( Tensor2<T,Int> & counters )
+    template<typename LInt, typename Int>
+    inline void AccumulateAssemblyCounters_Parallel( Tensor2<LInt,Int> & counters )
     {
-        static_assert(CACHE_LINE_WIDTH % sizeof(T) == 0, "CACHE_LINE_WIDTH is not divisible by sizeof(T)");
+        static_assert(CACHE_LINE_WIDTH % sizeof(LInt) == 0, "CACHE_LINE_WIDTH is not divisible by sizeof(LInt)");
 
-        constexpr Int per_line = CACHE_LINE_WIDTH / sizeof(T);
+        constexpr Int per_line = CACHE_LINE_WIDTH / sizeof(LInt);
 
         ptic("AccumulateAssemblyCounters (parallel)");
         
@@ -42,14 +42,14 @@ namespace Tensors {
         
         const Int            m = counters.Dimension(1);
         
-        const Int line_count = (m * sizeof(T) + CACHE_LINE_WIDTH - 1 ) / CACHE_LINE_WIDTH;
+        const Int line_count = (m * sizeof(LInt) + CACHE_LINE_WIDTH - 1 ) / CACHE_LINE_WIDTH;
         
     //        valprint("line_count",line_count);
         
-        T * S_buffer = nullptr;
+        LInt * S_buffer = nullptr;
         safe_alloc(S_buffer,thread_count+1);
-        T * restrict const S = S_buffer;
-        S[0] = static_cast<T>(0);
+        LInt * restrict const S = S_buffer;
+        S[0] = static_cast<LInt>(0);
 
         const Int step = line_count / thread_count;
         const Int corr = line_count % thread_count;
@@ -92,7 +92,7 @@ namespace Tensors {
             }
             else
             {
-                S[thread+1] = static_cast<T>(0);
+                S[thread+1] = static_cast<LInt>(0);
             }
         }
     //        toc("local acc");
@@ -103,7 +103,7 @@ namespace Tensors {
     //        }
         // scan through the last results of each chunk
         {
-            T s_local = static_cast<T>(0);
+            LInt s_local = static_cast<LInt>(0);
             for( Int i = 0; i < thread_count; ++i )
             {
                 s_local += S[i+1];
@@ -121,7 +121,7 @@ namespace Tensors {
         for( Int thread = 0; thread < thread_count; ++ thread )
         {
             // each thread adds-in its correction
-            const T correction = S[thread];
+            const LInt correction = S[thread];
             
             const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
             const Int j_end   = std::min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
@@ -129,7 +129,7 @@ namespace Tensors {
             
             for( Int i = 0; i < thread_count; ++i )
             {
-                T * restrict const c_i = counters.data(i);
+                LInt * restrict const c_i = counters.data(i);
                 
                 #pragma omp simd
                 for( Int j = j_begin; j < j_end; ++j )
@@ -147,19 +147,19 @@ namespace Tensors {
 
 
 
-    template<typename T, typename Int>
-    inline Tensor2<T,Int> AssemblyCounters(
-        const Int * const * const idx,
-        const Int * const * const jdx,
-        const Int * entry_counts,
-        const Int list_count,
-        const Int m,
-        const int symmetrize = 0
+    template<typename LInt, typename Int>
+    inline Tensor2<LInt,Int> AssemblyCounters(
+        const  Int * const * const idx,
+        const  Int * const * const jdx,
+        const LInt * entry_counts,
+        const  Int list_count,
+        const  Int m,
+        const  int symmetrize = 0
     )
     {
         ptic("AssemblyCounters");
         
-        Tensor2<T,Int> counters (list_count, m, static_cast<Int>(0));
+        Tensor2<LInt,Int> counters ( list_count, m, static_cast<LInt>(0) );
 
         // https://en.wikipedia.org/wiki/Counting_sort
         // using parallel count sort to sort the cluster (i,j)-pairs according to i.
@@ -171,9 +171,9 @@ namespace Tensors {
             const Int * restrict const thread_idx = idx[thread];
             const Int * restrict const thread_jdx = jdx[thread];
             
-            const Int entry_count = entry_counts[thread];
+            const LInt entry_count = entry_counts[thread];
             
-            T * restrict const c = counters.data(thread);
+            LInt * restrict const c = counters.data(thread);
             
             if( symmetrize!=0 )
             {
@@ -188,7 +188,7 @@ namespace Tensors {
             }
             else
             {
-                for( Int k = 0; k < entry_count; ++k )
+                for( LInt k = 0; k < entry_count; ++k )
                 {
                     const Int i = thread_idx[k];
                     
@@ -199,7 +199,7 @@ namespace Tensors {
         
     //        print(counters.ToString());
     //        AccumulateAssemblyCounters(counters);
-        AccumulateAssemblyCounters_Parallel<T,Int>(counters);
+        AccumulateAssemblyCounters_Parallel<LInt,Int>(counters);
         
     //        print(counters.ToString());
         
