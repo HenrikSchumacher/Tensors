@@ -242,7 +242,7 @@ namespace Tensors
             {
                 i[thread] = idx[thread].data();
                 j[thread] = jdx[thread].data();
-                entry_counts[thread] = static_cast<Int>(idx[thread].size());
+                entry_counts[thread] = static_cast<LInt>(idx[thread].size());
             }
             
             FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compress, symmetrize );
@@ -262,14 +262,14 @@ namespace Tensors
             Tensor1<const Int*,Int> i (list_count);
             Tensor1<const Int*,Int> j (list_count);
 
-            Tensor1<Int,Int> entry_counts (list_count);
+            Tensor1<LInt,Int> entry_counts (list_count);
             
             for( Int thread = 0; thread < list_count; ++thread )
             {
                 i[thread] = idx[thread].Get_0().data();
                 j[thread] = idx[thread].Get_1().data();
                 
-                entry_counts[thread] = idx[thread].Size();
+                entry_counts[thread] = static_cast<LInt>(idx[thread].Size());
             }
             
             FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compress, symmetrize );
@@ -331,7 +331,7 @@ namespace Tensors
                     #pragma omp parallel for num_threads( list_count )
                     for( Int thread = 0; thread < list_count; ++thread )
                     {
-                        const Int entry_count = entry_counts[thread];
+                        const LInt entry_count = entry_counts[thread];
                         
                         const  Int * restrict const thread_idx = idx[thread];
                         const  Int * restrict const thread_jdx = jdx[thread];
@@ -361,7 +361,7 @@ namespace Tensors
                     #pragma omp parallel for num_threads( list_count )
                     for( Int thread = 0; thread < list_count; ++thread )
                     {
-                        const Int entry_count = entry_counts[thread];
+                        const LInt entry_count = entry_counts[thread];
                         
                         const  Int * restrict const thread_idx = idx[thread];
                         const  Int * restrict const thread_jdx = jdx[thread];
@@ -1016,6 +1016,11 @@ namespace Tensors
             BoundCheck(i,j);
 #endif
             
+            if( !inner_sorted )
+            {
+                SortInner();
+            }
+            
             if( (0 <= i) && (i<m) )
             {
                 const Int * restrict const inner__ = inner.data();
@@ -1053,6 +1058,11 @@ namespace Tensors
             
             if( WellFormed() )
             {
+                if( !inner_sorted )
+                {
+                    SortInner();
+                }
+                
                 const LInt * restrict const diag__   = Diag().data();
                 const LInt * restrict const outer__  = Outer().data();
                 const  Int * restrict const inner__  = Inner().data();

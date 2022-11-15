@@ -186,14 +186,14 @@ namespace Tensors
             Tensor1<const Int*,Int> i      (list_count);
             Tensor1<const Int*,Int> j      (list_count);
             Tensor1<const Scalar*,Int> a   (list_count);
-            Tensor1<Int ,Int> entry_counts (list_count);
+            Tensor1<LInt,Int> entry_counts (list_count);
             
             for( Int thread = 0; thread < list_count; ++thread )
             {
                 i[thread] = idx[thread].data();
                 j[thread] = jdx[thread].data();
                 a[thread] = val[thread].data();
-                entry_counts[thread] = static_cast<Int>(idx[thread].size());
+                entry_counts[thread] = static_cast<LInt>(idx[thread].size());
             }
             
             FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
@@ -214,14 +214,14 @@ namespace Tensors
             Tensor1<const Int*,Int>    i   (list_count);
             Tensor1<const Int*,Int>    j   (list_count);
             Tensor1<const Scalar*,Int> a   (list_count);
-            Tensor1<Int ,Int> entry_counts (list_count);
+            Tensor1<LInt,Int> entry_counts (list_count);
             
             for( Int thread = 0; thread < list_count; ++thread )
             {
                 i[thread] = triples[thread].Get_0().data();
                 j[thread] = triples[thread].Get_1().data();
                 a[thread] = triples[thread].Get_2().data();
-                entry_counts[thread] = static_cast<Int>(triples[thread].Size());
+                entry_counts[thread] = static_cast<LInt>(triples[thread].Size());
             }
             
             FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
