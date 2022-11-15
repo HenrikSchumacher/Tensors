@@ -1005,7 +1005,7 @@ namespace Tensors
         
     public:
         
-        LInt FindNonzeroPosition( const Int i, const Int j )
+        LInt FindNonzeroPosition( const Int i, const Int j ) const
         {
             // Looks up the entry {i,j}. If existent, its index within the list of nonzeroes is returned. Otherwise, a negative number is returned (-1 if simply not found and -2 if i is out of bounds).
             
@@ -1013,30 +1013,37 @@ namespace Tensors
             BoundCheck(i,j);
 #endif
             
-            if( !inner_sorted )
-            {
-                SortInner();
-            }
-            
             if( (0 <= i) && (i<m) )
             {
                 const Int * restrict const inner__ = inner.data();
 
                 LInt L = outer[i  ];
                 LInt R = outer[i+1]-1;
-                while( L < R )
+                
+                if( inner_sorted )
                 {
-                    const LInt k = R - (R-L)/static_cast<Int>(2);
-                    const Int col = inner__[k];
-
-                    if( col > j )
+                    while( L < R )
                     {
-                        R = k-1;
+                        const LInt k = R - (R-L)/static_cast<Int>(2);
+                        const Int col = inner__[k];
+                        
+                        if( col > j )
+                        {
+                            R = k-1;
+                        }
+                        else
+                        {
+                            L = k;
+                        }
                     }
-                    else
+                }
+                else
+                {
+                    while( L < R && inner__[L] < j)
                     {
-                        L = k;
+                        ++L;
                     }
+                    
                 }
                 return (inner__[L]==j) ? L : static_cast<LInt>(-1);
             }
