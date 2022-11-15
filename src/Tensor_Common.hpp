@@ -24,7 +24,7 @@ TENSOR_T( const TENSOR_T & other )
 :   n(other.n)
 ,   dims(other.dims)
 {
-    print("copy");
+    print("Copy of "+ClassName());
     allocate();
     
     Read(other.a);
@@ -62,7 +62,7 @@ TENSOR_T( TENSOR_T && other ) noexcept
 /* Copy assignment operator */
 TENSOR_T & operator=( const TENSOR_T & other )
 {
-//    print("copy+assign");
+    print("Copy+assign of "+ClassName());
     if( this != &other )
     {
         if( dims != other.dims )
