@@ -1008,7 +1008,7 @@ namespace Tensors
         
     public:
         
-        LInt FindNonzeroPosition( const Int i, const Int j ) const
+        LInt FindNonzeroPosition( const Int i, const Int j )
         {
             // Looks up the entry {i,j}. If existent, its index within the list of nonzeroes is returned. Otherwise, a negative number is returned (-1 if simply not found and -2 if i is out of bounds).
             
@@ -1052,7 +1052,7 @@ namespace Tensors
         
         
         template<typename S, typename T, typename J>
-        void FillLowerTriangleFromUpperTriangle( std::map<S,Tensor1<T,J>> & values ) const
+        void FillLowerTriangleFromUpperTriangle( std::map<S,Tensor1<T,J>> & values )
         {
             ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
             
