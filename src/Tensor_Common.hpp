@@ -30,7 +30,7 @@ TENSOR_T( const TENSOR_T & other )
     Read(other.a);
 }
 
-// Copy + cast constructor
+// Copy-cast constructor
 template<typename S, typename J, IsInt(J)>
 explicit TENSOR_T( const TENSOR_T<S,J> & other )
 :   n    ( other.n    )
@@ -44,7 +44,7 @@ explicit TENSOR_T( const TENSOR_T<S,J> & other )
 
 inline friend void swap(TENSOR_T & A, TENSOR_T & B) noexcept
 {
-//    print("swap");
+    logprint(A.ClassName()+": Swap");
     // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
     using std::swap;
     std::swap_ranges( &A.dims[0], &A.dims[Rank()], &B.dims[0] );
@@ -56,21 +56,37 @@ inline friend void swap(TENSOR_T & A, TENSOR_T & B) noexcept
 TENSOR_T( TENSOR_T && other ) noexcept
 :   TENSOR_T()
 {
-//    print("move");
+    logprint(other.ClassName()+": Move");
     swap(*this, other);
 }
 
-/* Copy assignment operator */
+
+/* Move-assignment operator */
+TENSOR_T & operator=( TENSOR_T && other ) noexcept
+{
+//    print(other.ClassName()+": Move-assign");
+    if( this == &other )
+    {
+        wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
+    }
+    swap( *this, other );
+    return *this;
+}
+
+/* Copy-assignment operator */
 TENSOR_T & operator=( const TENSOR_T & other )
 {
     if( this != &other )
     {
-        logprint("Copy-assign of "+ClassName()+" of size "+ToString( other.Size() ) );
+        logprint(other.ClassName()+": Copy-assignment of size "+Tools::ToString( other.n ));
+        
         if( dims != other.dims )
         {
             n    = other.n;
             dims = other.dims;
 
+            logprint(other.ClassName()+": Reallocation of size "+Tools::ToString( n ) );
+            
             safe_free(a);
             allocate();
         }
@@ -79,17 +95,6 @@ TENSOR_T & operator=( const TENSOR_T & other )
     return *this;
 }
 
-/* Move assignment operator */
-TENSOR_T & operator=( TENSOR_T && other ) noexcept
-{
-//    print("move+assign");
-    if( this == &other )
-    {
-        wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
-    }
-    swap( *this, other );
-    return *this;
-}
 
 
 

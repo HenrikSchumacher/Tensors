@@ -22,19 +22,19 @@ namespace Tensors
         
     protected:
         
-                Tensor1<LInt, Int> outer;
-        mutable Tensor1< Int,LInt> inner; // I have to make this mutable so that methods that depend on SortInner can be called also from const instances of the class.
+        // I have to make these mutable so that methods that depend on SortInner can be called also from const instances of the class.
+        mutable Tensor1<LInt, Int> outer;
+        mutable Tensor1< Int,LInt> inner;
         
+        // I cannot make these const since swap would not work otherwise.
         Int m = 0;
         Int n = 0;
         
         Int thread_count = 1;
         
         mutable bool inner_sorted    = false;
-                bool duplicate_free  = false;
+        mutable bool duplicate_free  = false;
                 bool symmetric       = false;
-//                bool uppertriangular = false;
-//                bool lowertriangular = false;
         
         // diag_ptr[i] is the first nonzero element in row i such that inner[diag_ptr[i]] >= i
         mutable Tensor1<LInt,Int> diag_ptr;
@@ -445,7 +445,7 @@ namespace Tensors
             {
                 ptic(ClassName()+"::RequireDiag");
                 
-                CheckOrdering();
+                SortInner();
                 
                 if( outer.Last() <= 0 )
                 {
@@ -679,7 +679,7 @@ namespace Tensors
         
     public:
         
-        virtual void SortInner()
+        virtual void SortInner() const
         {
             // Sorts the column indices of each matrix row.
             
@@ -694,8 +694,6 @@ namespace Tensors
                     #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
                     {
-                        //                    TimSort<Int,Int> tim_sort(512);
-                        
                         const Int i_begin = job_ptr[thread  ];
                         const Int i_end   = job_ptr[thread+1];
                         
@@ -707,9 +705,9 @@ namespace Tensors
                             std::sort( &ci[rp[i]], &ci[rp[i+1]] );
                         }
                     }
+                    
+                    inner_sorted = true;
                 }
-             
-                inner_sorted = true;
                 
                 ptoc(ClassName()+"::SortInner");
                 
@@ -719,108 +717,113 @@ namespace Tensors
     public:
         
         
-        virtual void Compress()
+        virtual void Compress() const
         {
-            ptic(ClassName()+"::Compress");
-            
-            if( WellFormed() )
+            if( !duplicate_free )
             {
-                SortInner();
-                RequireJobPtr();
-                
-                Tensor1<LInt,Int> new_outer (outer.Size(), 0);
-                
-                LInt * restrict const new_outer__ = new_outer.data();
-                LInt * restrict const     outer__ = outer.data();
-                 Int * restrict const     inner__ = inner.data();
-                
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
+                ptic(ClassName()+"::Compress");
+
+                if( WellFormed() )
                 {
+                    RequireJobPtr();
+                    SortInner();
                     
-                    const Int i_begin = job_ptr[thread  ];
-                    const Int i_end   = job_ptr[thread+1];
+                    Tensor1<LInt,Int> new_outer ( outer.Size(), 0 );
                     
-                    // To where we write.
-                    LInt jj_new        = outer__[i_begin];
+                    LInt * restrict const new_outer__ = new_outer.data();
+                    LInt * restrict const     outer__ = outer.data();
+                     Int * restrict const     inner__ = inner.data();
                     
-                    // Memoize the next entry in outer because outer will be overwritten
-                    LInt next_jj_begin = outer__[i_begin];
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+#pragma omp parallel for num_threads( thread_count )
+                    for( Int thread = 0; thread < thread_count; ++thread )
                     {
-                        const LInt jj_begin = next_jj_begin;
-                        const LInt jj_end   = outer__[i+1];
+                        
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        // To where we write.
+                        LInt jj_new        = outer__[i_begin];
                         
                         // Memoize the next entry in outer because outer will be overwritten
-                        next_jj_begin = jj_end;
+                        LInt next_jj_begin = outer__[i_begin];
                         
-                        LInt row_nonzero_counter = static_cast<Int>(0);
-                        
-                        // From where we read.
-                        LInt jj = jj_begin;
-                        
-                        while( jj< jj_end )
+                        for( Int i = i_begin; i < i_end; ++i )
                         {
-                            Int j = inner__[jj];
+                            const LInt jj_begin = next_jj_begin;
+                            const LInt jj_end   = outer__[i+1];
                             
+                            // Memoize the next entry in outer because outer will be overwritten
+                            next_jj_begin = jj_end;
+                            
+                            LInt row_nonzero_counter = static_cast<Int>(0);
+                            
+                            // From where we read.
+                            LInt jj = jj_begin;
+                            
+                            while( jj< jj_end )
                             {
-                                if( jj > jj_new )
+                                Int j = inner__[jj];
+                                
                                 {
-                                    inner__[jj] = static_cast<Int>(0);
+                                    if( jj > jj_new )
+                                    {
+                                        inner__[jj] = static_cast<Int>(0);
+                                    }
+                                    
+                                    ++jj;
                                 }
                                 
-                                ++jj;
-                            }
-            
-                            while( (jj < jj_end) && (j == inner__[jj]) )
-                            {
-                                if( jj > jj_new )
+                                while( (jj < jj_end) && (j == inner__[jj]) )
                                 {
-                                    inner__[jj] = static_cast<Int>(0);
+                                    if( jj > jj_new )
+                                    {
+                                        inner__[jj] = static_cast<Int>(0);
+                                    }
+                                    ++jj;
                                 }
-                                ++jj;
+                                
+                                inner__[jj_new] = j;
+                                
+                                jj_new++;
+                                row_nonzero_counter++;
                             }
-                            
-                            inner__[jj_new] = j;
-                            
-                            jj_new++;
-                            row_nonzero_counter++;
+                            new_outer__[i+1] = row_nonzero_counter;
                         }
-                        new_outer__[i+1] = row_nonzero_counter;
                     }
+                    
+                    // This is the new array of outer indices.
+                    new_outer.Accumulate( thread_count  );
+                    
+                    const LInt nnz = new_outer[m];
+                    
+                    Tensor1<Int,LInt> new_inner (nnz, 0);
+                    
+                    //TODO: Parallelization might be a bad idea here.
+                    
+                    #pragma omp parallel for num_threads( thread_count )
+                    for( Int thread = 0; thread < thread_count; ++thread )
+                    {
+                        const    Int i_begin = job_ptr[thread  ];
+                        const    Int i_end   = job_ptr[thread+1];
+                        
+                        const LInt new_pos = new_outer__[i_begin];
+                        const LInt     pos =     outer__[i_begin];
+                        
+                        const Int thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
+                        
+                        copy_buffer( &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes );
+                    }
+                    
+                    swap( new_outer, outer  );
+                    swap( new_inner, inner  );
+                    
+                    duplicate_free = true;
+                    
+                    job_ptr = JobPointers<Int>();
                 }
                 
-                // This is the new array of outer indices.
-                new_outer.Accumulate( thread_count  );
-                
-                const LInt nnz = new_outer[m];
-                
-                Tensor1<Int,LInt> new_inner (nnz, 0);
-                
-                //TODO: Parallelization might be a bad idea here.
-                
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
-                {
-                    const    Int i_begin = job_ptr[thread  ];
-                    const    Int i_end   = job_ptr[thread+1];
-                    
-                    const LInt new_pos = new_outer__[i_begin];
-                    const LInt     pos =     outer__[i_begin];
-
-                    const Int thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
-                    
-                    copy_buffer( &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes );
-                }
-                
-                swap( new_outer,  outer  );
-                swap( new_inner,  inner  );
-                
-                job_ptr = JobPointers<Int>();
+                ptoc(ClassName()+"::Compress");
             }
-            
-            ptoc(ClassName()+"::Compress");
         }
         
 //##############################################################################################

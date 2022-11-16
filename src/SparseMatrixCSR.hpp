@@ -30,7 +30,8 @@ namespace Tensors
         using BASE::upper_triangular_job_ptr;
         using BASE::lower_triangular_job_ptr;
 
-        Tensor1<Scalar,LInt> values;
+        // I have to make this mutable so that SortInner and Compress can have the const attribute.
+        mutable Tensor1<Scalar,LInt> values;
         
     public:
         
@@ -453,7 +454,7 @@ namespace Tensors
         }
         
         
-        void SortInner() override
+        void SortInner() const override
         {
             if( !inner_sorted )
             {
@@ -483,142 +484,143 @@ namespace Tensors
                             quick_sort( inner__ + begin, values__ + begin, end - begin );
                         }
                     }
+                    
+                    inner_sorted = true;
                 }
-                
-                inner_sorted = true;
                 
                 ptoc(ClassName()+"::SortInner");
             }
         }
         
         
-        void Compress() override
+        void Compress() const override
         {
             // Removes duplicate {i,j}-pairs by adding their corresponding nonzero values.
             
-            ptic(ClassName()+"::Compress");
-            
-            if( WellFormed() )
+            if( !duplicate_free )
             {
-                SortInner();
+                ptic(ClassName()+"::Compress");
                 
-                RequireJobPtr();
-
-                Tensor1<LInt,Int> new_outer (outer.Size(),0);
-                
-                const   LInt * restrict const outer__     = outer.data();
-                         Int * restrict const inner__     = inner.data();
-                      Scalar * restrict const values__    = values.data();
-                        LInt * restrict const new_outer__ = new_outer.data();
-                
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
+                if( WellFormed() )
                 {
-                    const Int i_begin = job_ptr[thread  ];
-                    const Int i_end   = job_ptr[thread+1];
+                    RequireJobPtr();
+                    SortInner();
                     
-    //                // Starting position of thread in inner list.
-    //                thread_info(thread,0)= outer[i_begin];
-    //                // End position of thread in inner list (not important).
-    //                thread_info(thread,1)= outer[i_end  ];
-    //                // Number of nonzeroes in thread after compression.
-    //                thread_info(thread,2)= static_cast<Int>(0);
+                    Tensor1<LInt,Int> new_outer (outer.Size(),0);
                     
-                    // To where we write.
-                    LInt jj_new        = outer__[i_begin];
-                    LInt next_jj_begin = outer__[i_begin];
+                    const   LInt * restrict const outer__     = outer.data();
+                             Int * restrict const inner__     = inner.data();
+                          Scalar * restrict const values__    = values.data();
+                            LInt * restrict const new_outer__ = new_outer.data();
                     
-                    for( Int i = i_begin; i < i_end; ++i )
+#pragma omp parallel for num_threads( thread_count )
+                    for( Int thread = 0; thread < thread_count; ++thread )
                     {
-                        const LInt jj_begin = next_jj_begin;
-                        const LInt jj_end   = outer__[i+1];
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
                         
-                        // Memoize the next entry in outer because outer will be overwritten
-                        next_jj_begin = jj_end;
+                        //                // Starting position of thread in inner list.
+                        //                thread_info(thread,0)= outer[i_begin];
+                        //                // End position of thread in inner list (not important).
+                        //                thread_info(thread,1)= outer[i_end  ];
+                        //                // Number of nonzeroes in thread after compression.
+                        //                thread_info(thread,2)= static_cast<Int>(0);
                         
-                        LInt row_nonzero_counter = static_cast<Int>(0);
+                        // To where we write.
+                        LInt jj_new        = outer__[i_begin];
+                        LInt next_jj_begin = outer__[i_begin];
                         
-                        // From where we read.
-                        LInt jj = jj_begin;
-                        
-                        while( jj< jj_end )
+                        for( Int i = i_begin; i < i_end; ++i )
                         {
-                               Int j = inner__ [jj];
-                            Scalar a = values__[jj];
+                            const LInt jj_begin = next_jj_begin;
+                            const LInt jj_end   = outer__[i+1];
                             
-                            if( jj > jj_new )
-                            {
-                                inner__ [jj] = static_cast<Int>(0);
-                                values__[jj] = static_cast<Scalar>(0);
-                            }
+                            // Memoize the next entry in outer because outer will be overwritten
+                            next_jj_begin = jj_end;
                             
-                            ++jj;
-            
-                            while( (jj < jj_end) && (j == inner__[jj]) )
+                            LInt row_nonzero_counter = static_cast<Int>(0);
+                            
+                            // From where we read.
+                            LInt jj = jj_begin;
+                            
+                            while( jj< jj_end )
                             {
-                                a+= values__[jj];
+                                Int j = inner__ [jj];
+                                Scalar a = values__[jj];
+                                
                                 if( jj > jj_new )
                                 {
                                     inner__ [jj] = static_cast<Int>(0);
                                     values__[jj] = static_cast<Scalar>(0);
                                 }
+                                
                                 ++jj;
+                                
+                                while( (jj < jj_end) && (j == inner__[jj]) )
+                                {
+                                    a+= values__[jj];
+                                    if( jj > jj_new )
+                                    {
+                                        inner__ [jj] = static_cast<Int>(0);
+                                        values__[jj] = static_cast<Scalar>(0);
+                                    }
+                                    ++jj;
+                                }
+                                
+                                inner__ [jj_new] = j;
+                                values__[jj_new] = a;
+                                
+                                jj_new++;
+                                row_nonzero_counter++;
                             }
                             
-                            inner__ [jj_new] = j;
-                            values__[jj_new] = a;
+                            new_outer__[i+1] = row_nonzero_counter;
                             
-                            jj_new++;
-                            row_nonzero_counter++;
+                            //                    thread_info(thread,2) += row_nonzero_counter;
                         }
-                        
-                        new_outer__[i+1] = row_nonzero_counter;
-                        
-    //                    thread_info(thread,2) += row_nonzero_counter;
                     }
+                    
+                    // This is the new array of outer indices.
+                    new_outer.Accumulate( thread_count );
+                    
+                    const LInt nnz = new_outer[m];
+                    
+                    Tensor1<   Int,LInt> new_inner  (nnz,0);
+                    Tensor1<Scalar,LInt> new_values (nnz,0);
+                    
+                    Int * restrict const new_inner__  = new_inner.data();
+                    Scalar * restrict const new_values__ = new_values.data();
+                    
+                    //TODO: Parallelization might be a bad idea here.
+                    #pragma omp parallel for num_threads( thread_count )
+                    for( Int thread = 0; thread < thread_count; ++thread )
+                    {
+                        const  Int i_begin = job_ptr[thread  ];
+                        const  Int i_end   = job_ptr[thread+1];
+                        
+                        const LInt new_pos = new_outer__[i_begin];
+                        const LInt     pos =     outer__[i_begin];
+                        
+                        const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
+                        
+                        // Starting position of thread in inner list.
+                        
+                        copy_buffer( &inner__[pos],  &new_inner__[new_pos],  thread_nonzeroes );
+                        
+                        copy_buffer( &values__[pos], &new_values__[new_pos], thread_nonzeroes );
+                    }
+                    
+                    swap( new_outer,  outer  );
+                    swap( new_inner,  inner  );
+                    swap( new_values, values );
+                    
+                    job_ptr = JobPointers<Int>();
+                    
+                    duplicate_free = true;
                 }
                 
-                // This is the new array of outer indices.
-                new_outer.Accumulate( thread_count );
-                
-                const LInt nnz = new_outer[m];
-                
-                Tensor1<   Int,LInt> new_inner  (nnz,0);
-                Tensor1<Scalar,LInt> new_values (nnz,0);
-                
-                   Int * restrict const new_inner__  = new_inner.data();
-                Scalar * restrict const new_values__ = new_values.data();
-                  
-                //TODO: Parallelization might be a bad idea here.
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
-                {
-                    const  Int i_begin = job_ptr[thread  ];
-                    const  Int i_end   = job_ptr[thread+1];
-
-                    const LInt new_pos = new_outer__[i_begin];
-                    const LInt     pos =     outer__[i_begin];
-
-                    const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
-
-                    // Starting position of thread in inner list.
-                    
-                    copy_buffer( &inner__[pos],  &new_inner__[new_pos],  thread_nonzeroes );
-                    
-                    copy_buffer( &values__[pos], &new_values__[new_pos], thread_nonzeroes );
-                }
-                
-                swap( new_outer,  outer  );
-                swap( new_inner,  inner  );
-                swap( new_values, values );
-                
-                job_ptr = JobPointers<Int>();
-                
-                duplicate_free = true;
+                ptoc(ClassName()+"::Compress");
             }
-            
-            
-            ptoc(ClassName()+"::Compress");
         }
                 
         
