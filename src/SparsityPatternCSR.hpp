@@ -344,7 +344,6 @@ namespace Tensors
                         
                               LInt * restrict const c = counters.data(thread);
                         
-//                        for( Int k = entry_count - 1; k > -1; --k )
                         for( Int k = entry_count; k--> 0; )
                         {
                             const Int i = thread_idx[k];
@@ -374,7 +373,6 @@ namespace Tensors
                         
                               LInt * restrict const c = counters.data(thread);
                         
-//                        for( Int k = entry_count - 1; k > -1; --k )
                         for( Int k = entry_count; k --> 0; )
                         {
                             const Int i = thread_idx[k];
@@ -913,7 +911,7 @@ namespace Tensors
                             const LInt kk_begin = B_outer[j  ];
                             const LInt kk_end   = B_outer[j+1];
                             
-                            for( LInt kk = kk_end-1; kk > kk_begin-1; --kk )
+                            for( LInt kk = kk_end; kk --> kk_begin; )
                             {
                                 const Int k = B_inner[kk];
                                 const LInt pos = --c[ i ];

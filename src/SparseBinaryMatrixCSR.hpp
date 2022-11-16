@@ -247,7 +247,7 @@ namespace Tensors
                         const LInt k_begin = A_outer[i  ];
                         const LInt k_end   = A_outer[i+1];
                         
-                        for( LInt k = k_end-1; k > k_begin-1; --k )
+                        for( LInt k = k_end; k --> k_begin; )
                         {
                             const Int j = A_inner[k];
                             const LInt pos = --c[ j ];

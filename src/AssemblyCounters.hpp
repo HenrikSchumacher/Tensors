@@ -177,7 +177,7 @@ namespace Tensors {
             
             if( symmetrize!=0 )
             {
-                for( Int k = 0; k < entry_count; ++k )
+                for( LInt k = 0; k < entry_count; ++k )
                 {
                     const Int i = thread_idx[k];
                     const Int j = thread_jdx[k];
