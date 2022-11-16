@@ -158,7 +158,7 @@ namespace Tensors
             logprint("Copy of "+ClassName()+" of size {"+ToString(other.m)+", "+ToString(other.n)+"}, nn z = "+ToString(other.NonzeroCount()));
         }
         
-        friend void swap( CLASS & A, CLASS & B ) noexcept
+        friend void swap (CLASS &A, CLASS &B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
@@ -173,10 +173,9 @@ namespace Tensors
             swap( A.symmetric,      B.symmetric      );
         }
         
-        // Copy assignment operator
-        CLASS & operator=( CLASS other )    // Pass _by value_ is okay, because compiler can elide the copy if needed.
+        //(Copy-)assignment operator
+        CLASS & operator=( CLASS other ) // Passing by value is okay, because of copy elision.
         {
-            logprint("Copy-assign of "+ClassName()+" of size {"+ToString(other.m)+", "+ToString(other.n)+"}, nn z = "+ToString(other.NonzeroCount()));
             // copy-and-swap idiom
             // see https://stackoverflow.com/a/3279550/8248900 for details
 
@@ -191,17 +190,7 @@ namespace Tensors
             swap(*this, other);
         }
     
-        /* Move assignment operator */
-        CLASS & operator=( CLASS && other ) noexcept
-        {
-            // print("move+assign");
-            if( this == &other )
-            {
-                wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
-            }
-            swap( *this, other );
-            return *this;
-        }
+        // We do not need a move-assignment operator, because we use the copy-swap idiom!
         
         CLASS(
           const Int    * const * const idx,

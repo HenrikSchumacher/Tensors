@@ -130,7 +130,7 @@ namespace Tensors
             logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
         }
         
-        friend void swap (CLASS &A, CLASS &B ) noexcept
+        friend void swap( CLASS &A, CLASS & B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
@@ -142,23 +142,9 @@ namespace Tensors
             swap( A.thread_count, B.thread_count );
         }
         
-        friend void swap (CLASS &A, BASE &B ) noexcept
+        // (Copy-)assignment operator
+        CLASS & operator=( CLASS other ) // Pass by value is okay, because we use copy-swap idiom and copy elision.
         {
-            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-            using std::swap;
-
-            swap( A.outer,        B.outer        );
-            swap( A.inner,        B.inner        );
-            swap( A.m,            B.m            );
-            swap( A.n,            B.n            );
-            swap( A.thread_count, B.thread_count );
-        }
-        
-        // Copy assignment operator
-        CLASS & operator=(CLASS other)
-        {
-            logprint("Copy-assign of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
-            
             // copy-and-swap idiom
             // see https://stackoverflow.com/a/3279550/8248900 for details
 
@@ -173,6 +159,9 @@ namespace Tensors
             swap(*this, other);
         }
         
+        // We do not need a move-assignment operator, because we use the copy-swap idiom!
+        
+        
         CLASS(
           const Int    * const * const idx,
           const Int    * const * const jdx,
@@ -184,7 +173,8 @@ namespace Tensors
           const bool compress   = true,
           const int  symmetrize = 0
         )
-        :   BASE ( idx, jdx, entry_counts, list_count, m_, n_, final_thread_count, compress, symmetrize ) {}
+        :   BASE ( idx, jdx, entry_counts, list_count, m_, n_, final_thread_count, compress, symmetrize )
+        {}
         
         CLASS(
             std::vector<Int> & idx,
@@ -195,7 +185,8 @@ namespace Tensors
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize ) {}
+        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize )
+        {}
         
         CLASS(
             const std::vector<std::vector<Int>> & idx,
@@ -206,7 +197,8 @@ namespace Tensors
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize ) {}
+        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize )
+        {}
         
         CLASS(
             const std::vector<PairAggregator<Int, Int, LInt>> & idx,
@@ -216,7 +208,8 @@ namespace Tensors
             const bool compress   = true,
             const int  symmetrize = 0
         )
-        :   BASE( idx, m_, n_, final_thread_count, compress, symmetrize ) {}
+        :   BASE( idx, m_, n_, final_thread_count, compress, symmetrize )
+        {}
     
         virtual ~CLASS() = default;
         

@@ -137,10 +137,9 @@ namespace Tensors
             swap( A.values,              B.values              );
         }
         
-        // Copy assignment operator
-        CLASS & operator=(CLASS other)
+        // (Copy-)assignment operator
+        CLASS & operator=( CLASS other ) // Pass by value is okay, because we use copy-swap idiom and copy elision.
         {
-            logprint("Copy-assign of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
             // see https://stackoverflow.com/a/3279550/8248900 for details
 
             swap(*this, other);
@@ -149,11 +148,13 @@ namespace Tensors
         }
 
         // Move constructor
-        CLASS( CLASS && other ) noexcept : CLASS()
+        CLASS( CLASS && other ) noexcept
+        :   CLASS()
         {
             swap(*this, other);
         }
         
+        // We do not need a move-assignment operator, because we use the copy-swap idiom!
         
         CLASS(
           const Int    * const * const idx,
