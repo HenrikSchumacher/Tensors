@@ -44,7 +44,7 @@ explicit TENSOR_T( const TENSOR_T<S,J> & other )
 
 inline friend void swap(TENSOR_T & A, TENSOR_T & B) noexcept
 {
-    logprint(A.ClassName()+": Swap");
+//    logprint(A.ClassName()+": Swap");
     // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
     using std::swap;
     std::swap_ranges( &A.dims[0], &A.dims[Rank()], &B.dims[0] );
@@ -56,7 +56,7 @@ inline friend void swap(TENSOR_T & A, TENSOR_T & B) noexcept
 TENSOR_T( TENSOR_T && other ) noexcept
 :   TENSOR_T()
 {
-    logprint(other.ClassName()+": Move");
+//    logprint(other.ClassName()+": Move");
     swap(*this, other);
 }
 
