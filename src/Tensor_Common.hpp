@@ -60,37 +60,48 @@ TENSOR_T( TENSOR_T && other ) noexcept
     swap(*this, other);
 }
 
-/* Copy assignment operator */
-TENSOR_T & operator=( const TENSOR_T & other )
+// (Copy-)assignment operator
+TENSOR_T & operator=( TENSOR_T other ) // Pass by value is okay, because we use copy-swap idiom and copy elision.
 {
-    if( this != &other )
-    {
-        logprint("Copy-assign of "+ClassName()+" of size "+ToString( other.Size() ) );
-        lprint("A");
-        if( dims != other.dims )
-        {
-            n    = other.n;
-            dims = other.dims;
-            
-            safe_free(a);
-            allocate();
-        }
-        Read( other.data() );
-    }
+    // see https://stackoverflow.com/a/3279550/8248900 for details
+
+    swap(*this, other);
+
     return *this;
 }
 
-/* Move assignment operator */
-TENSOR_T & operator=( TENSOR_T && other ) noexcept
-{
-//    print("move+assign");
-    if( this == &other )
-    {
-        wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
-    }
-    swap( *this, other );
-    return *this;
-}
+///* Copy assignment operator */
+//TENSOR_T & operator=( const TENSOR_T & other )
+//{
+//    if( this != &other )
+//    {
+//        logprint("Copy-assign of "+ClassName()+" of size "+ToString( other.Size() ) );
+//        if( dims != other.dims )
+//        {
+//            n    = other.n;
+//            dims = other.dims;
+//
+//            safe_free(a);
+//            allocate();
+//        }
+//        Read( other.data() );
+//    }
+//    return *this;
+//}
+//
+///* Move assignment operator */
+//TENSOR_T & operator=( TENSOR_T && other ) noexcept
+//{
+////    print("move+assign");
+//    if( this == &other )
+//    {
+//        wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
+//    }
+//    swap( *this, other );
+//    return *this;
+//}
+
+
 
 public:
 
