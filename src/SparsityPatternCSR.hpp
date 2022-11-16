@@ -155,7 +155,7 @@ namespace Tensors
         ,   duplicate_free  ( other.duplicate_free  )
         ,   symmetric       ( other.symmetric       )
         {
-            logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
+            logprint("Copy of "+ClassName()+" of size {"+ToString(other.m)+", "+ToString(other.n)+"}, nn z = "+ToString(other.NonzeroCount()));
         }
         
         friend void swap (CLASS &A, CLASS &B ) noexcept
@@ -176,7 +176,7 @@ namespace Tensors
         // Copy assignment operator
         CLASS & operator=(CLASS other)
         {
-            logprint("Copy-assign of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
+            logprint("Copy-assign of "+ClassName()+" of size {"+ToString(other.m)+", "+ToString(other.n)+"}, nn z = "+ToString(other.NonzeroCount()));
             // copy-and-swap idiom
             // see https://stackoverflow.com/a/3279550/8248900 for details
 
@@ -191,6 +191,17 @@ namespace Tensors
             swap(*this, other);
         }
     
+        /* Move assignment operator */
+        CLASS & operator=( CLASS && other ) noexcept
+        {
+            // print("move+assign");
+            if( this == &other )
+            {
+                wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
+            }
+            swap( *this, other );
+            return *this;
+        }
         
         CLASS(
           const Int    * const * const idx,
