@@ -158,7 +158,7 @@ namespace Tensors
             logprint("Copy of "+ClassName()+" of size {"+ToString(other.m)+", "+ToString(other.n)+"}, nn z = "+ToString(other.NonzeroCount()));
         }
         
-        friend void swap (CLASS &A, CLASS &B ) noexcept
+        friend void swap( CLASS & A, CLASS & B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
@@ -174,7 +174,7 @@ namespace Tensors
         }
         
         // Copy assignment operator
-        CLASS & operator=(CLASS other)
+        CLASS & operator=( CLASS other )    // Pass _by value_ is okay, because compiler can elide the copy if needed.
         {
             logprint("Copy-assign of "+ClassName()+" of size {"+ToString(other.m)+", "+ToString(other.n)+"}, nn z = "+ToString(other.NonzeroCount()));
             // copy-and-swap idiom

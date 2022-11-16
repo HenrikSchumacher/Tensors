@@ -21,8 +21,8 @@ TENSOR_T() = default;
 
 // Copy constructor
 TENSOR_T( const TENSOR_T & other )
-:   n(other.n)
-,   dims(other.dims)
+:   n    ( other.n    )
+,   dims ( other.dims )
 {
     logprint("Copy of "+ClassName()+" of size "+ToString(other.Size()) );
     
@@ -33,8 +33,8 @@ TENSOR_T( const TENSOR_T & other )
 // Copy + cast constructor
 template<typename S, typename J, IsInt(J)>
 explicit TENSOR_T( const TENSOR_T<S,J> & other )
-:   n(other.n)
-,   dims(other.dims)
+:   n    ( other.n    )
+,   dims ( other.dims )
 {
     logprint("Copy-cast of "+ClassName()+" of size "+ToString(other.Size()) );
     
@@ -65,7 +65,8 @@ TENSOR_T & operator=( const TENSOR_T & other )
 {
     if( this != &other )
     {
-        logprint("Copy-assign of "+ClassName()+" of size "+ToString(other.Size()) );
+        logprint("Copy-assign of "+ClassName()+" of size "+ToString( other.Size() ) );
+        lprint("A");
         if( dims != other.dims )
         {
             n    = other.n;
