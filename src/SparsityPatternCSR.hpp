@@ -155,7 +155,7 @@ namespace Tensors
         ,   duplicate_free  ( other.duplicate_free  )
         ,   symmetric       ( other.symmetric       )
         {
-            print("Copy of "+ClassName());
+            logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
         }
         
         friend void swap (CLASS &A, CLASS &B ) noexcept
@@ -176,7 +176,7 @@ namespace Tensors
         // Copy assignment operator
         CLASS & operator=(CLASS other)
         {
-            print("Copy+assign of "+ClassName());
+            logprint("Copy-assign of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
             // copy-and-swap idiom
             // see https://stackoverflow.com/a/3279550/8248900 for details
 

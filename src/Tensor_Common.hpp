@@ -24,9 +24,9 @@ TENSOR_T( const TENSOR_T & other )
 :   n(other.n)
 ,   dims(other.dims)
 {
-    print("Copy of "+ClassName());
-    allocate();
+    logprint("Copy of "+ClassName()+" of size "+ToString(other.Size()) );
     
+    allocate();
     Read(other.a);
 }
 
@@ -36,8 +36,9 @@ explicit TENSOR_T( const TENSOR_T<S,J> & other )
 :   n(other.n)
 ,   dims(other.dims)
 {
-    allocate();
+    logprint("Copy-cast of "+ClassName()+" of size "+ToString(other.Size()) );
     
+    allocate();
     Read(other.a);
 }
 
@@ -62,9 +63,9 @@ TENSOR_T( TENSOR_T && other ) noexcept
 /* Copy assignment operator */
 TENSOR_T & operator=( const TENSOR_T & other )
 {
-    print("Copy+assign of "+ClassName());
     if( this != &other )
     {
+        logprint("Copy-assign of "+ClassName()+" of size "+ToString(other.Size()) );
         if( dims != other.dims )
         {
             n    = other.n;

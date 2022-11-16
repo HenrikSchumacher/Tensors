@@ -124,7 +124,9 @@ namespace Tensors
         CLASS( const CLASS & other )
         :   BASE    ( other        )
         ,   values  ( other.values )
-        {}
+        {
+            logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
+        }
         
         friend void swap (CLASS &A, CLASS &B ) noexcept
         {
@@ -138,7 +140,7 @@ namespace Tensors
         // Copy assignment operator
         CLASS & operator=(CLASS other)
         {
-            // copy-and-swap idiom
+            logprint("Copy-assign of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
             // see https://stackoverflow.com/a/3279550/8248900 for details
 
             swap(*this, other);
