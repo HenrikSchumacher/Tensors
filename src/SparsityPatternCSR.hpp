@@ -33,8 +33,8 @@ namespace Tensors
         mutable bool inner_sorted    = false;
                 bool duplicate_free  = false;
                 bool symmetric       = false;
-                bool uppertriangular = false;
-                bool lowertriangular = false;
+//                bool uppertriangular = false;
+//                bool lowertriangular = false;
         
         // diag_ptr[i] is the first nonzero element in row i such that inner[diag_ptr[i]] >= i
         mutable Tensor1<LInt,Int> diag_ptr;
@@ -146,28 +146,37 @@ namespace Tensors
         
         // Copy constructor
         CLASS( const CLASS & other )
-        :   outer       ( other.outer         )
-        ,   inner       ( other.inner         )
-        ,   m           ( other.m             )
-        ,   n           ( other.n             )
-        ,   thread_count( other.thread_count  )
-        {}
+        :   outer           ( other.outer           )
+        ,   inner           ( other.inner           )
+        ,   m               ( other.m               )
+        ,   n               ( other.n               )
+        ,   thread_count    ( other.thread_count    )
+        ,   inner_sorted    ( other.inner_sorted    )
+        ,   duplicate_free  ( other.duplicate_free  )
+        ,   symmetric       ( other.symmetric       )
+        {
+            print("Copy of "+ClassName());
+        }
         
         friend void swap (CLASS &A, CLASS &B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
 
-            swap( A.outer,        B.outer        );
-            swap( A.inner,        B.inner        );
-            swap( A.m,            B.m            );
-            swap( A.n,            B.n            );
-            swap( A.thread_count, B.thread_count );
+            swap( A.outer,          B.outer          );
+            swap( A.inner,          B.inner          );
+            swap( A.m,              B.m              );
+            swap( A.n,              B.n              );
+            swap( A.thread_count,   B.thread_count   );
+            swap( A.inner_sorted,   B.inner_sorted   );
+            swap( A.duplicate_free, B.duplicate_free );
+            swap( A.symmetric,      B.symmetric      );
         }
         
         // Copy assignment operator
         CLASS & operator=(CLASS other)
         {
+            print("Copy+assign of "+ClassName());
             // copy-and-swap idiom
             // see https://stackoverflow.com/a/3279550/8248900 for details
 
@@ -426,9 +435,9 @@ namespace Tensors
         
         void CheckOrdering() const
         {
-            if( !inner_sorted)
+            if( !inner_sorted )
             {
-                eprint(ClassName()+"::RequireDiag: Column indices are not sorted appropriately. Call SortInner() first.");
+                eprint(ClassName()+"::RequireDiag: Column indices might not be sorted appropriately. Better call SortInner() first.");
             }
         }
         
@@ -1004,6 +1013,21 @@ namespace Tensors
         }
         
     public:
+        
+        bool InnerSorted() const
+        {
+            return inner_sorted;
+        }
+        
+        void AssumeInnerSorted()
+        {
+            inner_sorted = true;
+        }
+        
+        void AssumeInnerUnsorted()
+        {
+            inner_sorted = false;
+        }
         
         LInt FindNonzeroPosition( const Int i, const Int j ) const
         {
