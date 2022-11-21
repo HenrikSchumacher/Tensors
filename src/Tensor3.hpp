@@ -182,7 +182,7 @@ namespace Tensors {
     }; // Tensor3
     
     
-    template<typename Scalar, typename Int>
+    template<typename Scalar, typename Int, typename S>
     Tensor3<Scalar,Int> ToTensor3( const S * a_, const Int d0, const Int d1, const Int d2 )
     {
         Tensor3<Scalar,Int> result ( d0, d1, d2 );
