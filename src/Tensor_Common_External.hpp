@@ -1,8 +1,8 @@
 #ifdef LTEMPLATE_H
 
     
-    template<typename T, typename I, IsFloat(T)>
-    inline mma::TensorRef<mreal> to_MTensorRef( const TENSOR_T<T,I> & A )
+    template<typename Scalar, typename Int, IsFloat(Scalar)>
+    inline mma::TensorRef<mreal> to_MTensorRef( const TENSOR_T<Scalar,Int> & A )
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
@@ -13,8 +13,8 @@
         return B;
     }
     
-    template<typename J, typename I, IsInt(J)>
-    inline mma::TensorRef<mint> to_MTensorRef( const TENSOR_T<J,I> & A )
+    template<typename J, typename Int, IsInt(J)>
+    inline mma::TensorRef<mint> to_MTensorRef( const TENSOR_T<J,Int> & A )
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
@@ -30,15 +30,15 @@
 
 
 
-//template <typename T, typename I>
-//std::string to_string(const TENSOR_T<T,I> & x)
+//template <typename Scalar, typename Int>
+//std::string to_string(const TENSOR_T<Scalar,Int> & x)
 //{
 //    return x.ToString();ToString
 //}
 
 
-//template <typename T, typename I>
-//void AXPY( const T a, const TENSOR_T<T,I> & x, TENSOR_T<T,I> & y )
+//template <typename Scalar, typename Int>
+//void AXPY( const Scalar a, const TENSOR_T<Scalar,Int> & x, TENSOR_T<Scalar,Int> & y )
 //{
 //    mint n = x.Size();
 //    mint stride_x = 1;
@@ -46,8 +46,8 @@
 //    cblas_daxpy( n, a, x.data(), stride_x, y.data(), stride_y );
 //}
 
-//template <typename T, typename I>
-//void Scale( const T a, TENSOR_T<T,I> & x )
+//template <typename Scalar, typename Int>
+//void Scale( const Scalar a, TENSOR_T<Scalar,Int> & x )
 //{
 //    mint n = x.Size();
 //    mint stride_x = 1;

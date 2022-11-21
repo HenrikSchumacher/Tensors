@@ -1,11 +1,11 @@
-ASSERT_INT  (I);
+ASSERT_INT (Int);
 
 
 protected:
 
-I n = 0;
+Int n = 0;
 
-T * restrict a = nullptr;
+Scalar * restrict a = nullptr;
 
 public:
 
@@ -100,7 +100,7 @@ TENSOR_T & operator=( const TENSOR_T & other )
 
 public:
 
-I Size() const
+Int Size() const
 {
     return n;
 }
@@ -125,7 +125,7 @@ void Write( S * a_ ) const
 //    ptoc(ClassName()+"::Write( S * a_ )");
 }
 
-void Fill( const T init )
+void Fill( const Scalar init )
 {
     fill_buffer( a, static_cast<size_t>(n), init );
 }
@@ -140,9 +140,9 @@ void Random()
     std::random_device r;
     std::default_random_engine engine ( r() );
     
-    std::uniform_real_distribution<T> unif(static_cast<T>(-1),static_cast<T>(1));
+    std::uniform_real_distribution<Scalar> unif(static_cast<Scalar>(-1),static_cast<Scalar>(1));
     
-    for( I i = 0; i < n; ++i )
+    for( Int i = 0; i < n; ++i )
     {
         a[i] = unif(engine);
     }
@@ -157,80 +157,80 @@ force_inline void allocate()
 
 public:
 
-force_inline T * begin()
+force_inline Scalar * begin()
 {
     return a;
 }
 
-force_inline const T * begin() const
+force_inline const Scalar * begin() const
 {
     return a;
 }
 
-force_inline T * end()
+force_inline Scalar * end()
 {
     return &a[n];
 }
 
-force_inline const T * end() const
+force_inline const Scalar * end() const
 {
     return &a[n];
 }
 
-//const I * dimensions() const
+//const Int * dimensions() const
 //{
 //    return &dims[0];
 //}
 
-force_inline const I * Dimensions() const
+force_inline const Int * Dimensions() const
 {
     return &dims[0];
 }
 
-force_inline I Dimension( const I i ) const
+force_inline Int Dimension( const Int i ) const
 {
-    return ( i < Rank() ) ? dims[static_cast<size_t>(i)] : static_cast<I>(0);
+    return ( i < Rank() ) ? dims[static_cast<size_t>(i)] : static_cast<Int>(0);
 }
 
 public:
 
-force_inline T * data()
+force_inline Scalar * data()
 {
     return a;
 }
 
-force_inline const T * data() const
+force_inline const Scalar * data() const
 {
     return a;
 }
 
 
-void AddFrom( const T * restrict const b )
+void AddFrom( const Scalar * restrict const b )
 {
     #pragma omp parallel for simd schedule( static )
-    for( I i = 0; i < n; ++i )
+    for( Int i = 0; i < n; ++i )
     {
         // cppcheck-suppress [arithOperationsOnVoidPointer]
         a[i] += b[i];
     }
 }
 
-void AddTo( T * restrict const b ) const
+void AddTo( Scalar * restrict const b ) const
 {
     #pragma omp parallel for simd schedule( static )
-    for( I i = 0; i < n; ++i )
+    for( Int i = 0; i < n; ++i )
     {
         // cppcheck-suppress [arithOperationsOnVoidPointer]
         b[i] += a[i];
     }
 }
 
-//I CountNan() const
+//Int CountNan() const
 //{
-//    I counter = 0;
+//    Int counter = 0;
 //     
 ////    #pragma omp simd aligned( a : ALIGNMENT ) reduction( + : counter )
-//    for( I i = 0 ; i < n; ++i )
+//    for( Int i = 0 ; i < n; ++i )
 //    {
 //        counter += std::isnan(a[i]);
 //    }
@@ -238,12 +238,12 @@ void AddTo( T * restrict const b ) const
 //    return counter;
 //}
 
-T MaxNorm() const
+Scalar MaxNorm() const
 {
-    T result = static_cast<T>(0);
+    Scalar result = static_cast<Scalar>(0);
 
     #pragma omp simd aligned( a : ALIGNMENT ) reduction( max : result )
-    for( I i = 0 ; i < n; ++i )
+    for( Int i = 0 ; i < n; ++i )
     {
         result = std::max( result, std::abs(a[i]));
     }
@@ -251,12 +251,12 @@ T MaxNorm() const
     return result;
 }
 
-T FrobeniusNorm() const
+Scalar FrobeniusNorm() const
 {
-    T result = static_cast<T>(0);
+    Scalar result = static_cast<Scalar>(0);
 
     #pragma omp simd aligned( a : ALIGNMENT ) reduction( + : result )
-    for( I i = 0 ; i < n; ++i )
+    for( Int i = 0 ; i < n; ++i )
     {
         result += a[i] * a[i];
     }
@@ -267,14 +267,14 @@ T FrobeniusNorm() const
 
 friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 {
-    const T * restrict const x_a = x.a;
-    const T * restrict const y_a = y.a;
-          T * restrict const z_a = z.a;
+    const Scalar * restrict const x_a = x.a;
+    const Scalar * restrict const y_a = y.a;
+          Scalar * restrict const z_a = z.a;
     
-    const I last = x.Size();
+    const Int last = x.Size();
     
     #pragma omp parallel for simd aligned( x_a, y_a, z_a : ALIGNMENT ) schedule( static )
-    for( I k = 0; k < last; ++ k)
+    for( Int k = 0; k < last; ++ k)
     {
         z_a[k] = x_a[k] - y_a[k];
     }
@@ -282,28 +282,28 @@ friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 
 friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 {
-    const T * restrict const x_a = x.a;
-    const T * restrict const y_a = y.a;
-          T * restrict const z_a = z.a;
+    const Scalar * restrict const x_a = x.a;
+    const Scalar * restrict const y_a = y.a;
+          Scalar * restrict const z_a = z.a;
    
-    const I last = x.Size();
+    const Int last = x.Size();
     
     #pragma omp parallel for simd aligned( x_a, y_a, z_a : ALIGNMENT ) schedule( static )
-    for( I k = 0; k < last; ++ k)
+    for( Int k = 0; k < last; ++ k)
     {
         z_a[k] = x_a[k] + y_a[k];
     }
 }
 
-friend void Times( const T alpha, const TENSOR_T & x, TENSOR_T & y )
+friend void Times( const Scalar alpha, const TENSOR_T & x, TENSOR_T & y )
 {
-    const T * restrict const x_a = x.a;
-          T * restrict const y_a = y.a;
+    const Scalar * restrict const x_a = x.a;
+          Scalar * restrict const y_a = y.a;
     
-    const I last = x.Size();
+    const Int last = x.Size();
     
     #pragma omp parallel for simd aligned( x_a, y_a : ALIGNMENT ) schedule( static )
-    for( I k = 0; k < last; ++ k)
+    for( Int k = 0; k < last; ++ k)
     {
         y_a[k] = alpha * x_a[k];
     }
@@ -319,13 +319,13 @@ void WriteToFile( const std::string & s ) const
 {
     std::ofstream file ( s );
     
-    file << std::setprecision( std::numeric_limits<T>::digits10 + 1 );
+    file << std::setprecision( std::numeric_limits<Scalar>::digits10 + 1 );
     
     if( n > 0 )
     {
         file << a[0];
     }
-    for( I i = 1; i < n; ++i )
+    for( Int i = 1; i < n; ++i )
     {
         file <<"\t" << a[i];
     }
@@ -336,7 +336,7 @@ void ReadFromFile( const std::string & s ) const
 {
     std::ifstream file ( s );
 
-    for( I i = 0; i < n; ++i )
+    for( Int i = 0; i < n; ++i )
     {
         file >> a[i];
     }

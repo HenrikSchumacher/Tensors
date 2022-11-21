@@ -4,7 +4,7 @@ namespace Tensors {
 
 #define TENSOR_T Tensor1
 
-    template <typename T, typename I>
+    template <typename Scalar, typename Int>
     class TENSOR_T
     {
 
@@ -12,35 +12,33 @@ namespace Tensors {
         
     protected:
         
-        std::array<I,1> dims = {0}; // dimensions visible to user
+        std::array<Int,1> dims = {0}; // dimensions visible to user
         
     public:
         
-        template<typename J, IsInt(J)>
-        explicit TENSOR_T( const J d0 )
-        :   n    { static_cast<I>(d0) }
-        ,   dims { static_cast<I>(d0) }
+        explicit TENSOR_T( const Int d0 )
+        :   n    { d0 }
+        ,   dims { d0 }
         {
             allocate();
         }
         
-        template<typename S, typename J, IsInt(J)>
-        TENSOR_T( const J d0, const S init )
-        :   TENSOR_T( static_cast<I>(d0) )
+        TENSOR_T( const Int d0, const Scalar init )
+        :   TENSOR_T( d0 )
         {
-            Fill( static_cast<T>(init) );
+            Fill( init );
         }
         
-        template<typename S, typename J, IsInt(J)>
-        TENSOR_T( const S * a_, const J d0 )
-        :   TENSOR_T( static_cast<I>(d0) )
+        template<typename S>
+        TENSOR_T( const S * a_, const Int d0 )
+        :   TENSOR_T( d0 )
         {
             Read(a_);
         }
         
     private:
         
-        void BoundCheck( const I i ) const
+        void BoundCheck( const Int i ) const
         {
             if( (i < 0) || (i > dims[0]) )
             {
@@ -50,13 +48,13 @@ namespace Tensors {
         
     public:
         
-        static constexpr I Rank()
+        static constexpr Int Rank()
         {
-            return static_cast<I>(1);
+            return static_cast<Int>(1);
         }
         
 
-        force_inline T * data( const I i )
+        force_inline Scalar * data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -64,7 +62,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline const T * data( const I i ) const
+        force_inline const Scalar * data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -72,7 +70,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline T & operator()(const I i)
+        force_inline Scalar & operator()(const Int i)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -80,7 +78,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline const T & operator()(const I i) const
+        force_inline const Scalar & operator()(const Int i) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -88,7 +86,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline T & operator[](const I i)
+        force_inline Scalar & operator[](const Int i)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -96,7 +94,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline const T & operator[](const I i) const
+        force_inline const Scalar & operator[](const Int i) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -106,7 +104,7 @@ namespace Tensors {
         
 
         
-        force_inline T & First()
+        force_inline Scalar & First()
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(0);
@@ -114,7 +112,7 @@ namespace Tensors {
             return a[0];
         }
         
-        force_inline const T & First() const
+        force_inline const Scalar & First() const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(0);
@@ -122,7 +120,7 @@ namespace Tensors {
             return a[0];
         }
 
-        force_inline T & Last()
+        force_inline Scalar & Last()
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(n-1);
@@ -130,7 +128,7 @@ namespace Tensors {
             return a[n-1];
         }
         
-        force_inline const T & Last() const
+        force_inline const Scalar & Last() const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(n-1);
@@ -138,9 +136,9 @@ namespace Tensors {
             return a[n-1];
         }
         
-        void Resize( const I m_ )
+        void Resize( const Int m_ )
         {
-            const I m = std::max( static_cast<I>(0),m_);
+            const Int m = std::max( static_cast<Int>(0),m_);
             
             TENSOR_T b (m);
             
@@ -157,39 +155,39 @@ namespace Tensors {
         }
         
         
-        void Accumulate( I thread_count = 1 )
+        void Accumulate( Int thread_count = 1 )
         {
-//            for( I i = 1; i < n; ++i )
+//            for( Int i = 1; i < n; ++i )
 //            {
 //                a[i] += a[i-1];
 //            }
             parallel_accumulate(a, n, thread_count );
         }
         
-        force_inline void Scale( const T alpha )
+        force_inline void Scale( const Scalar alpha )
         {
-            T * restrict const a_ = a;
+            Scalar * restrict const a_ = a;
             
             #pragma omp simd aligned( a_ : ALIGNMENT )
-            for( I i = 0; i < n; ++i )
+            for( Int i = 0; i < n; ++i )
             {
                 a_[i] *= alpha;
             }
         }
         
-        inline friend void Scale( TENSOR_T & x, const T alpha )
+        inline friend void Scale( TENSOR_T & x, const Scalar alpha )
         {
             x.Scale(alpha);
         }
         
-        T Total() const
+        Scalar Total() const
         {
-            T sum = static_cast<T>(0);
+            Scalar sum = static_cast<Scalar>(0);
 
-            T * restrict const a_ = a;
+            Scalar * restrict const a_ = a;
             
             #pragma omp simd aligned( a_ : ALIGNMENT ) reduction( + : sum )
-            for( I i = 0; i < n; ++ i )
+            for( Int i = 0; i < n; ++ i )
             {
                 sum += a_[i];
             }
@@ -197,27 +195,27 @@ namespace Tensors {
             return sum;
         }
         
-        inline friend T Total( const TENSOR_T & x )
+        inline friend Scalar Total( const TENSOR_T & x )
         {
             return x.Total();
         }
         
-        T Dot( const TENSOR_T & y ) const
+        Scalar Dot( const TENSOR_T & y ) const
         {
-            T sum = static_cast<T>(0);
+            Scalar sum = static_cast<Scalar>(0);
             
-            const T * restrict const x_a =   a;
-            const T * restrict const y_a = y.a;
+            const Scalar * restrict const x_a =   a;
+            const Scalar * restrict const y_a = y.a;
             
             if( Size() != y.Size() )
             {
                 eprint(ClassName()+"::Dot: Sizes of vectors differ. Doing nothing.");
                 return sum;
             }
-            const I n_ = std::min( Size(), y.Size() );
+            const Int n_ = std::min( Size(), y.Size() );
 
             #pragma omp simd aligned( x_a, y_a : ALIGNMENT ) reduction( + : sum )
-            for( I i = 0; i < n_; ++ i)
+            for( Int i = 0; i < n_; ++ i)
             {
                 sum += x_a[i] * y_a[i];
             }
@@ -225,35 +223,35 @@ namespace Tensors {
             return sum;
         }
         
-        inline friend T Dot( const TENSOR_T & x, const TENSOR_T & y )
+        inline friend Scalar Dot( const TENSOR_T & x, const TENSOR_T & y )
         {
             return x.Dot(y);
         }
         
-        T Norm() const
+        Scalar Norm() const
         {
-            T r2 = 0;
+            Scalar r2 = 0;
             
-            for( I i = 0; i < n; ++i )
+            for( Int i = 0; i < n; ++i )
             {
                 r2 += a[i] * a[i];
             }
             return std::sqrt(r2);
         }
         
-        inline friend T Norm( const TENSOR_T & x )
+        inline friend Scalar Norm( const TENSOR_T & x )
         {
             return x.Norm();
         }
         
         void iota()
         {
-            T * restrict const a_ = a;
+            Scalar * restrict const a_ = a;
             
             #pragma omp simd aligned( a_ : ALIGNMENT )
-            for( I i = 0; i < n; ++i )
+            for( Int i = 0; i < n; ++i )
             {
-                a_[i] = static_cast<T>(i);
+                a_[i] = static_cast<Scalar>(i);
             }
         }
 
@@ -265,7 +263,7 @@ namespace Tensors {
             return s;
         }
         
-        std::string ToString( const I p = 16) const
+        std::string ToString( const Int p = 16) const
         {
             std::stringstream sout;
             sout.precision(p);
@@ -275,7 +273,7 @@ namespace Tensors {
                 sout << a[0];
             }
             
-            for( I i = 1; i < n; ++i )
+            for( Int i = 1; i < n; ++i )
             {
                 sout << ", " << a[i];
             }
@@ -285,7 +283,7 @@ namespace Tensors {
 
 
         
-        std::string ToString( const I i_begin, const I i_end, const I p = 16) const
+        std::string ToString( const Int i_begin, const Int i_end, const Int p = 16) const
         {
             std::stringstream sout;
             sout.precision(p);
@@ -294,7 +292,7 @@ namespace Tensors {
             {
                 sout << a[i_begin];
             }
-            for( I i = i_begin + 1; i < i_end; ++i )
+            for( Int i = i_begin + 1; i < i_end; ++i )
             {
                 sout << ", " << a[i];
             }
@@ -304,26 +302,26 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return "Tensor1<"+TypeName<T>::Get()+","+TypeName<I>::Get()+">";
+            return "Tensor1<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
         }
         
         
     }; // Tensor1
     
-    template<typename T, typename I>
-    Tensor1<T,I> iota( const I size_ )
+    template<typename Scalar, typename Int>
+    Tensor1<Scalar,Int> iota( const Int size_ )
     {
-        auto v = Tensor1<T,I>(size_);
+        auto v = Tensor1<Scalar,Int>(size_);
         
         v.iota();
         
         return v;
     }
     
-    template<typename T, typename I, typename S, typename J, IsInt(I), IsInt(J)>
-    Tensor1<T,I> ToTensor1( const S * a_, const J d0 )
+    template<typename Scalar, typename Int, typename S>
+    Tensor1<Scalar,Int> ToTensor1( const S * a_, const Int d0 )
     {
-        Tensor1<T,I> result (static_cast<I>(d0));
+        Tensor1<Scalar,Int> result (d0);
 
         result.Read(a_);
         
@@ -332,16 +330,16 @@ namespace Tensors {
     
 #ifdef LTEMPLATE_H
     
-    template<typename T, typename I>
-    Tensor1<T,I> from_VectorRef( const mma::TensorRef<mreal> & A )
+    template<typename Scalar, typename Int>
+    Tensor1<Scalar,Int> from_VectorRef( const mma::TensorRef<mreal> & A )
     {
-        return ToTensor1<T,I>( A.data(), A.dimensions()[0] );
+        return ToTensor1<Scalar,Int>( A.data(), A.dimensions()[0] );
     }
     
-    template<typename T, typename I>
-    Tensor1<T,I> from_VectorRef( const mma::TensorRef<mint> & A )
+    template<typename Scalar, typename Int>
+    Tensor1<Scalar,Int> from_VectorRef( const mma::TensorRef<mint> & A )
     {
-        return ToTensor1<T,I>( A.data(), A.dimensions()[0] );
+        return ToTensor1<Scalar,Int>( A.data(), A.dimensions()[0] );
     }
     
 #endif

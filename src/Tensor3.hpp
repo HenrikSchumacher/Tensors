@@ -4,7 +4,7 @@ namespace Tensors {
 
 #define TENSOR_T Tensor3
 
-    template <typename T, typename I>
+    template <typename Scalar, typename Int>
     class TENSOR_T
     {
         
@@ -12,40 +12,38 @@ namespace Tensors {
         
     protected:
         
-        std::array<I,3> dims = {0,0,0};     // dimensions visible to user
+        std::array<Int,3> dims = {0,0,0};     // dimensions visible to user
 
     public:
         
-        template< typename J0, typename J1, typename J2, IsInt(J0), IsInt(J1), IsInt(J2)>
-        TENSOR_T( const J0 d0, const J1 d1, const J2 d2 )
-        :   n   { static_cast<I>(static_cast<I>(d0) * static_cast<I>(d1) * static_cast<I>(d2)) }
-        ,   dims{static_cast<I>(d0), static_cast<I>(d1) ,static_cast<I>(d2)}
+        TENSOR_T( const Int d0, const Int d1, const Int d2 )
+        :   n    { d0 * d1 * d2 }
+        ,   dims { d0, d1, d2 }
         {
             allocate();
         }
         
-        template<typename J0, typename J1, typename J2, IsInt(J0), IsInt(J1), IsInt(J2) >
-        TENSOR_T( const J0 d0, const J1 d1, const J2 d2, const T init )
-        :   TENSOR_T(static_cast<I>(d0), static_cast<I>(d1), static_cast<I>(d2))
+        TENSOR_T( const Int d0, const Int d1, const Int d2, const Scalar init )
+        :   TENSOR_T( d0, d1, d2 )
         {
-            Fill( static_cast<T>(init) );
+            Fill( init );
         }
         
-        template<typename S, typename J0, typename J1, typename J2, IsInt(J0), IsInt(J1), IsInt(J2)>
-        TENSOR_T( const S * a_, const J0 d0, const J1 d1, const J2 d2 )
-        :   TENSOR_T(static_cast<I>(d0), static_cast<I>(d1), static_cast<I>(d2))
+        template<typename S>
+        TENSOR_T( const S * a_, const Int d0, const Int d1, const Int d2 )
+        :   TENSOR_T( d0, d1, d2 )
         {
             Read(a_);
         }
         
-        static constexpr I Rank()
+        static constexpr Int Rank()
         {
-            return static_cast<I>(3);
+            return static_cast<Int>(3);
         }
         
     private:
         
-        void BoundCheck( const I i ) const
+        void BoundCheck( const Int i ) const
         {
             if( (i < 0) || (i > dims[0]) )
             {
@@ -53,7 +51,7 @@ namespace Tensors {
             }
         }
         
-        void BoundCheck( const I i, const I j ) const
+        void BoundCheck( const Int i, const Int j ) const
         {
             if( (i < 0) || (i > dims[0]) )
             {
@@ -65,7 +63,7 @@ namespace Tensors {
             }
         }
         
-        void BoundCheck( const I i, const I j, const I k ) const
+        void BoundCheck( const Int i, const Int j, const Int k ) const
         {
             if( (i < 0) || (i > dims[0]) )
             {
@@ -84,7 +82,7 @@ namespace Tensors {
     public:
         
 
-        force_inline T * data( const I i )
+        force_inline Scalar * data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -92,7 +90,7 @@ namespace Tensors {
             return &a[i * dims[1] * dims[2]];
         }
         
-        force_inline const T * data( const I i ) const
+        force_inline const Scalar * data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -100,7 +98,7 @@ namespace Tensors {
             return &a[i * dims[1] * dims[2]];
         }
 
-        force_inline T * data( const I i, const I j )
+        force_inline Scalar * data( const Int i, const Int j )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -108,7 +106,7 @@ namespace Tensors {
             return &a[( i * dims[1] + j ) * dims[2]];
         }
         
-        force_inline const T * data( const I i, const I j ) const
+        force_inline const Scalar * data( const Int i, const Int j ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -117,7 +115,7 @@ namespace Tensors {
         }
 
         
-        force_inline T * data( const I i, const I j, const I k)
+        force_inline Scalar * data( const Int i, const Int j, const Int k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
@@ -126,7 +124,7 @@ namespace Tensors {
         }
         
         
-        force_inline const T * data( const I i, const I j, const I k) const
+        force_inline const Scalar * data( const Int i, const Int j, const Int k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
@@ -134,7 +132,7 @@ namespace Tensors {
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
-        force_inline T & operator()( const I i, const I j, const I k)
+        force_inline Scalar & operator()( const Int i, const Int j, const Int k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
@@ -142,7 +140,7 @@ namespace Tensors {
             return a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
-        force_inline const T & operator()( const I i, const I j, const I k) const
+        force_inline const Scalar & operator()( const Int i, const Int j, const Int k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
@@ -151,25 +149,25 @@ namespace Tensors {
         }
         
         template< typename S>
-        void Write( const I i, S * const b ) const
+        void Write( const Int i, S * const b ) const
         {
             copy_cast_buffer( data(i), b, dims[1] * dims[2] );
         }
         
         template< typename S>
-        void Write( const I i, const I j, T * const b ) const
+        void Write( const Int i, const Int j, Scalar * const b ) const
         {
             copy_cast_buffer( data(i,j), b, dims[2] );
         }
         
         template< typename S>
-        void Read( const I i, const S * const b )
+        void Read( const Int i, const S * const b )
         {
             copy_cast_buffer( b, data(i), dims[1] * dims[2] );
         }
         
         template< typename S>
-        void Read( const I i, const I j, const S * const b )
+        void Read( const Int i, const Int j, const S * const b )
         {
             copy_cast_buffer( b, data(i,j), dims[2] );
         }
@@ -178,17 +176,16 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return "Tensor3<"+TypeName<T>::Get()+","+TypeName<I>::Get()+">";
+            return "Tensor3<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
         }
         
     }; // Tensor3
     
     
-    template<typename T, typename I, typename S, typename J0, typename J1, typename J2, IsInt(I), IsInt(J0), IsInt(J1), IsInt(J2)
-    >
-    Tensor3<T,I> ToTensor3( const S * a_, const J0 d0, const J1 d1, const J2 d2 )
+    template<typename Scalar, typename Int>
+    Tensor3<Scalar,Int> ToTensor3( const S * a_, const Int d0, const Int d1, const Int d2 )
     {
-        Tensor3<T,I> result (static_cast<I>(d0), static_cast<I>(d1), static_cast<I>(d2));
+        Tensor3<Scalar,Int> result ( d0, d1, d2 );
 
         result.Read(a_);
         
@@ -197,16 +194,16 @@ namespace Tensors {
     
 #ifdef LTEMPLATE_H
     
-    template<typename T, typename I>
-    Tensor3<T,I> from_CubeRef( const mma::TensorRef<mreal> & A )
+    template<typename Scalar, typename Int>
+    Tensor3<Scalar,Int> from_CubeRef( const mma::TensorRef<mreal> & A )
     {
-        return ToTensor3<T,I>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
+        return ToTensor3<Scalar,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
     }
     
-    template<typename T, typename I>
-    Tensor3<T,I> from_CubeRef( const mma::TensorRef<mint> & A )
+    template<typename Scalar, typename Int>
+    Tensor3<Scalar,Int> from_CubeRef( const mma::TensorRef<mint> & A )
     {
-        return ToTensor3<T,I>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
+        return ToTensor3<Scalar,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
     }
     
 #endif

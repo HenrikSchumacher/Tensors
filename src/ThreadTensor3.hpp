@@ -2,74 +2,72 @@
 
 namespace Tensors {
 
-    template <typename T, typename I>
+    template <typename Scalar, typename Int>
     class ThreadTensor3
     {
-        ASSERT_INT(I);
+        ASSERT_INT(Int);
         
     private:
         
-        I n = 0;
-        std::array<I,3> dims = {0,0,0};
-        std::vector<Tensor2<T,I>> tensors;
+        Int n = 0;
+        std::array<Int,3> dims = {0,0,0};
+        std::vector<Tensor2<Scalar,Int>> tensors;
         
     public:
         
         ThreadTensor3() = default;
         
-        template<typename J0, typename J1, typename J2, IsInt(J0), IsInt(J1), IsInt(J2)>
-        ThreadTensor3( const J0 d0, const J1 d1, const J2 d2 )
-        :   n(static_cast<I>(d0) * static_cast<I>(d1) * static_cast<I>(d2))
-        ,   dims{static_cast<I>(d0),static_cast<I>(d1),static_cast<I>(d2)}
-        ,   tensors( std::vector<Tensor2<T,I>> (static_cast<I>(d0)) )
+        ThreadTensor3( const Int d0, const Int d1, const Int d2 )
+        :   n( d0 * d1 * d2 )
+        ,   dims{ d0, d1, d2 }
+        ,   tensors( std::vector<Tensor2<Scalar,Int>> ( d0 ) )
         {
-            const I thread_count = dims[0];
+            const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
-                tensors[thread] = Tensor2<T,I>( dims[1], dims[2] );
+                tensors[thread] = Tensor2<Scalar,Int>( dims[1], dims[2] );
             }
         }
         
-        template<typename S, typename J0, typename J1, typename J2, IsInt(J0), IsInt(J1), IsInt(J2)>
-        ThreadTensor3( const J0 d0, const J1 d1, const J2 d2, const S init )
-        :   n(static_cast<I>(d0) * static_cast<I>(d1) * static_cast<I>(d2))
-        ,   dims{static_cast<I>(d0),static_cast<I>(d1),static_cast<I>(d2)}
-        ,   tensors( std::vector<Tensor2<T,I>> (static_cast<I>(d0)) )
+        ThreadTensor3( const Int d0, const Int d1, const Int d2, const Scalar init )
+        :   n( d0 * d1 * d2 )
+        ,   dims{ d0, d1, d2 }
+        ,   tensors( std::vector<Tensor2<Scalar,Int>> ( d0 ) )
         {
-            const I thread_count = dims[0];
+            const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
-                tensors[thread] = Tensor2<T,I>( dims[1], dims[2], static_cast<T>(init) );
+                tensors[thread] = Tensor2<Scalar,Int>( dims[1], dims[2], init );
             }
         }
         
-        template<typename S, typename J0, typename J1, typename J2, IsInt(J0), IsInt(J1), IsInt(J2)>
-        ThreadTensor3( const S * a_, const J0 d0, const J1 d1, const J2 d2 )
-        :   ThreadTensor3(static_cast<I>(d0),static_cast<I>(d1),static_cast<I>(d2))
+        template<typename S>
+        ThreadTensor3( const S * a_, const Int d0, const Int d1, const Int d2 )
+        :   ThreadTensor3( d0, d1, d2 )
         {
-            const I thread_count = dims[0];
+            const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
                 tensors[thread].Read( a_ + thread * dims[1] * dims[2]);
             }
         }
 
         // Copy constructor
-        explicit ThreadTensor3( const ThreadTensor3<T,I> & other )
+        explicit ThreadTensor3( const ThreadTensor3<Scalar,Int> & other )
         :   ThreadTensor3(other.dims)
         {
             print(ClassName()+" copy constructor");
             
-            const I thread_count = dims[0];
+            const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
                 tensors[thread].Read( other[thread].data() );
             }
@@ -82,10 +80,10 @@ namespace Tensors {
         {
             print(ClassName()+" copy constructor");
             
-            const I thread_count = dims[0];
+            const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
                 tensors[thread].Read( other[thread].data() );
             }
@@ -94,7 +92,7 @@ namespace Tensors {
 //        // Copy constructor
 //        ThreadTensor3( const ThreadTensor3 & other )
 //        :
-//            tensors( std::vector<Tensor2<T,I>> (other.Dimension(0)) ),
+//            tensors( std::vector<Tensor2<Scalar,Int>> (other.Dimension(0)) ),
 //            n(other.Size())
 //        {
 //            dims[0] = other.Dimension(0);
@@ -103,12 +101,12 @@ namespace Tensors {
 //
 //            print(ClassName()+" copy constructor");
 //
-//            const I thread_count = dims[0];
+//            const Int thread_count = dims[0];
 //
 //            #pragma omp parallel for num_threads( thread_count )
-//            for( I thread = 0; thread < thread_count; ++thread )
+//            for( Int thread = 0; thread < thread_count; ++thread )
 //            {
-//                tensors[thread] = Tensor2<T,I>( other[thread] );
+//                tensors[thread] = Tensor2<Scalar,Int>( other[thread] );
 //            }
 //        }
         
@@ -156,13 +154,13 @@ namespace Tensors {
         }
         
         
-        static constexpr I Rank()
+        static constexpr Int Rank()
         {
-            return static_cast<I>(3);
+            return static_cast<Int>(3);
         }
 
         
-        void BoundCheck( const I i ) const
+        void BoundCheck( const Int i ) const
         {
             if( (i < 0) || (i > dims[0]) )
             {
@@ -170,7 +168,7 @@ namespace Tensors {
             }
         }
         
-        void BoundCheck( const I i, const I j ) const
+        void BoundCheck( const Int i, const Int j ) const
         {
             if( (i < 0) || (i > dims[0]) )
             {
@@ -182,7 +180,7 @@ namespace Tensors {
             }
         }
         
-        void BoundCheck( const I i, const I j, const I k ) const
+        void BoundCheck( const Int i, const Int j, const Int k ) const
         {
             if( (i < 0) || (i > dims[0]) )
             {
@@ -198,7 +196,7 @@ namespace Tensors {
             }
         }
         
-        force_inline T * data( const I i )
+        force_inline Scalar * data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -206,7 +204,7 @@ namespace Tensors {
             return tensors[i].data();
         }
         
-        force_inline const T * data( const I i ) const
+        force_inline const Scalar * data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -214,7 +212,7 @@ namespace Tensors {
             return tensors[i].data();
         }
 
-        force_inline T * data( const I i, const I j)
+        force_inline Scalar * data( const Int i, const Int j)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -222,7 +220,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        force_inline const T * data( const I i, const I j) const
+        force_inline const Scalar * data( const Int i, const Int j) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -230,7 +228,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        force_inline T * data( const I i, const I j, const I k)
+        force_inline Scalar * data( const Int i, const Int j, const Int k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -238,7 +236,7 @@ namespace Tensors {
             return tensors[i].data(j,k);
         }
         
-        force_inline const T * data( const I i, const I j, const I k) const
+        force_inline const Scalar * data( const Int i, const Int j, const Int k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -246,7 +244,7 @@ namespace Tensors {
             return tensors[i].data(j,k);
         }
 
-        force_inline T & operator()( const I i, const I j, const I k)
+        force_inline Scalar & operator()( const Int i, const Int j, const Int k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -254,7 +252,7 @@ namespace Tensors {
             return tensors[i](j,k);
         }
     
-        force_inline const T & operator()( const I i, const I j, const I k) const
+        force_inline const Scalar & operator()( const Int i, const Int j, const Int k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -262,12 +260,12 @@ namespace Tensors {
             return tensors[i](j,k);
         }
         
-        void Fill( const T init )
+        void Fill( const Scalar init )
         {
-            const I thread_count = dims[0];
+            const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
                 tensors[thread].fill( init );
             }
@@ -275,63 +273,63 @@ namespace Tensors {
         
         void SetZero()
         {
-            const I thread_count = dims[0];
+            const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
                 tensors[thread].SetZero();
             }
         }
 
-        void Write( T * const b ) const
+        void Write( Scalar * const b ) const
         {
-            const I thread_count = dims[0];
+            const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
-            for( I thread = 0; thread < thread_count; ++thread )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
                 tensors[thread].Write( b + dims[1] * dims[2] * thread );
             }
         }
         
         template<typename S>
-        void Write( const I i, S * const b ) const
+        void Write( const Int i, S * const b ) const
         {
             tensors[i].Write( b );
         }
         
         template<typename S>
-        void Write( const I i, const I j, S * const b ) const
+        void Write( const Int i, const Int j, S * const b ) const
         {
             tensors[i].Write( j, b );
         }
         
         template<typename S>
-        void Read( const I i, const S * const b )
+        void Read( const Int i, const S * const b )
         {
             tensors[i].Read( b );
         }
         
         template<typename S>
-        void Read( const I i, const I j, const S * const b )
+        void Read( const Int i, const Int j, const S * const b )
         {
             tensors[i].Read( j, b );
         }
         
     public:
         
-        force_inline const I * Dimensions() const
+        force_inline const Int * Dimensions() const
         {
             return &dims[0];
         }
         
-        force_inline I Dimension( const I i ) const
+        force_inline Int Dimension( const Int i ) const
         {
-            return i < Rank() ? dims[i] : static_cast<I>(0);
+            return i < Rank() ? dims[i] : static_cast<Int>(0);
         }
  
-        I Size() const
+        Int Size() const
         {
             return n;
         }
@@ -357,7 +355,7 @@ namespace Tensors {
         {
             if( addto )
             {
-                for( I i = 0; i < dims[0]; ++ i )
+                for( Int i = 0; i < dims[0]; ++ i )
                 {
                     tensors[i].AddTo( B );
                 }
@@ -367,17 +365,17 @@ namespace Tensors {
                 // Write first slice.
                 tensors[0].Write(B);
                 
-                for( I i = 1; i < dims[0]; ++ i )
+                for( Int i = 1; i < dims[0]; ++ i )
                 {
                     tensors[i].AddTo( B );
                 }
             }
         }
         
-        I CountNan() const
+        Int CountNan() const
         {
-            I counter = 0;
-            for( I thread = 0 ; thread < dims[0]; ++thread )
+            Int counter = 0;
+            for( Int thread = 0 ; thread < dims[0]; ++thread )
             {
                 counter += tensors[thread].CountNan();
             }
@@ -385,12 +383,12 @@ namespace Tensors {
         }
         
         
-        Tensor2<T,I> & operator[]( const I thread )
+        Tensor2<Scalar,Int> & operator[]( const Int thread )
         {
             return tensors[thread];
         }
         
-        const Tensor2<T,I> & operator[]( const I thread ) const
+        const Tensor2<Scalar,Int> & operator[]( const Int thread ) const
         {
             return tensors[thread];
         }
@@ -399,7 +397,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return "ThreadTensor3<"+TypeName<T>::Get()+","+TypeName<I>::Get()+">";
+            return "ThreadTensor3<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
         }
         
     }; // ThreadTensor3
@@ -408,8 +406,8 @@ namespace Tensors {
 #ifdef LTEMPLATE_H
 
     
-    template<typename T, typename I, IsFloat(T)>
-    inline mma::TensorRef<mreal> to_MTensorRef( const ThreadTensor3<T,I> & A )
+    template<typename Scalar, typename Int, IsFloat(Scalar)>
+    inline mma::TensorRef<mreal> to_MTensorRef( const ThreadTensor3<Scalar,Int> & A )
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
@@ -417,9 +415,9 @@ namespace Tensors {
         
         auto B = mma::makeTensor<mreal>( r, dims_.data() );
         
-        const I size_ = A.Dimension(1) * A.Dimension(2);
+        const Int size_ = A.Dimension(1) * A.Dimension(2);
         
-        for( I thread = 0; thread < A.Dimension(0); ++thread )
+        for( Int thread = 0; thread < A.Dimension(0); ++thread )
         {
             A[thread].Write( &B.data()[size_ * thread] );
         }
@@ -427,8 +425,8 @@ namespace Tensors {
         return B;
     }
     
-    template<typename J, typename I, IsInt(J)>
-    inline mma::TensorRef<mint> to_MTensorRef( const ThreadTensor3<J,I> & A )
+    template<typename J, typename Int, IsInt(J)>
+    inline mma::TensorRef<mint> to_MTensorRef( const ThreadTensor3<J,Int> & A )
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
@@ -436,9 +434,9 @@ namespace Tensors {
         
         auto B = mma::makeTensor<mint>( r, dims_.data() );
         
-        const I size_ = A.Dimension(1) * A.Dimension(2);
+        const Int size_ = A.Dimension(1) * A.Dimension(2);
         
-        for( I thread = 0; thread < A.Dimension(0); ++thread )
+        for( Int thread = 0; thread < A.Dimension(0); ++thread )
         {
             A[thread].Write( &B.data()[size_ * thread] );
         }
