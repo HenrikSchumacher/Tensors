@@ -282,20 +282,20 @@ namespace Tensors
             Scalar Y[n][max_rhs] = {{}};
             
             // Step 1: Permute B and store it in Y.
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
                 copy_cast_buffer( &B[p[i]*ldB], &Y[i][0], nrhs );
             }
             
             // Step 2: Inplace solve L Y = B
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
-                #pragma unroll
+                #pragma omp unroll full
                 for( Int j = 0; j < i; ++j )
                 {
-                    #pragma unroll
+                    #pragma omp unroll full
                     for( Int k = 0; k < max_rhs; ++k )
                     {
                         Y[i][k] -= LU[i][j] * Y[j][k];
@@ -304,13 +304,13 @@ namespace Tensors
             }
             
             // Step 3: Inplace solve U X = Y.
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = n; i --> 0; )
             {
-                #pragma unroll
+                #pragma omp unroll full
                 for( Int j = i+1; j < n; ++j )
                 {
-                    #pragma unroll
+                    #pragma omp unroll full
                     for( Int k = 0; k < max_rhs; ++k )
                     {
                         Y[i][k] -= LU[i][j] * Y[j][k];
@@ -319,7 +319,7 @@ namespace Tensors
 
                 const Scalar U_ii_inv = static_cast<Scalar>(1) / LU[i][i];
 
-                #pragma unroll
+                #pragma omp unroll full
                 for( Int k = 0; k < max_rhs; ++k )
                 {
                     Y[i][k] *= U_ii_inv;
@@ -327,7 +327,7 @@ namespace Tensors
             }
             
             // Step 4: Write result.
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
                 copy_cast_buffer( &Y[i][0],  &X[i*ldX], nrhs);
@@ -347,17 +347,17 @@ namespace Tensors
             SmallVectorList<n,Scalar,Int> Y (nrhs);
 
             // Step 1: Permute B and store it in Y.
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
                 copy_cast_buffer( &B[p[i]*ldB], &Y[i][0], nrhs );
             }
             
             // Step 2: Inplace solve L Y = B
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
-                #pragma unroll
+                #pragma omp unroll full
                 for( Int j = 0; j < i; ++j )
                 {
 //                    #pragma clang loop unroll_count(8)
@@ -369,7 +369,7 @@ namespace Tensors
             }
             
             // Step 3: Inplace solve U X = Y.
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = n; i --> 0; )
             {
 //                #pragma clang loop unroll_count(8)
@@ -391,7 +391,7 @@ namespace Tensors
             }
             
             // Step 4: Write result.
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
                 copy_cast_buffer( &Y[i][0], &X[i*ldX], nrhs );
@@ -403,26 +403,26 @@ namespace Tensors
         template<typename T>
         void Factorize( const T * restrict const A_, const Int ldA )
         {
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
                 copy_cast_buffer( &A_[ldA*i], &LU[i][0], n );
             }
             
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
                 p[i] = i;
             }
             
-            #pragma unroll
+            #pragma omp unroll full
             for( Int k = 0; k < n-1; ++k )
             {
                 // Find pivot index r = argmax |A[i][k]|, i = k,...,n.
                 Int r = k;
                 
                 Scalar a = std::abs(LU[k][k]);
-                #pragma unroll
+                #pragma omp unroll full
                 for( Int i = k+1; i < n; ++i )
                 {
                     const Scalar b = std::abs(LU[i][k]);
@@ -443,12 +443,12 @@ namespace Tensors
                 
                 const Scalar LU_kk_inv = static_cast<Scalar>(1) / LU[k][k];
                 
-                #pragma unroll
+                #pragma omp unroll full
                 for( Int i = k+1; i < n; ++i )
                 {
                     LU[i][k] *= LU_kk_inv;
                     
-                    #pragma unroll
+                    #pragma omp unroll full
                     for( Int j = k+1; j < n; ++j )
                     {
                         LU[i][j] -= LU[i][k] * LU[k][j];
@@ -460,7 +460,7 @@ namespace Tensors
         template<typename T>
         void WriteFactors( T * restrict const A_, const Int ldA ) const
         {
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
                 copy_cast_buffer( &LU[i][0], &A_[ldA*i], n );
@@ -476,7 +476,7 @@ namespace Tensors
         template<typename T>
         void ReadFactors( const T * restrict const A_, const Int ldA )
         {
-            #pragma unroll
+            #pragma omp unroll full
             for( Int i = 0; i < n; ++i )
             {
                 copy_cast_buffer( &A_[ldA*i], &LU[i][0], n );
