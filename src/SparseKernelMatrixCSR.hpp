@@ -16,10 +16,12 @@ namespace Tensors
         using Scalar_out = typename Kernel_T::Scalar_out;
         
         using SparsityPattern_T = SparsityPatternCSR<Int,LInt>;
+  
+        CLASS() = delete;
         
-        CLASS()
-        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
-        {}
+//        CLASS()
+//        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+//        {}
         
         explicit CLASS(
             const SparsityPattern_T & pattern_
