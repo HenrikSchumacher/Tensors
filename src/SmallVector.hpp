@@ -1,6 +1,7 @@
 #pragma once
 
-namespace Tensors {
+namespace Tensors
+{
     
     template< int AmbDim, typename Real, typename Int>
     struct SmallVector
@@ -177,4 +178,4 @@ namespace Tensors {
         }
     };
     
-} // namespace CyclicSampler
+} // namespace Tensors
