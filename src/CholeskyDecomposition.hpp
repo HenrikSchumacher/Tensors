@@ -367,7 +367,6 @@ namespace Tensors
                 #pragma omp unroll full
                 for( Int j = 0; j < i; ++j )
                 {
-//                    #pragma clang loop unroll_count(8)
                     for( Int k = 0; k < nrhs; ++k )
                     {
                         Y[i][k] -= U[j][i] * Y[j][k];

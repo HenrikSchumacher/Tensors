@@ -360,7 +360,6 @@ namespace Tensors
                 #pragma omp unroll full
                 for( Int j = 0; j < i; ++j )
                 {
-//                    #pragma clang loop unroll_count(8)
                     for( Int k = 0; k < nrhs; ++k )
                     {
                         Y[i][k] -= LU[i][j] * Y[j][k];
@@ -372,7 +371,6 @@ namespace Tensors
             #pragma omp unroll full
             for( Int i = n; i --> 0; )
             {
-//                #pragma clang loop unroll_count(8)
                 for( Int j = i+1; j < n; ++j )
                 {
                     for( Int k = 0; k < nrhs; ++k )
@@ -383,7 +381,6 @@ namespace Tensors
 
                 const Scalar U_ii_inv = static_cast<Scalar>(1) / LU[i][i];
 
-//                #pragma clang loop unroll_count(8)
                 for( Int k = 0; k < nrhs; ++k )
                 {
                     Y[i][k] *= U_ii_inv;
