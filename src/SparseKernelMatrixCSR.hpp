@@ -334,7 +334,7 @@ namespace Tensors
                             
                             // Perform last calculation in row without prefetch.
                             {
-                                const Int k = k_end-1;
+                                const LInt k = k_end-1;
                                 
                                 const Int j = ci[k];
                                 

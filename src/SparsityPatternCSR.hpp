@@ -344,7 +344,7 @@ namespace Tensors
                         
                               LInt * restrict const c = counters.data(thread);
                         
-                        for( Int k = entry_count; k--> 0; )
+                        for( LInt k = entry_count; k--> 0; )
                         {
                             const Int i = thread_idx[k];
                             const Int j = thread_jdx[k];
@@ -373,7 +373,7 @@ namespace Tensors
                         
                               LInt * restrict const c = counters.data(thread);
                         
-                        for( Int k = entry_count; k --> 0; )
+                        for( LInt k = entry_count; k --> 0; )
                         {
                             const Int i = thread_idx[k];
                             const Int j = thread_jdx[k];
@@ -570,7 +570,7 @@ namespace Tensors
             return n;
         }
         
-        Int NonzeroCount() const
+        LInt NonzeroCount() const
         {
             return inner.Size();
         }
@@ -809,7 +809,7 @@ namespace Tensors
                         const LInt new_pos = new_outer__[i_begin];
                         const LInt     pos =     outer__[i_begin];
                         
-                        const Int thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
+                        const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
                         
                         copy_buffer( &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes );
                     }
