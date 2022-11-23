@@ -188,7 +188,7 @@ namespace Tensors
             if constexpr ( x_copy )
             {
                 // CAUTION: Shadowing global variable here!
-                const Scalar_in * restrict const x_from = &X[ColsSize() * j_global];
+                x_from = &X[ColsSize() * j_global];
                 
                 if constexpr ( x_RM )
                 {

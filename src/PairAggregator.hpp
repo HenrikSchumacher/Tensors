@@ -26,7 +26,7 @@ namespace Tensors
 
         ~PairAggregator() = default;
 
-        PairAggregator( const LInt n )
+        explicit PairAggregator( const LInt n )
         :   current_size ( static_cast<LInt>(0)             )
         ,   capacity     ( std::max(static_cast<LInt>(BUFFER_CAPACITY),n) )
         ,   container_0  ( std::max(static_cast<LInt>(BUFFER_CAPACITY),n) )

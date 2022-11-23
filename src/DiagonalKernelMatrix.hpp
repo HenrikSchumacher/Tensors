@@ -184,8 +184,6 @@ namespace Tensors
             }
 
             const auto & job_ptr = JobPointers<Int>(n,thread_count);
-            
-            const Int thread_count = job_ptr.Size()-1;
 
             if( thread_count > 1)
             {

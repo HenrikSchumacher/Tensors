@@ -104,9 +104,9 @@ namespace Tensors
                                 while( L < R )
                                 {
                                     const LInt M = R - (R-L)/static_cast<LInt>(2);
-                                    const  Int j = inner[M];
+                                    const  Int col = inner[M];
                                     
-                                    if( j > i )
+                                    if( col > i )
                                     {
                                         R = M-1;
                                     }
@@ -148,9 +148,9 @@ namespace Tensors
                                 while( L < R )
                                 {
                                     const LInt M = R - (R-L)/static_cast<LInt>(2);
-                                    const  Int j = inner[M];
+                                    const  Int col = inner[M];
                                     
-                                    if( j > i )
+                                    if( col > i )
                                     {
                                         R = M-1;
                                     }

@@ -31,7 +31,7 @@ namespace Tensors
 
         ~TripleAggregator() = default;
 
-        TripleAggregator( const LInt n )
+        explicit TripleAggregator( const LInt n )
         :   current_size ( static_cast<LInt>(0)             )
         ,   capacity     ( std::max(static_cast<LInt>(BUFFER_CAPACITY),n) )
         ,   container_0  ( capacity )

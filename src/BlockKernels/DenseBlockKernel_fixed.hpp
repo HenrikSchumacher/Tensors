@@ -112,8 +112,8 @@ namespace Tensors
                 
         force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            const Scalar * restrict const a_from = &A[ BLOCK_NNZ * from];
-                  Scalar * restrict const a_to   = &A[ BLOCK_NNZ * to  ];
+            const Scalar * restrict const a_from_ = &A[ BLOCK_NNZ * from];
+                  Scalar * restrict const a_to_   = &A[ BLOCK_NNZ * to  ];
             
             if constexpr ( a_RM )
             {
@@ -123,7 +123,7 @@ namespace Tensors
                     LOOP_UNROLL_FULL
                     for( Int i = 0; i < ROWS; ++i )
                     {
-                        a_to[ROWS * j + i ] = a_from[COLS * i + j ];
+                        a_to_[ROWS * j + i ] = a_from_[COLS * i + j ];
                     }
                 }
             }
@@ -135,7 +135,7 @@ namespace Tensors
                     LOOP_UNROLL_FULL
                     for( Int j = 0; j < COLS; ++j )
                     {
-                        a_to[COLS * i + j] = a_from[ROWS * j + i];
+                        a_to_[COLS * i + j] = a_from_[ROWS * j + i];
                     }
                 }
             }
@@ -146,7 +146,7 @@ namespace Tensors
             // Read matrix.
             if constexpr ( a_copy )
             {
-                const Scalar * restrict const a_from = &A_const[BLOCK_NNZ * k_global];
+                a_from = &A_const[BLOCK_NNZ * k_global];
                 
                 if constexpr ( a_RM )
                 {

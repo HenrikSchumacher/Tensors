@@ -13,7 +13,7 @@ namespace Tensors
         
         ~CLASS() = default;
         
-        CLASS( Tensor1<Int,Int> && parents_ )
+        explicit CLASS( Tensor1<Int,Int> && parents_ )
         {
             tic("EliminationTree");
             

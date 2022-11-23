@@ -570,8 +570,8 @@ namespace Tensors
                                 inner__ [jj_new] = j;
                                 values__[jj_new] = a;
                                 
-                                jj_new++;
-                                row_nonzero_counter++;
+                                ++jj_new;
+                                ++row_nonzero_counter;
                             }
                             
                             new_outer__[i+1] = row_nonzero_counter;

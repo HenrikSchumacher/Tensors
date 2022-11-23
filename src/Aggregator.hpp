@@ -20,7 +20,7 @@ namespace Tensors
 
         ~Aggregator() = default;
 
-        Aggregator( const LInt n )
+        explicit Aggregator( const LInt n )
         :   current_size ( static_cast<LInt>(0)             )
         ,   capacity     ( std::max(static_cast<LInt>(1),n) )
         ,   container_0  ( std::max(static_cast<LInt>(1),n) )
