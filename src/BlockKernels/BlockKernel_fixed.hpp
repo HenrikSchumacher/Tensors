@@ -200,10 +200,10 @@ namespace Tensors
                         }
                         else
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                #pragma omp unroll full
+                                LOOP_UNROLL_FULL
                                 for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
                                     x[j][k] = static_cast<Scalar>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k] );
@@ -213,10 +213,10 @@ namespace Tensors
                     }
                     else
                     {
-                        #pragma omp unroll full
+                        LOOP_UNROLL_FULL
                         for( Int j = 0; j < COLS; ++j )
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
                                 x[k][j] = static_cast<Scalar>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k] );
@@ -228,10 +228,10 @@ namespace Tensors
                 {
                     if constexpr ( x_intRM )
                     {
-                        #pragma omp unroll full
+                        LOOP_UNROLL_FULL
                         for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
                                 x[j][k] = static_cast<Scalar>( x_from[COLS*k+j] );
@@ -550,7 +550,7 @@ namespace Tensors
             }
             else
             {
-                #pragma omp unroll full
+                LOOP_UNROLL_FULL
                 for( Int k = 0; k < RowsSize(); ++k )
                 {
                     y_to[k] *= beta;

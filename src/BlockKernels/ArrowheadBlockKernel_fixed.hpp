@@ -107,7 +107,7 @@ namespace Tensors
             
             a_to[0] = a_from[0];
             
-            #pragma omp unroll full
+            LOOP_UNROLL_FULL
             for( Int i = 1; i < ROWS; ++i )
             {
                 a_to[       i] = a_from[ROWS-1+i];
@@ -152,6 +152,7 @@ namespace Tensors
             
             ReadA( k_global );
             
+            //
             //    /                                                                  \
             //    |   get_a(0)          get_a(1)       get_a(2)      get_a(COLS-1)   |
             //    |                                                                  |
@@ -161,19 +162,20 @@ namespace Tensors
             //    |                                                                  |
             //    |   get_a(ROWS+COLS-2)   0              0              0           |
             //    \                                                                  /
+            //
             
-            #pragma omp unroll full
+            LOOP_UNROLL_FULL
             for( Int k = 0; k < RHS_COUNT; ++k )
             {
                 FMA( get_a(0), get_x(0,k), get_y(0,k) );
 
-                #pragma omp unroll full
+                LOOP_UNROLL_FULL
                 for( Int j = 1; j < COLS; ++j )
                 {
                     FMA( get_a(j), get_x(j,k), get_y(0,k) );
                 }
 
-                #pragma omp unroll full
+                LOOP_UNROLL_FULL
                 for( Int i = 1; i < ROWS; ++i )
                 {
                     FMA( get_a(COLS-1+i), get_x(0,k), get_y(i,k) );

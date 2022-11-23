@@ -117,10 +117,10 @@ namespace Tensors
             
             if constexpr ( a_RM )
             {
-                #pragma omp unroll full
+                LOOP_UNROLL_FULL
                 for( Int j = 0; j < COLS; ++j )
                 {
-                    #pragma omp unroll full
+                    LOOP_UNROLL_FULL
                     for( Int i = 0; i < ROWS; ++i )
                     {
                         a_to[ROWS * j + i ] = a_from[COLS * i + j ];
@@ -129,10 +129,10 @@ namespace Tensors
             }
             else
             {
-                #pragma omp unroll full
+                LOOP_UNROLL_FULL
                 for( Int i = 0; i < ROWS; ++i )
                 {
-                    #pragma omp unroll full
+                    LOOP_UNROLL_FULL
                     for( Int j = 0; j < COLS; ++j )
                     {
                         a_to[COLS * i + j] = a_from[ROWS * j + i];
@@ -156,10 +156,10 @@ namespace Tensors
                     }
                     else
                     {
-                        #pragma omp unroll full
+                        LOOP_UNROLL_FULL
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
                                 a[j][i] = a_from[COLS*i+j];
@@ -171,10 +171,10 @@ namespace Tensors
                 {
                     if constexpr ( a_intRM )
                     {
-                        #pragma omp unroll full
+                        LOOP_UNROLL_FULL
                         for( Int j = 0; j < COLS; ++j )
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int i = 0; i < ROWS; ++i )
                             {
                                 a[i][j] = a_from[ROWS*j+i];
@@ -241,13 +241,13 @@ namespace Tensors
                     {
                         case 0:
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                #pragma omp unroll full
+                                LOOP_UNROLL_FULL
                                 for( Int j = 0; j < COLS; ++j )
                                 {
-                                    #pragma omp unroll full
+                                    LOOP_UNROLL_FULL
                                     for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -258,13 +258,13 @@ namespace Tensors
                         }
                         case 1:
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                #pragma omp unroll full
+                                LOOP_UNROLL_FULL
                                 for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
-                                    #pragma omp unroll full
+                                    LOOP_UNROLL_FULL
                                     for( Int j = 0; j < COLS; ++j )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -275,13 +275,13 @@ namespace Tensors
                         }
                         case 2:
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                #pragma omp unroll full
+                                LOOP_UNROLL_FULL
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
-                                    #pragma omp unroll full
+                                    LOOP_UNROLL_FULL
                                     for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -292,13 +292,13 @@ namespace Tensors
                         }
                         case 3:
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                #pragma omp unroll full
+                                LOOP_UNROLL_FULL
                                 for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
-                                    #pragma omp unroll full
+                                    LOOP_UNROLL_FULL
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -309,13 +309,13 @@ namespace Tensors
                         }
                         case 4:
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                #pragma omp unroll full
+                                LOOP_UNROLL_FULL
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
-                                    #pragma omp unroll full
+                                    LOOP_UNROLL_FULL
                                     for( Int j = 0; j < COLS; ++j )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -326,13 +326,13 @@ namespace Tensors
                         }
                         case 5:
                         {
-                            #pragma omp unroll full
+                            LOOP_UNROLL_FULL
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                #pragma omp unroll full
+                                LOOP_UNROLL_FULL
                                 for( Int j = 0; j < COLS; ++j )
                                 {
-                                    #pragma omp unroll full
+                                    LOOP_UNROLL_FULL
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
