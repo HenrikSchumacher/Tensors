@@ -474,7 +474,6 @@ namespace Tensors
         void ReadFactors( const T * restrict const A_, const Int ldA )
         {
             LOOP_UNROLL_FULL
-            LOOP_UNROLL_FULL
             for( Int i = 0; i < n; ++i )
             {
                 copy_cast_buffer( &A_[ldA*i], &LU[i][0], n );
