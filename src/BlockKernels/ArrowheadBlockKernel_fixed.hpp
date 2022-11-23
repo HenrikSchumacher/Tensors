@@ -152,7 +152,7 @@ namespace Tensors
             
             ReadA( k_global );
             
-            //
+            /*
             //    /                                                                  \
             //    |   get_a(0)          get_a(1)       get_a(2)      get_a(COLS-1)   |
             //    |                                                                  |
@@ -162,7 +162,7 @@ namespace Tensors
             //    |                                                                  |
             //    |   get_a(ROWS+COLS-2)   0              0              0           |
             //    \                                                                  /
-            //
+            */
             
             LOOP_UNROLL_FULL
             for( Int k = 0; k < RHS_COUNT; ++k )
