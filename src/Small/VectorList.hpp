@@ -273,7 +273,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return TO_STD_STRING(VectorList)+"<"+std::to_string(M)+","+TypeName<T>::Get()+","+TypeName<I>::Get()+">";
+                return "VectorList<"+std::to_string(M)+","+TypeName<T>::Get()+","+TypeName<I>::Get()+">";
             }
         };
         

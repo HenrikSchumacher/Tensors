@@ -263,7 +263,7 @@ namespace Small
             
             static std::string ClassName()
             {
-                return TO_STD_STRING(MatrixList)+"<"+std::to_string(M)+","+std::to_string(N)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
+                return "MatrixList<"+std::to_string(M)+","+std::to_string(N)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
             }
         };
         
