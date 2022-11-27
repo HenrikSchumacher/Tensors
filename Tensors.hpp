@@ -32,7 +32,7 @@
     //#include "src/SmallMatrix.hpp"
     #include "src/SmallVectorList.hpp"
     #include "src/SmallSquareMatrix.hpp"
-    //#include "src/SmallSymmetricMatrix.hpp"
+    #include "src/SmallSymmetricMatrix.hpp"
     #include "src/SmallMatrixList.hpp"
 
     #include "src/AssemblyCounters.hpp"
