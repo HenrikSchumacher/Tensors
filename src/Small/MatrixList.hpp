@@ -1,6 +1,6 @@
 #pragma once
 
-namespace Small
+namespace Tensors
 {
     namespace Small
     {
