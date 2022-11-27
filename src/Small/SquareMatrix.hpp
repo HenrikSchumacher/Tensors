@@ -10,7 +10,7 @@ namespace Tensors
         {
         public:
             
-            using Vector_T = SmallVector<AmbDim,Real,Int>;
+            using Vector_T = Vector<AmbDim,Real,Int>;
             
             static constexpr Real zero              = 0;
             static constexpr Real half              = 0.5;
