@@ -1,5 +1,4 @@
 #pragma once
-#pragma once
 
 #define CLASS BlockKernel_RM
 
