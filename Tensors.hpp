@@ -28,12 +28,12 @@
     #include "src/Tensor3.hpp"
     #include "src/ThreadTensor3.hpp"
 
-    #include "src/SmallVector.hpp"
+    #include "src/Small/Vector.hpp"
     //#include "src/SmallMatrix.hpp"
-    #include "src/SmallVectorList.hpp"
-    #include "src/SmallSquareMatrix.hpp"
-    #include "src/SmallSymmetricMatrix.hpp"
-    #include "src/SmallMatrixList.hpp"
+    #include "src/Small/VectorList.hpp"
+    #include "src/Small/SquareMatrix.hpp"
+    #include "src/Small/SymmetricMatrix.hpp"
+    #include "src/Small/MatrixList.hpp"
 
     #include "src/AssemblyCounters.hpp"
     #include "src/Aggregator.hpp"

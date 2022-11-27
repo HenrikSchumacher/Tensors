@@ -2,9 +2,11 @@
 
 namespace Tensors
 {
+    namespace Small
+    {
         
         template< int AmbDim, typename Real, typename Int>
-        struct SmallSquareMatrix
+        struct SquareMatrix
         {
         public:
             
@@ -21,18 +23,18 @@ namespace Tensors
             
             // Uses only upper triangle.
             
-            Real A [AmbDim][AmbDim] = {};
+            Real A [AmbDim][AmbDim] = { {} };
             
-             SmallSquareMatrix() = default;
-           
-            ~SmallSquareMatrix() = default;
+            SquareMatrix() = default;
             
-            explicit SmallSquareMatrix( const Real init )
+            ~SquareMatrix() = default;
+            
+            explicit SquareMatrix( const Real init )
             {
                 Fill(init);
             }
             
-            SmallSquareMatrix( const SmallSquareMatrix & other )
+            SquareMatrix( const SquareMatrix & other )
             {
                 *this = other;
             }
@@ -67,9 +69,9 @@ namespace Tensors
                 return A[i][j];
             }
             
-            friend SmallSquareMatrix operator+( const SmallSquareMatrix & x, const SmallSquareMatrix & y )
+            friend SquareMatrix operator+( const SquareMatrix & x, const SquareMatrix & y )
             {
-                SmallSquareMatrix z;
+                SquareMatrix z;
                 for( Int i = 0; i < AmbDim; ++i )
                 {
                     for( Int j = 0; j < AmbDim; ++j )
@@ -80,7 +82,7 @@ namespace Tensors
                 return z;
             }
             
-            void operator+=( const SmallSquareMatrix & B )
+            void operator+=( const SquareMatrix & B )
             {
                 for( Int i = 0; i < AmbDim; ++i )
                 {
@@ -91,7 +93,7 @@ namespace Tensors
                 }
             }
             
-            void operator*=( const SmallSquareMatrix & B )
+            void operator*=( const SquareMatrix & B )
             {
                 for( Int i = 0; i < AmbDim; ++i )
                 {
@@ -102,7 +104,7 @@ namespace Tensors
                 }
             }
             
-            SmallSquareMatrix & operator=( const SmallSquareMatrix & B )
+            SquareMatrix & operator=( const SquareMatrix & B )
             {
                 for( Int i = 0; i < AmbDim; ++i )
                 {
@@ -131,7 +133,7 @@ namespace Tensors
                     y[i] = y_i;
                 }
             }
-        
+            
             
             void Write( Real * target ) const
             {
@@ -171,7 +173,7 @@ namespace Tensors
                 return sout.str();
             }
             
-
+            
             Real Det() const
             {
                 if( AmbDim == 2 )
@@ -182,19 +184,19 @@ namespace Tensors
                 if( AmbDim == 3 )
                 {
                     return (
-                          A[0][0]*A[1][1]*A[2][2] + A[0][1]*A[1][2]*A[2][0] + A[0][2]*A[1][0]*A[2][1]
-                        - A[0][0]*A[1][2]*A[2][1] - A[0][1]*A[1][0]*A[2][2] - A[0][2]*A[1][1]*A[2][0]
-                    );
+                            A[0][0]*A[1][1]*A[2][2] + A[0][1]*A[1][2]*A[2][0] + A[0][2]*A[1][0]*A[2][1]
+                            - A[0][0]*A[1][2]*A[2][1] - A[0][1]*A[1][0]*A[2][2] - A[0][2]*A[1][1]*A[2][0]
+                            );
                 }
                 
                 // Bareiss algorithm copied and adapted from https://cs.stackexchange.com/q/124759/146040
                 
-                SmallSquareMatrix<AmbDim,Real,Int> M;
+                SquareMatrix<AmbDim,Real,Int> M;
                 
                 M.Read(&A[0][0]);
                 
                 Real sign = one;
-
+                
                 for(Int k = 0; k < AmbDim - 1; ++k )
                 {
                     //Pivot - row swap needed
@@ -210,13 +212,13 @@ namespace Tensors
                                 break;
                             }
                         }
-
+                        
                         //No entries != 0 found in column k -> det = 0
                         if(m == AmbDim) {
                             return zero;
                         }
                     }
-
+                    
                     //Apply formula
                     for( Int i = k + 1; i < AmbDim; ++i )
                     {
@@ -230,7 +232,7 @@ namespace Tensors
                         }
                     }
                 }
-
+                
                 return sign * M(AmbDim-1,AmbDim-1);
             }
             
@@ -244,9 +246,11 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "SmallSquareMatrix<"+std::to_string(AmbDim)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
+                return "SquareMatrix<"+std::to_string(AmbDim)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
             }
             
         };
+        
+    } // namespace Small
         
 } // namespace Tensors

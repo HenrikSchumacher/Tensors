@@ -351,7 +351,7 @@ namespace Tensors
         {
             //Goal is to solve (U^T U) X = B
 
-            SmallVectorList<n,Scalar,Int> Y (nrhs);
+            Small::VectorList<n,Scalar,Int> Y (nrhs);
 
             // Step 1: Permute B and store it in Y.
             LOOP_UNROLL_FULL
