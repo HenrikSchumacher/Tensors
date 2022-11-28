@@ -2,10 +2,14 @@
 
 namespace Tensors {
 
-    template <typename Scalar, typename Int>
+    template <typename Scalar_, typename Int_>
     class ThreadTensor3
     {
-        ASSERT_INT(Int);
+        ASSERT_INT(Int_);
+        
+        using Scalar = Scalar_;
+        using Real   = typename ScalarTraits<Scalar_>::RealType;
+        using Int    = Int_;
         
     private:
         

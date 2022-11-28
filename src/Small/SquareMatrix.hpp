@@ -4,67 +4,82 @@ namespace Tensors
 {
     namespace Small
     {
-        
-        template< int AmbDim, typename Real, typename Int>
+        template< int n_, typename Scalar_, typename Int_>
         struct SquareMatrix
         {
         public:
             
-            using Vector_T = Vector<AmbDim,Real,Int>;
+            using Scalar = Scalar_;
+            using Real   = typename ScalarTraits<Scalar_>::RealType;
+            using Int    = Int_;
             
-            static constexpr Real zero              = 0;
-            static constexpr Real half              = 0.5;
-            static constexpr Real one               = 1;
-            static constexpr Real two               = 2;
-            static constexpr Real three             = 3;
-            static constexpr Real four              = 4;
-            static constexpr Real eps               = std::numeric_limits<Real>::min();
-            static constexpr Real infty             = std::numeric_limits<Real>::max();
+            static constexpr Int n = n_;
+            
+            using Vector_T = Vector<n,Scalar,Int>;
+            
+            static constexpr Scalar zero              = 0;
+            static constexpr Scalar half              = 0.5;
+            static constexpr Scalar one               = 1;
+            static constexpr Scalar two               = 2;
+            static constexpr Scalar three             = 3;
+            static constexpr Scalar four              = 4;
+            static constexpr Scalar eps               = std::numeric_limits<Scalar>::min();
+            static constexpr Scalar infty             = std::numeric_limits<Scalar>::max();
             
             // Uses only upper triangle.
             
-            Real A [AmbDim][AmbDim] = { {} };
+            Scalar A [n][n];
             
             SquareMatrix() = default;
             
             ~SquareMatrix() = default;
             
-            explicit SquareMatrix( const Real init )
-            {
-                Fill(init);
-            }
+            explicit SquareMatrix( const Scalar init )
+            :   A {{init}}
+            {}
             
             SquareMatrix( const SquareMatrix & other )
             {
                 *this = other;
             }
             
-            Real * restrict data()
+            Scalar * restrict data()
             {
                 return &A[0][0];
             }
             
-            const Real * restrict data() const
+            const Scalar * restrict data() const
             {
                 return &A[0][0];
             }
             
             void SetZero()
             {
-                zerofy_buffer( &A[0][0], AmbDim * AmbDim );
+                zerofy_buffer( &A[0][0], n * n );
             }
             
-            void Fill( const Real init )
+            void SetIdentity()
             {
-                fill_buffer( &A[0][0], AmbDim * AmbDim, init );
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] = (i==j) ? one : zero;
+                    }
+                }
             }
             
-            Real & operator()( const Int i, const Int j )
+            void Fill( const Scalar init )
+            {
+                fill_buffer( &A[0][0], n * n, init );
+            }
+            
+            Scalar & operator()( const Int i, const Int j )
             {
                 return A[i][j];
             }
             
-            const Real & operator()( const Int i, const Int j ) const
+            const Scalar & operator()( const Int i, const Int j ) const
             {
                 return A[i][j];
             }
@@ -72,9 +87,9 @@ namespace Tensors
             friend SquareMatrix operator+( const SquareMatrix & x, const SquareMatrix & y )
             {
                 SquareMatrix z;
-                for( Int i = 0; i < AmbDim; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
-                    for( Int j = 0; j < AmbDim; ++j )
+                    for( Int j = 0; j < n; ++j )
                     {
                         z.A[i][j] = x.A[i][j] + y.A[i][j];
                     }
@@ -84,9 +99,9 @@ namespace Tensors
             
             void operator+=( const SquareMatrix & B )
             {
-                for( Int i = 0; i < AmbDim; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
-                    for( Int j = 0; j < AmbDim; ++j )
+                    for( Int j = 0; j < n; ++j )
                     {
                         A[i][j] += B.A[i][j];
                     }
@@ -95,9 +110,9 @@ namespace Tensors
             
             void operator*=( const SquareMatrix & B )
             {
-                for( Int i = 0; i < AmbDim; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
-                    for( Int j = 0; j < AmbDim; ++j )
+                    for( Int j = 0; j < n; ++j )
                     {
                         A[i][j] *= B.A[i][j];
                     }
@@ -106,9 +121,9 @@ namespace Tensors
             
             SquareMatrix & operator=( const SquareMatrix & B )
             {
-                for( Int i = 0; i < AmbDim; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
-                    for( Int j = 0; j < AmbDim; ++j )
+                    for( Int j = 0; j < n; ++j )
                     {
                         A[i][j] = B.A[i][j];
                     }
@@ -118,14 +133,14 @@ namespace Tensors
             
             void Dot( const Vector_T & x, Vector_T & y ) const
             {
-                for( Int i = 0; i < AmbDim; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
-                    Real y_i = 0;
+                    Scalar y_i = 0;
                     for( Int j = 0; j < i; ++j )
                     {
                         y_i += A[j][i] * x[j];
                     }
-                    for( Int j = 0; j < AmbDim; ++j )
+                    for( Int j = 0; j < n; ++j )
                     {
                         y_i += A[i][j] * x[j];
                     }
@@ -135,38 +150,35 @@ namespace Tensors
             }
             
             
-            void Write( Real * target ) const
+            void Write( Scalar * target ) const
             {
-                copy_buffer( &A[0][0], target, AmbDim * AmbDim );
+                copy_buffer( &A[0][0], target, n * n );
             }
             
-            void Read( Real const * const source )
+            void Read( Scalar const * const source )
             {
-                copy_buffer( source, &A[0][0], AmbDim * AmbDim );
+                copy_buffer( source, &A[0][0], n * n );
             }
             
-            std::string ToString( const Int n = 16) const
+            std::string ToString( const Int p = 16) const
             {
                 std::stringstream sout;
-                sout.precision(n);
                 sout << "{\n";
                 sout << "\t{ ";
-                
-                sout << A[0][0];
-                for( Int j = 1; j < AmbDim; ++j )
+                sout << Tools::ToString(A[0][0],p);
+                for( Int j = 1; j < n; ++j )
                 {
-                    sout << ", " << A[0][j];
+                    sout << ", " << Tools::ToString(A[0][j],p);
                 }
-                
-                for( Int i = 1; i < AmbDim; ++i )
+                for( Int i = 1; i < n; ++i )
                 {
                     sout << " },\n\t{ ";
                     
-                    sout << A[i][0];
+                    sout << Tools::ToString(A[i][0],p);
                     
-                    for( Int j = 1; j < AmbDim; ++j )
+                    for( Int j = 1; j < n; ++j )
                     {
-                        sout << ", " << A[i][j];
+                        sout << ", " << Tools::ToString(A[i][j],p);
                     }
                 }
                 sout << " }\n}";
@@ -174,14 +186,14 @@ namespace Tensors
             }
             
             
-            Real Det() const
+            Scalar Det() const
             {
-                if( AmbDim == 2 )
+                if( n == 2 )
                 {
                     return A[0][0] * A[1][1] - A[0][1] * A[1][0];
                 }
                 
-                if( AmbDim == 3 )
+                if( n == 3 )
                 {
                     return (
                             A[0][0]*A[1][1]*A[2][2] + A[0][1]*A[1][2]*A[2][0] + A[0][2]*A[1][0]*A[2][1]
@@ -191,38 +203,38 @@ namespace Tensors
                 
                 // Bareiss algorithm copied and adapted from https://cs.stackexchange.com/q/124759/146040
                 
-                SquareMatrix<AmbDim,Real,Int> M;
+                SquareMatrix<n,Scalar,Int> M;
                 
                 M.Read(&A[0][0]);
                 
-                Real sign = one;
+                Scalar sign = one;
                 
-                for(Int k = 0; k < AmbDim - 1; ++k )
+                for(Int k = 0; k < n - 1; ++k )
                 {
                     //Pivot - row swap needed
                     if( M(k,k) == zero )
                     {
                         Int m = 0;
-                        for( m = k + 1; m < AmbDim; ++m )
+                        for( m = k + 1; m < n; ++m )
                         {
                             if( M(m,k) != zero )
                             {
-                                std::swap_ranges( &M(m,0), &M(m,AmbDim), &M(k,0) );
+                                std::swap_ranges( &M(m,0), &M(m,n), &M(k,0) );
                                 sign = -sign;
                                 break;
                             }
                         }
                         
                         //No entries != 0 found in column k -> det = 0
-                        if(m == AmbDim) {
+                        if(m == n) {
                             return zero;
                         }
                     }
                     
                     //Apply formula
-                    for( Int i = k + 1; i < AmbDim; ++i )
+                    for( Int i = k + 1; i < n; ++i )
                     {
-                        for( Int j = k + 1; j < AmbDim; ++j )
+                        for( Int j = k + 1; j < n; ++j )
                         {
                             M(i,j) = M(k,k) * M(i,j) - M(i,k) * M(k,j);
                             if(k != 0)
@@ -233,7 +245,7 @@ namespace Tensors
                     }
                 }
                 
-                return sign * M(AmbDim-1,AmbDim-1);
+                return sign * M(n-1,n-1);
             }
             
             
@@ -241,12 +253,12 @@ namespace Tensors
             
             static constexpr Int AmbientDimension()
             {
-                return AmbDim;
+                return n;
             }
             
             static std::string ClassName()
             {
-                return "SquareMatrix<"+std::to_string(AmbDim)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
+                return "SquareMatrix<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
             
         };

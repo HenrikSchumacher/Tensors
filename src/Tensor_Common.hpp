@@ -1,5 +1,10 @@
-ASSERT_INT (Int);
+ASSERT_INT (Int_);
 
+public:
+
+using Scalar = Scalar_;
+using Real   = typename ScalarTraits<Scalar_>::RealType;
+using Int    = Int_;
 
 protected:
 
@@ -238,7 +243,7 @@ void AddTo( Scalar * restrict const b ) const
 //    return counter;
 //}
 
-Scalar MaxNorm() const
+Real MaxNorm() const
 {
     Scalar result = static_cast<Scalar>(0);
 
@@ -251,17 +256,17 @@ Scalar MaxNorm() const
     return result;
 }
 
-Scalar FrobeniusNorm() const
+Real FrobeniusNorm() const
 {
-    Scalar result = static_cast<Scalar>(0);
+    Scalar result = 0;
 
     #pragma omp simd aligned( a : ALIGNMENT ) reduction( + : result )
     for( Int i = 0 ; i < n; ++i )
     {
-        result += a[i] * a[i];
+        result += conj(a[i]) * a[i];
     }
     
-    return std::sqrt(result);
+    return std::sqrt( std::abs(result) );
 }
 
 

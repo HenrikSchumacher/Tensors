@@ -5,14 +5,24 @@ namespace Tensors
     namespace Small
     {
         
-        template< int AmbDim, typename Real, typename Int>
+        template< int n_, typename Scalar_, typename Int_>
         struct Vector
         {
+            
+            using Scalar = Scalar_;
+            using Real   = typename ScalarTraits<Scalar_>::RealType;
+            using Int    = Int_;
+            
+            static constexpr Int n = n_;
             // Very slim vector type of fixed length, with basic arithmetic operations.
             
-            Real v [AmbDim] = {};
+            Scalar v [n];
             
             Vector() = default;
+
+            Vector( const Scalar init )
+            :   v { init }
+            {}
             
             ~Vector() = default;
             
@@ -21,63 +31,52 @@ namespace Tensors
                 Read(&other.v[0]);
             }
             
-            Real * data()
+            Scalar * data()
             {
                 return &v[0];
             }
             
-            const Real * data() const
+            const Scalar * data() const
             {
                 return &v[0];
             }
             
             void SetZero()
             {
-                zerofy_buffer( &v[0], AmbDim );
+                zerofy_buffer( &v[0], n );
             }
             
-            void rand()
-            {
-                std::uniform_real_distribution<Real> unif(-1,1);
-                std::default_random_engine re{static_cast<unsigned int>(time(0))};
-                
-                for( Int i = 0; i < AmbDim; ++i )
-                {
-                    v[ i ] = unif(re);
-                }
-            }
-            
-            Real & operator[]( const Int i )
+            Scalar & operator[]( const Int i )
             {
                 return v[i];
             }
             
-            const Real & operator[]( const Int i ) const
+            const Scalar & operator[]( const Int i ) const
             {
                 return v[i];
             }
             
-            Real & operator()( Int i )
+            Scalar & operator()( Int i )
             {
                 return v[i];
             }
             
-            const Real & operator()( const Int i ) const
+            const Scalar & operator()( const Int i ) const
             {
                 return v[i];
             }
             
             void operator+=( const Vector & x )
             {
-                for(Int i = 0; i < AmbDim; ++i )
+                for(Int i = 0; i < n; ++i )
                 {
                     v[i] += x.v[i];
                 }
             }
             
-            void operator*=( const Real scale )
+            void operator*=( const Scalar scale )
             {
-                for(Int i = 0; i < AmbDim; ++i )
+                for(Int i = 0; i < n; ++i )
                 {
                     v[i] *= scale;
                 }
@@ -85,7 +84,7 @@ namespace Tensors
             
             Vector & operator=( const Vector & x )
             {
-                for( Int i = 0; i < AmbDim; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
                     v[i] = x.v[i];
                 }
@@ -94,45 +93,83 @@ namespace Tensors
             
             Real Norm() const
             {
-                Real r = v[0] * v[0];
-                for( Int i = 1; i < AmbDim; ++i )
+                Scalar r = 0;
+                for( Int i = 0; i < n; ++i )
                 {
-                    r += v[i] * v[i];
+                    r += conj(v[i]) * v[i];
                 }
-                return std::sqrt(r);
+                return std::sqrt( std::abs(r) );
+            }
+            
+            friend Real Norm( const Vector & v )
+            {
+                return v.Norm();
+            }
+            
+            void Scale( const Scalar scale )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v[i] *= scale;
+                }
+            }
+            
+            void Normalize()
+            {
+                Scale( static_cast<Scalar>(1) / Norm() );
             }
             
             
-            friend Real Dot( const Vector & x, const Vector & y )
+
+            
+            friend Scalar Dot( const Vector & x, const Vector & y )
             {
-                Real r = x.v[0] * y.v[0];
-                for( Int i = 1; i < AmbDim; ++i )
+                Scalar r = 0;
+                for( Int i = 0; i < n; ++i )
                 {
                     r += x.v[i] * y.v[i];
                 }
                 return r;
             }
             
+            friend Scalar InnerProduct( const Vector & x, const Vector & y )
+            {
+                Scalar r = 0;
+                for( Int i = 0; i < n; ++i )
+                {
+                    r += conj(x.v[i]) * y.v[i];
+                }
+                return r;
+            }
+            
             friend void Plus( const Vector & x, const Vector & y, Vector & z )
             {
-                for( Int i = 0; i < AmbDim; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
                     z.v[i] = x.v[i] + y.v[i];
                 }
             }
-            
-            friend void Times( const Real scale, const Vector & x, Vector & y )
+   
+            friend void Times( const Scalar scale, const Vector & x, Vector & y )
             {
-                for( Int i = 0; i < AmbDim; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
                     y.v[i] = scale * x.v[i];
+                }
+            }
+            
+            friend void axpy( const Scalar alpha, const Vector & x, Vector & y )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    y.v[i] += alpha * x.v[i];
                 }
             }
             
             //            friend Vector operator+( const Vector & x, const Vector & y )
             //            {
             //                Vector z;
-            //                for(Int i = 0; i < AmbDim; ++i )
+            //                for(Int i = 0; i < n; ++i )
             //                {
             //                    z(i) = x(i) + y(i);
             //                }
@@ -142,41 +179,44 @@ namespace Tensors
             template<typename S>
             void Read( const S * const a_ )
             {
-                copy_cast_buffer( a_, &v[0], AmbDim );
+                copy_cast_buffer( a_, &v[0], n );
             }
             
             template<typename S>
             void Write( S * a_ ) const
             {
-                copy_cast_buffer( &v[0], a_, AmbDim );
+                copy_cast_buffer( &v[0], a_, n );
             }
             
-            std::string ToString( const Int n = 16) const
+            std::string ToString( const Int p = 16) const
             {
                 std::stringstream sout;
-                sout.precision(n);
                 sout << "{ ";
-                sout << v[0];
-                for( Int i = 1; i < AmbDim; ++i )
+                sout << Tools::ToString(v[0],p);
+                for( Int i = 1; i < n; ++i )
                 {
-                    sout << ", " << v[i];
+                    sout << ", " << Tools::ToString(v[i],p);
                 }
                 sout << " }";
                 return sout.str();
             }
             
-            //        #pragma omp declare reduction( + : Vector : omp_out+=omp_in )
-            
         public:
+            
+            inline friend std::ostream & operator<<( std::ostream & s, const Vector & v )
+            {
+                s << v.ToString();
+                return s;
+            }
             
             static constexpr Int AmbientDimension()
             {
-                return AmbDim;
+                return n;
             }
             
             static std::string ClassName()
             {
-                return "Vector<"+std::to_string(AmbDim)+","+TypeName<Real>::Get()+","+TypeName<Int>::Get()+">";
+                return "Vector<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
         };
     } // namespace Small

@@ -4,7 +4,7 @@ namespace Tensors {
 
 #define TENSOR_T Tensor2
 
-    template <typename Scalar, typename Int>
+    template <typename Scalar_, typename Int_>
     class Tensor2
     {
 
@@ -179,37 +179,28 @@ namespace Tensors {
         
         std::string ToString( const Int p = 16) const
         {
-            
             std::stringstream sout;
-            sout.precision(p);
             sout << "{\n";
             if( n > 0 )
             {
                 const Int d_0 = dims[0];
                 const Int d_1 = dims[1];
-                
                 if( d_1 > 0 )
                 {
                     sout << "\t{ ";
-                    
-                    sout << this->operator()(0,0);
+                    sout << Tools::ToString(this->operator()(0,0),p);
                 }
-                
-                
                 for( Int j = 1; j < d_1; ++j )
                 {
-                    sout << ", " << this->operator()(0,j);
+                    sout << ", " << Tools::ToString(this->operator()(0,j),p);
                 }
-                
                 for( Int i = 1; i < d_0; ++i )
                 {
                     sout << " },\n\t{ ";
-                    
-                    sout << this->operator()(i,0);
-                    
+                    sout << Tools::ToString(this->operator()(i,0),p);
                     for( Int j = 1; j < d_1; ++j )
                     {
-                        sout << ", " << this->operator()(i,j);
+                        sout << ", " << Tools::ToString(this->operator()(i,j),p);
                     }
                 }
             }

@@ -4,7 +4,7 @@ namespace Tensors {
 
 #define TENSOR_T Tensor3
 
-    template <typename Scalar, typename Int>
+    template <typename Scalar_, typename Int_>
     class TENSOR_T
     {
         

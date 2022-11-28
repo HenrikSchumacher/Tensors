@@ -4,10 +4,10 @@ namespace Tensors {
 
 #define TENSOR_T Tensor1
 
-    template <typename Scalar, typename Int>
+    template <typename Scalar_, typename Int_>
     class TENSOR_T
     {
-
+        
 #include "Tensor_Common.hpp"
         
     protected:
@@ -234,7 +234,7 @@ namespace Tensors {
             
             for( Int i = 0; i < n; ++i )
             {
-                r2 += a[i] * a[i];
+                r2 += conj(a[i]) * a[i];
             }
             return std::sqrt(r2);
         }
@@ -266,16 +266,14 @@ namespace Tensors {
         std::string ToString( const Int p = 16) const
         {
             std::stringstream sout;
-            sout.precision(p);
             sout << "{ ";
             if( Size() > 0 )
             {
-                sout << a[0];
+                sout << Tools::ToString(a[0],p);
             }
-            
             for( Int i = 1; i < n; ++i )
             {
-                sout << ", " << a[i];
+                sout << ", " << Tools::ToString(a[i],p);
             }
             sout << " }";
             return sout.str();
@@ -286,15 +284,14 @@ namespace Tensors {
         std::string ToString( const Int i_begin, const Int i_end, const Int p = 16) const
         {
             std::stringstream sout;
-            sout.precision(p);
             sout << "{ ";
             if( Size() >= i_end )
             {
-                sout << a[i_begin];
+                sout << Tools::ToString(a[i_begin],p);
             }
             for( Int i = i_begin + 1; i < i_end; ++i )
             {
-                sout << ", " << a[i];
+                sout << ", " << Tools::ToString(a[i],p);
             }
             sout << " }";
             return sout.str();

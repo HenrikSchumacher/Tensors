@@ -7,20 +7,44 @@
     #include <array>
     
 
-//    #include <Accelerate/Accelerate.h>
+    #include <Accelerate/Accelerate.h>
 //    #include <cblas.h>
 //    #include <lapacke.h>
 
+    #define EIGEN_NO_DEBUG
 //    #define EIGEN_USE_BLAS
 //    #define EIGEN_USE_LAPACKE
-//    #include <eigen3/Eigen/Dense>
+    #include "eigen3/Eigen/Dense"
 
     #include "Tools/Tools.hpp"
 
-    namespace Tensors {
+    namespace Tensors
+    {
         
         using namespace Tools;
         
+        template<typename T>
+        force_inline T conj( const T x )
+        {
+            return x;
+        }
+        
+        template <typename T>
+        struct ScalarTraits
+        {
+            using RealType = T;
+            
+            static constexpr bool IsComplex = false;
+        };
+
+        template <typename T>
+        struct ScalarTraits<std::complex<T>>
+        {
+            using RealType = T;
+            
+            static constexpr bool IsComplex = true;
+        };
+
     }
 
     #include "src/Tensor1.hpp"
@@ -32,7 +56,8 @@
     //#include "src/SmallMatrix.hpp"
     #include "src/Small/VectorList.hpp"
     #include "src/Small/SquareMatrix.hpp"
-    #include "src/Small/SymmetricMatrix.hpp"
+    #include "src/Small/SelfAdjointTridiagonalMatrix.hpp"
+    #include "src/Small/SelfAdjointMatrix.hpp"
     #include "src/Small/MatrixList.hpp"
 
     #include "src/AssemblyCounters.hpp"

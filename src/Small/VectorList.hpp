@@ -5,18 +5,25 @@ namespace Tensors
     namespace Small
     {
         
-        template< int M, typename T, typename I>
+        template< int n_, typename Scalar_, typename Int_ >
         class VectorList
         {
         public:
             
-            using Tensor_T = Tensor1<T,I>;
+            using Scalar = Scalar_;
+            using Int    = Int_;
+            
+            static constexpr Int n = n_;
+            
+            using Tensor_T = Tensor1<Scalar,Int>;
+            
+            using Vector_T = Vector<n,Scalar,Int>;
             
         private:
             
-            I K = 0;
+            Int length = 0;
             
-            Tensor_T v [M];
+            Tensor_T v [n];
             
         public:
             
@@ -26,41 +33,42 @@ namespace Tensors
             
             ~VectorList() = default;
             
-            explicit VectorList( const I K_ )
-            :   K(K_)
+            explicit VectorList( const Int length_ )
+            :   length(length_)
             {
-                for( I i = 0; i < M; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
-                    v[i] = Tensor_T(K_);
+                    v[i] = Tensor_T(length_);
                 }
             }
             
-            VectorList( const I K_, const T init )
-            :   K(K_)
+            VectorList( const Int length_, const Scalar init )
+            :   length(length_)
             {
-                for( I i = 0; i < M; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
-                    v[i] = Tensor_T(K_,init);
+                    v[i] = Tensor_T(length_,init);
                 }
             }
             
             // Copy constructor
             VectorList( const VectorList & other )
-            :   VectorList( other.K )
+            :   VectorList( other.length )
             {
-                for( I i = 0; i < M; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
                     v[i].Read( other.v[i].data());
                 }
             }
             
-            friend void swap(VectorList &A, VectorList &B)
+            friend void swap(VectorList & A, VectorList & B)
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
                 
-                swap( A.K, B.K );
-                for( I i = 0; i < M; ++i )
+                swap( A.length, B.length );
+                
+                for( Int i = 0; i < n; ++i )
                 {
                     swap( A.v[i], B.v[i] );
                 }
@@ -78,14 +86,14 @@ namespace Tensors
             {
                 if( this != &other )
                 {
-                    if( (K != other.K) )
+                    if( (length != other.length) )
                     {
                         // Use the copy constructor.
-                        swap( *this, VectorList(other.K) );
+                        swap( *this, VectorList(other.length) );
                     }
                     else
                     {
-                        for( I i = 0; i < M; ++i )
+                        for( Int i = 0; i < n; ++i )
                         {
                             v[i].Read( other.v[i].data());
                         }
@@ -110,11 +118,11 @@ namespace Tensors
             
         private:
             
-            void BoundCheck( const I i ) const
+            void BoundCheck( const Int i ) const
             {
-                if( (i < 0) || (i > M) )
+                if( (i < 0) || (i > n) )
                 {
-                    eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(M-1) +" }.");
+                    eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(n-1) +" }.");
                 }
             }
             
@@ -122,7 +130,7 @@ namespace Tensors
             
             //  Access routines
             
-            T * restrict data( const I i )
+            Scalar * restrict data( const Int i )
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -130,7 +138,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            const T * restrict data( const I i ) const
+            const Scalar * restrict data( const Int i ) const
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -139,7 +147,7 @@ namespace Tensors
             }
             
             
-            Tensor_T & operator[]( const I i )
+            Tensor_T & operator[]( const Int i )
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -147,7 +155,7 @@ namespace Tensors
                 return v[i];
             }
             
-            const Tensor_T & operator[]( const I i ) const
+            const Tensor_T & operator[]( const Int i ) const
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -155,7 +163,7 @@ namespace Tensors
                 return v[i];
             }
             
-            Tensor_T & operator()( const I i )
+            Tensor_T & operator()( const Int i )
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -163,7 +171,7 @@ namespace Tensors
                 return v[i];
             }
             
-            const Tensor_T & operator()( const I i ) const
+            const Tensor_T & operator()( const Int i ) const
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -171,7 +179,7 @@ namespace Tensors
                 return v[i];
             }
             
-            T & operator()( const I i, const I k )
+            Scalar & operator()( const Int i, const Int k )
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -179,7 +187,7 @@ namespace Tensors
                 return v[i][k];
             }
             
-            const T & operator()( const I i, const I k ) const
+            const Scalar & operator()( const Int i, const Int k ) const
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -191,7 +199,7 @@ namespace Tensors
             
             void SetZero()
             {
-                for( I i = 0; i < M; ++i )
+                for( Int i = 0; i < n; ++i )
                 {
                     v[i].SetZero();
                 }
@@ -200,33 +208,33 @@ namespace Tensors
             template<typename S>
             void Read( const S * restrict const * restrict const a )
             {
-                //Assuming that a is a list of M pointers pointing to memory of at least size Dimension(1).
-                for( I i = 0; i < M; ++i )
+                //Assuming that a is a list of n pointers pointing to memory of at least size Dimension(1).
+                for( Int i = 0; i < n; ++i )
                 {
-                    copy_cast_buffer( a[i], &v[i], K );
+                    copy_cast_buffer( a[i], &v[i], length );
                 }
             }
             
             template<typename S>
             void Write( S * restrict const * restrict const a )
             {
-                //Assuming that a is a list of M pointers pointing to memory of at least size Dimension(1).
-                for( I i = 0; i < M; ++i )
+                //Assuming that a is a list of n pointers pointing to memory of at least size Dimension(1).
+                for( Int i = 0; i < n; ++i )
                 {
-                    copy_cast_buffer( &v[i], a[i], K );
+                    copy_cast_buffer( &v[i], a[i], length );
                 }
             }
             
             template<typename S>
             void Read( const S * restrict const a )
             {
-                //Assuming that a is a list of size Dimension(1) x M of vectors in interleaved form.
+                //Assuming that a is a list of size Dimension(1) x n of vectors in interleaved form.
                 
-                for( I k = 0; k < K; ++ k)
+                for( Int k = 0; k < length; ++ k)
                 {
-                    for( I i = 0; i < M; ++ i)
+                    for( Int i = 0; i < n; ++ i)
                     {
-                        v[i][k] = a[M*k+i];
+                        v[i][k] = a[n*k+i];
                     }
                 }
             }
@@ -234,31 +242,31 @@ namespace Tensors
             template<typename S>
             void Write( S * restrict const a )
             {
-                //Assuming that a is a list of size Dimension(1) x M of vectors in interleaved form.
+                //Assuming that a is a list of size Dimension(1) x n of vectors in interleaved form.
                 
-                for( I k = 0; k < K; ++ k)
+                for( Int k = 0; k < length; ++ k)
                 {
-                    for( I i = 0; i < M; ++ i)
+                    for( Int i = 0; i < n; ++ i)
                     {
-                        a[M*k+i] = v[i][k];
+                        a[n*k+i] = v[i][k];
                     }
                 }
             }
             
         public:
             
-            static constexpr I Rank()
+            static constexpr Int Rank()
             {
                 return 2;
             }
             
-            I Dimension( const I k ) const
+            Int Dimension( const Int k ) const
             {
                 switch( k )
                 {
                     case 0:
                     {
-                        return M;
+                        return n;
                     }
                     case 1:
                     {
@@ -273,7 +281,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "VectorList<"+std::to_string(M)+","+TypeName<T>::Get()+","+TypeName<I>::Get()+">";
+                return "VectorList<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
         };
         
@@ -282,54 +290,54 @@ namespace Tensors
 #ifdef LTEMPLATE_H
         
         
-        template<int M, typename T, typename I, IsFloat(T)>
-        inline mma::TensorRef<mreal> to_MTensorRef( const VectorList<M,T,I> & A )
+        template<int n, typename Scalar, typename Int, IsFloat(Scalar)>
+        inline mma::TensorRef<mreal> to_MTensorRef( const VectorList<n,Scalar,Int> & A )
         {
             const mint n = A.Dimension(1);
             
-            const T * restrict p [M];
+            const Scalar * restrict p [n];
             
-            for( mint j = 0; j < M; ++j )
+            for( mint j = 0; j < n; ++j )
             {
                 p[j] = A.data(j);
             }
             
-            auto B = mma::makeMatrix<mreal>( n, M );
+            auto B = mma::makeMatrix<mreal>( n, n );
             
             mreal * restrict const b = B.data();
             
             for( mint i = 0; i < n; ++i )
             {
-                for( mint j = 0; j < M; ++j )
+                for( mint j = 0; j < n; ++j )
                 {
-                    b[M * i + j] = static_cast<mreal>(p[j][i]);
+                    b[n * i + j] = static_cast<mreal>(p[j][i]);
                 }
             }
             
             return B;
         }
         
-        template<int M, typename J, typename I, IsInt(J)>
-        inline mma::TensorRef<mint> to_MTensorRef( const VectorList<M,J,I> & A )
+        template<int n, typename J, typename Int, IsInt(J)>
+        inline mma::TensorRef<mint> to_MTensorRef( const VectorList<n,J,Int> & A )
         {
-            const mint n = A.Dimension(1);
+            const mint m = A.Dimension(1);
             
-            const J * restrict p [M];
+            const J * restrict p [n];
             
-            for( mint j = 0; j < M; ++j )
+            for( mint j = 0; j < n; ++j )
             {
                 p[j] = A.data(j);
             }
             
-            auto B = mma::makeMatrix<mint>( n, M );
+            auto B = mma::makeMatrix<mint>( m, n );
             
             mint * restrict const b = B.data();
             
-            for( mint i = 0; i < n; ++i )
+            for( mint i = 0; i < m; ++i )
             {
-                for( mint j = 0; j < M; ++j )
+                for( mint j = 0; j < n; ++j )
                 {
-                    b[M * i + j] = static_cast<mint>(p[j][i]);
+                    b[n * i + j] = static_cast<mint>(p[j][i]);
                 }
             }
             
