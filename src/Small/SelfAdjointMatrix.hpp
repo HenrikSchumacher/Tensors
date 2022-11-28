@@ -363,29 +363,37 @@ namespace Tensors
                         ubarBu += conj(u[k][i]) * Bu_i;
                     }
                     
-                    B[k][k] += four * (ubarBu * u[k][k] * conj(u[k][k])) - two * (u[k][k] * conj(v[k]) + v[k] * conj(u[k][k]));
-                    
-                    B[k][k+1] += four * (ubarBu * u[k][k] * conj(u[k][k+1])) - two * (u[k][k] * conj(v[k+1]) + v[k] * conj(u[k][k+1]));
+                    {
+                        const Scalar a = four * ubarBu * u[k][k];
+                        const Scalar b = two * u[k][k];
+                        const Scalar c = two * v[k];
+                        
+                        B[k][k  ] += a * conj(u[k][k  ]) - b * conj(v[k  ]) - c * conj(u[k][k  ]);
+                        B[k][k+1] += a * conj(u[k][k+1]) - b * conj(v[k+1]) - c * conj(u[k][k+1]);
+                    }
                     
                     // Apply Householder reflection to both sides of B.
                     for( Int i = k+1; i < n; ++i )
                     {
+                        const Scalar a = four * ubarBu * u[k][i];
+                        const Scalar b = two * u[k][i];
+                        const Scalar c = two * v[i];
+                        
                         for( Int j = i; j < n; ++j )
                         {
-                            B[i][j] += four * (ubarBu * u[k][i] * conj(u[k][j])) - two * (u[k][i] * conj(v[j]) + v[i] * conj(u[k][j]));
+                            B[i][j] += a * conj(u[k][j]) - b * conj(v[j]) - c * conj(u[k][j]);
                         }
                     }
                 }
-                
-                
+            
                 // Reconstruct U from the Householder vectors (reverse order to safe some flops).
                 U.SetIdentity();
                 {
                     const Int k = n - 3;
                     
-                    for( Int i = n-3; i < n; ++i )
+                    for( Int i = k; i < n; ++i )
                     {
-                        for( Int j = n-3; j < n; ++j )
+                        for( Int j = k; j < n; ++j )
                         {
                             U[i][j] -= two * u[k][i] * conj(u[k][j]);
                         }
@@ -398,20 +406,19 @@ namespace Tensors
                     for( Int j = k+1; j < n; ++j )
                     {
                         Scalar ubarU_j = 0;
-                        
                         for( Int i = k+1; i < n; ++i )
                         {
                             ubarU_j += conj(u[k][i]) * U[i][j];
                         }
-                        
                         v[j] = ubarU_j;
                     }
 
                     for( Int i = k+1; i < n; ++i )
                     {
+                        const Scalar a = two * u[k][i];
                         for( Int j = k+1; j < n; ++j )
                         {
-                            U[i][j] -= two * u[k][i] * v[j];
+                            U[i][j] -= a * v[j];
                         }
                     }
                 }
