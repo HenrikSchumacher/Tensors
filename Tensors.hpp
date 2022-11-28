@@ -29,6 +29,12 @@
             return x;
         }
         
+        template<typename T>
+        force_inline T real( const T x )
+        {
+            return x;
+        }
+        
         template <typename T>
         struct ScalarTraits
         {
@@ -55,6 +61,7 @@
     #include "src/Small/Vector.hpp"
     //#include "src/SmallMatrix.hpp"
     #include "src/Small/VectorList.hpp"
+    #include "src/Small/Matrix.hpp"
     #include "src/Small/SquareMatrix.hpp"
     #include "src/Small/SelfAdjointTridiagonalMatrix.hpp"
     #include "src/Small/SelfAdjointMatrix.hpp"

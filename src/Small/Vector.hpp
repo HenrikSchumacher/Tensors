@@ -93,12 +93,12 @@ namespace Tensors
             
             Real Norm() const
             {
-                Scalar r = 0;
+                Real r = 0;
                 for( Int i = 0; i < n; ++i )
                 {
-                    r += conj(v[i]) * v[i];
+                    r += real(conj(v[i]) * v[i]);
                 }
-                return std::sqrt( std::abs(r) );
+                return std::sqrt( r );
             }
             
             friend Real Norm( const Vector & v )
