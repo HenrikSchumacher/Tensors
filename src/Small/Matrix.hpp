@@ -210,7 +210,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        AA += real(conj(A[i][j]) * A[i][j]);
+                        AA += abs_squared(A[i][j]);
                     }
                 }
                 return std::sqrt(AA);

@@ -58,6 +58,17 @@ namespace Tensors
                 }
             }
             
+            void SetDiagonal( const Tensors::Small::Vector<n,Scalar,Int> & v )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] = (i==j) ? v[i] : zero;
+                    }
+                }
+            }
+            
             Scalar Det() const
             {
                 if constexpr ( n == 1 )

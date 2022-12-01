@@ -297,138 +297,203 @@ namespace Tensors
             }
             
             
+//            template<typename Scalar_2>
             void HessenbergDecomposition(
                 SquareMatrix                <n,Scalar,Int> & U,
-                SelfAdjointTridiagonalMatrix<n,Scalar,Int> & T
+                SelfAdjointTridiagonalMatrix<n,Real,Int>   & T
             ) const
             {
-                // Computes a unitary matrix U and and a self-adjoint tridiagonal matrix  T such that U^H * T * U = A.
-                SelfAdjointMatrix B ( *this );
-                
-                Small::Matrix <n-2,n,Scalar,Int> u (0); // vector of the Householder reflection.
-                Small::Vector <n,Scalar,Int>     v (0);
-                
-//                Scalar u [n-2][n] = { {} }; // vectors of the Householder reflection.
-//                Scalar v [n]      = {};     // some scratch space
+                // Computes a unitary matrix U and and a self-adjoint tridiagonal matrix  T such that U . T . U^H = A.
 
-                constexpr Real eps = std::numeric_limits<Real>::min();
-                
-                for( Int k = 0; k < n-2; ++k )
+                if constexpr ( n == 1 )
                 {
-                    for( Int i = k+1; i < n; ++i )
-                    {
-                        u[k][i] = conj(B[k][i]);
-                    }
-
-                    const Scalar rho = ( std::abs(u[k][k+1]) <= eps ) ? one : - u[k][k+1] / std::abs(u[k][k+1]) ;
-                    
-                    Real uu = 0;
-                    for( Int i = k+1; i < n; ++i )
-                    {
-                        uu += real(conj(u[k][i]) * u[k][i]);
-                    }
-                    
-                    Scalar u_norm = std::sqrt( uu );
-                    
-                    uu -= real( conj(u[k][k+1]) * u[k][k+1] );
-                    u[k][k+1] -= rho * u_norm;
-                    
-                    uu += real( conj(u[k][k+1]) * u[k][k+1] );
-                    
-                    Scalar u_norm_inv = one / std::sqrt( uu );
-                    
-                    for( Int i = k+1; i < n; ++i )
-                    {
-                        u[k][i] *= u_norm_inv;
-                    }
-
-                    Scalar ubarBu = 0;
-
-                    for( Int i = k; i < n; ++i )
-                    {
-                        Scalar Bu_i = 0;
-                        
-                        for( Int j = k+1; j < i; ++j )
-                        {
-                            Bu_i += conj(B[j][i]) * u[k][j];
-                        }
-                        
-                        for( Int j = i; j < n; ++j )
-                        {
-                            Bu_i += B[i][j] * u[k][j];
-                        }
-                        
-                        v[i] = Bu_i;
-                        
-                        ubarBu += conj(u[k][i]) * Bu_i;
-                    }
-                    
-                    {
-                        const Scalar a = four * ubarBu * u[k][k];
-                        const Scalar b = two * u[k][k];
-                        const Scalar c = two * v[k];
-                        
-                        B[k][k  ] += a * conj(u[k][k  ]) - b * conj(v[k  ]) - c * conj(u[k][k  ]);
-                        B[k][k+1] += a * conj(u[k][k+1]) - b * conj(v[k+1]) - c * conj(u[k][k+1]);
-                    }
-                    
-                    // Apply Householder reflection to both sides of B.
-                    for( Int i = k+1; i < n; ++i )
-                    {
-                        const Scalar a = four * ubarBu * u[k][i];
-                        const Scalar b = two * u[k][i];
-                        const Scalar c = two * v[i];
-                        
-                        for( Int j = i; j < n; ++j )
-                        {
-                            B[i][j] += a * conj(u[k][j]) - b * conj(v[j]) - c * conj(u[k][j]);
-                        }
-                    }
+                    T.Diag(0) = real(A[0][0]);
+                    U[0][0]   = one;
                 }
-            
-                // Reconstruct U from the Householder vectors (reverse order to safe some flops).
-                U.SetIdentity();
+                
+                if constexpr ( n == 2 )
                 {
-                    const Int k = n - 3;
-                    
-                    for( Int i = k; i < n; ++i )
-                    {
-                        for( Int j = k; j < n; ++j )
-                        {
-                            U[i][j] -= two * u[k][i] * conj(u[k][j]);
-                        }
-                    }
+                    T.Diag(0)  = real(A[0][0]);
+                    T.Diag(1)  = real(A[1][1]);
+                    T.Upper(0) = std::abs(A[0][1]);
+                    U[0][0] = 1;
+                    U[0][1] = 0;
+                    U[1][0] = 0;
+                    U[1][1] = (T.Upper(0) == zero) ? one : conj(A[0][1]) / T.Upper(0);
                 }
-                // Apply Householder transformations from the left.
-                for( Int k = n-3; k -->0 ; )
+                
+                if constexpr ( n > 2 )
                 {
-                    // Compute v = conj(u[k]) * U;
-                    for( Int j = k+1; j < n; ++j )
+                    SquareMatrix<n, Scalar, Int> B ;
+                    Write( &B[0][0] );
+                    
+//                    Scalar u [n-2][n]; // vectors of the Householder reflections.
+//                    Scalar v [n];      // some scratch space
+                    
+                    Vector_T u [n-2]; // vectors of the Householder reflections.
+                    Vector_T v      ; // some scratch space
+                    
+                    
+                    constexpr Real eps = std::numeric_limits<Real>::min();
+                    
+                    for( Int k = 0; k < n-2; ++k )
                     {
-                        Scalar ubarU_j = 0;
+//                        u[k][k] = 0; // We know that u[k][0] = ... = u[k][k] = 0, but we just use this implicitly!
+//                        for( Int i = 0; i < k+1; ++i )
+//                        {
+//                            u[k][i] = 0
+//                        }
+                        
                         for( Int i = k+1; i < n; ++i )
                         {
-                            ubarU_j += conj(u[k][i]) * U[i][j];
+                            u[k][i] = conj(B[k][i]);
                         }
-                        v[j] = ubarU_j;
-                    }
+                        
+                        Real uu = 0;
+                        for( Int i = k+1; i < n; ++i )
+                        {
+                            uu += abs_squared(u[k][i]);
+                        }
+                        
+                        Real u_norm = std::sqrt( uu );
+                        
+                        Scalar u_pivot = u[k][k+1];
+                        
+                        Real abs_u_pivot = std::abs(u_pivot);
+                        
+                        const Scalar rho = COND( ScalarTraits<Scalar>::IsComplex,
+                            (abs_u_pivot <= eps * u_norm) ? one : -u_pivot / abs_u_pivot
+                            ,
+                            (u_pivot > static_cast<Real>(0)) ? -one : one
+                        );
+                        
+                        uu -= abs_squared(u_pivot);
+                        
+                        u[k][k+1] -= rho * u_norm;
+                        
+                        uu += abs_squared(u[k][k+1]);
+                        
+                        Scalar u_norm_inv = one / std::sqrt( uu );
+                        
+                        for( Int i = k+1; i < n; ++i )
+                        {
+                            u[k][i] *= u_norm_inv;
+                        }
+                        
+                        Scalar ubarBu = 0;
+                        
+                        {
+                            const Int i = k;
+                            
+                            Scalar Bu_i = 0;
+                            
+                            // We can skip this.
+//                            for( Int j = k+1; j < i; ++j )
+//                            {
+//                                Bu_i += conj(B[j][i]) * u[k][j];
+//                            }
+                            
+                            for( Int j = k+1; j < n; ++j ) // we implicitly use u[k][k] == 0
+                            {
+                                Bu_i += B[i][j] * u[k][j];
+                            }
+                            
+                            v[i] = Bu_i;
+                            
+                            // We implicitly use u[k][k] = 0;
+//                            ubarBu += conj(u[k][i]) * Bu_i;
+                        }
+                        for( Int i = k+1; i < n; ++i )
+                        {
+                            Scalar Bu_i = 0;
+                            
+                            for( Int j = k+1; j < i; ++j )
+                            {
+                                Bu_i += conj(B[j][i]) * u[k][j];
+                            }
+                            
+                            for( Int j = i; j < n; ++j )
+                            {
+                                Bu_i += B[i][j] * u[k][j];
+                            }
+                            
+                            v[i] = Bu_i;
+                            
+                            ubarBu += conj(u[k][i]) * Bu_i;
+                        }
 
-                    for( Int i = k+1; i < n; ++i )
+                        
+                        {
+                            const Int i = k;
+                            const Scalar a = - two * v[k];
+
+                            for( Int j = i+1; j < n; ++j )  // Exploit that u[k][i] = u[k][k] == 0
+                            {
+                                B[k][j] += a * conj(u[k][j]);
+                            }
+                        }
+                        
+                        // Apply Householder reflection to both sides of B.
+                        for( Int i = k+1; i < n; ++i )
+                        {
+                            const Scalar a = four * ubarBu * u[k][i] - two * v[i];
+                            const Scalar b = two * u[k][i];
+                            
+                            for( Int j = i; j < n; ++j )
+                            {
+                                B[i][j] += a * conj(u[k][j]) - b * conj(v[j]);
+                            }
+                        }
+                    }
+                                       
+                    // We want a purely real tridiagonal matrix...
+                    for( Int i = 0; i < n-1; ++i )
                     {
-                        const Scalar a = two * u[k][i];
+                        T.Diag(i)  = real(B[i][i]);
+                        T.Upper(i) = COND( ScalarTraits<Scalar>::IsComplex, std::abs(B[i][i+1]), B[i][i+1] );
+                    }
+                    T.Diag(n-1)  = real(B[n-1][n-1]);
+                    
+                    // ... hence we put appropriate unimodular numbers on the diagonal of U.
+                    if constexpr ( ScalarTraits<Scalar>::IsComplex )
+                    {
+                        U.SetZero();
+                        U[0][0] = 1;
+                        for( Int k = 1; k < n; ++k )
+                        {
+                            Real absb = T.Upper(k-1);
+                            U[k][k]   = (absb == zero) ? one : U[k-1][k-1] * conj(B[k-1][k]) / absb;
+                        }
+                    }
+                    else
+                    {
+                        U.SetIdentity();
+                    }
+                        
+                    // Apply Householder transformations from the left (reverse order to safe some flops).
+                    for( Int k = n-2; k --> 0 ; )
+                    {
+                        // Compute v = conj(u[k]) * U;
                         for( Int j = k+1; j < n; ++j )
                         {
-                            U[i][j] -= a * v[j];
+                            Scalar ubarU_j = 0;
+                            for( Int i = k+1; i < n; ++i )
+                            {
+                                ubarU_j += conj(u[k][i]) * U[i][j];
+                            }
+                            v[j] = ubarU_j;
+                        }
+                        
+                        for( Int i = k+1; i < n; ++i )
+                        {
+                            const Scalar a = two * u[k][i];
+                            for( Int j = k+1; j < n; ++j )
+                            {
+                                U[i][j] -= a * v[j];
+                            }
                         }
                     }
                 }
-                
-                for( Int i = 0; i < n-1; ++i )
-                {
-                    T.Diag(i)  = real(B[i][i]);
-                    T.Upper(i) = B[i][i+1];
-                }
-                T.Diag(n-1)  = real(B[n-1][n-1]);
             }
             
             
@@ -538,7 +603,8 @@ namespace Tensors
                 return s;
             }
             
-            void ToMatrix( SquareMatrix<n,Scalar,Int> & B ) const
+            template<typename T = Scalar>
+            void ToMatrix( SquareMatrix<n,T,Int> & B ) const
             {
                 B.SetZero();
                 
@@ -546,11 +612,11 @@ namespace Tensors
                 {
                     for( Int j = 0; j < i; ++j )
                     {
-                        B[i][j] = conj(A[j][i]);
+                        B[i][j] = static_cast<T>(conj(A[j][i]));
                     }
                     for( Int j = i; j < n; ++j )
                     {
-                        B[i][j] = A[i][j];
+                        B[i][j] = static_cast<T>(A[i][j]);
                     }
                 }
             }

@@ -258,15 +258,15 @@ Real MaxNorm() const
 
 Real FrobeniusNorm() const
 {
-    Scalar result = 0;
+    Real result = 0;
 
     #pragma omp simd aligned( a : ALIGNMENT ) reduction( + : result )
     for( Int i = 0 ; i < n; ++i )
     {
-        result += conj(a[i]) * a[i];
+        result += abs_squared(a[i]);
     }
     
-    return std::sqrt( std::abs(result) );
+    return std::sqrt( result );
 }
 
 

@@ -72,6 +72,11 @@ namespace Tensors
                 return upper[i];
             }
             
+            force_inline Scalar Lower( const Int i )
+            {
+                return conj(upper[i]);
+            }
+            
             force_inline void SetZero()
             {
                 zerofy_buffer( &diag[0] , n   );
@@ -141,11 +146,14 @@ namespace Tensors
                 
                 sout << " },\n\tupper = { ";
                 
-                sout << Tools::ToString(upper[0],p);
-                
-                for( Int j = 1; j < n-1; ++j )
+                if( n > 1 )
                 {
-                    sout << ", " << Tools::ToString(upper[j],p);
+                    sout << Tools::ToString(upper[0],p);
+                    
+                    for( Int j = 1; j < n-1; ++j )
+                    {
+                        sout << ", " << Tools::ToString(upper[j],p);
+                    }
                 }
                 sout << " }\n}";
                 return sout.str();
@@ -157,20 +165,18 @@ namespace Tensors
                 return s;
             }
             
-            
-            void ToMatrix( SquareMatrix<n,Scalar,Int> & B ) const
+            template<typename T = Scalar>
+            void ToMatrix( SquareMatrix<n,T,Int> & B ) const
             {
                 B.SetZero();
                 
-                for( Int i = 0; i < n; ++i )
-                {
-                    B[i][i] = diag[i];
-                }
                 for( Int i = 0; i < n-1; ++i )
                 {
-                    B[i  ][i+1] = upper[i];
-                    B[i+1][i  ] = conj(upper[i]);
+                    B[i][i]     = static_cast<T>(diag[i]);
+                    B[i  ][i+1] = static_cast<T>(upper[i]);
+                    B[i+1][i  ] = static_cast<T>(conj(upper[i]));
                 }
+                B[n-1][n-1] = static_cast<T>(diag[n-1]);
             }
             
         public:
