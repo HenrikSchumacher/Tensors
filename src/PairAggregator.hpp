@@ -15,7 +15,7 @@ namespace Tensors
 
         LInt current_buffer_size = static_cast<LInt>(0);
         std::array<T_0,BUFFER_CAPACITY> buffer_0;
-        std::array<T_0,BUFFER_CAPACITY> buffer_1;
+        std::array<T_1,BUFFER_CAPACITY> buffer_1;
         
         Container_0_T container_0 {static_cast<LInt>(BUFFER_CAPACITY)};
         Container_1_T container_1 {static_cast<LInt>(BUFFER_CAPACITY)};
@@ -91,7 +91,7 @@ namespace Tensors
             ++current_buffer_size;
         }
 
-        Container_0_T& Get_0()
+        Container_0_T & Get_0()
         {
             return container_0;
         }

@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename S, typename T, typename I>
+    template<typename S, typename T, typename I, bool reverse = false>
     class TwoArrayQuickSort
     {
         ASSERT_INT  (I);
@@ -21,7 +21,7 @@ namespace Tensors
             
             // Recursion-free implementation from https://www.geeksforgeeks.org/iterative-quick-sort/
             // The handling of duplicates is taken from https://cs.stackexchange.com/a/104825
-            if( n > 0)
+            if( n > 0 )
             {
                 if( n > stack.Size() )
                 {
@@ -53,23 +53,48 @@ namespace Tensors
                     
                     while( r <= u )
                     {
-                        if( a[r] < pivot )
+                        if constexpr ( reverse )
                         {
-                            std::swap( a[l], a[r] );
-                            std::swap( b[l], b[r] );
-                            l++;
-                            r++;
-                        }
-                        else if( a[r] > pivot )
-                        {
-                            std::swap( a[r], a[u] );
-                            std::swap( b[r], b[u] );
-                            u--;
+                            if( a[r] > pivot )
+                            {
+                                std::swap( a[l], a[r] );
+                                std::swap( b[l], b[r] );
+                                l++;
+                                r++;
+                            }
+                            else if( a[r] < pivot )
+                            {
+                                std::swap( a[r], a[u] );
+                                std::swap( b[r], b[u] );
+                                u--;
+                            }
+                            else
+                            {
+                                // element a[r] is equal to pivot
+                                r++;
+                            }
                         }
                         else
                         {
-                            // element a[r] is equal to pivot
-                            r++;
+                            
+                            if( a[r] < pivot )
+                            {
+                                std::swap( a[l], a[r] );
+                                std::swap( b[l], b[r] );
+                                l++;
+                                r++;
+                            }
+                            else if( a[r] > pivot )
+                            {
+                                std::swap( a[r], a[u] );
+                                std::swap( b[r], b[u] );
+                                u--;
+                            }
+                            else
+                            {
+                                // element a[r] is equal to pivot
+                                r++;
+                            }
                         }
                     }
                     

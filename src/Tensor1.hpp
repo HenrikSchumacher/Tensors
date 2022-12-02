@@ -263,7 +263,7 @@ namespace Tensors {
             return s;
         }
         
-        std::string ToString( const Int p = 16) const
+        std::string ToString( const int p = 16) const
         {
             std::stringstream sout;
             sout << "{ ";
