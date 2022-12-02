@@ -281,7 +281,7 @@ namespace Tensors
         template<int m, int n, typename T, typename I, IsFloat(T)>
         inline mma::TensorRef<mreal> to_MTensorRef( const Small::MatrixList<m,n,T,I> & A )
         {
-            const mint n = A.Dimension(2);
+            const mint N = A.Dimension(2);
             
             const T * restrict p [m][n];
             
@@ -293,11 +293,11 @@ namespace Tensors
                 }
             }
             
-            auto B = mma::makeCube<mreal>( n, m, n );
+            auto B = mma::makeCube<mreal>( N, m, n );
             
             mreal * restrict const b = B.data();
             
-            for( mint k = 0; k < n; ++k )
+            for( mint k = 0; k < N; ++k )
             {
                 for( mint i = 0; i < m; ++i )
                 {
@@ -314,7 +314,7 @@ namespace Tensors
         template<int m, int n, typename J, typename I, IsInt(J)>
         inline mma::TensorRef<mint> to_MTensorRef( const Small::MatrixList<m,n,J,I> & A )
         {
-            const mint n = A.Dimension(2);
+            const mint N = A.Dimension(2);
             
             const J * restrict p [m][n];
             
@@ -326,11 +326,11 @@ namespace Tensors
                 }
             }
             
-            auto B = mma::makeCube<mint>( n, m, n );
+            auto B = mma::makeCube<mint>( N, m, n );
             
             mint * restrict const b = B.data();
             
-            for( mint k = 0; k < n; ++k )
+            for( mint k = 0; k < N; ++k )
             {
                 for( mint i = 0; i < m; ++i )
                 {
