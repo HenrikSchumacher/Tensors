@@ -293,7 +293,7 @@ namespace Tensors
         template<int n, typename Scalar, typename Int, IsFloat(Scalar)>
         inline mma::TensorRef<mreal> to_MTensorRef( const VectorList<n,Scalar,Int> & A )
         {
-            const mint n = A.Dimension(1);
+            const mint m = A.Dimension(1);
             
             const Scalar * restrict p [n];
             
@@ -302,11 +302,11 @@ namespace Tensors
                 p[j] = A.data(j);
             }
             
-            auto B = mma::makeMatrix<mreal>( n, n );
+            auto B = mma::makeMatrix<mreal>( m, n );
             
             mreal * restrict const b = B.data();
             
-            for( mint i = 0; i < n; ++i )
+            for( mint i = 0; i < m; ++i )
             {
                 for( mint j = 0; j < n; ++j )
                 {
