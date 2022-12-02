@@ -142,6 +142,33 @@ namespace Tensors
                 return r;
             }
             
+            
+            friend Real AngleBetweenUnitVectors( const Vector & u, const Vector & v )
+            {
+                Real a = 0;
+                Real b = 0;
+                
+                for( int i = 0; i < n; ++i )
+                {
+                    a += real( conj(u[i]-v[i]) * (u[i]-v[i]) );
+                    b += real( conj(u[i]+v[i]) * (u[i]+v[i]) );
+                }
+                
+                return static_cast<Real>(2) * atan( std::sqrt(a/b) );
+            }
+            
+            friend Real Angle( const Vector & x, const Vector & y )
+            {
+                Vector u = x;
+                Vector v = y;
+                
+                u.Normalize();
+                v.Normalize();
+                
+                return AngleBetweenUnitVectors(u,v);
+            }
+
+            
             friend void Plus( const Vector & x, const Vector & y, Vector & z )
             {
                 for( Int i = 0; i < n; ++i )
