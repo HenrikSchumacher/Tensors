@@ -20,7 +20,7 @@ namespace Tensors
             
             Vector() = default;
 
-            Vector( const Scalar init )
+            explicit Vector( const Scalar init )
             :   v { init }
             {}
             
@@ -143,15 +143,15 @@ namespace Tensors
             }
             
             
-            friend Real AngleBetweenUnitVectors( const Vector & u, const Vector & v )
+            friend Real AngleBetweenUnitVectors( const Vector & u, const Vector & w )
             {
                 Real a = 0;
                 Real b = 0;
                 
                 for( int i = 0; i < n; ++i )
                 {
-                    a += real( conj(u[i]-v[i]) * (u[i]-v[i]) );
-                    b += real( conj(u[i]+v[i]) * (u[i]+v[i]) );
+                    a += real( conj(u[i]-w[i]) * (u[i]-w[i]) );
+                    b += real( conj(u[i]+w[i]) * (u[i]+w[i]) );
                 }
                 
                 return static_cast<Real>(2) * atan( std::sqrt(a/b) );
@@ -160,12 +160,12 @@ namespace Tensors
             friend Real Angle( const Vector & x, const Vector & y )
             {
                 Vector u = x;
-                Vector v = y;
+                Vector w = y;
                 
                 u.Normalize();
-                v.Normalize();
+                w.Normalize();
                 
-                return AngleBetweenUnitVectors(u,v);
+                return AngleBetweenUnitVectors(u,w);
             }
 
             

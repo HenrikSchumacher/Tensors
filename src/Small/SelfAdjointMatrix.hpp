@@ -333,9 +333,6 @@ namespace Tensors
                     Vector_T u [n-2]; // vectors of the Householder reflections.
                     Vector_T v      ; // some scratch space
                     
-                    
-                    constexpr Real eps = std::numeric_limits<Real>::min();
-                    
                     for( Int k = 0; k < n-2; ++k )
                     {
 //                        u[k][k] = 0; // We know that u[k][0] = ... = u[k][k] = 0, but we just use this implicitly!

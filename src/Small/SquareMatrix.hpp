@@ -14,18 +14,18 @@ namespace Tensors
             using Real     = typename ScalarTraits<Scalar_>::RealType;
             using Int      = Int_;
             
-            static constexpr Int n = n_;
+            using Matrix_T::n;
             
             using Vector_T = Vector<n,Scalar,Int>;
             
-            static constexpr Scalar zero              = 0;
-            static constexpr Scalar half              = 0.5;
-            static constexpr Scalar one               = 1;
-            static constexpr Scalar two               = 2;
-            static constexpr Scalar three             = 3;
-            static constexpr Scalar four              = 4;
-            static constexpr Scalar eps               = std::numeric_limits<Scalar>::min();
-            static constexpr Scalar infty             = std::numeric_limits<Scalar>::max();
+            using Matrix_T::zero;
+            using Matrix_T::half;
+            using Matrix_T::one;
+            using Matrix_T::two;
+            using Matrix_T::three;
+            using Matrix_T::four;
+            using Matrix_T::eps;
+            using Matrix_T::infty;
             
             // Uses only upper triangle.
             

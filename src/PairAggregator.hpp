@@ -10,15 +10,15 @@ namespace Tensors
         using Container_0_T = Tensor1<T_0,LInt>;
         using Container_1_T = Tensor1<T_1,LInt>;
 
-        LInt current_size = static_cast<LInt>(0);
-        LInt capacity     = static_cast<LInt>(1);
+        mutable LInt current_size = static_cast<LInt>(0);
+        mutable LInt capacity     = static_cast<LInt>(1);
 
-        LInt current_buffer_size = static_cast<LInt>(0);
-        std::array<T_0,BUFFER_CAPACITY> buffer_0;
-        std::array<T_1,BUFFER_CAPACITY> buffer_1;
+        mutable LInt current_buffer_size = static_cast<LInt>(0);
+        mutable std::array<T_0,BUFFER_CAPACITY> buffer_0;
+        mutable std::array<T_1,BUFFER_CAPACITY> buffer_1;
         
-        Container_0_T container_0 {static_cast<LInt>(BUFFER_CAPACITY)};
-        Container_1_T container_1 {static_cast<LInt>(BUFFER_CAPACITY)};
+        mutable Container_0_T container_0 {static_cast<LInt>(BUFFER_CAPACITY)};
+        mutable Container_1_T container_1 {static_cast<LInt>(BUFFER_CAPACITY)};
 
     public:
 
@@ -91,23 +91,33 @@ namespace Tensors
             ++current_buffer_size;
         }
 
+        void Clear()
+        {
+            current_size        = 0;
+            current_buffer_size = 0;
+        }
+        
         Container_0_T & Get_0()
         {
+            Finalize();
             return container_0;
         }
-
+        
         const Container_0_T & Get_0() const
         {
+            Finalize();
             return container_0;
         }
 
         Container_1_T & Get_1()
         {
+            Finalize();
             return container_1;
         }
-
+        
         const Container_1_T & Get_1() const
         {
+            Finalize();
             return container_1;
         }
 
@@ -118,7 +128,7 @@ namespace Tensors
             return capacity;
         }
         
-        void RequireCapacity( const LInt new_capacity )
+        void RequireCapacity( const LInt new_capacity ) const
         {
             if( new_capacity > capacity)
             {
@@ -136,14 +146,14 @@ namespace Tensors
             }
         }
         
-        void Finalize()
+        void Finalize() const
         {
             if( current_buffer_size > 0 )
             {
                 RequireCapacity( current_size + current_buffer_size );
                 
-                copy_buffer( buffer_0.data(), &container_0.data()[current_size], current_buffer_size );
-                copy_buffer( buffer_1.data(), &container_1.data()[current_size], current_buffer_size );
+                copy_buffer( buffer_0.data(), container_0.data(current_size), current_buffer_size );
+                copy_buffer( buffer_1.data(), container_1.data(current_size), current_buffer_size );
                 
                 current_size += current_buffer_size;
                 current_buffer_size = 0;
@@ -152,7 +162,7 @@ namespace Tensors
         
     protected:
         
-        void FlushBuffer()
+        void FlushBuffer() const
         {
             if( capacity < current_size + BUFFER_CAPACITY )
             {
@@ -166,7 +176,7 @@ namespace Tensors
             current_buffer_size = 0;
         }
         
-        void Expand()
+        void Expand() const
         {
             RequireCapacity( static_cast<LInt>(2) * capacity );
         }

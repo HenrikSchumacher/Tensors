@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename S, typename T, typename I, bool reverse = false>
+    template<typename S, typename T, typename I>
     class TwoArrayQuickSort
     {
         ASSERT_INT  (I);
@@ -14,7 +14,9 @@ namespace Tensors
         
     public:
         
-        void operator()( S * restrict const a, T * restrict const b, const I n )
+        void operator()(
+            S * restrict const a, T * restrict const b, const I n, const bool reverse = false
+        )
         {
             // a - the list that is to be sorted.
             // b - the list to which each move of a shall also be applied.
@@ -33,27 +35,27 @@ namespace Tensors
                 stack[++stackptr] = 0;
                 stack[++stackptr] = n-1;
                 
-                while( stackptr >= 0 )
+                if( reverse )
                 {
-                    const I hi = stack[stackptr--];
-                    const I lo = stack[stackptr--];
-                    
-                    I l = lo;
-                    I r = lo;
-                    I u = hi;
-                    
-                    // lo <= l <= r <= u <= hi
-                    
-                    // - elements in [lo,l) are smaller than pivot
-                    // - elements in [l,r) are equal to pivot
-                    // - elements in [r,u] are not examined, yet
-                    // - elements in (u,hi] are greater than pivot
-                    
-                    const S pivot = a[lo];
-                    
-                    while( r <= u )
+                    while( stackptr >= 0 )
                     {
-                        if constexpr ( reverse )
+                        const I hi = stack[stackptr--];
+                        const I lo = stack[stackptr--];
+                        
+                        I l = lo;
+                        I r = lo;
+                        I u = hi;
+                        
+                        // lo <= l <= r <= u <= hi
+                        
+                        // - elements in [lo,l) are smaller than pivot
+                        // - elements in [l,r) are equal to pivot
+                        // - elements in [r,u] are not examined, yet
+                        // - elements in (u,hi] are greater than pivot
+                        
+                        const S pivot = a[lo];
+                        
+                        while( r <= u )
                         {
                             if( a[r] > pivot )
                             {
@@ -74,9 +76,42 @@ namespace Tensors
                                 r++;
                             }
                         }
-                        else
+                        
+                        if( l-1 > lo )
                         {
-                            
+                            stack[++stackptr] = lo;
+                            stack[++stackptr] = l-1;
+                        }
+                        
+                        if( r < hi )
+                        {
+                            stack[++stackptr] = r;
+                            stack[++stackptr] = hi;
+                        }
+                    }
+                }
+                else
+                {
+                    while( stackptr >= 0 )
+                    {
+                        const I hi = stack[stackptr--];
+                        const I lo = stack[stackptr--];
+                        
+                        I l = lo;
+                        I r = lo;
+                        I u = hi;
+                        
+                        // lo <= l <= r <= u <= hi
+                        
+                        // - elements in [lo,l) are smaller than pivot
+                        // - elements in [l,r) are equal to pivot
+                        // - elements in [r,u] are not examined, yet
+                        // - elements in (u,hi] are greater than pivot
+                        
+                        const S pivot = a[lo];
+                        
+                        while( r <= u )
+                        {
                             if( a[r] < pivot )
                             {
                                 std::swap( a[l], a[r] );
@@ -96,19 +131,19 @@ namespace Tensors
                                 r++;
                             }
                         }
-                    }
-                    
-                    
-                    if( l-1 > lo )
-                    {
-                        stack[++stackptr] = lo;
-                        stack[++stackptr] = l-1;
-                    }
-                    
-                    if( r < hi )
-                    {
-                        stack[++stackptr] = r;
-                        stack[++stackptr] = hi;
+                        
+                        
+                        if( l-1 > lo )
+                        {
+                            stack[++stackptr] = lo;
+                            stack[++stackptr] = l-1;
+                        }
+                        
+                        if( r < hi )
+                        {
+                            stack[++stackptr] = r;
+                            stack[++stackptr] = hi;
+                        }
                     }
                 }
             }
