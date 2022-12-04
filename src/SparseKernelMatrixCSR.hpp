@@ -1,11 +1,9 @@
 #pragma once
 
-#define CLASS SparseKernelMatrixCSR
-
 namespace Tensors
 {
     template<typename Kernel_T>
-    class CLASS
+    class SparseKernelMatrixCSR
     {
     public:
         
@@ -17,13 +15,13 @@ namespace Tensors
         
         using SparsityPattern_T = SparsityPatternCSR<Int,LInt>;
   
-        CLASS() = delete;
+        SparseKernelMatrixCSR() = delete;
         
-//        CLASS()
+//        SparseKernelMatrixCSR()
 //        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
 //        {}
         
-        explicit CLASS(
+        explicit SparseKernelMatrixCSR(
             const SparsityPattern_T & pattern_
         )
         :   pattern ( pattern_ )
@@ -31,12 +29,12 @@ namespace Tensors
         {}
         
         // Copy constructor
-        CLASS( const CLASS & other )
+        SparseKernelMatrixCSR( const SparseKernelMatrixCSR & other )
         :   pattern ( other.pattern )
         ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
 
-        ~CLASS() = default;
+        ~SparseKernelMatrixCSR() = default;
         
     protected:
         
@@ -367,11 +365,9 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return TO_STD_STRING(CLASS)+"<"+kernel.ClassName()+">";
+            return "SparseKernelMatrixCSR<"+kernel.ClassName()+">";
         }
         
-    };
+    }; // class SparseKernelMatrixCSR
     
 }// namespace Tensors
-
-#undef CLASS

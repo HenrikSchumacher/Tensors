@@ -1,6 +1,7 @@
 #pragma once
 
 #define CLASS ScalarBlockKernel_fixed
+
 #define BASE  BlockKernel_fixed<                            \
     ROWS_,COLS_,RHS_COUNT_,fixed,                           \
     Scalar_,Scalar_in_,Scalar_out_,                         \
@@ -24,7 +25,9 @@ namespace Tensors
     >
     class CLASS : public BASE
     {
+        
         static_assert( ROWS_ == COLS_ );
+        
     public:
 
         using Scalar     = Scalar_;
@@ -56,8 +59,6 @@ namespace Tensors
         using BASE::get_x;
         using BASE::get_y;
         using BASE::rhs_count;
-        
-        Scalar a = 0;
         
     public:
         
@@ -95,27 +96,22 @@ namespace Tensors
             A[BLOCK_NNZ * to] = A[BLOCK_NNZ * from];
         }
         
-        force_inline void ReadA( const LInt k_global )
-        {
-            // Read matrix.
-            a = A_const[BLOCK_NNZ * k_global];
-        }
-        
         force_inline void ApplyBlock( const LInt k_global, const Int j_global )
         {
             ReadX( j_global );
-            
-            ReadA( k_global );
+
+            const Scalar a = A_const[BLOCK_NNZ * k_global];
             
             LOOP_UNROLL_FULL
-            for( Int k = 0; k < RHS_COUNT; ++k )
+            for( Int j = 0; j < COLS; ++j )
             {
                 LOOP_UNROLL_FULL
-                for( Int j = 1; j < COLS; ++j )
+                for( Int k = 0; k < RHS_COUNT; ++k )
                 {
                     FMA( a, get_x(j,k), get_y(j,k) );
                 }
             }
+
         }
         
     public:
@@ -136,6 +132,7 @@ namespace Tensors
             +","+ToString(beta_flag)
             +","+ToString(x_RM)+","+ToString(x_intRM)+","+ToString(x_copy)+","+ToString(x_prefetch)
             +","+ToString(y_RM)+","+ToString(y_intRM)
+            +","+ToString(use_fma)
             +">";
         }
 
