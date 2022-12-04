@@ -18,14 +18,14 @@ namespace Tensors
             
             using Vector_T = Vector<n,Scalar,Int>;
             
-            static constexpr Scalar zero              = 0;
-            static constexpr Scalar half              = 0.5;
-            static constexpr Scalar one               = 1;
-            static constexpr Scalar two               = 2;
-            static constexpr Scalar three             = 3;
-            static constexpr Scalar four              = 4;
-            static constexpr Scalar eps               = std::numeric_limits<Scalar>::min();
-            static constexpr Scalar infty             = std::numeric_limits<Scalar>::max();
+            static constexpr Scalar zero            = 0;
+            static constexpr Scalar half            = 0.5;
+            static constexpr Scalar one             = 1;
+            static constexpr Scalar two             = 2;
+            static constexpr Scalar three           = 3;
+            static constexpr Scalar four            = 4;
+            static constexpr Real eps               = std::numeric_limits<Real>::min();
+            static constexpr Real infty             = std::numeric_limits<Real>::max();
             
             
             
@@ -126,7 +126,8 @@ namespace Tensors
             {
                 for( Int i = 0; i < n; ++i )
                 {
-                    Scalar y_i = 0;
+                    Scalar y_i (0);
+                    
                     for( Int j = 0; j < i; ++j )
                     {
                         y_i += conj(M.A[j][i]) * x.v[j];
@@ -142,10 +143,12 @@ namespace Tensors
             
             friend Scalar InnerProduct( const SelfAdjointMatrix & G, const Vector_T & x, const Vector_T & y )
             {
-                Scalar result = 0;
+                Scalar result (0);
+                
                 for( Int i = 0; i < n; ++i )
                 {
-                    Scalar z_i = 0;
+                    Scalar z_i (0);
+                    
                     for( Int j = 0; j < i; ++j )
                     {
                         z_i += G.A[j][i] * x.v[j];
@@ -165,8 +168,8 @@ namespace Tensors
             {
                 for( Int k = 0; k < n; ++k )
                 {
-                    const Scalar a = A[k][k] = std::sqrt( std::abs(A[k][k]) );
-                    const Scalar ainv = one/a;
+                    const Scalar a    ( A[k][k] = std::sqrt( std::abs(A[k][k]) ) );
+                    const Scalar ainv ( one/a );
                     
                     for( Int j = k+1; j < n; ++j )
                     {
@@ -240,7 +243,7 @@ namespace Tensors
                 {
                     Real lambda_min;
                     
-                    const Scalar p1 = conj(A[0][1]*A[0][1]) + conj(A[0][2])*A[0][2] + conj(A[1][2])*A[1][2];
+                    const Scalar p1 ( conj(A[0][1]*A[0][1]) + conj(A[0][2])*A[0][2] + conj(A[1][2])*A[1][2] );
                     
                     if( std::sqrt(p1) < eps * std::sqrt( std::abs( A[0][0]*A[0][0] + A[1][1]*A[1][1] + A[2][2]*A[2][2])) )
                     {
@@ -249,30 +252,34 @@ namespace Tensors
                     }
                     else
                     {
-                        const Scalar q         = ( A[0][0] + A[1][1] + A[2][2] ) / three;
-                        const Scalar delta [3] = { A[0][0]-q, A[1][1]-q, A[2][2]-q } ;
-                        const Scalar p2   = delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2] + two*p1;
-                        const Scalar p    = std::sqrt( p2 / static_cast<Scalar>(6) );
-                        const Scalar pinv = one/p;
-                        const Scalar b11  = delta[0] * pinv;
-                        const Scalar b22  = delta[1] * pinv;
-                        const Scalar b33  = delta[2] * pinv;
-                        const Scalar b12  = A[0][1] * pinv;
-                        const Scalar b13  = A[0][2] * pinv;
-                        const Scalar b23  = A[1][2] * pinv;
+                        const Scalar q         ( ( A[0][0] + A[1][1] + A[2][2] ) / three );
+                        const Scalar delta [3] { A[0][0]-q, A[1][1]-q, A[2][2]-q } ;
+                        const Scalar p2        ( delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2] + two*p1 );
+                        const Scalar p    ( std::sqrt( p2 / static_cast<Scalar>(6) ) );
+                        const Scalar pinv ( one/p );
+                        const Scalar b11  ( delta[0] * pinv );
+                        const Scalar b22  ( delta[1] * pinv );
+                        const Scalar b33  ( delta[2] * pinv );
+                        const Scalar b12  (  A[0][1] * pinv );
+                        const Scalar b13  (  A[0][2] * pinv );
+                        const Scalar b23  (  A[1][2] * pinv );
                         
-                        const Scalar r = half * (two * b12 * b23 * b13 - b11 * b23 * b23 - b12 *b12 * b33 + b11 * b22 * b33 - b13 *b13 * b22);
+                        const Scalar r (
+                                half * (two * b12 * b23 * b13 - b11 * b23 * b23 - b12 *b12 * b33 + b11 * b22 * b33 - b13 *b13 * b22)
+                        );
                         
                         
-                        const Scalar phi = ( r <= -one )
-                        ? ( static_cast<Scalar>(M_PI) / three )
-                        : ( ( r >= one ) ? zero : acos(r) / three );
+                        const Scalar phi (
+                                ( r <= -one )
+                                ? ( static_cast<Scalar>(M_PI) / three )
+                                : ( ( r >= one ) ? zero : acos(r) / three )
+                        );
                         
                         // The eigenvalues are ordered this way: eig2 <= eig1 <= eig0.
                         
-                        //                    Scalar eig0 = q + two * p * cos( phi );
-                        //                    Scalar eig2 = q + two * p * cos( phi + two * M_PI/ three );
-                        //                    Scalar eig1 = three * q - eig0 - eig2;
+                        //                    Scalar eig0 ( q + two * p * cos( phi ) );
+                        //                    Scalar eig2 ( q + two * p * cos( phi + two * M_PI/ three ) );
+                        //                    Scalar eig1 ( three * q - eig0 - eig2 );
                         
                         lambda_min = q + two * p * cos( phi + two * M_PI/ three );
                     }
@@ -354,14 +361,18 @@ namespace Tensors
                         
                         Real u_norm = std::sqrt( uu );
                         
-                        Scalar u_pivot = u[k][k+1];
+                        Scalar u_pivot ( u[k][k+1] );
                         
                         Real abs_u_pivot = std::abs(u_pivot);
                         
-                        const Scalar rho = COND( ScalarTraits<Scalar>::IsComplex,
-                            (abs_u_pivot <= eps * u_norm) ? one : -u_pivot / abs_u_pivot
-                            ,
-                            (u_pivot > static_cast<Real>(0)) ? -one : one
+                        const Scalar rho (
+                            COND(
+                                ScalarTraits<Scalar>::IsComplex
+                                 ,
+                                ( abs_u_pivot <= eps * u_norm ) ? one : -u_pivot / abs_u_pivot
+                                ,
+                                ( u_pivot > static_cast<Real>(0) ) ? -one : one
+                            )
                         );
                         
                         uu -= abs_squared(u_pivot);
@@ -370,19 +381,19 @@ namespace Tensors
                         
                         uu += abs_squared(u[k][k+1]);
                         
-                        Scalar u_norm_inv = one / std::sqrt( uu );
+                        Scalar u_norm_inv ( one / std::sqrt( uu ) );
                         
                         for( Int i = k+1; i < n; ++i )
                         {
                             u[k][i] *= u_norm_inv;
                         }
                         
-                        Scalar ubarBu = 0;
+                        Scalar ubarBu (0);
                         
                         {
                             const Int i = k;
                             
-                            Scalar Bu_i = 0;
+                            Scalar Bu_i (0);
                             
                             // We can skip this.
 //                            for( Int j = k+1; j < i; ++j )
@@ -402,7 +413,7 @@ namespace Tensors
                         }
                         for( Int i = k+1; i < n; ++i )
                         {
-                            Scalar Bu_i = 0;
+                            Scalar Bu_i (0);
                             
                             for( Int j = k+1; j < i; ++j )
                             {
@@ -422,7 +433,7 @@ namespace Tensors
                         
                         {
                             const Int i = k;
-                            const Scalar a = - two * v[k];
+                            const Scalar a (- two * v[k]);
 
                             for( Int j = i+1; j < n; ++j )  // Exploit that u[k][i] = u[k][k] == 0
                             {
@@ -433,8 +444,8 @@ namespace Tensors
                         // Apply Householder reflection to both sides of B.
                         for( Int i = k+1; i < n; ++i )
                         {
-                            const Scalar a = four * ubarBu * u[k][i] - two * v[i];
-                            const Scalar b = two * u[k][i];
+                            const Scalar a ( four * ubarBu * u[k][i] - two * v[i]);
+                            const Scalar b ( two * u[k][i] );
                             
                             for( Int j = i; j < n; ++j )
                             {

@@ -124,7 +124,8 @@ namespace Tensors
             
             friend Scalar Dot( const Vector & x, const Vector & y )
             {
-                Scalar r = 0;
+                Scalar r (0);
+                
                 for( Int i = 0; i < n; ++i )
                 {
                     r += x.v[i] * y.v[i];
@@ -134,7 +135,8 @@ namespace Tensors
             
             friend Scalar InnerProduct( const Vector & x, const Vector & y )
             {
-                Scalar r = 0;
+                Scalar r (0);
+                
                 for( Int i = 0; i < n; ++i )
                 {
                     r += conj(x.v[i]) * y.v[i];

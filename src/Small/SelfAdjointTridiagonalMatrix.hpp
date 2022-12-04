@@ -18,14 +18,14 @@ namespace Tensors
             
             using Vector_T = Vector<n,Scalar,Int>;
             
-            static constexpr Scalar zero              = 0;
-            static constexpr Scalar half              = 0.5;
-            static constexpr Scalar one               = 1;
-            static constexpr Scalar two               = 2;
-            static constexpr Scalar three             = 3;
-            static constexpr Scalar four              = 4;
-            static constexpr Scalar eps               = std::numeric_limits<Scalar>::min();
-            static constexpr Scalar infty             = std::numeric_limits<Scalar>::max();
+            static constexpr Scalar zero            = 0;
+            static constexpr Scalar half            = 0.5;
+            static constexpr Scalar one             = 1;
+            static constexpr Scalar two             = 2;
+            static constexpr Scalar three           = 3;
+            static constexpr Scalar four            = 4;
+            static constexpr Real eps               = std::numeric_limits<Real>::min();
+            static constexpr Real infty             = std::numeric_limits<Real>::max();
             
         protected:
             

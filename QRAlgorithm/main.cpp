@@ -12,8 +12,8 @@ using namespace Tensors;
 //Eigen::HessenbergDecomposition...
 //0.317475 s.
 
-//using Scalar = std::complex<double>;
-using Scalar = double;
+using Scalar = std::complex<double>;
+//using Scalar = double;
 //using Scalar = std::complex<float>;
 //using Scalar = float;
 using Real   = ScalarTraits<Scalar>::RealType;
@@ -42,11 +42,11 @@ int main(int argc, const char * argv[])
 //    constexpr Scalar two  = static_cast<Scalar>(2);
 //    constexpr Scalar four = static_cast<Scalar>(4);
     
-    Tensor3<Scalar,Int> A_list (reps,n,n);
-    Tensor3<Scalar,Int> U_list (reps,n,n);
-    Tensor3<Scalar,Int> H_list (reps,n,n);
+    Tensor3<Scalar,Int> A_list   (reps,n,n);
+    Tensor3<Scalar,Int> U_list   (reps,n,n);
+    Tensor3<Scalar,Int> H_list   (reps,n,n);
     Tensor3<Scalar,Int> E_H_list (reps,n,n);
-    Tensor3<Scalar,Int> T_list (reps,n,n);
+    Tensor3<Scalar,Int> T_list   (reps,n,n);
     
     Small::SelfAdjointMatrix<n,Scalar,Int> A (0);
     
@@ -63,10 +63,11 @@ int main(int argc, const char * argv[])
         {
             for( Int j = i; j < n; ++j )
             {
-                A_list(k,i,j) = COND( ScalarTraits<Scalar>::IsComplex,
-                                       std::complex<Real> ( unif(engine), unif(engine) ),
-                                       unif(engine);
-                                       );
+                A_list(k,i,j) = COND(
+                    ScalarTraits<Scalar>::IsComplex,
+                    std::complex<Real> ( unif(engine), unif(engine) ),
+                    unif(engine);
+                );
             }
             A_list(k,i,i) = real(A_list(k,i,i));
         }
@@ -91,16 +92,16 @@ int main(int argc, const char * argv[])
     }
     toc("HessenbergDecomposition");
 
-
+    Eigen::HessenbergDecomposition<E_C_Matrix_T> hessenberg;
+    
     tic("Eigen::HessenbergDecomposition");
     for( Int rep = 0; rep < reps; ++rep )
     {
         E_C_Matrix_T Sigma ( A_list.data(rep) );
-        Eigen::HessenbergDecomposition<E_C_Matrix_T> hessenberg;
         hessenberg.compute(Sigma);
         
-        E_R_Matrix_T H_ = hessenberg.matrixH().real();
-        E_C_Matrix_T U_ = hessenberg.matrixQ();
+        E_R_Matrix_T H_ ( hessenberg.matrixH().real() );
+        E_C_Matrix_T U_ ( hessenberg.matrixQ() );
         
         copy_buffer( &H_(0,0), H_list.data(rep), n*n );
         copy_buffer( &U_(0,0), U_list.data(rep), n*n );
@@ -123,21 +124,22 @@ int main(int argc, const char * argv[])
     for( Int rep = 0; rep < reps; ++rep )
     {
         E_C_Matrix_T Sigma ( A_list.data(rep) );
-        Eigen::HessenbergDecomposition<E_C_Matrix_T> hessenberg;
         hessenberg.compute(Sigma);
         
-        E_R_Matrix_T H_ = hessenberg.matrixH().real();
-        E_C_Matrix_T U_ = hessenberg.matrixQ();
+        E_R_Matrix_T H_ ( hessenberg.matrixH().real() );
+        E_C_Matrix_T U_ ( hessenberg.matrixQ() );
         
         copy_buffer( &H_(0,0), H_list.data(rep), n*n );
         copy_buffer( &U_(0,0), U_list.data(rep), n*n );
     }
     toc("Eigen::HessenbergDecomposition");
+    
+    
+    Eigen::SelfAdjointEigenSolver<E_C_Matrix_T> eigs;
     tic("Eigen::SelfAdjointEigenSolver");
     for( Int rep = 0; rep < reps; ++rep )
     {
         E_C_Matrix_T Sigma ( A_list.data(rep) );
-        Eigen::SelfAdjointEigenSolver<E_C_Matrix_T> eigs;
         eigs.compute(Sigma);
     }
     toc("Eigen::SelfAdjointEigenSolver");

@@ -97,7 +97,7 @@ namespace Tensors
                     
                     Write( &M[0][0] );
                     
-                    Scalar sign = one;
+                    Scalar sign (one);
                     
                     for(Int k = 0; k < n - 1; ++k )
                     {
