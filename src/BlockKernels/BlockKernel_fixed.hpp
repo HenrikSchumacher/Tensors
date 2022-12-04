@@ -425,11 +425,7 @@ namespace Tensors
                         {
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                FMA(
-                                    get_cast_y(i,k),
-                                    beta,
-                                    y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k]
-                                );
+                                y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k] = get_cast_y(i,k) + beta * y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k];
                             }
                         }
                     }
@@ -439,11 +435,7 @@ namespace Tensors
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                FMA(
-                                    get_cast_y(i,k),
-                                    beta,
-                                    y_to[ROWS*k+i]
-                                );
+                                y_to[ROWS*k+i] = get_cast_y(i,k) + beta * y_to[ROWS*k+i];
                             }
                         }
                     }
@@ -501,11 +493,7 @@ namespace Tensors
                         {
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count)(); ++k )
                             {
-                                FMA(
-                                    get_cast_y(i,k),
-                                    alpha,
-                                    y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k]
-                                );
+                                y_to[COND(fixed,RHS_COUNT,rhs_count)()*i+k] += alpha * get_cast_y(i,k);
                             }
                         }
                     }
@@ -515,11 +503,7 @@ namespace Tensors
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                FMA(
-                                    get_cast_y(i,k),
-                                    alpha,
-                                    y_to[ROWS*k+i]
-                                );
+                                y_to[ROWS*k+i] += alpha * get_cast_y(i,k);
                             }
                         }
                     }
