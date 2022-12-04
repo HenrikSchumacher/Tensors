@@ -73,6 +73,7 @@ namespace Tensors
         using BASE::ReadX;
         using BASE::get_x;
         using BASE::get_y;
+        using BASE::FMA;
         using BASE::rhs_count;
         
         const Scalar * restrict a_from = nullptr;
@@ -267,7 +268,7 @@ namespace Tensors
                                     LOOP_UNROLL_FULL
                                     for( Int j = 0; j < COLS; ++j )
                                     {
-                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
+                                        FMA( get_a(i,j), get_x(j,k), get_y(i,k) );
                                     }
                                 }
                             }
@@ -284,7 +285,7 @@ namespace Tensors
                                     LOOP_UNROLL_FULL
                                     for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                     {
-                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
+                                        FMA( get_a(i,j), get_x(j,k), get_y(i,k) );
                                     }
                                 }
                             }
@@ -301,7 +302,7 @@ namespace Tensors
                                     LOOP_UNROLL_FULL
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
-                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
+                                        FMA( get_a(i,j), get_x(j,k), get_y(i,k) );
                                     }
                                 }
                             }
@@ -318,7 +319,7 @@ namespace Tensors
                                     LOOP_UNROLL_FULL
                                     for( Int j = 0; j < COLS; ++j )
                                     {
-                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
+                                        FMA( get_a(i,j), get_x(j,k), get_y(i,k) );
                                     }
                                 }
                             }
@@ -335,7 +336,7 @@ namespace Tensors
                                     LOOP_UNROLL_FULL
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
-                                        get_y(i,k) += get_a(i,j) * get_x(j,k);
+                                        FMA( get_a(i,j), get_x(j,k), get_y(i,k) );
                                     }
                                 }
                             }
