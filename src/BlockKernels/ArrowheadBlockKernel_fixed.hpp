@@ -124,7 +124,7 @@ namespace Tensors
             {
                 a_from = &A_const[BLOCK_NNZ * k_global];
                 
-                copy_buffer( a_from, &a[0], BLOCK_NNZ );
+                copy_buffer<BLOCK_NNZ>( a_from, &a[0] );
             }
             else
             {

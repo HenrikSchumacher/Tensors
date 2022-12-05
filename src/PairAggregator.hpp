@@ -169,8 +169,8 @@ namespace Tensors
                 Expand();
             }
             
-            copy_buffer( buffer_0.data(), &container_0.data()[current_size], BUFFER_CAPACITY );
-            copy_buffer( buffer_1.data(), &container_1.data()[current_size], BUFFER_CAPACITY );
+            copy_buffer<BUFFER_CAPACITY>( buffer_0.data(), &container_0.data()[current_size] );
+            copy_buffer<BUFFER_CAPACITY>( buffer_1.data(), &container_1.data()[current_size] );
             
             current_size += BUFFER_CAPACITY;
             current_buffer_size = 0;

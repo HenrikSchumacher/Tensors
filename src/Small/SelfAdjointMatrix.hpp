@@ -57,12 +57,12 @@ namespace Tensors
             
             force_inline void SetZero()
             {
-                zerofy_buffer( &A[0][0], n * n );
+                zerofy_buffer<n * n>( &A[0][0] );
             }
             
             force_inline void Fill( const Scalar init )
             {
-                fill_buffer( &A[0][0], init, n * n );
+                fill_buffer<n * n>( &A[0][0], init );
             }
             
             force_inline Scalar & operator()( const Int i, const Int j )
@@ -504,15 +504,16 @@ namespace Tensors
                 }
             }
             
-            
+            // TODO: We should actually only copy the upper triangle...
             force_inline void Write( Scalar * target ) const
             {
-                copy_buffer( &A[0][0], target, n * n );
+                copy_buffer<n * n>( &A[0][0], target );
             }
             
+            // TODO: We should actually only copy the upper triangle...
             force_inline void Read( Scalar const * const source )
             {
-                copy_buffer(source, &A[0][0], n * n);
+                copy_buffer<n * n>(source, &A[0][0]);
             }
             
             std::string ToString( const Int p = 16) const

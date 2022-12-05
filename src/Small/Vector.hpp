@@ -43,7 +43,7 @@ namespace Tensors
             
             void SetZero()
             {
-                zerofy_buffer( &v[0], n );
+                zerofy_buffer<n>( &v[0] );
             }
             
             Scalar & operator[]( const Int i )
@@ -208,13 +208,13 @@ namespace Tensors
             template<typename S>
             void Read( const S * const a_ )
             {
-                copy_cast_buffer( a_, &v[0], n );
+                copy_cast_buffer<n>( a_, &v[0] );
             }
             
             template<typename S>
             void Write( S * a_ ) const
             {
-                copy_cast_buffer( &v[0], a_, n );
+                copy_cast_buffer<n>( &v[0], a_ );
             }
             
             std::string ToString( const Int p = 16) const

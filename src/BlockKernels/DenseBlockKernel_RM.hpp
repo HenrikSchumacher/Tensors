@@ -132,7 +132,7 @@ namespace Tensors
                 {
                     if constexpr ( a_intRM )
                     {
-                        copy_buffer( a_from, &a[0][0], BLOCK_NNZ );
+                        copy_buffer<BLOCK_NNZ>( a_from, &a[0][0] );
                     }
                     else
                     {
@@ -160,7 +160,7 @@ namespace Tensors
                     }
                     else
                     {
-                        copy_buffer( a_from, &a[0][0], BLOCK_NNZ );
+                        copy_buffer<BLOCK_NNZ>( a_from, &a[0][0] );
                     }
                 }
             }

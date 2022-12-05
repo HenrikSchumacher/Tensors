@@ -316,7 +316,14 @@ namespace Tensors
             {
                 if constexpr ( beta_flag == 0 )
                 {
-                    zerofy_buffer( y_to, RowsSize() );
+                    if constexpr ( fixed )
+                    {
+                        zerofy_buffer<ROWS_SIZE>( y_to );
+                    }
+                    else
+                    {
+                        zerofy_buffer( y_to, RowsSize() );
+                    }
                 }
                 else if constexpr ( beta_flag == 1 )
                 {
@@ -414,7 +421,14 @@ namespace Tensors
             
             if constexpr ( beta_flag == 0 )
             {
-                zerofy_buffer( y_to, RowsSize() );
+                if constexpr ( fixed )
+                {
+                    zerofy_buffer<ROWS_SIZE>( y_to );
+                }
+                else
+                {
+                    zerofy_buffer( y_to, RowsSize() );
+                }
             }
             else if constexpr ( beta_flag == 1 )
             {
@@ -422,9 +436,13 @@ namespace Tensors
             }
             else
             {
-                for( Int k = 0; k < RowsSize(); ++k )
+                if constexpr ( fixed )
                 {
-                    y_to[k] *= beta;
+                    scale_buffer<ROWS_SIZE>( beta, y_to );
+                }
+                else
+                {
+                    scale_buffer( beta, y_to, RowsSize() );
                 }
             }
         }

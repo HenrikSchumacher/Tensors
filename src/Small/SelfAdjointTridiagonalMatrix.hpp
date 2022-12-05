@@ -79,8 +79,8 @@ namespace Tensors
             
             force_inline void SetZero()
             {
-                zerofy_buffer( &diag[0] , n   );
-                zerofy_buffer( &upper[0], n-1 );
+                zerofy_buffer<n  >( &diag[0]  );
+                zerofy_buffer<n-1>( &upper[0] );
             }
             
             friend SelfAdjointTridiagonalMatrix operator+(
@@ -110,8 +110,8 @@ namespace Tensors
             
             SelfAdjointTridiagonalMatrix & operator=( const SelfAdjointTridiagonalMatrix & B )
             {
-                copy_buffer( diag, B.diag, n);
-                copy_buffer( upper, B.upper, n-1);
+                copy_buffer<n>  ( diag,  B.diag  );
+                copy_buffer<n-1>( upper, B.upper );
                 
                 return *this;
             }

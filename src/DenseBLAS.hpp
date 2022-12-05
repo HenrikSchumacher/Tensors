@@ -48,7 +48,7 @@ namespace Tensors
                     }
                 }
                 
-                copy_buffer( &c_i[0], &C[K*i], K );
+                copy_buffer<K>( &c_i[0], &C[K*i] );
             }
         }
         else
@@ -118,7 +118,7 @@ namespace Tensors
             
             for( Int i = 0; i < M; ++i )
             {
-                copy_buffer(A[N*i], &a_i[0], N );
+                copy_buffer<N>(A[N*i], &a_i[0] );
                 
                 prefetch( A + N * (i+1), 0, 2 );
                 prefetch( B + K * (0+1), 0, 2 );
@@ -143,14 +143,14 @@ namespace Tensors
                     }
                 }
       
-                copy_buffer( &c_i[0], &C[K*i], K );
+                copy_buffer<K>( &c_i[0], &C[K*i] );
             }
         }
         else
         {
             for( Int i = 0; i < M; ++i )
             {
-                copy_buffer( &A[N*i], &a_i[0], N );
+                copy_buffer<N>( &A[N*i], &a_i[0] );
                 
                 prefetch( A + N * (i+1), 0, 2 );
                 prefetch( B + K * (0+1), 0, 2 );

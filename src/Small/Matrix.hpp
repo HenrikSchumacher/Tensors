@@ -58,12 +58,12 @@ namespace Tensors
             
             void SetZero()
             {
-                zerofy_buffer( &A[0][0], m * n );
+                zerofy_buffer<m * n>( &A[0][0] );
             }
             
             void Fill( const Scalar init )
             {
-                fill_buffer( &A[0][0], m * n, init );
+                fill_buffer<m * n>( &A[0][0], init );
             }
             
             Scalar & operator()( const Int i, const Int j )
@@ -219,12 +219,12 @@ namespace Tensors
             
             void Write( Scalar * target ) const
             {
-                copy_buffer( &A[0][0], target, m * n );
+                copy_buffer<m * n>( &A[0][0], target );
             }
             
             void Read( Scalar const * const source )
             {
-                copy_buffer( source, &A[0][0], m * n );
+                copy_buffer<m * n>( source, &A[0][0] );
             }
             
             std::string ToString( const Int p = 16) const

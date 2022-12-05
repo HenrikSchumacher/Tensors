@@ -334,7 +334,7 @@ namespace Tensors
         force_inline void CleanseY()
         {
             // Clear the local vector chunk of the kernel.
-            zerofy_buffer( &y[0][0], ROWS_SIZE );           // TODO: Might be inefficient.
+            zerofy_buffer<ROWS_SIZE>( &y[0][0] );           // TODO: Might be inefficient.
         }
         
         force_inline void WriteY( const Int i_global ) const
@@ -352,17 +352,11 @@ namespace Tensors
                         {
                             if constexpr ( fixed )
                             {
-                                copy_cast_buffer( &y[0][0], y_to, RowsSize() );
+                                copy_cast_buffer<ROWS_SIZE>( &y[0][0], y_to );
                             }
                             else
                             {
-                                for( Int i = 0; i < ROWS; ++i )
-                                {
-                                    for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
-                                    {
-                                        y_to[COND(fixed,RHS_COUNT,rhs_count)*i+k] = get_cast_y(i,k);
-                                    }
-                                }
+                                copy_cast_buffer( &y[0][0], y_to, RowsSize() );
                             }
                         }
                         else
@@ -378,18 +372,28 @@ namespace Tensors
                     }
                     else
                     {
-                        if constexpr ( fixed || y_intRM )
+                        // y is not row-major
+                        
+                        if ( y_intRM )
                         {
-                            copy_cast_buffer( &y[0][0], y_to, COND(fixed,RHS_COUNT,rhs_count) );
-                        }
-                        else
-                        {
+                            //transpose
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
                                     y_to[ROWS*k+i] = get_cast_y(i,k);
                                 }
+                            }
+                        }
+                        else
+                        {
+                            if constexpr ( fixed )
+                            {
+                                copy_cast_buffer<RHS_COUNT>( &y[0][0], y_to );
+                            }
+                            else
+                            {
+                                copy_cast_buffer( &y[0][0], y_to, rhs_count );
                             }
                         }
                     }
@@ -445,7 +449,14 @@ namespace Tensors
             {
                 if constexpr ( beta_flag == 0 )
                 {
-                    zerofy_buffer( y_to, ROWS_SIZE );
+                    if constexpr ( fixed )
+                    {
+                        zerofy_buffer<ROWS_SIZE>( y_to );
+                    }
+                    else
+                    {
+                        zerofy_buffer( y_to, RowsSize() );
+                    }
                 }
                 else if constexpr ( beta_flag == 1 )
                 {
@@ -542,7 +553,14 @@ namespace Tensors
             
             if constexpr ( beta_flag == 0 )
             {
-                zerofy_buffer( y_to, RowsSize() );
+                if constexpr ( fixed )
+                {
+                    zerofy_buffer<ROWS_SIZE>( y_to );
+                }
+                else
+                {
+                    zerofy_buffer( y_to, RowsSize() );
+                }
             }
             else if constexpr ( beta_flag == 1 )
             {
