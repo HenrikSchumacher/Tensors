@@ -115,6 +115,17 @@ namespace Tensors
                 }
             }
             
+            void operator*=( const Scalar & scale )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] *= scale;
+                    }
+                }
+            }
+            
             SelfAdjointMatrix & operator=( const SelfAdjointMatrix & B )
             {
                 Read(&B.A[0][0]);
@@ -520,7 +531,7 @@ namespace Tensors
                 copy_buffer<n * n>(source, &A[0][0]);
             }
             
-            std::string ToString( const Int p = 16) const
+            std::string ToString( const int p = 16) const
             {
                 std::stringstream sout;
 

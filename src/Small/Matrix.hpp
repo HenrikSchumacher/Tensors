@@ -99,6 +99,45 @@ namespace Tensors
                 return z;
             }
             
+            void operator+=( const Scalar lambda )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] += lambda;
+                    }
+                }
+            }
+            
+            void operator-=( const Scalar lambda )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] -= lambda;
+                    }
+                }
+            }
+            
+            void operator*=( const Scalar lambda )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] *= lambda;
+                    }
+                }
+            }
+            
+            void operator/=( const Scalar lambda )
+            {
+                (*this) *= ( one/lambda );
+            }
+            
+            
             void operator+=( const Matrix & B )
             {
                 for( Int i = 0; i < m; ++i )
@@ -227,7 +266,7 @@ namespace Tensors
                 copy_buffer<m * n>( source, &A[0][0] );
             }
             
-            std::string ToString( const Int p = 16) const
+            std::string ToString( const int p = 16) const
             {
                 std::stringstream sout;
                 sout << "{\n";

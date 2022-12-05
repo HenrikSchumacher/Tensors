@@ -8,13 +8,22 @@ namespace Tensors
         template< int n_, typename Scalar_, typename Int_>
         struct Vector
         {
+            // Very slim vector type of fixed length, with basic arithmetic operations.
             
             using Scalar = Scalar_;
             using Real   = typename ScalarTraits<Scalar_>::RealType;
             using Int    = Int_;
             
             static constexpr Int n = n_;
-            // Very slim vector type of fixed length, with basic arithmetic operations.
+            
+            static constexpr Scalar zero            = 0;
+            static constexpr Scalar half            = 0.5;
+            static constexpr Scalar one             = 1;
+            static constexpr Scalar two             = 2;
+            static constexpr Scalar three           = 3;
+            static constexpr Scalar four            = 4;
+            static constexpr Real eps               = std::numeric_limits<Real>::min();
+            static constexpr Real infty             = std::numeric_limits<Real>::max();
             
             Scalar v [n];
             
@@ -23,6 +32,11 @@ namespace Tensors
             explicit Vector( const Scalar init )
             :   v { init }
             {}
+            
+            explicit Vector( const Scalar * restrict const v_ )
+            {
+                Read(v_);
+            }
             
             ~Vector() = default;
             
@@ -66,11 +80,41 @@ namespace Tensors
                 return v[i];
             }
             
+            Vector & operator=( const Vector & x )
+            {
+                Read(x.v);
+                return *this;
+            }
+            
             void operator+=( const Vector & x )
             {
                 for(Int i = 0; i < n; ++i )
                 {
                     v[i] += x.v[i];
+                }
+            }
+            
+            void operator*=( const Vector & x )
+            {
+                for(Int i = 0; i < n; ++i )
+                {
+                    v[i] *= x.v[i];
+                }
+            }
+
+            void operator+=( const Scalar add )
+            {
+                for(Int i = 0; i < n; ++i )
+                {
+                    v[i] += add;
+                }
+            }
+            
+            void operator-=( const Scalar add )
+            {
+                for(Int i = 0; i < n; ++i )
+                {
+                    v[i] -= add;
                 }
             }
             
@@ -82,13 +126,9 @@ namespace Tensors
                 }
             }
             
-            Vector & operator=( const Vector & x )
+            void operator/=( const Scalar scale )
             {
-                for( Int i = 0; i < n; ++i )
-                {
-                    v[i] = x.v[i];
-                }
-                return *this;
+                (*this) *= (one/scale);
             }
             
             Real Norm() const
@@ -106,17 +146,9 @@ namespace Tensors
                 return v.Norm();
             }
             
-            void Scale( const Scalar scale )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    v[i] *= scale;
-                }
-            }
-            
             void Normalize()
             {
-                Scale( static_cast<Scalar>(1) / Norm() );
+                *this *= (static_cast<Scalar>(1) / Norm());
             }
             
             
@@ -217,7 +249,7 @@ namespace Tensors
                 copy_cast_buffer<n>( &v[0], a_ );
             }
             
-            std::string ToString( const Int p = 16) const
+            std::string ToString( const int p = 16) const
             {
                 std::stringstream sout;
                 sout << "{ ";

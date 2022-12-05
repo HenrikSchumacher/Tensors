@@ -8,20 +8,11 @@
 
 #include "Tensors.hpp"
 
-
-
 using namespace Tools;
 using namespace Tensors;
 
-// Some type aliases to make out lives a bit easier.
-
-//HessenbergDecomposition...
-//0.306573 s.
-//Eigen::HessenbergDecomposition...
-//0.317475 s.
-
-using Scalar = std::complex<double>;
-//using Scalar = double;
+//using Scalar = std::complex<double>;
+using Scalar = double;
 //using Scalar = std::complex<float>;
 //using Scalar = float;
 using Real   = ScalarTraits<Scalar>::RealType;
@@ -204,8 +195,8 @@ int main(int argc, const char * argv[])
     toc("Check  HessenbergDecomposition");
     
     dump(error);
-//    dump(T.ToString(4));
-//    dump(U.ToString(4));
+    dump(T.ToString(4));
+    dump(U.ToString(4));
     
     return 0;
 }
