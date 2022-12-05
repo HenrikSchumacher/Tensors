@@ -289,6 +289,7 @@ namespace Tensors
                 
                 if constexpr ( n > 3 )
                 {
+#if defined(EIGEN_CORE_H)
                     using Matrix_T = Eigen::Matrix<Scalar,n,n>;
                     
                     Matrix_T Sigma (&A[0][0]);
@@ -298,6 +299,9 @@ namespace Tensors
                     eigs.compute(Sigma);
                     
                     return eigs.eigenvalues()[0];
+#else
+                    eprint(ClassName()+"::SmallestEigenvalue is not implemented for dimension "+ToString(n)+", yet.");
+#endif
                 }
                 
                 return 0;

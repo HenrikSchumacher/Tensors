@@ -4,18 +4,18 @@
     #include <iostream>
     #include <random>
     #include <cstring>
-    #include <array>
-    
+//    #include <array>
+    #include <complex>
 
 //    #include <Accelerate/Accelerate.h>
 //    #include <cblas.h>
 //    #include <lapacke.h>
 
-    #define EIGEN_NO_DEBUG
+//    #define EIGEN_NO_DEBUG
 //    #define EIGEN_USE_BLAS
 //    #define EIGEN_USE_LAPACKE
-    #include "eigen3/Eigen/Dense"
-
+//    #include "eigen3/Eigen/Dense"
+//
     #include "Tools/Tools.hpp"
 
     namespace Tensors
