@@ -5,6 +5,8 @@ namespace Tensors
     namespace Tiny
     {
         
+        template<int n_, typename Scalar_, typename Int_> class VectorList;
+        
         template< int n_, typename Scalar_, typename Int_>
         struct Vector
         {
@@ -36,6 +38,12 @@ namespace Tensors
             explicit Vector( const Scalar * restrict const v_ )
             {
                 Read(v_);
+            }
+            
+            template<typename S>
+            Vector( const VectorList<n,S,Int> & v_list, const Int k )
+            {
+                Read(v_list, k);
             }
             
             ~Vector() = default;
@@ -265,6 +273,24 @@ namespace Tensors
             void Write( S * a_ ) const
             {
                 copy_cast_buffer<n>( &v[0], a_ );
+            }
+            
+            template<typename S>
+            void Read( const VectorList<n,S,Int> & v_list, const Int k )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v[i] = static_cast<Scalar>(v_list[i][k]);
+                }
+            }
+            
+            template<typename S>
+            void Write( VectorList<n,S,Int> & v_list, const Int k ) const
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v_list[i][k] = static_cast<S>(v[i]);
+                }
             }
             
             std::string ToString( const int p = 16) const
