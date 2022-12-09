@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    namespace Small
+    namespace Tiny
     {
 
         template< int m_, int n_, typename Scalar_, typename Int_>
@@ -279,7 +279,7 @@ namespace Tensors
         
         
         template<int m, int n, typename T, typename I, IsFloat(T)>
-        inline mma::TensorRef<mreal> to_MTensorRef( const Small::MatrixList<m,n,T,I> & A )
+        inline mma::TensorRef<mreal> to_MTensorRef( const Tiny::MatrixList<m,n,T,I> & A )
         {
             const mint N = A.Dimension(2);
             
@@ -312,7 +312,7 @@ namespace Tensors
         }
         
         template<int m, int n, typename J, typename I, IsInt(J)>
-        inline mma::TensorRef<mint> to_MTensorRef( const Small::MatrixList<m,n,J,I> & A )
+        inline mma::TensorRef<mint> to_MTensorRef( const Tiny::MatrixList<m,n,J,I> & A )
         {
             const mint N = A.Dimension(2);
             
@@ -346,6 +346,6 @@ namespace Tensors
         
     #endif
     
-    } // namespace Small
+    } // namespace Tiny
     
 } // namespace Tensors

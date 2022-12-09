@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    namespace Small
+    namespace Tiny
     {
         
         template< int n_, typename Scalar_, typename Int_ >
@@ -23,7 +23,7 @@ namespace Tensors
             
             Int length = 0;
             
-            Tensor_T v [n];
+            std::array<Tensor_T,n> v;
             
         public:
             
@@ -346,6 +346,6 @@ namespace Tensors
         
 #endif
         
-    } // namespace Small
+    } // namespace Tiny
     
 } // namespace Tensors

@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    namespace Small
+    namespace Tiny
     {
         template< int n_, typename Scalar_, typename Int_>
         struct SelfAdjointMatrix
@@ -28,8 +28,7 @@ namespace Tensors
             static constexpr Real infty             = std::numeric_limits<Real>::max();
             
             
-            
-            Scalar A [n][n];
+            std::array<std::array<Scalar,n>,n> A;
             
             SelfAdjointMatrix() = default;
             
@@ -43,6 +42,31 @@ namespace Tensors
             SelfAdjointMatrix( const SelfAdjointMatrix & other )
             {
                 Read( &other.A[0][0] );
+            }
+            
+            friend void swap( SelfAdjointMatrix & A, SelfAdjointMatrix & B ) noexcept
+            {
+                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+                using std::swap;
+                
+                std::swap_ranges(&A.A[0][0], &A.A[n-1][n], &B.A[0][0] );
+            }
+            
+            // Copy assignment operator
+            SelfAdjointMatrix & operator=( SelfAdjointMatrix other )
+            {
+                // copy-and-swap idiom
+                // see https://stackoverflow.com/a/3279550/8248900 for details
+                swap(*this, other);
+
+                return *this;
+            }
+
+            /* Move constructor */
+            SelfAdjointMatrix( SelfAdjointMatrix && other ) noexcept
+            :   SelfAdjointMatrix()
+            {
+                swap(*this, other);
             }
             
             force_inline Scalar * data()
@@ -77,7 +101,7 @@ namespace Tensors
             
             force_inline Scalar * operator[]( const Int i  )
             {
-                return A[i];
+                return &A[i][0];
             }
             
             friend SelfAdjointMatrix operator+( const SelfAdjointMatrix & x, const SelfAdjointMatrix & y )
@@ -311,7 +335,7 @@ namespace Tensors
                     
                     return eigs.eigenvalues()[0];
 #else
-                    eprint(ClassName()+"::SmallestEigenvalue is not implemented for dimension "+ToString(n)+", yet.");
+                    eprint(ClassName()+"::TinyestEigenvalue is not implemented for dimension "+ToString(n)+", yet.");
 #endif
                 }
                 
@@ -657,6 +681,6 @@ namespace Tensors
             
         };
         
-    } // namespace Small
+    } // namespace Tiny
     
 } // namespace Tensors

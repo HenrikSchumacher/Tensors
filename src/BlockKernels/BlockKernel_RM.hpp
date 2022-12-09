@@ -47,8 +47,8 @@ namespace Tensors
         const Int rows_size = ROWS;
         const Int cols_size = COLS;
         
-        Small::VectorList<COLS,Scalar,Int> x;
-        Small::VectorList<ROWS,Scalar,Int> y;
+        Tiny::VectorList<COLS,Scalar,Int> x;
+        Tiny::VectorList<ROWS,Scalar,Int> y;
 
         
     public:

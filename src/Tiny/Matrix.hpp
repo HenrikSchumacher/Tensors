@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    namespace Small
+    namespace Tiny
     {
         template< int m_, int n_, typename Scalar_, typename Int_>
         struct Matrix
@@ -35,14 +35,40 @@ namespace Tensors
             :   A {{init}}
             {}
             
+            // Copy constructor.
             Matrix( const Matrix & other )
             {
-                *this = other;
+                Matrix(&other.A[0][0]);
+            }
+            
+            friend void swap( Matrix & A, Matrix & B ) noexcept
+            {
+                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+                using std::swap;
+                
+                std::swap_ranges(&A.A[0][0], &A.A[m-1][n], &B.A[0][0] );
+            }
+            
+            // Copy assignment operator
+            Matrix & operator=( Matrix other )
+            {
+                // copy-and-swap idiom
+                // see https://stackoverflow.com/a/3279550/8248900 for details
+                swap(*this, other);
+
+                return *this;
+            }
+
+            /* Move constructor */
+            Matrix( Matrix && other ) noexcept
+            :   Matrix()
+            {
+                swap(*this, other);
             }
             
         protected:
             
-            Scalar A [m][n];
+            std::array<std::array<Scalar,n>,m> A;
             
         public:
             
@@ -78,12 +104,12 @@ namespace Tensors
             
             Scalar * operator[]( const Int i )
             {
-                return A[i];
+                return &A[i][0];
             }
             
             const Scalar * operator[]( const Int i ) const
             {
-                return A[i];
+                return &A[i][0];
             }
             
             friend Matrix operator+( const Matrix & x, const Matrix & y )
@@ -323,13 +349,13 @@ namespace Tensors
         };
         
         
-    } // namespace Small
+    } // namespace Tiny
         
     template< int M, int N, typename Scalar, typename Int >
     void Dot(
-        const Small::Matrix<M,N,Scalar,Int> & A,
-        const Small::Vector<N,Scalar,Int> & x,
-              Small::Vector<M,Scalar,Int> & y
+        const Tiny::Matrix<M,N,Scalar,Int> & A,
+        const Tiny::Vector<N,Scalar,Int> & x,
+              Tiny::Vector<M,Scalar,Int> & y
     )
     {
         for( Int i = 0; i < M; ++i )
@@ -351,9 +377,9 @@ namespace Tensors
     
     template< int M, int K, int N, typename Scalar, typename Int >
     void Dot(
-        const Small::Matrix<M,K,Scalar,Int> & A,
-        const Small::Matrix<K,N,Scalar,Int> & B,
-              Small::Matrix<M,N,Scalar,Int> & C
+        const Tiny::Matrix<M,K,Scalar,Int> & A,
+        const Tiny::Matrix<K,N,Scalar,Int> & B,
+              Tiny::Matrix<M,N,Scalar,Int> & C
     )
     {
         C.SetZero();

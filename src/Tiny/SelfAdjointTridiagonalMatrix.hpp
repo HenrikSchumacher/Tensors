@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    namespace Small
+    namespace Tiny
     {
         template< int n_, typename Scalar_, typename Int_ >
         struct SelfAdjointTridiagonalMatrix
@@ -51,6 +51,15 @@ namespace Tensors
             {
                 Read( &other.A[0][0] );
             }
+            
+            SelfAdjointTridiagonalMatrix & operator=( const SelfAdjointTridiagonalMatrix & B )
+            {
+                copy_buffer<n>  ( diag,  B.diag  );
+                copy_buffer<n-1>( upper, B.upper );
+                
+                return *this;
+            }
+            
             
             force_inline Real & Diag( const Int i )
             {
@@ -105,15 +114,6 @@ namespace Tensors
             {
                 add_to_buffer<n>  ( B.diag,  diag       );
                 add_to_buffer<n-1>( B.upper, diag.upper );
-            }
-
-            
-            SelfAdjointTridiagonalMatrix & operator=( const SelfAdjointTridiagonalMatrix & B )
-            {
-                copy_buffer<n>  ( diag,  B.diag  );
-                copy_buffer<n-1>( upper, B.upper );
-                
-                return *this;
             }
             
             void Dot( const Vector_T & x, Vector_T & y ) const
@@ -203,6 +203,6 @@ namespace Tensors
             
         };
         
-    } // namespace Small
+    } // namespace Tiny
     
 } // namespace Tensors

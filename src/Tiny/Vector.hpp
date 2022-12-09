@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    namespace Small
+    namespace Tiny
     {
         
         template< int n_, typename Scalar_, typename Int_>
@@ -25,7 +25,7 @@ namespace Tensors
             static constexpr Real eps               = std::numeric_limits<Real>::min();
             static constexpr Real infty             = std::numeric_limits<Real>::max();
             
-            Scalar v [n];
+            std::array<Scalar,n> v;
             
             Vector() = default;
 
@@ -40,10 +40,34 @@ namespace Tensors
             
             ~Vector() = default;
             
+            // Copy constructor.
             Vector( const Vector & other )
             {
                 Read(&other.v[0]);
             }
+            
+            friend void swap( Vector & A, Vector & B ) noexcept
+            {
+                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+                using std::swap;
+                
+                swap(A.v,B.v);
+            }
+            
+            // Copy assignment.
+            Vector & operator=( const Vector & x )
+            {
+                Read(&x.v[0]);
+                return *this;
+            }
+
+            /* Move constructor */
+            Vector( Vector && other ) noexcept
+            :   Vector()
+            {
+                swap(*this, other);
+            }
+            
             
             Scalar * data()
             {
@@ -78,12 +102,6 @@ namespace Tensors
             const Scalar & operator()( const Int i ) const
             {
                 return v[i];
-            }
-            
-            Vector & operator=( const Vector & x )
-            {
-                Read(x.v);
-                return *this;
             }
             
             void operator+=( const Vector & x )
@@ -280,6 +298,6 @@ namespace Tensors
                 return "Vector<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
         };
-    } // namespace Small
+    } // namespace Tiny
     
 } // namespace Tensors

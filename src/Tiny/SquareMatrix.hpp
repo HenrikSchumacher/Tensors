@@ -2,14 +2,14 @@
 
 namespace Tensors
 {
-    namespace Small
+    namespace Tiny
     {
         template< int n_, typename Scalar_, typename Int_>
-        struct SquareMatrix : public Tensors::Small::Matrix<n_,n_,Scalar_,Int_>
+        struct SquareMatrix : public Tensors::Tiny::Matrix<n_,n_,Scalar_,Int_>
         {
         public:
             
-            using Matrix_T = Tensors::Small::Matrix<n_,n_,Scalar_,Int_>;
+            using Matrix_T = Tensors::Tiny::Matrix<n_,n_,Scalar_,Int_>;
             using Scalar   = Scalar_;
             using Real     = typename ScalarTraits<Scalar_>::RealType;
             using Int      = Int_;
@@ -37,9 +37,35 @@ namespace Tensors
             :   Matrix_T(init)
             {}
             
+            // Copy constructor
             SquareMatrix( const SquareMatrix & other )
             :   Matrix_T(other)
             {}
+            
+            friend void swap( SquareMatrix & A, SquareMatrix & B ) noexcept
+            {
+                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+                using std::swap;
+                
+                std::swap_ranges(&A.A[0][0], &A.A[n-1][n], &B.A[0][0] );
+            }
+            
+            // Copy assignment operator
+            SquareMatrix & operator=( SquareMatrix other )
+            {
+                // copy-and-swap idiom
+                // see https://stackoverflow.com/a/3279550/8248900 for details
+                swap(*this, other);
+
+                return *this;
+            }
+
+            /* Move constructor */
+            SquareMatrix( SquareMatrix && other ) noexcept
+            :   SquareMatrix()
+            {
+                swap(*this, other);
+            }
             
         protected:
             
@@ -58,7 +84,7 @@ namespace Tensors
                 }
             }
             
-            void SetDiagonal( const Tensors::Small::Vector<n,Scalar,Int> & v )
+            void SetDiagonal( const Tensors::Tiny::Vector<n,Scalar,Int> & v )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -157,6 +183,6 @@ namespace Tensors
             
         };
         
-    } // namespace Small
+    } // namespace Tiny
         
 } // namespace Tensors
