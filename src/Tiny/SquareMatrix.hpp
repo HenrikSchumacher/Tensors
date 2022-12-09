@@ -26,6 +26,8 @@ namespace Tensors
             using Matrix_T::four;
             using Matrix_T::eps;
             using Matrix_T::infty;
+            using Matrix_T::Write;
+            using Matrix_T::Read;
             
             // Uses only upper triangle.
             

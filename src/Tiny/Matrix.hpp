@@ -32,7 +32,7 @@ namespace Tensors
             ~Matrix() = default;
             
             explicit Matrix( const Scalar init )
-            :   A {{init}}
+            :   A {{{init}}}
             {}
             
             // Copy constructor.
