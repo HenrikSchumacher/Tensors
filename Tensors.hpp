@@ -48,10 +48,10 @@
     #include "src/DenseBLAS.hpp"
 
     #include "src/SparseBLAS.hpp"
-    #include "src/SparsityPatternCSR.hpp"
-    #include "src/SparseBinaryMatrixCSR.hpp"
-    #include "src/SparseBinaryMatrixVBSR.hpp"
-    #include "src/SparseMatrixCSR.hpp"
+    #include "src/Sparse/PatternCSR.hpp"
+    #include "src/Sparse/BinaryMatrixCSR.hpp"
+//    #include "src/Sparse/BinaryMatrixVBSR.hpp"
+    #include "src/Sparse/MatrixCSR.hpp"
 
 //    #include "src/BlockKernels_old/BlockKernel.hpp"
 //    #include "src/BlockKernels_old/SquareBlockKernel.hpp"
@@ -63,8 +63,8 @@
 //    #include "src/BlockKernels_old/DenseSquareBlockKernel_Eigen.hpp"
 
 
-    #include "src/SparseKernelMatrixCSR.hpp"
-    #include "src/DiagonalKernelMatrix.hpp"
+    #include "src/Sparse/KernelMatrixCSR.hpp"
+    #include "src/Sparse/DiagonalKernelMatrix.hpp"
 
     #include "src/BlockKernels/BlockKernel_fixed.hpp"
     #include "src/BlockKernels/DenseBlockKernel_fixed.hpp"
@@ -78,8 +78,8 @@
     #include "src/LUDecomposition.hpp"
     #include "src/CholeskyDecomposition.hpp"
 
-    #include "src/SparseCholeskyDecomposition/EliminationTree.hpp"
-    #include "src/SparseCholeskyDecomposition/UniteSortedBuffers.hpp"
-    #include "src/SparseCholeskyDecomposition.hpp"
+//    #include "src/SparseCholeskyDecomposition/EliminationTree.hpp"
+//    #include "src/SparseCholeskyDecomposition/UniteSortedBuffers.hpp"
+//    #include "src/SparseCholeskyDecomposition.hpp"
 
 #endif

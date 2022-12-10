@@ -39,7 +39,6 @@ int main(int argc, const char * argv[])
     Tensor3<Scalar,Int> A_list   (reps,n,n);
     Tensor3<Scalar,Int> U_list   (reps,n,n);
     Tensor3<Scalar,Int> H_list   (reps,n,n);
-    Tensor3<Scalar,Int> E_H_list (reps,n,n);
     Tensor3<Scalar,Int> T_list   (reps,n,n);
     
     Tiny::SelfAdjointMatrix<n,Scalar,Int> A;
