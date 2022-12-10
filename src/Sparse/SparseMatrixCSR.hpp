@@ -60,10 +60,10 @@ namespace Tensors
         
         template<typename I_0, typename I_1, typename I_3>
         CLASS(
-              const I_0 m_,
-              const I_1 n_,
-              const I_3 thread_count_
-              )
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
         :   Base_T( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
         {
             ASSERT_INT(I_0);
@@ -73,11 +73,11 @@ namespace Tensors
         
         template<typename I_0, typename I_1, typename I_2, typename I_3>
         CLASS(
-              const I_0 m_,
-              const I_1 n_,
-              const I_2 nnz_,
-              const I_3 thread_count_
-              )
+            const I_0 m_,
+            const I_1 n_,
+            const I_2 nnz_,
+            const I_3 thread_count_
+        )
         :   Base_T   ( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) )
         ,   values ( static_cast<LInt>(nnz_) )
         {
@@ -89,13 +89,13 @@ namespace Tensors
         
         template<typename S, typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
         CLASS(
-              const J_0 * const outer_,
-              const J_1 * const inner_,
-              const S   * const values_,
-              const I_0 m_,
-              const I_1 n_,
-              const I_3 thread_count_
-              )
+            const J_0 * const outer_,
+            const J_1 * const inner_,
+            const S   * const values_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
         :   Base_T    ( outer_,  inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
         ,   values  ( values_, outer_[static_cast<Int>(m_)] )
         {
@@ -107,13 +107,13 @@ namespace Tensors
         
         template<typename I_0, typename I_1, typename I_3>
         CLASS(
-              Tensor1<LInt  , Int> && outer_,
-              Tensor1< Int  ,LInt> && inner_,
-              Tensor1<Scalar, Int> && values_,
-              const I_0 m_,
-              const I_1 n_,
-              const I_3 thread_count_
-              )
+            Tensor1<LInt  , Int> && outer_,
+            Tensor1< Int  ,LInt> && inner_,
+            Tensor1<Scalar, Int> && values_,
+            const I_0 m_,
+            const I_1 n_,
+            const I_3 thread_count_
+        )
         :   Base_T   ( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
         ,   values ( std::move(values_) )
         {

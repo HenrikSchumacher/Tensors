@@ -17,6 +17,7 @@ namespace Tensors
         public:
             
 #include "Tiny_Details.hpp"
+#include "Tiny_Details_Matrix.hpp"
 
             using Base_T::m;
             using Base_T::n;
@@ -228,6 +229,47 @@ namespace Tensors
             
         public:
             
+            force_inline void SetHouseHolderReflector( const Vector_T & u, const Int begin, const Int end )
+            {
+                // Write the HouseHolder reflection of u into the matrix; assumes that u is zero outside [begin,...,end[.
+                
+                // Mostly meant for debugging purposes, thus not extremely optimized.
+                
+                SetIdentity();
+
+                for( Int i = begin; i < end; ++i )
+                {
+                    for( Int j = begin; j < end; ++j )
+                    {
+                        A[i][j] -= two * u[i] * conj(u[j]);
+                    }
+                }
+            }
+            
+            
+            force_inline void SetGivensRotation( const Scalar c, const Scalar s, const Int i, const Int j )
+            {
+                // Mostly meant for debugging purposes, thus not extremely optimized.
+                // Assumes that squared_abs(c) + squared_abs(s) == one.
+                // Write Givens rotion
+                //
+                //    /              \
+                //    |  c  -conj(s) |
+                //    |  s      c    |
+                //    \              /
+                //
+                // in the i-j-plane into the matrix.
+                
+                SetIdentity();
+                
+                A[i][i] = c;
+                A[i][j] = -conj(s);
+                A[j][i] = s;
+                A[j][j] = c;
+            }
+            
+        public:
+            
             static constexpr Int AmbientDimension()
             {
                 return n;
@@ -241,6 +283,47 @@ namespace Tensors
         };
         
 #undef CLASS
+        
+        template< int N, typename Scalar, typename Int >
+        void Dot(
+            const Tiny::SquareMatrix<N,Scalar,Int> & A,
+            const Tiny::Vector<N,Scalar,Int> & x,
+                  Tiny::Vector<N,Scalar,Int> & y
+        )
+        {
+            for( Int i = 0; i < N; ++i )
+            {
+                Scalar y_i (0);
+                
+                for( Int j = 0; j < N; ++j )
+                {
+                    y_i += A[i][j] * x[j];
+                }
+                
+                y[i] = y_i;
+            }
+        }
+        
+        template< int N, typename Scalar, typename Int >
+        void Dot(
+            const Tiny::SquareMatrix<N,Scalar,Int> & A,
+            const Tiny::SquareMatrix<N,Scalar,Int> & B,
+                  Tiny::SquareMatrix<N,Scalar,Int> & C
+        )
+        {
+            for( Int i = 0; i < N; ++i )
+            {
+                Tiny::Vector<N,Scalar,Int> C_i ( static_cast<Scalar>(0) );
+                for( Int k = 0; k < N; ++k )
+                {
+                    for( Int j = 0; j < N; ++j )
+                    {
+                        C_i[j] += A[i][k] * B[k][j];
+                    }
+                }
+                C_i.Write( C[i] );
+            }
+        }
         
     } // namespace Tiny
         

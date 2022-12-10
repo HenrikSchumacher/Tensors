@@ -172,6 +172,64 @@ namespace Tensors
             }
             
         public:
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                void
+            >
+            GivensLeft( const T c, const T s, const Int i, const Int j )
+            {
+                // Assumes that squared_abs(c) + squared_abs(s) == one.
+                // Multiplies matrix with the rotation
+                //
+                //    /              \
+                //    |  c  -conj(s) |
+                //    |  s   c       |
+                //    \              /
+                //
+                // in the i-j-plane from the left.
+                
+                for( Int k = 0; k < n; ++k )
+                {
+                    const Scalar x = A[i][k];
+                    const Scalar y = A[j][k];
+                    
+                    A[i][k] = c * x - conj(s) * y;
+                    A[j][k] = s * x +      c  * y;
+                }
+            }
+
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                void
+            >
+            GivensRight( const T c, const T s, const Int i, const Int j )
+            {
+                // Assumes that squared_abs(c) + squared_abs(s) == one.
+                // Multiplies matrix with rotation
+                //
+                //    /              \
+                //    |  c  -conj(s) |
+                //    |  s      c    |
+                //    \              /
+                //
+                // in the i-j-plane from the right.
+                
+                for( Int k = 0; k < m; ++k )
+                {
+                    const Scalar x = A[k][i];
+                    const Scalar y = A[k][j];
+                    
+                    A[k][i] =     c    * x + s * y;
+                    A[k][j] = -conj(s) * x + c * y;
+                }
+            }
+            
+        public:
 
             static constexpr Int RowCount()
             {
@@ -219,10 +277,6 @@ namespace Tensors
         {
             Scalar y_i (0);
             
-            for( Int j = 0; j < i; ++j )
-            {
-                y_i += A[j][i] * x[j];
-            }
             for( Int j = 0; j < N; ++j )
             {
                 y_i += A[i][j] * x[j];
@@ -239,17 +293,17 @@ namespace Tensors
               Tiny::Matrix<M,N,Scalar,Int> & C
     )
     {
-        C.SetZero();
-        
         for( Int i = 0; i < M; ++i )
         {
+            Tiny::Vector<N,Scalar,Int> C_i = {};
             for( Int k = 0; k < K; ++k )
             {
                 for( Int j = 0; j < N; ++j )
                 {
-                    C[i][j] += A[i][k] * B[k][j];
+                    C_i[j] += A[i][k] * B[k][j];
                 }
             }
+            C_i.Write( C[i] );
         }
     }
     
