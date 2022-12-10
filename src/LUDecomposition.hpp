@@ -285,7 +285,7 @@ namespace Tensors
             LOOP_UNROLL_FULL
             for( Int i = 0; i < n; ++i )
             {
-                copy_cast_buffer( &B[p[i]*ldB], &Y[i][0], nrhs );
+                copy_buffer( &B[p[i]*ldB], &Y[i][0], nrhs );
             }
             
             // Step 2: Inplace solve L Y = B
@@ -330,7 +330,7 @@ namespace Tensors
             LOOP_UNROLL_FULL
             for( Int i = 0; i < n; ++i )
             {
-                copy_cast_buffer( &Y[i][0],  &X[i*ldX], nrhs);
+                copy_buffer( &Y[i][0],  &X[i*ldX], nrhs);
             }
         }
         
@@ -350,7 +350,7 @@ namespace Tensors
             LOOP_UNROLL_FULL
             for( Int i = 0; i < n; ++i )
             {
-                copy_cast_buffer( &B[p[i]*ldB], &Y[i][0], nrhs );
+                copy_buffer( &B[p[i]*ldB], &Y[i][0], nrhs );
             }
             
             // Step 2: Inplace solve L Y = B
@@ -391,7 +391,7 @@ namespace Tensors
             LOOP_UNROLL_FULL
             for( Int i = 0; i < n; ++i )
             {
-                copy_cast_buffer( &Y[i][0], &X[i*ldX], nrhs );
+                copy_buffer( &Y[i][0], &X[i*ldX], nrhs );
             }
             
         } // Solve_gen
@@ -403,7 +403,7 @@ namespace Tensors
             LOOP_UNROLL_FULL
             for( Int i = 0; i < n; ++i )
             {
-                copy_cast_buffer( &A_[ldA*i], &LU[i][0], n );
+                copy_buffer( &A_[ldA*i], &LU[i][0], n );
             }
             
             LOOP_UNROLL_FULL
@@ -460,14 +460,14 @@ namespace Tensors
             LOOP_UNROLL_FULL
             for( Int i = 0; i < n; ++i )
             {
-                copy_cast_buffer( &LU[i][0], &A_[ldA*i], n );
+                copy_buffer( &LU[i][0], &A_[ldA*i], n );
             }
         }
         
         template<typename I>
         void WritePermutation( I * restrict const p_ ) const
         {
-            copy_cast_buffer( &p[0], p_, n );
+            copy_buffer( &p[0], p_, n );
         }
 
         template<typename T>
@@ -476,14 +476,14 @@ namespace Tensors
             LOOP_UNROLL_FULL
             for( Int i = 0; i < n; ++i )
             {
-                copy_cast_buffer( &A_[ldA*i], &LU[i][0], n );
+                copy_buffer( &A_[ldA*i], &LU[i][0], n );
             }
         }
         
         template<typename I>
         void ReadPermutation( const I * restrict const p_ )
         {
-            copy_cast_buffer( p_, &p[0], n );
+            copy_buffer( p_, &p[0], n );
         }
         
     }; // class LUDecomposition

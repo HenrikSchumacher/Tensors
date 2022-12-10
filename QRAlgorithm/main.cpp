@@ -11,25 +11,20 @@
 using namespace Tools;
 using namespace Tensors;
 
-//using Scalar = std::complex<double>;
-using Scalar = double;
+using Scalar = std::complex<double>;
+//using Scalar = double;
 //using Scalar = std::complex<float>;
 //using Scalar = float;
 using Real   = ScalarTraits<Scalar>::RealType;
 using Int    = int32_t;
 
-constexpr Int n = 3;
+constexpr Int n = 4;
 
 using E_C_Matrix_T = Eigen::Matrix<Scalar,n,n>;
 using E_R_Matrix_T = Eigen::Matrix<Scalar,n,n>;
 
 int main(int argc, const char * argv[])
 {
-
-    print("Hello world!");
-    
-    
-    
     const Int reps = 1000000;
     
     dump(n);
@@ -47,7 +42,7 @@ int main(int argc, const char * argv[])
     Tensor3<Scalar,Int> E_H_list (reps,n,n);
     Tensor3<Scalar,Int> T_list   (reps,n,n);
     
-    Small::SelfAdjointMatrix<n,Scalar,Int> A (0);
+    Tiny::SelfAdjointMatrix<n,Scalar,Int> A;
     
     std::random_device r;
 //    std::default_random_engine engine ( r() );
@@ -72,12 +67,12 @@ int main(int argc, const char * argv[])
         }
     }
 
-    Small::SquareMatrix<n,Scalar,Int> U;
-    Small::SquareMatrix<n,Scalar,Int> UH;
-    Small::SquareMatrix<n,Scalar,Int> A_mat;
+    Tiny::SquareMatrix<n,Scalar,Int> U;
+    Tiny::SquareMatrix<n,Scalar,Int> UH;
+    Tiny::SquareMatrix<n,Scalar,Int> A_mat;
     
-    Small::SelfAdjointTridiagonalMatrix<n,Real,Int> T;
-    Small::SquareMatrix<n,Scalar,Int> T_mat;
+    Tiny::SelfAdjointTridiagonalMatrix<n,Real,Int> T;
+    Tiny::SquareMatrix<n,Scalar,Int> T_mat;
     
     tic("HessenbergDecomposition");
     for( Int rep = 0; rep < reps; ++rep )
@@ -155,8 +150,8 @@ int main(int argc, const char * argv[])
     
     U.ConjugateTranspose(UH);
     
-    Small::SquareMatrix<n,Scalar,Int> V;
-    Small::SquareMatrix<n,Scalar,Int> W;
+    Tiny::SquareMatrix<n,Scalar,Int> V;
+    Tiny::SquareMatrix<n,Scalar,Int> W;
     
     // W = U . T_mat . UH
     Dot( T_mat, UH, V );
@@ -181,8 +176,8 @@ int main(int argc, const char * argv[])
         
         U.ConjugateTranspose(UH);
         
-        Small::SquareMatrix<n,Scalar,Int> V;
-        Small::SquareMatrix<n,Scalar,Int> W;
+        Tiny::SquareMatrix<n,Scalar,Int> V;
+        Tiny::SquareMatrix<n,Scalar,Int> W;
         
         // W = U . T_mat . UH
         Dot( T_mat, UH, V );

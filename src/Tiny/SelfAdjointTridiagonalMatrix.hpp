@@ -18,20 +18,21 @@ namespace Tensors
             
             using Vector_T = Vector<n,Scalar,Int>;
             
-            static constexpr Scalar zero            = 0;
-            static constexpr Scalar half            = 0.5;
-            static constexpr Scalar one             = 1;
-            static constexpr Scalar two             = 2;
-            static constexpr Scalar three           = 3;
-            static constexpr Scalar four            = 4;
-            static constexpr Real eps               = std::numeric_limits<Real>::min();
-            static constexpr Real infty             = std::numeric_limits<Real>::max();
+            static constexpr Real zero        = 0;
+            static constexpr Real half        = 0.5;
+            static constexpr Real one         = 1;
+            static constexpr Real two         = 2;
+            static constexpr Real three       = 3;
+            static constexpr Real four        = 4;
+            static constexpr Real eps         = std::numeric_limits<Real>::min();
+            static constexpr Real eps_squared = eps * eps;
+            static constexpr Real infty       = std::numeric_limits<Real>::max();
             
         protected:
             
             
-            Real   diag  [n];   //the main diagonal (should actually only have real values on it.
-            Scalar upper [n-1]; //upper diagonal
+            std::array<Real,n>   diag;  //the main diagonal (should actually only have real values on it.
+            std::array<Scalar,n> upper; //upper diagonal
             
 
         
@@ -54,8 +55,8 @@ namespace Tensors
             
             SelfAdjointTridiagonalMatrix & operator=( const SelfAdjointTridiagonalMatrix & B )
             {
-                copy_buffer<n>  ( diag,  B.diag  );
-                copy_buffer<n-1>( upper, B.upper );
+                copy_buffer<n>  ( &diag[0],  &B.diag[0]  );
+                copy_buffer<n-1>( &upper[0], &B.upper[0] );
                 
                 return *this;
             }
@@ -112,8 +113,8 @@ namespace Tensors
             
             void operator+=( const SelfAdjointTridiagonalMatrix & B )
             {
-                add_to_buffer<n>  ( B.diag,  diag       );
-                add_to_buffer<n-1>( B.upper, diag.upper );
+                add_to_buffer<n>  ( &B.diag[0],  &diag[0]       );
+                add_to_buffer<n-1>( &B.upper[0], &diag.upper[0] );
             }
             
             void Dot( const Vector_T & x, Vector_T & y ) const

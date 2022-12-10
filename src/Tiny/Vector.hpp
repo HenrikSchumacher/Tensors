@@ -4,78 +4,80 @@ namespace Tensors
 {
     namespace Tiny
     {
+#define CLASS Vector
         
         template<int n_, typename Scalar_, typename Int_> class VectorList;
         
         template< int n_, typename Scalar_, typename Int_>
-        struct Vector
+        class CLASS
         {
             // Very slim vector type of fixed length, with basic arithmetic operations.
             
-            using Scalar = Scalar_;
-            using Real   = typename ScalarTraits<Scalar_>::RealType;
-            using Int    = Int_;
+#include "Tiny_Details.hpp"
             
             static constexpr Int n = n_;
-            
-            static constexpr Scalar zero            = 0;
-            static constexpr Scalar half            = 0.5;
-            static constexpr Scalar one             = 1;
-            static constexpr Scalar two             = 2;
-            static constexpr Scalar three           = 3;
-            static constexpr Scalar four            = 4;
-            static constexpr Real eps               = std::numeric_limits<Real>::min();
-            static constexpr Real infty             = std::numeric_limits<Real>::max();
-            
-            std::array<Scalar,n> v;
-            
-            Vector() = default;
 
-            explicit Vector( const Scalar init )
-            :   v { init }
-            {}
-            
-            explicit Vector( const Scalar * restrict const v_ )
-            {
-                Read(v_);
-            }
-            
             template<typename S>
-            Vector( const VectorList<n,S,Int> & v_list, const Int k )
+            CLASS( const VectorList<n,S,Int> & v_list, const Int k )
             {
                 Read(v_list, k);
             }
             
-            ~Vector() = default;
+        protected:
             
-            // Copy constructor.
-            Vector( const Vector & other )
+            std::array<Scalar,n> v;
+            
+//######################################################
+//##                     Memory                       ##
+//######################################################
+            
+        public:
+            
+            void SetZero()
             {
-                Read(&other.v[0]);
+                zerofy_buffer<n>( &v[0] );
             }
             
-            friend void swap( Vector & A, Vector & B ) noexcept
+            void Fill( const Scalar init )
             {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                swap(A.v,B.v);
+                fill_buffer<n>( &v[0], init );
             }
             
-            // Copy assignment.
-            Vector & operator=( const Vector & x )
+            template<typename T>
+            void Write( T * const target ) const
             {
-                Read(&x.v[0]);
-                return *this;
-            }
-
-            /* Move constructor */
-            Vector( Vector && other ) noexcept
-            :   Vector()
-            {
-                swap(*this, other);
+                copy_buffer<n>( &v[0], target );
             }
             
+            template<typename T>
+            void Read( T const * const source )
+            {
+                copy_buffer<n>( source, &v[0] );
+            }
+            
+            template<typename S>
+            void Read( const VectorList<n,S,Int> & source, const Int k )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v[i] = static_cast<Scalar>(source[i][k]);
+                }
+            }
+            
+            template<typename S>
+            void Write( VectorList<n,S,Int> & target, const Int k ) const
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    target[i][k] = static_cast<S>(v[i]);
+                }
+            }
+            
+//######################################################
+//##                     Access                       ##
+//######################################################
+            
+        public:
             
             Scalar * data()
             {
@@ -85,11 +87,6 @@ namespace Tensors
             const Scalar * data() const
             {
                 return &v[0];
-            }
-            
-            void SetZero()
-            {
-                zerofy_buffer<n>( &v[0] );
             }
             
             Scalar & operator[]( const Int i )
@@ -112,49 +109,50 @@ namespace Tensors
                 return v[i];
             }
             
-            void operator+=( const Vector & x )
+//######################################################
+//##                  Artihmethic                     ##
+//######################################################
+            
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator+=( const T & s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
-                    v[i] += x.v[i];
+                    v[i] += s;
                 }
+                return *this;
             }
             
-            void operator*=( const Vector & x )
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator-=( const T & s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
-                    v[i] *= x.v[i];
+                    v[i] -= s;
                 }
-            }
-
-            void operator+=( const Scalar add )
-            {
-                for(Int i = 0; i < n; ++i )
-                {
-                    v[i] += add;
-                }
+                return *this;
             }
             
-            void operator-=( const Scalar add )
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator*=( const T & s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
-                    v[i] -= add;
+                    v[i] *= s;
                 }
-            }
-            
-            void operator*=( const Scalar scale )
-            {
-                for(Int i = 0; i < n; ++i )
-                {
-                    v[i] *= scale;
-                }
-            }
-            
-            void operator/=( const Scalar scale )
-            {
-                (*this) *= (one/scale);
+                return *this;
             }
             
             Real Norm() const
@@ -162,12 +160,12 @@ namespace Tensors
                 Real r = 0;
                 for( Int i = 0; i < n; ++i )
                 {
-                    r += real(conj(v[i]) * v[i]);
+                    r += abs_squared(v[i]);
                 }
                 return std::sqrt( r );
             }
             
-            friend Real Norm( const Vector & v )
+            friend Real Norm( const CLASS & v )
             {
                 return v.Norm();
             }
@@ -180,7 +178,7 @@ namespace Tensors
             
 
             
-            friend Scalar Dot( const Vector & x, const Vector & y )
+            friend Scalar Dot( const CLASS & x, const CLASS & y )
             {
                 Scalar r (0);
                 
@@ -191,7 +189,7 @@ namespace Tensors
                 return r;
             }
             
-            friend Scalar InnerProduct( const Vector & x, const Vector & y )
+            friend Scalar InnerProduct( const CLASS & x, const CLASS & y )
             {
                 Scalar r (0);
                 
@@ -203,7 +201,7 @@ namespace Tensors
             }
             
             
-            friend Real AngleBetweenUnitVectors( const Vector & u, const Vector & w )
+            friend Real AngleBetweenUnitVectors( const CLASS & u, const CLASS & w )
             {
                 Real a = 0;
                 Real b = 0;
@@ -217,10 +215,10 @@ namespace Tensors
                 return static_cast<Real>(2) * atan( std::sqrt(a/b) );
             }
             
-            friend Real Angle( const Vector & x, const Vector & y )
+            friend Real Angle( const CLASS & x, const CLASS & y )
             {
-                Vector u = x;
-                Vector w = y;
+                CLASS u = x;
+                CLASS w = y;
                 
                 u.Normalize();
                 w.Normalize();
@@ -229,7 +227,7 @@ namespace Tensors
             }
 
             
-            friend void Plus( const Vector & x, const Vector & y, Vector & z )
+            friend void Plus( const CLASS & x, const CLASS & y, CLASS & z )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -237,7 +235,7 @@ namespace Tensors
                 }
             }
    
-            friend void Times( const Scalar scale, const Vector & x, Vector & y )
+            friend void Times( const Scalar scale, const CLASS & x, CLASS & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -245,7 +243,7 @@ namespace Tensors
                 }
             }
             
-            friend void axpy( const Scalar alpha, const Vector & x, Vector & y )
+            friend void axpy( const Scalar alpha, const CLASS & x, CLASS & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -253,45 +251,16 @@ namespace Tensors
                 }
             }
             
-            //            friend Vector operator+( const Vector & x, const Vector & y )
+            //            friend CLASS operator+( const CLASS & x, const CLASS & y )
             //            {
-            //                Vector z;
+            //                CLASS z;
             //                for(Int i = 0; i < n; ++i )
             //                {
             //                    z(i) = x(i) + y(i);
             //                }
             //                return z;
             //            }
-            
-            template<typename S>
-            void Read( const S * const a_ )
-            {
-                copy_cast_buffer<n>( a_, &v[0] );
-            }
-            
-            template<typename S>
-            void Write( S * a_ ) const
-            {
-                copy_cast_buffer<n>( &v[0], a_ );
-            }
-            
-            template<typename S>
-            void Read( const VectorList<n,S,Int> & v_list, const Int k )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    v[i] = static_cast<Scalar>(v_list[i][k]);
-                }
-            }
-            
-            template<typename S>
-            void Write( VectorList<n,S,Int> & v_list, const Int k ) const
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    v_list[i][k] = static_cast<S>(v[i]);
-                }
-            }
+
             
             std::string ToString( const int p = 16) const
             {
@@ -308,12 +277,6 @@ namespace Tensors
             
         public:
             
-            inline friend std::ostream & operator<<( std::ostream & s, const Vector & v )
-            {
-                s << v.ToString();
-                return s;
-            }
-            
             static constexpr Int AmbientDimension()
             {
                 return n;
@@ -321,9 +284,12 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "Vector<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
         };
+        
+#undef CLASS
+        
     } // namespace Tiny
     
 } // namespace Tensors

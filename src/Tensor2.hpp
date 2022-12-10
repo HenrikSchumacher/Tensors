@@ -79,7 +79,7 @@ namespace Tensors {
         {
 //            ptic(ClassName()+"::Write( const Int i, S * const b )");
             
-            copy_cast_buffer( data(i), b, dims[1] );
+            copy_buffer( data(i), b, dims[1] );
             
 //            ptoc(ClassName()+"::Write( const Int i, S * const b )");
         }
@@ -92,7 +92,7 @@ namespace Tensors {
         {
 //            ptic(ClassName()+"::Read( const Int i, const S * const b )");
             
-            copy_cast_buffer( b, data(i), dims[1] );
+            copy_buffer( b, data(i), dims[1] );
             
 //            ptoc(ClassName()+"::Read( const Int i, const S * const b )");
         }

@@ -154,7 +154,6 @@ namespace Tensors {
             swap( *this, b );
         }
         
-        
         void Accumulate( Int thread_count = 1 )
         {
 //            for( Int i = 1; i < n; ++i )
@@ -162,22 +161,6 @@ namespace Tensors {
 //                a[i] += a[i-1];
 //            }
             parallel_accumulate(a, n, thread_count );
-        }
-        
-        force_inline void Scale( const Scalar alpha )
-        {
-            Scalar * restrict const a_ = a;
-            
-            #pragma omp simd aligned( a_ : ALIGNMENT )
-            for( Int i = 0; i < n; ++i )
-            {
-                a_[i] *= alpha;
-            }
-        }
-        
-        inline friend void Scale( TENSOR_T & x, const Scalar alpha )
-        {
-            x.Scale(alpha);
         }
         
         Scalar Total() const
@@ -226,22 +209,6 @@ namespace Tensors {
         inline friend Scalar Dot( const TENSOR_T & x, const TENSOR_T & y )
         {
             return x.Dot(y);
-        }
-        
-        Scalar Norm() const
-        {
-            Scalar r2 = 0;
-            
-            for( Int i = 0; i < n; ++i )
-            {
-                r2 += conj(a[i]) * a[i];
-            }
-            return std::sqrt(r2);
-        }
-        
-        inline friend Scalar Norm( const TENSOR_T & x )
-        {
-            return x.Norm();
         }
         
         void iota()

@@ -7,41 +7,54 @@ namespace Tensors
         template< int n_, typename Scalar_, typename Int_>
         struct SquareMatrix : public Tensors::Tiny::Matrix<n_,n_,Scalar_,Int_>
         {
+        private:
+            
+            using Base_T = Tensors::Tiny::Matrix<n_,n_,Scalar_,Int_>;
+            
         public:
             
-            using Matrix_T = Tensors::Tiny::Matrix<n_,n_,Scalar_,Int_>;
             using Scalar   = Scalar_;
             using Real     = typename ScalarTraits<Scalar_>::RealType;
             using Int      = Int_;
             
-            using Matrix_T::n;
+            using Base_T::n;
             
             using Vector_T = Vector<n,Scalar,Int>;
             
-            using Matrix_T::zero;
-            using Matrix_T::half;
-            using Matrix_T::one;
-            using Matrix_T::two;
-            using Matrix_T::three;
-            using Matrix_T::four;
-            using Matrix_T::eps;
-            using Matrix_T::infty;
-            using Matrix_T::Write;
-            using Matrix_T::Read;
+            using Base_T::zero;
+            using Base_T::half;
+            using Base_T::one;
+            using Base_T::two;
+            using Base_T::three;
+            using Base_T::four;
+            using Base_T::eps;
+            using Base_T::infty;
+            using Base_T::Write;
+            using Base_T::Read;
+            using Base_T::operator+=;
+            using Base_T::operator-=;
+            using Base_T::operator*=;
+            using Base_T::operator/=;
             
-            // Uses only upper triangle.
             
             SquareMatrix() = default;
             
             ~SquareMatrix() = default;
             
+            SquareMatrix(std::nullptr_t) = delete;
+            
             explicit SquareMatrix( const Scalar init )
-            :   Matrix_T(init)
+            :   Base_T(init)
             {}
             
+            explicit SquareMatrix( const Scalar * a )
+            {
+                Read(a);
+            }
+            
             // Copy constructor
-            SquareMatrix( const SquareMatrix & other )
-            :   Matrix_T(other)
+            explicit SquareMatrix( const SquareMatrix & other )
+            :   Base_T(other)
             {}
             
             friend void swap( SquareMatrix & A, SquareMatrix & B ) noexcept
@@ -49,7 +62,7 @@ namespace Tensors
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
                 
-                std::swap_ranges(&A.A[0][0], &A.A[n-1][n], &B.A[0][0] );
+                swap(A.A, B.A);
             }
             
             // Copy assignment operator
@@ -71,7 +84,7 @@ namespace Tensors
             
         protected:
             
-            using Matrix_T::A;
+            using Base_T::A;
             
         public:
            
@@ -81,7 +94,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        A[i][j] = (i==j) ? one : zero;
+                        A[i][j] = (i==j) ? static_cast<Scalar>(1) : static_cast<Scalar>(0);
                     }
                 }
             }
@@ -92,7 +105,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        A[i][j] = (i==j) ? v[i] : zero;
+                        A[i][j] = (i==j) ? v[i] : static_cast<Scalar>(0);
                     }
                 }
             }
@@ -167,7 +180,7 @@ namespace Tensors
                     return sign * M[n-1][n-1];
                 }
                 
-                return zero;
+                return static_cast<Scalar>(0);
             }
             
             

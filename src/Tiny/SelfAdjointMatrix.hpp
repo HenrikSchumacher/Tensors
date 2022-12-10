@@ -4,160 +4,39 @@ namespace Tensors
 {
     namespace Tiny
     {
+        
+#define CLASS SelfAdjointMatrix
+        
         template< int n_, typename Scalar_, typename Int_>
-        struct SelfAdjointMatrix
+        class CLASS
         {
             // Uses only upper triangle.
+            
         public:
             
-            using Scalar   = Scalar_;
-            using Real     = typename ScalarTraits<Scalar_>::RealType;
-            using Int      = Int_;
+#include "Tiny_Details.hpp"
 
             static constexpr Int n = n_;
             
             using Vector_T = Vector<n,Scalar,Int>;
             
-            static constexpr Scalar zero            = 0;
-            static constexpr Scalar half            = 0.5;
-            static constexpr Scalar one             = 1;
-            static constexpr Scalar two             = 2;
-            static constexpr Scalar three           = 3;
-            static constexpr Scalar four            = 4;
-            static constexpr Real eps               = std::numeric_limits<Real>::min();
-            static constexpr Real infty             = std::numeric_limits<Real>::max();
-            
+        protected:
             
             std::array<std::array<Scalar,n>,n> A;
-            
-            SelfAdjointMatrix() = default;
-            
-            ~SelfAdjointMatrix() = default;
-            
-            explicit SelfAdjointMatrix( const Scalar init )
-            :   A {{ init }}
-            {}
-            
-            // Copy constructor
-            SelfAdjointMatrix( const SelfAdjointMatrix & other )
-            {
-                Read( &other.A[0][0] );
-            }
-            
-            friend void swap( SelfAdjointMatrix & A, SelfAdjointMatrix & B ) noexcept
-            {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                std::swap_ranges(&A.A[0][0], &A.A[n-1][n], &B.A[0][0] );
-            }
-            
-            // Copy assignment operator
-            SelfAdjointMatrix & operator=( SelfAdjointMatrix other )
-            {
-                // copy-and-swap idiom
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                swap(*this, other);
 
-                return *this;
-            }
+#include "Tiny_Details_Matrix.hpp"
+#include "Tiny_Details_UpperTriangular.hpp"
+            
 
-            /* Move constructor */
-            SelfAdjointMatrix( SelfAdjointMatrix && other ) noexcept
-            :   SelfAdjointMatrix()
-            {
-                swap(*this, other);
-            }
             
-            force_inline Scalar * data()
-            {
-                return &A[0][0];
-            }
             
-            force_inline const Scalar * data() const
-            {
-                return &A[0][0];
-            }
+//######################################################
+//##                  Arithmetic                      ##
+//######################################################
+
+        public:
             
-            force_inline void SetZero()
-            {
-                zerofy_buffer<n * n>( &A[0][0] );
-            }
-            
-            force_inline void Fill( const Scalar init )
-            {
-                fill_buffer<n * n>( &A[0][0], init );
-            }
-            
-            force_inline Scalar & operator()( const Int i, const Int j )
-            {
-                return A[i][j];
-            }
-            
-            force_inline const Scalar & operator()( const Int i, const Int j ) const
-            {
-                return A[i][j];
-            }
-            
-            force_inline Scalar * operator[]( const Int i  )
-            {
-                return &A[i][0];
-            }
-            
-            friend SelfAdjointMatrix operator+( const SelfAdjointMatrix & x, const SelfAdjointMatrix & y )
-            {
-                SelfAdjointMatrix z;
-                for( Int i = 0; i < n; ++i )
-                {
-                    for( Int j = i; j < n; ++j )
-                    {
-                        z.A[i][j] = x.A[i][j] + y.A[i][j];
-                    }
-                }
-                return z;
-            }
-            
-            void operator+=( const SelfAdjointMatrix & B )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    for( Int j = i; j < n; ++j )
-                    {
-                        A[i][j] += B.A[i][j];
-                    }
-                }
-            }
-            
-            void operator*=( const SelfAdjointMatrix & B )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    for( Int j = i; j < n; ++j )
-                    {
-                        A[i][j] *= B.A[i][j];
-                    }
-                }
-            }
-            
-            void operator*=( const Scalar & scale )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    for( Int j = i; j < n; ++j )
-                    {
-                        A[i][j] *= scale;
-                    }
-                }
-            }
-            
-            SelfAdjointMatrix & operator=( const SelfAdjointMatrix & B )
-            {
-                Read(&B.A[0][0]);
-                
-                return *this;
-            }
-            
-            friend void Dot( const SelfAdjointMatrix & M, const Vector_T & x, Vector_T & y )
+            force_inline friend void Dot( const CLASS & M, const Vector_T & x, Vector_T & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -176,7 +55,7 @@ namespace Tensors
                 }
             }
             
-            friend Scalar InnerProduct( const SelfAdjointMatrix & G, const Vector_T & x, const Vector_T & y )
+            force_inline friend Scalar InnerProduct( const CLASS & G, const Vector_T & x, const Vector_T & y )
             {
                 Scalar result (0);
                 
@@ -203,8 +82,11 @@ namespace Tensors
             {
                 for( Int k = 0; k < n; ++k )
                 {
-                    const Scalar a    ( A[k][k] = std::sqrt( std::abs(A[k][k]) ) );
-                    const Scalar ainv ( one/a );
+                    const Real a ( std::sqrt( std::abs(A[k][k]) ) );
+                    
+                    A[k][k] = a;
+                    
+                    const Real ainv ( one/a );
                     
                     for( Int j = k+1; j < n; ++j )
                     {
@@ -335,21 +217,19 @@ namespace Tensors
                     
                     return eigs.eigenvalues()[0];
 #else
-                    eprint(ClassName()+"::TinyestEigenvalue is not implemented for dimension "+ToString(n)+", yet.");
+                    eprint(ClassName()+"::SmallestEigenvalue is not implemented for dimension "+ToString(n)+", yet.");
 #endif
                 }
                 
                 return 0;
             }
             
-            
-//            template<typename Scalar_2>
             void HessenbergDecomposition(
                 SquareMatrix                <n,Scalar,Int> & U,
                 SelfAdjointTridiagonalMatrix<n,Real,Int>   & T
             ) const
             {
-                // Computes a unitary matrix U and and a self-adjoint tridiagonal matrix  T such that U . T . U^H = A.
+                // Computes a unitary matrix U and and a self-adjoint tridiagonal matrix T such that U . T . U^H = A.
 
                 if constexpr ( n == 1 )
                 {
@@ -381,7 +261,9 @@ namespace Tensors
                     
                     for( Int k = 0; k < n-2; ++k )
                     {
-//                        u[k][k] = 0; // We know that u[k][0] = ... = u[k][k] = 0, but we just use this implicitly!
+                        // Compute k-th Householder reflection vector.
+                        
+//                        u[k][k] = 0; // We know that u[k][0] = ... = u[k][k] = 0; we just use this implicitly!
 //                        for( Int i = 0; i < k+1; ++i )
 //                        {
 //                            u[k][i] = 0
@@ -400,34 +282,37 @@ namespace Tensors
                         
                         Real u_norm = std::sqrt( uu );
                         
-                        Scalar u_pivot ( u[k][k+1] );
+                        Scalar u_pivot (u[k][k+1]);
                         
-                        Real abs_u_pivot = std::abs(u_pivot);
+                        Real abs_squared_u_pivot = abs_squared(u_pivot);
                         
                         const Scalar rho (
                             COND(
                                 ScalarTraits<Scalar>::IsComplex
                                  ,
-                                ( abs_u_pivot <= eps * u_norm ) ? one : -u_pivot / abs_u_pivot
+                                ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
                                 ,
-                                ( u_pivot > static_cast<Real>(0) ) ? -one : one
+                                ( u_pivot > zero ) ? -one : one
                             )
                         );
                         
-                        uu -= abs_squared(u_pivot);
+                        uu -= abs_squared_u_pivot;
                         
                         u[k][k+1] -= rho * u_norm;
                         
                         uu += abs_squared(u[k][k+1]);
                         
-                        Scalar u_norm_inv ( one / std::sqrt( uu ) );
+                        Real u_norm_inv ( one / std::sqrt( uu ) );
                         
                         for( Int i = k+1; i < n; ++i )
                         {
                             u[k][i] *= u_norm_inv;
                         }
                         
-                        Scalar ubarBu (0);
+                        
+                        // Compute v_k = B . u_k and  u_k . B . u_k
+                        
+                        Scalar ubarBu_accumulator (0);
                         
                         {
                             const Int i = k;
@@ -450,6 +335,7 @@ namespace Tensors
                             // We implicitly use u[k][k] = 0;
 //                            ubarBu += conj(u[k][i]) * Bu_i;
                         }
+                        
                         for( Int i = k+1; i < n; ++i )
                         {
                             Scalar Bu_i (0);
@@ -466,13 +352,14 @@ namespace Tensors
                             
                             v[i] = Bu_i;
                             
-                            ubarBu += conj(u[k][i]) * Bu_i;
+                            ubarBu_accumulator += conj(u[k][i]) * Bu_i;
                         }
-
                         
+                        Real ubarBu = real(ubarBu_accumulator);
+
                         {
                             const Int i = k;
-                            const Scalar a (- two * v[k]);
+                            const Scalar a ( (- two) * v[k] );
 
                             for( Int j = i+1; j < n; ++j )  // Exploit that u[k][i] = u[k][k] == 0
                             {
@@ -483,7 +370,7 @@ namespace Tensors
                         // Apply Householder reflection to both sides of B.
                         for( Int i = k+1; i < n; ++i )
                         {
-                            const Scalar a ( four * ubarBu * u[k][i] - two * v[i]);
+                            const Scalar a ( (four * ubarBu) * u[k][i] - two * v[i]);
                             const Scalar b ( two * u[k][i] );
                             
                             for( Int j = i; j < n; ++j )
@@ -541,18 +428,6 @@ namespace Tensors
                         }
                     }
                 }
-            }
-            
-            // TODO: We should actually only copy the upper triangle...
-            force_inline void Write( Scalar * target ) const
-            {
-                copy_buffer<n * n>( &A[0][0], target );
-            }
-            
-            // TODO: We should actually only copy the upper triangle...
-            force_inline void Read( Scalar const * const source )
-            {
-                copy_buffer<n * n>(source, &A[0][0]);
             }
             
             std::string ToString( const int p = 16) const
@@ -645,17 +520,9 @@ namespace Tensors
             //                return sign * M(n-1,n-1);
             //            }
             
-            inline friend std::ostream & operator<<( std::ostream & s, const SelfAdjointMatrix & A )
-            {
-                s << A.ToString();
-                return s;
-            }
-            
             template<typename T = Scalar>
             void ToMatrix( SquareMatrix<n,T,Int> & B ) const
             {
-                B.SetZero();
-                
                 for( Int i = 0; i < n; ++i )
                 {
                     for( Int j = 0; j < i; ++j )
@@ -676,11 +543,12 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "SelfAdjointMatrix<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
             
         };
         
+#undef CLASS
     } // namespace Tiny
     
 } // namespace Tensors

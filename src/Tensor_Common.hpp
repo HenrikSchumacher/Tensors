@@ -115,7 +115,7 @@ void Read( const S * const a_ )
 {
 //    ptic(ClassName()+"::Read( const S * const a_ )");
     
-    copy_cast_buffer( a_, a, static_cast<size_t>(n) );
+    copy_buffer( a_, a, static_cast<size_t>(n) );
     
 //    ptoc(ClassName()+"::Read( const S * const a_ )");
 }
@@ -125,7 +125,7 @@ void Write( S * a_ ) const
 {
 //    ptic(ClassName()+"::Write( S * a_ )");
     
-    copy_cast_buffer( a, a_, n );
+    copy_buffer( a, a_, n );
 
 //    ptoc(ClassName()+"::Write( S * a_ )");
 }
@@ -267,6 +267,26 @@ Real FrobeniusNorm() const
     }
     
     return std::sqrt( result );
+}
+
+
+template<class T>
+force_inline
+std::enable_if_t<
+    std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+    TENSOR_T &
+>
+operator*=( const T alpha )
+{
+    Scalar * restrict const a_ = a;
+    
+    #pragma omp simd aligned( a_ : ALIGNMENT )
+    for( Int i = 0; i < n; ++i )
+    {
+        a_[i] *= alpha;
+    }
+    
+    return *this;
 }
 
 

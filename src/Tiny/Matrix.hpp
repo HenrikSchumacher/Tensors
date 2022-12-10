@@ -4,117 +4,69 @@ namespace Tensors
 {
     namespace Tiny
     {
+#define CLASS Matrix
+        
         template< int m_, int n_, typename Scalar_, typename Int_>
-        struct Matrix
+        class CLASS
         {
         public:
             
-            using Scalar = Scalar_;
-            using Real   = typename ScalarTraits<Scalar_>::RealType;
-            using Int    = Int_;
+#include "Tiny_Details.hpp"
             
             static constexpr Int m = m_;
             static constexpr Int n = n_;
             
-            using Vector_T = Vector<n,Scalar,Int>;
-            
-            static constexpr Scalar zero            = 0;
-            static constexpr Scalar half            = 0.5;
-            static constexpr Scalar one             = 1;
-            static constexpr Scalar two             = 2;
-            static constexpr Scalar three           = 3;
-            static constexpr Scalar four            = 4;
-            static constexpr Real eps               = std::numeric_limits<Real>::min();
-            static constexpr Real infty             = std::numeric_limits<Real>::max();
-            
-            Matrix() = default;
-            
-            ~Matrix() = default;
-            
-            explicit Matrix( const Scalar init )
-            :   A {{{init}}}
-            {}
-            
-            // Copy constructor.
-            Matrix( const Matrix & other )
-            {
-                Matrix(&other.A[0][0]);
-            }
-            
-            friend void swap( Matrix & A, Matrix & B ) noexcept
-            {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                std::swap_ranges(&A.A[0][0], &A.A[m-1][n], &B.A[0][0] );
-            }
-            
-            // Copy assignment operator
-            Matrix & operator=( Matrix other )
-            {
-                // copy-and-swap idiom
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                swap(*this, other);
-
-                return *this;
-            }
-
-            /* Move constructor */
-            Matrix( Matrix && other ) noexcept
-            :   Matrix()
-            {
-                swap(*this, other);
-            }
+            using Vector_Out_T = Vector<m,Scalar,Int>;
+            using Vector_Int_T = Vector<n,Scalar,Int>;
             
         protected:
             
             std::array<std::array<Scalar,n>,m> A;
             
+//######################################################
+//##                     Memory                       ##
+//######################################################
+            
         public:
-            
-            Scalar * restrict data()
-            {
-                return &A[0][0];
-            }
-            
-            const Scalar * restrict data() const
-            {
-                return &A[0][0];
-            }
             
             void SetZero()
             {
-                zerofy_buffer<m * n>( &A[0][0] );
+                zerofy_buffer<m*n>( &A[0][0] );
             }
             
             void Fill( const Scalar init )
             {
-                fill_buffer<m * n>( &A[0][0], init );
+                fill_buffer<m*n>( &A[0][0], init );
             }
             
-            Scalar & operator()( const Int i, const Int j )
+            template<typename T>
+            void Write( T * const target ) const
             {
-                return A[i][j];
+                copy_buffer<m*n>( &A[0][0], target );
             }
             
-            const Scalar & operator()( const Int i, const Int j ) const
+            template<typename T>
+            void Read( T const * const source )
             {
-                return A[i][j];
+                copy_buffer<m*n>( source, &A[0][0] );
             }
             
-            Scalar * operator[]( const Int i )
-            {
-                return &A[i][0];
-            }
+//######################################################
+//##                     Access                       ##
+//######################################################
+
+#include "Tiny_Details_Matrix.hpp"
             
-            const Scalar * operator[]( const Int i ) const
-            {
-                return &A[i][0];
-            }
             
-            friend Matrix operator+( const Matrix & x, const Matrix & y )
+//######################################################
+//##                  Arithmetic                      ##
+//######################################################
+         
+        public:
+            
+            friend CLASS operator+( const CLASS & x, const CLASS & y )
             {
-                Matrix z;
+                CLASS z;
                 for( Int i = 0; i < m; ++i )
                 {
                     for( Int j = 0; j < n; ++j )
@@ -125,46 +77,13 @@ namespace Tensors
                 return z;
             }
             
-            void operator+=( const Scalar lambda )
-            {
-                for( Int i = 0; i < m; ++i )
-                {
-                    for( Int j = 0; j < n; ++j )
-                    {
-                        A[i][j] += lambda;
-                    }
-                }
-            }
             
-            void operator-=( const Scalar lambda )
-            {
-                for( Int i = 0; i < m; ++i )
-                {
-                    for( Int j = 0; j < n; ++j )
-                    {
-                        A[i][j] -= lambda;
-                    }
-                }
-            }
-            
-            void operator*=( const Scalar lambda )
-            {
-                for( Int i = 0; i < m; ++i )
-                {
-                    for( Int j = 0; j < n; ++j )
-                    {
-                        A[i][j] *= lambda;
-                    }
-                }
-            }
-            
-            void operator/=( const Scalar lambda )
-            {
-                (*this) *= ( one/lambda );
-            }
-            
-            
-            void operator+=( const Matrix & B )
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator+=( const CLASS<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -173,9 +92,16 @@ namespace Tensors
                         A[i][j] += B.A[i][j];
                     }
                 }
+                
+                return *this;
             }
             
-            void operator-=( const Matrix & B )
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator-=( const CLASS<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -184,9 +110,16 @@ namespace Tensors
                         A[i][j] -= B.A[i][j];
                     }
                 }
+                
+                return *this;
             }
             
-            void operator*=( const Matrix & B )
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator*=( const CLASS<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -195,9 +128,16 @@ namespace Tensors
                         A[i][j] *= B.A[i][j];
                     }
                 }
+                
+                return *this;
             }
             
-            void operator/=( const Matrix & B )
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator/=( const CLASS<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -206,21 +146,68 @@ namespace Tensors
                         A[i][j] /= B.A[i][j];
                     }
                 }
+                
+                return *this;
             }
+
             
-            Matrix & operator=( const Matrix & B )
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator+=( const T lambda )
             {
                 for( Int i = 0; i < m; ++i )
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        A[i][j] = B.A[i][j];
+                        A[i][j] += lambda;
                     }
                 }
+                
                 return *this;
             }
             
-            void Transpose( Matrix<n,m,Scalar,Int> & B ) const
+    
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator-=( const T lambda )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] -= lambda;
+                    }
+                }
+                
+                return *this;
+            }
+            
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator*=( const T lambda )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] *= lambda;
+                    }
+                }
+                
+                return *this;
+            }
+            
+            
+            void Transpose( CLASS & B ) const
             {
                 for( Int j = 0; j < n; ++j )
                 {
@@ -231,7 +218,7 @@ namespace Tensors
                 }
             }
             
-            void ConjugateTranspose( Matrix<n,m,Scalar,Int> & B ) const
+            void ConjugateTranspose( CLASS & B ) const
             {
                 for( Int j = 0; j < n; ++j )
                 {
@@ -242,7 +229,7 @@ namespace Tensors
                 }
             }
             
-            void Conjugate( Matrix<m,n,Scalar,Int> & B ) const
+            void Conjugate( CLASS & B ) const
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -280,17 +267,7 @@ namespace Tensors
                 }
                 return std::sqrt(AA);
             }
-            
-            
-            void Write( Scalar * target ) const
-            {
-                copy_buffer<m * n>( &A[0][0], target );
-            }
-            
-            void Read( Scalar const * const source )
-            {
-                copy_buffer<m * n>( source, &A[0][0] );
-            }
+
             
             std::string ToString( const int p = 16) const
             {
@@ -320,12 +297,6 @@ namespace Tensors
                 return sout.str();
             }
             
-            inline friend std::ostream & operator<<( std::ostream & s, const Matrix & M )
-            {
-                s << M.ToString();
-                return s;
-            }
-            
         public:
             
             static constexpr Int Dimension( const Int i )
@@ -343,11 +314,13 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "Matrix<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return TO_STD_STRING(CLASS)+"<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
             
         };
         
+        
+    #undef CLASS
         
     } // namespace Tiny
         

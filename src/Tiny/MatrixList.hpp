@@ -11,11 +11,21 @@ namespace Tensors
         public:
             
             using Scalar = Scalar_;
+            using Real   = typename ScalarTraits<Scalar_>::RealType;
             using Int    = Int_;
             
             static constexpr Int m = m_;
             static constexpr Int n = n_;
             
+            static constexpr Real zero        = 0;
+            static constexpr Real half        = 0.5;
+            static constexpr Real one         = 1;
+            static constexpr Real two         = 2;
+            static constexpr Real three       = 3;
+            static constexpr Real four        = 4;
+            static constexpr Real eps         = std::numeric_limits<Real>::min();
+            static constexpr Real eps_squared = eps * eps;
+            static constexpr Real infty       = std::numeric_limits<Real>::max();
             
             using Tensor_T = Tensor1<Scalar,Int>;
             
@@ -184,7 +194,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        copy_cast_buffer( a[i][j], &A[i][j], length );
+                        copy_buffer( a[i][j], &A[i][j], length );
                     }
                 }
             }
@@ -197,7 +207,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        copy_cast_buffer( &A[i][j], a[i][j], length );
+                        copy_buffer( &A[i][j], a[i][j], length );
                     }
                     
                 }

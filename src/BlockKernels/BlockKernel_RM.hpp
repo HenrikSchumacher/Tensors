@@ -153,7 +153,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < COLS; ++j )
                     {
-                        copy_cast_buffer( &x_from[RhsCount()*j], x.data(j), ColsSize() );
+                        copy_buffer( &x_from[RhsCount()*j], x.data(j), ColsSize() );
                     }
                 }
                 else
@@ -251,7 +251,7 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            copy_cast_buffer( y.data(i), &y_to[RhsCount()*i], RhsCount() );
+                            copy_buffer( y.data(i), &y_to[RhsCount()*i], RhsCount() );
                         }
                     }
                     else

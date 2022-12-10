@@ -11,6 +11,7 @@ namespace Tensors
         public:
             
             using Scalar = Scalar_;
+            using Real   = typename ScalarTraits<Scalar_>::RealType;
             using Int    = Int_;
             
             static constexpr Int n = n_;
@@ -18,6 +19,16 @@ namespace Tensors
             using Tensor_T = Tensor1<Scalar,Int>;
             
             using Vector_T = Vector<n,Scalar,Int>;
+            
+            static constexpr Real zero        = 0;
+            static constexpr Real half        = 0.5;
+            static constexpr Real one         = 1;
+            static constexpr Real two         = 2;
+            static constexpr Real three       = 3;
+            static constexpr Real four        = 4;
+            static constexpr Real eps         = std::numeric_limits<Real>::min();
+            static constexpr Real eps_squared = eps * eps;
+            static constexpr Real infty       = std::numeric_limits<Real>::max();
             
         private:
             
@@ -211,7 +222,7 @@ namespace Tensors
                 //Assuming that a is a list of n pointers pointing to memory of at least size Dimension(1).
                 for( Int i = 0; i < n; ++i )
                 {
-                    copy_cast_buffer( a[i], &v[i], length );
+                    copy_buffer( a[i], &v[i], length );
                 }
             }
             
@@ -221,7 +232,7 @@ namespace Tensors
                 //Assuming that a is a list of n pointers pointing to memory of at least size Dimension(1).
                 for( Int i = 0; i < n; ++i )
                 {
-                    copy_cast_buffer( &v[i], a[i], length );
+                    copy_buffer( &v[i], a[i], length );
                 }
             }
             

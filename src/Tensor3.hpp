@@ -151,25 +151,25 @@ namespace Tensors {
         template< typename S>
         void Write( const Int i, S * const b ) const
         {
-            copy_cast_buffer( data(i), b, dims[1] * dims[2] );
+            copy_buffer( data(i), b, dims[1] * dims[2] );
         }
         
         template< typename S>
         void Write( const Int i, const Int j, Scalar * const b ) const
         {
-            copy_cast_buffer( data(i,j), b, dims[2] );
+            copy_buffer( data(i,j), b, dims[2] );
         }
         
         template< typename S>
         void Read( const Int i, const S * const b )
         {
-            copy_cast_buffer( b, data(i), dims[1] * dims[2] );
+            copy_buffer( b, data(i), dims[1] * dims[2] );
         }
         
         template< typename S>
         void Read( const Int i, const Int j, const S * const b )
         {
-            copy_cast_buffer( b, data(i,j), dims[2] );
+            copy_buffer( b, data(i,j), dims[2] );
         }
         
     public:

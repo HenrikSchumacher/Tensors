@@ -196,7 +196,7 @@ namespace Tensors
                     {
                         if constexpr ( fixed )
                         {
-                            copy_cast_buffer( x_from, &x[0][0], ColsSize() );
+                            copy_buffer( x_from, &x[0][0], ColsSize() );
                         }
                         else
                         {
@@ -241,7 +241,7 @@ namespace Tensors
                     else
                     {
                         // Here we are allowed to copy the full slice because internal x is column major.
-                        copy_cast_buffer( x_from, &x[0][0], ColsSize() );
+                        copy_buffer( x_from, &x[0][0], ColsSize() );
                     }
                 }
             }
@@ -258,11 +258,11 @@ namespace Tensors
                 // X is accessed in an unpredictable way; let's help with a prefetch statement.
                 if constexpr ( fixed )
                 {
-                    prefetch_range<COLS_SIZE,0,0>( &X[COLS_SIZE * j_next] );
+                    prefetch_buffer<COLS_SIZE,0,0>( &X[COLS_SIZE * j_next] );
                 }
                 else
                 {
-                    prefetch_range<0,0>( &X[cols_size * j_next], cols_size );
+                    prefetch_buffer<0,0>( &X[cols_size * j_next], cols_size );
                 }
             }
             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
@@ -352,11 +352,11 @@ namespace Tensors
                         {
                             if constexpr ( fixed )
                             {
-                                copy_cast_buffer<ROWS_SIZE>( &y[0][0], y_to );
+                                copy_buffer<ROWS_SIZE>( &y[0][0], y_to );
                             }
                             else
                             {
-                                copy_cast_buffer( &y[0][0], y_to, RowsSize() );
+                                copy_buffer( &y[0][0], y_to, RowsSize() );
                             }
                         }
                         else
@@ -389,11 +389,11 @@ namespace Tensors
                         {
                             if constexpr ( fixed )
                             {
-                                copy_cast_buffer<RHS_COUNT>( &y[0][0], y_to );
+                                copy_buffer<RHS_COUNT>( &y[0][0], y_to );
                             }
                             else
                             {
-                                copy_cast_buffer( &y[0][0], y_to, rhs_count );
+                                copy_buffer( &y[0][0], y_to, rhs_count );
                             }
                         }
                     }
