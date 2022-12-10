@@ -35,7 +35,7 @@ namespace Tensors
             
         public:
             
-            friend void Dot( const CLASS & M, const Vector_T & x, Vector_T & y )
+            force_inline friend void Dot( const CLASS & M, const Vector_T & x, Vector_T & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -51,7 +51,7 @@ namespace Tensors
             }
             
             
-            Scalar Det() const
+            force_inline Scalar Det() const
             {
                 Scalar det = A[0][0];
                 

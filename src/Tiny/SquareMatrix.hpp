@@ -25,6 +25,8 @@ namespace Tensors
             
             using Base_T::Write;
             using Base_T::Read;
+            using Base_T::RowCount;
+            using Base_T::ColCount;
             using Base_T::operator+=;
             using Base_T::operator-=;
             using Base_T::operator*=;
@@ -46,6 +48,7 @@ namespace Tensors
         public:
             
             template<class T>
+            force_inline
             std::enable_if_t<
                 std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
                 CLASS &
@@ -63,6 +66,7 @@ namespace Tensors
             }
             
             template<class T>
+            force_inline
             std::enable_if_t<
                 std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
                 CLASS &
@@ -80,6 +84,7 @@ namespace Tensors
             }
             
             template<class T>
+            force_inline
             std::enable_if_t<
                 std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
                 CLASS &
@@ -97,6 +102,7 @@ namespace Tensors
             }
             
             template<class T>
+            force_inline
             std::enable_if_t<
                 std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
                 CLASS &
@@ -116,7 +122,7 @@ namespace Tensors
             
         public:
            
-            void SetIdentity()
+            force_inline void SetIdentity()
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -127,7 +133,7 @@ namespace Tensors
                 }
             }
             
-            void SetDiagonal( const Tensors::Tiny::Vector<n,Scalar,Int> & v )
+            force_inline void MakeDiagonal( const Tensors::Tiny::Vector<n,Scalar,Int> & v )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -135,6 +141,14 @@ namespace Tensors
                     {
                         A[i][j] = (i==j) ? v[i] : static_cast<Scalar>(0);
                     }
+                }
+            }
+            
+            force_inline void SetDiagonal( const Tensors::Tiny::Vector<n,Scalar,Int> & v )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    A[i][i] = v[i];
                 }
             }
             

@@ -11,14 +11,14 @@
 using namespace Tools;
 using namespace Tensors;
 
-using Scalar = std::complex<double>;
-//using Scalar = double;
+//using Scalar = std::complex<double>;
+using Scalar = double;
 //using Scalar = std::complex<float>;
 //using Scalar = float;
 using Real   = ScalarTraits<Scalar>::Real;
 using Int    = int32_t;
 
-constexpr Int n = 2;
+constexpr Int n = 4;
 
 using E_C_Matrix_T = Eigen::Matrix<Scalar,n,n>;
 using E_R_Matrix_T = Eigen::Matrix<Scalar,n,n>;
@@ -45,11 +45,11 @@ int main(int argc, const char * argv[])
     Tiny::SelfAdjointMatrix<n,Scalar,Int> A;
     
     std::random_device r;
-//    std::default_random_engine engine ( r() );
+    std::default_random_engine engine ( r() );
     
-    std::default_random_engine engine ( 1 );
+//    std::default_random_engine engine ( 1 );
     
-    std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
+    std::uniform_real_distribution<Real> unif(-1,1);
     
     for( Int k = 0; k < reps; ++k )
     {
@@ -96,7 +96,7 @@ int main(int argc, const char * argv[])
         
         E_R_Matrix_T H_ ( hessenberg.matrixH().real() );
         E_C_Matrix_T U_ ( hessenberg.matrixQ() );
-        
+
         copy_buffer( &H_(0,0), H_list.data(rep), n*n );
         copy_buffer( &U_(0,0), U_list.data(rep), n*n );
     }

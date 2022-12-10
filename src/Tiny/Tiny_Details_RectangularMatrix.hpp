@@ -2,33 +2,33 @@
 //##                     Memory                       ##
 //######################################################
             
-        public:
-            
-            explicit CLASS( const Scalar init )
-            :   A {{{init}}}
-            {}
-            
-            void SetZero()
-            {
-                zerofy_buffer<m*n>( &A[0][0] );
-            }
-            
-            void Fill( const Scalar init )
-            {
-                fill_buffer<m*n>( &A[0][0], init );
-            }
-            
-            template<typename T>
-            void Write( T * const target ) const
-            {
-                copy_buffer<m*n>( &A[0][0], target );
-            }
-            
-            template<typename T>
-            void Read( T const * const source )
-            {
-                copy_buffer<m*n>( source, &A[0][0] );
-            }
+public:
+    
+    explicit CLASS( const Scalar init )
+    :   A {{{init}}}
+    {}
+    
+    void SetZero()
+    {
+        zerofy_buffer<m*n>( &A[0][0] );
+    }
+    
+    void Fill( const Scalar init )
+    {
+        fill_buffer<m*n>( &A[0][0], init );
+    }
+    
+    template<typename T>
+    void Write( T * const target ) const
+    {
+        copy_buffer<m*n>( &A[0][0], target );
+    }
+    
+    template<typename T>
+    void Read( T const * const source )
+    {
+        copy_buffer<m*n>( source, &A[0][0] );
+    }
 
 
 //######################################################
@@ -37,7 +37,7 @@
          
 public:
     
-    friend CLASS operator+( const CLASS & x, const CLASS & y )
+    force_inline friend CLASS operator+( const CLASS & x, const CLASS & y )
     {
         CLASS z;
         for( Int i = 0; i < m; ++i )
@@ -52,6 +52,7 @@ public:
 
     
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -71,6 +72,7 @@ public:
     
 
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -89,6 +91,7 @@ public:
     }
     
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -107,7 +110,7 @@ public:
     }
     
     
-    void Transpose( CLASS & B ) const
+    force_inline void Transpose( CLASS & B ) const
     {
         for( Int j = 0; j < n; ++j )
         {
@@ -118,7 +121,7 @@ public:
         }
     }
     
-    void ConjugateTranspose( CLASS & B ) const
+    force_inline void ConjugateTranspose( CLASS & B ) const
     {
         for( Int j = 0; j < n; ++j )
         {
@@ -129,7 +132,7 @@ public:
         }
     }
     
-    void Conjugate( CLASS & B ) const
+    force_inline void Conjugate( CLASS & B ) const
     {
         for( Int i = 0; i < m; ++i )
         {

@@ -4,63 +4,50 @@ namespace Tensors
 {
     namespace Tiny
     {
+        
+#define CLASS SelfAdjointTridiagonalMatrix
+        
         template< int n_, typename Scalar_, typename Int_ >
-        struct SelfAdjointTridiagonalMatrix
+        class CLASS
         {
             // Uses only upper triangle.
+            
         public:
             
-            using Scalar = Scalar_;
-            using Real   = typename ScalarTraits<Scalar_>::Real;
-            using Int    = Int_;
+#include "Tiny_Details.hpp"
             
             static constexpr Int n = n_;
             
             using Vector_T = Vector<n,Scalar,Int>;
             
-            static constexpr Real zero        = 0;
-            static constexpr Real half        = 0.5;
-            static constexpr Real one         = 1;
-            static constexpr Real two         = 2;
-            static constexpr Real three       = 3;
-            static constexpr Real four        = 4;
-            static constexpr Real eps         = std::numeric_limits<Real>::min();
-            static constexpr Real eps_squared = eps * eps;
-            static constexpr Real infty       = std::numeric_limits<Real>::max();
-            
         protected:
-            
             
             std::array<Real,n>   diag;  //the main diagonal (should actually only have real values on it.
             std::array<Scalar,n> upper; //upper diagonal
             
-
         
         public:
-            
-            SelfAdjointTridiagonalMatrix() = default;
-            
-            ~SelfAdjointTridiagonalMatrix() = default;
-            
-            explicit SelfAdjointTridiagonalMatrix( const Scalar init )
+
+//######################################################
+//##                     Memory                       ##
+//######################################################
+
+            explicit CLASS( const Scalar init )
             :   diag  { init }
             ,   upper { init }
             {}
             
-            // Copy constructor
-            SelfAdjointTridiagonalMatrix( const SelfAdjointTridiagonalMatrix & other )
+            
+            force_inline void SetZero()
             {
-                Read( &other.A[0][0] );
+                zerofy_buffer<n  >( &diag[0]  );
+                zerofy_buffer<n-1>( &upper[0] );
             }
             
-            SelfAdjointTridiagonalMatrix & operator=( const SelfAdjointTridiagonalMatrix & B )
-            {
-                copy_buffer<n>  ( &diag[0],  &B.diag[0]  );
-                copy_buffer<n-1>( &upper[0], &B.upper[0] );
-                
-                return *this;
-            }
-            
+//######################################################
+//##                     Access                       ##
+//######################################################
+
             
             force_inline Real & Diag( const Int i )
             {
@@ -86,19 +73,11 @@ namespace Tensors
             {
                 return conj(upper[i]);
             }
+
             
-            force_inline void SetZero()
+            force_inline friend CLASS operator+( const CLASS & x, const CLASS & y )
             {
-                zerofy_buffer<n  >( &diag[0]  );
-                zerofy_buffer<n-1>( &upper[0] );
-            }
-            
-            friend SelfAdjointTridiagonalMatrix operator+(
-                const SelfAdjointTridiagonalMatrix & x,
-                const SelfAdjointTridiagonalMatrix & y
-            )
-            {
-                SelfAdjointTridiagonalMatrix z;
+                CLASS z;
                 for( Int i = 0; i < n; ++i )
                 {
                     z.diag[i] = x.diag[i] + y.diag[i];
@@ -111,13 +90,13 @@ namespace Tensors
                 return z;
             }
             
-            void operator+=( const SelfAdjointTridiagonalMatrix & B )
+            force_inline void operator+=( const CLASS & B )
             {
                 add_to_buffer<n>  ( &B.diag[0],  &diag[0]       );
                 add_to_buffer<n-1>( &B.upper[0], &diag.upper[0] );
             }
             
-            void Dot( const Vector_T & x, Vector_T & y ) const
+            force_inline void Dot( const Vector_T & x, Vector_T & y ) const
             {
                 if constexpr ( n >= 1 )
                 {
@@ -170,14 +149,8 @@ namespace Tensors
                 return sout.str();
             }
             
-            inline friend std::ostream & operator<<( std::ostream & s, const SelfAdjointTridiagonalMatrix & A )
-            {
-                s << A.ToString();
-                return s;
-            }
-            
             template<typename T = Scalar>
-            void ToMatrix( SquareMatrix<n,T,Int> & B ) const
+            force_inline void ToMatrix( SquareMatrix<n,T,Int> & B ) const
             {
                 B.SetZero();
                 
@@ -199,10 +172,12 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "SelfAdjointTridiagonalMatrix<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
             
         };
+        
+#undef CLASS
         
     } // namespace Tiny
     

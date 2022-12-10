@@ -134,6 +134,7 @@ namespace Tensors
 //######################################################
             
             template<class T>
+            force_inline
             std::enable_if_t<
                 std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
                 CLASS &
@@ -148,6 +149,7 @@ namespace Tensors
             }
             
             template<class T>
+            force_inline
             std::enable_if_t<
                 std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
                 CLASS &
@@ -162,6 +164,7 @@ namespace Tensors
             }
             
             template<class T>
+            force_inline
             std::enable_if_t<
                 std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
                 CLASS &
@@ -175,7 +178,7 @@ namespace Tensors
                 return *this;
             }
             
-            Real Norm() const
+            force_inline Real Norm() const
             {
                 Real r = 0;
                 for( Int i = 0; i < n; ++i )
@@ -185,12 +188,12 @@ namespace Tensors
                 return std::sqrt( r );
             }
             
-            friend Real Norm( const CLASS & v )
+            force_inline friend Real Norm( const CLASS & v )
             {
                 return v.Norm();
             }
             
-            void Normalize()
+            force_inline void Normalize()
             {
                 *this *= (static_cast<Scalar>(1) / Norm());
             }
@@ -198,7 +201,7 @@ namespace Tensors
             
 
             
-            friend Scalar Dot( const CLASS & x, const CLASS & y )
+            force_inline friend Scalar Dot( const CLASS & x, const CLASS & y )
             {
                 Scalar r (0);
                 
@@ -209,7 +212,7 @@ namespace Tensors
                 return r;
             }
             
-            friend Scalar InnerProduct( const CLASS & x, const CLASS & y )
+            force_inline friend Scalar InnerProduct( const CLASS & x, const CLASS & y )
             {
                 Scalar r (0);
                 
@@ -221,7 +224,7 @@ namespace Tensors
             }
             
             
-            friend Real AngleBetweenUnitVectors( const CLASS & u, const CLASS & w )
+            force_inline friend Real AngleBetweenUnitVectors( const CLASS & u, const CLASS & w )
             {
                 Real a = 0;
                 Real b = 0;
@@ -235,7 +238,7 @@ namespace Tensors
                 return static_cast<Real>(2) * atan( std::sqrt(a/b) );
             }
             
-            friend Real Angle( const CLASS & x, const CLASS & y )
+            force_inline friend Real Angle( const CLASS & x, const CLASS & y )
             {
                 CLASS u = x;
                 CLASS w = y;
@@ -247,7 +250,7 @@ namespace Tensors
             }
 
             
-            friend void Plus( const CLASS & x, const CLASS & y, CLASS & z )
+            force_inline friend void Plus( const CLASS & x, const CLASS & y, CLASS & z )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -255,7 +258,7 @@ namespace Tensors
                 }
             }
    
-            friend void Times( const Scalar scale, const CLASS & x, CLASS & y )
+            force_inline friend void Times( const Scalar scale, const CLASS & x, CLASS & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -263,23 +266,13 @@ namespace Tensors
                 }
             }
             
-            friend void axpy( const Scalar alpha, const CLASS & x, CLASS & y )
+            force_inline friend void axpy( const Scalar alpha, const CLASS & x, CLASS & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
                     y.v[i] += alpha * x.v[i];
                 }
             }
-            
-            //            friend CLASS operator+( const CLASS & x, const CLASS & y )
-            //            {
-            //                CLASS z;
-            //                for(Int i = 0; i < n; ++i )
-            //                {
-            //                    z(i) = x(i) + y(i);
-            //                }
-            //                return z;
-            //            }
 
             
             std::string ToString( const int p = 16) const

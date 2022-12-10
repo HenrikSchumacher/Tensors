@@ -29,7 +29,6 @@ namespace Tensors
             
 
             
-            
 //######################################################
 //##                  Arithmetic                      ##
 //######################################################
@@ -457,68 +456,6 @@ namespace Tensors
                 sout << " }\n}";
                 return sout.str();
             }
-            
-            //            Scalar Det() const
-            //            {
-            //                if( n == 2 )
-            //                {
-            //                    return A[0][0] * A[1][1] - A[0][1] * A[1][0];
-            //                }
-            //
-            //                if( n == 3 )
-            //                {
-            //                    return (
-            //                          A[0][0]*A[1][1]*A[2][2] + A[0][1]*A[1][2]*A[2][0] + A[0][2]*A[1][0]*A[2][1]
-            //                        - A[0][0]*A[1][2]*A[2][1] - A[0][1]*A[1][0]*A[2][2] - A[0][2]*A[1][1]*A[2][0]
-            //                    );
-            //                }
-            //
-            //                // Bareiss algorithm copied and adapted from https://cs.stackexchange.com/q/124759/146040
-            //
-            //                SquareMatrix<n,Scalar,Int> M;
-            //
-            //                M.Read(&A[0][0]);
-            //
-            //                Scalar sign = one;
-            //
-            //                for(Int k = 0; k < n - 1; ++k )
-            //                {
-            //                    //Pivot - row swap needed
-            //                    if( M(k,k) == zero )
-            //                    {
-            //                        Int m = 0;
-            //                        for( m = k + 1; m < n; ++m )
-            //                        {
-            //                            if( M(m,k) != zero )
-            //                            {
-            //                                std::swap_ranges( &M(m,0), &M(m,n), &M(k,0) );
-            //                                sign = -sign;
-            //                                break;
-            //                            }
-            //                        }
-            //
-            //                        //No entries != 0 found in column k -> det = 0
-            //                        if(m == n) {
-            //                            return zero;
-            //                        }
-            //                    }
-            //
-            //                    //Apply formula
-            //                    for( Int i = k + 1; i < n; ++i )
-            //                    {
-            //                        for( Int j = k + 1; j < n; ++j )
-            //                        {
-            //                            M(i,j) = M(k,k) * M(i,j) - M(i,k) * M(k,j);
-            //                            if(k != 0)
-            //                            {
-            //                                M(i,j) /= M(k-1,k-1);
-            //                            }
-            //                        }
-            //                    }
-            //                }
-            //
-            //                return sign * M(n-1,n-1);
-            //            }
             
             template<typename T = Scalar>
             void ToMatrix( SquareMatrix<n,T,Int> & B ) const

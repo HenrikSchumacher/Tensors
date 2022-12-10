@@ -4,28 +4,15 @@ namespace Tensors
 {
     namespace Tiny
     {
-
         template< int m_, int n_, typename Scalar_, typename Int_>
         class MatrixList
         {
         public:
             
-            using Scalar = Scalar_;
-            using Real   = typename ScalarTraits<Scalar_>::Real;
-            using Int    = Int_;
+#include "Tiny_Constants.hpp"
             
             static constexpr Int m = m_;
             static constexpr Int n = n_;
-            
-            static constexpr Real zero        = 0;
-            static constexpr Real half        = 0.5;
-            static constexpr Real one         = 1;
-            static constexpr Real two         = 2;
-            static constexpr Real three       = 3;
-            static constexpr Real four        = 4;
-            static constexpr Real eps         = std::numeric_limits<Real>::min();
-            static constexpr Real eps_squared = eps * eps;
-            static constexpr Real infty       = std::numeric_limits<Real>::max();
             
             using Tensor_T = Tensor1<Scalar,Int>;
             

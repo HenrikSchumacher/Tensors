@@ -34,83 +34,87 @@ namespace Tensors
 //##                  Arithmetic                      ##
 //######################################################
          
-public:
-    
-    template<class T>
-    std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
-        CLASS &
-    >
-    operator+=( const CLASS<m,n,T,Int> & B )
-    {
-        for( Int i = 0; i < m; ++i )
-        {
-            for( Int j = 0; j < n; ++j )
+        public:
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator+=( const CLASS<m,n,T,Int> & B )
             {
-                A[i][j] += B.A[i][j];
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] += B.A[i][j];
+                    }
+                }
+                
+                return *this;
             }
-        }
-        
-        return *this;
-    }
-    
-    template<class T>
-    std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
-        CLASS &
-    >
-    operator-=( const CLASS<m,n,T,Int> & B )
-    {
-        for( Int i = 0; i < m; ++i )
-        {
-            for( Int j = 0; j < n; ++j )
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator-=( const CLASS<m,n,T,Int> & B )
             {
-                A[i][j] -= B.A[i][j];
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] -= B.A[i][j];
+                    }
+                }
+                
+                return *this;
             }
-        }
-        
-        return *this;
-    }
-    
-    template<class T>
-    std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
-        CLASS &
-    >
-    operator*=( const CLASS<m,n,T,Int> & B )
-    {
-        for( Int i = 0; i < m; ++i )
-        {
-            for( Int j = 0; j < n; ++j )
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator*=( const CLASS<m,n,T,Int> & B )
             {
-                A[i][j] *= B.A[i][j];
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] *= B.A[i][j];
+                    }
+                }
+                
+                return *this;
             }
-        }
-        
-        return *this;
-    }
-    
-    template<class T>
-    std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
-        CLASS &
-    >
-    operator/=( const CLASS<m,n,T,Int> & B )
-    {
-        for( Int i = 0; i < m; ++i )
-        {
-            for( Int j = 0; j < n; ++j )
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator/=( const CLASS<m,n,T,Int> & B )
             {
-                A[i][j] /= B.A[i][j];
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] /= B.A[i][j];
+                    }
+                }
+                
+                return *this;
             }
-        }
-        
-        return *this;
-    }
             
         public:
             
-            Real MaxNorm() const
+            force_inline Real MaxNorm() const
             {
                 Real max = 0;
                 
@@ -124,7 +128,7 @@ public:
                 return max;
             }
             
-            Real FrobeniusNorm() const
+            force_inline Real FrobeniusNorm() const
             {
                 Real AA = 0;
                 
@@ -168,6 +172,16 @@ public:
             }
             
         public:
+
+            static constexpr Int RowCount()
+            {
+                return m;
+            }
+            
+            static constexpr Int ColCount()
+            {
+                return n;
+            }
             
             static constexpr Int Dimension( const Int i )
             {

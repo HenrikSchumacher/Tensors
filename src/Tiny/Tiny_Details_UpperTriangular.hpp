@@ -110,7 +110,7 @@ public:
         return z;
     }
     
-    void Conjugate( CLASS & B ) const
+    force_inline void Conjugate( CLASS & B ) const
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -122,6 +122,7 @@ public:
     }
     
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -139,6 +140,7 @@ public:
     }
     
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -156,6 +158,7 @@ public:
     }
     
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -173,6 +176,7 @@ public:
     }
     
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -191,6 +195,7 @@ public:
     
     
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -209,6 +214,7 @@ public:
     }
 
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -227,6 +233,7 @@ public:
     }
     
     template<class T>
+    force_inline
     std::enable_if_t<
         std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
         CLASS &
@@ -245,8 +252,7 @@ public:
     }
 
 
-
-    Real MaxNorm() const
+    force_inline Real MaxNorm() const
     {
         Real max = 0;
         
@@ -260,7 +266,7 @@ public:
         return max;
     }
 
-    Real FrobeniusNorm() const
+    force_inline Real FrobeniusNorm() const
     {
         Real AA = 0;
         
