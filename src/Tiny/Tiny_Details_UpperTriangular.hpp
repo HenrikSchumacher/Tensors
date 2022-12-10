@@ -3,7 +3,12 @@
 //######################################################
     
 public:
-    
+
+    explicit CLASS( const Scalar init )
+    {
+        Fill(init);
+    }
+
     force_inline void SetZero()
     {
         if constexpr ( n > 0 )

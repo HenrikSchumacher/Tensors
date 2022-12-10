@@ -18,7 +18,7 @@ using Scalar = std::complex<double>;
 using Real   = ScalarTraits<Scalar>::Real;
 using Int    = int32_t;
 
-constexpr Int n = 4;
+constexpr Int n = 2;
 
 using E_C_Matrix_T = Eigen::Matrix<Scalar,n,n>;
 using E_R_Matrix_T = Eigen::Matrix<Scalar,n,n>;

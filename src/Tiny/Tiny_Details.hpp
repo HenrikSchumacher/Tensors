@@ -21,12 +21,6 @@ public:
 
     CLASS(std::nullptr_t) = delete;
 
-
-    explicit CLASS( const Scalar init )
-    {
-        Fill(init);
-    }
-
     explicit CLASS( const Scalar * a )
     {
         Read(a);

@@ -4,8 +4,11 @@ namespace Tensors
 {
     namespace Tiny
     {
+        
+#define CLASS SquareMatrix
+        
         template< int n_, typename Scalar_, typename Int_>
-        struct SquareMatrix : public Tensors::Tiny::Matrix<n_,n_,Scalar_,Int_>
+        struct CLASS : public Tensors::Tiny::Matrix<n_,n_,Scalar_,Int_>
         {
         private:
             
@@ -13,22 +16,13 @@ namespace Tensors
             
         public:
             
-            using Scalar   = Scalar_;
-            using Real     = typename ScalarTraits<Scalar_>::Real;
-            using Int      = Int_;
-            
+#include "Tiny_Details.hpp"
+
+            using Base_T::m;
             using Base_T::n;
             
             using Vector_T = Vector<n,Scalar,Int>;
             
-            using Base_T::zero;
-            using Base_T::half;
-            using Base_T::one;
-            using Base_T::two;
-            using Base_T::three;
-            using Base_T::four;
-            using Base_T::eps;
-            using Base_T::infty;
             using Base_T::Write;
             using Base_T::Read;
             using Base_T::operator+=;
@@ -36,55 +30,89 @@ namespace Tensors
             using Base_T::operator*=;
             using Base_T::operator/=;
             
-            
-            SquareMatrix() = default;
-            
-            ~SquareMatrix() = default;
-            
-            SquareMatrix(std::nullptr_t) = delete;
-            
-            explicit SquareMatrix( const Scalar init )
+            explicit CLASS( const Scalar init )
             :   Base_T(init)
             {}
             
-            explicit SquareMatrix( const Scalar * a )
-            {
-                Read(a);
-            }
-            
-            // Copy constructor
-            explicit SquareMatrix( const SquareMatrix & other )
-            :   Base_T(other)
-            {}
-            
-            friend void swap( SquareMatrix & A, SquareMatrix & B ) noexcept
-            {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                swap(A.A, B.A);
-            }
-            
-            // Copy assignment operator
-            SquareMatrix & operator=( SquareMatrix other )
-            {
-                // copy-and-swap idiom
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                swap(*this, other);
-
-                return *this;
-            }
-
-            /* Move constructor */
-            SquareMatrix( SquareMatrix && other ) noexcept
-            :   SquareMatrix()
-            {
-                swap(*this, other);
-            }
             
         protected:
             
             using Base_T::A;
+            
+//######################################################
+//##                  Arithmetic                      ##
+//######################################################
+         
+        public:
+            
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator+=( const CLASS<n,T,Int> & B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] += B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator-=( const CLASS<n,T,Int> & B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] -= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator*=( const CLASS<n,T,Int> & B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] *= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator/=( const CLASS<n,T,Int> & B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] /= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
             
         public:
            
@@ -193,10 +221,12 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "SquareMatrix<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
             }
             
         };
+        
+#undef CLASS
         
     } // namespace Tiny
         

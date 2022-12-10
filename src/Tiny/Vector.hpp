@@ -33,6 +33,10 @@ namespace Tensors
             
         public:
             
+            explicit CLASS( const Scalar init )
+            :   v {{init}}
+            {}
+            
             // Copy constructor
             CLASS( const CLASS & other )
             {
