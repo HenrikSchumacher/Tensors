@@ -3,7 +3,7 @@ ASSERT_INT (Int_);
 public:
 
 using Scalar = Scalar_;
-using Real   = typename ScalarTraits<Scalar_>::RealType;
+using Real   = typename ScalarTraits<Scalar_>::Real;
 using Int    = Int_;
 
 protected:

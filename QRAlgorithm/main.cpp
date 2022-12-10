@@ -15,7 +15,7 @@ using Scalar = std::complex<double>;
 //using Scalar = double;
 //using Scalar = std::complex<float>;
 //using Scalar = float;
-using Real   = ScalarTraits<Scalar>::RealType;
+using Real   = ScalarTraits<Scalar>::Real;
 using Int    = int32_t;
 
 constexpr Int n = 4;

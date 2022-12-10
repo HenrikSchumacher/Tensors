@@ -11,7 +11,7 @@ namespace Tensors
         public:
             
             using Scalar = Scalar_;
-            using Real   = typename ScalarTraits<Scalar_>::RealType;
+            using Real   = typename ScalarTraits<Scalar_>::Real;
             using Int    = Int_;
             
             static constexpr Int m = m_;

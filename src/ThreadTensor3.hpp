@@ -8,7 +8,7 @@ namespace Tensors {
         ASSERT_INT(Int_);
         
         using Scalar = Scalar_;
-        using Real   = typename ScalarTraits<Scalar_>::RealType;
+        using Real   = typename ScalarTraits<Scalar_>::Real;
         using Int    = Int_;
         
     private:
