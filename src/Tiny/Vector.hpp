@@ -33,6 +33,22 @@ namespace Tensors
             
         public:
             
+            // Copy constructor
+            CLASS( const CLASS & other )
+            {
+                Read( &other.v[0] );
+            }
+
+            friend void swap( CLASS & A, CLASS & B ) noexcept
+            {
+                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+                using std::swap;
+                
+                swap( A.v, B.v );
+            }
+            
+        public:
+            
             void SetZero()
             {
                 zerofy_buffer<n>( &v[0] );
