@@ -1,10 +1,9 @@
 #pragma once
 
-#define CLASS MatrixCSR
+#define CLASS SparseMatrixCSR
 
 namespace Tensors
 {
-    
     template<typename Scalar_, typename Int_, typename LInt_>
     class CLASS : public SparsePatternCSR<Int_,LInt_>
     {
