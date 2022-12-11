@@ -292,9 +292,10 @@ int main(int argc, const char * argv[])
             }
         }
         A[1][1] =  0.0001;
-        A[0][1] =  0.0001;
-        A[1][2] = -0.00001;
+        A[0][1] =  0.00000001;
+        A[1][2] = -0.00000001;
         
+//        A.Fill(1);
         dump(A);
         
         auto A_mat = A.ToMatrix();
@@ -304,28 +305,28 @@ int main(int argc, const char * argv[])
         
         U.ConjugateTranspose(UH);
         D.SetDiagonal(eigs);
-//
+
+        dump(U);
+        
         Dot(U,D,B);
         Dot(B,UH,C);
         
         C -= A_mat;
         dump(C.MaxNorm());
         
-        Dot(A_mat,UH,B);
-        Dot(U,B,C);
+        Dot(UH,A_mat,B);
+        Dot(B,U,C);
         C -= D;
         dump(C.MaxNorm());
         
         auto v = C.Diagonal();
-        v /= eigs;
+//        v /= eigs;
         dump(v);
         
         
         D.SetIdentity();
         Dot(U,UH,B);
         B -= D;
-        
-        
     
         valprint("orthogonality error",B.MaxNorm());
 
