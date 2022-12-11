@@ -7,15 +7,6 @@
 //    #include <array>
     #include <complex>
 
-//    #include <Accelerate/Accelerate.h>
-//    #include <cblas.h>
-//    #include <lapacke.h>
-
-//    #define EIGEN_NO_DEBUG
-//    #define EIGEN_USE_BLAS
-//    #define EIGEN_USE_LAPACKE
-//    #include "eigen3/Eigen/Dense"
-//
     #include "Tools/Tools.hpp"
 
     namespace Tensors
@@ -52,15 +43,6 @@
     #include "src/Sparse/SparseBinaryMatrixCSR.hpp"
 //    #include "src/Sparse/BinaryMatrixVBSR.hpp"
     #include "src/Sparse/SparseMatrixCSR.hpp"
-
-//    #include "src/BlockKernels_old/BlockKernel.hpp"
-//    #include "src/BlockKernels_old/SquareBlockKernel.hpp"
-//    #include "src/BlockKernels_old/ScalarBlockKernel.hpp"
-//    #include "src/BlockKernels_old/LowRankSquareBlockKernel.hpp"
-//    #include "src/BlockKernels_old/DenseSquareBlockKernel.hpp"
-//    #include "src/BlockKernels_old/DenseSquareBlockKernel_BLAS.hpp"
-//    #include "src/BlockKernels_old/TP_ExperimentalBlockKernel.hpp"
-//    #include "src/BlockKernels_old/DenseSquareBlockKernel_Eigen.hpp"
 
 
     #include "src/Sparse/SparseKernelMatrixCSR.hpp"

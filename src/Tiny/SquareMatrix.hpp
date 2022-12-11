@@ -17,7 +17,6 @@ namespace Tensors
         public:
             
 #include "Tiny_Details.hpp"
-#include "Tiny_Details_Matrix.hpp"
 
             using Base_T::m;
             using Base_T::n;
@@ -28,6 +27,9 @@ namespace Tensors
             using Base_T::Read;
             using Base_T::RowCount;
             using Base_T::ColCount;
+            using Base_T::FrobeniusNorm;
+            using Base_T::GivensRight;
+            using Base_T::GivensLeft;
             using Base_T::operator+=;
             using Base_T::operator-=;
             using Base_T::operator*=;
@@ -41,6 +43,13 @@ namespace Tensors
         protected:
             
             using Base_T::A;
+            
+//######################################################
+//##                     Access                       ##
+//######################################################
+            
+#include "Tiny_Details_Matrix.hpp"
+#include "Tiny_Details_RectangularMatrix.hpp"
             
 //######################################################
 //##                  Arithmetic                      ##
@@ -254,8 +263,8 @@ namespace Tensors
                 // Write Givens rotion
                 //
                 //    /              \
-                //    |  c  -conj(s) |
-                //    |  s      c    |
+                //    |     c     s  |
+                //    | -conj(s)  c  |
                 //    \              /
                 //
                 // in the i-j-plane into the matrix.
@@ -263,8 +272,8 @@ namespace Tensors
                 SetIdentity();
                 
                 A[i][i] = c;
-                A[i][j] = -conj(s);
-                A[j][i] = s;
+                A[i][j] = s;
+                A[j][i] = -conj(s);
                 A[j][j] = c;
             }
             
@@ -284,36 +293,66 @@ namespace Tensors
         
 #undef CLASS
         
-        template< int N, typename Scalar, typename Int >
-        void Dot(
-            const Tiny::SquareMatrix<N,Scalar,Int> & A,
-            const Tiny::Vector<N,Scalar,Int> & x,
-                  Tiny::Vector<N,Scalar,Int> & y
+        template< int N, typename R, typename S, typename T, typename Int >
+        force_inline
+        std::enable_if_t<
+            (
+                std::is_same_v<R,T>
+                ||
+                (ScalarTraits<T>::IsComplex && std::is_same_v<R,typename ScalarTraits<T>::Real>)
+            )
+            &&
+            (
+                std::is_same_v<S,T>
+                ||
+                (ScalarTraits<T>::IsComplex && std::is_same_v<S,typename ScalarTraits<T>::Real>)
+            )
+            ,
+            void
+        >
+        Dot(
+            const Tiny::SquareMatrix<N,R,Int> & A,
+            const Tiny::Vector<N,S,Int> & x,
+                  Tiny::Vector<N,T,Int> & y
         )
         {
             for( Int i = 0; i < N; ++i )
             {
-                Scalar y_i (0);
-                
+                T y_i ( static_cast<T>(0) );
                 for( Int j = 0; j < N; ++j )
                 {
                     y_i += A[i][j] * x[j];
                 }
-                
                 y[i] = y_i;
             }
         }
         
-        template< int N, typename Scalar, typename Int >
-        void Dot(
-            const Tiny::SquareMatrix<N,Scalar,Int> & A,
-            const Tiny::SquareMatrix<N,Scalar,Int> & B,
-                  Tiny::SquareMatrix<N,Scalar,Int> & C
+        template< int N, typename R, typename S, typename T, typename Int >
+        force_inline
+        std::enable_if_t<
+            (
+                std::is_same_v<R,T>
+                ||
+                (ScalarTraits<T>::IsComplex && std::is_same_v<R,typename ScalarTraits<T>::Real>)
+            )
+            &&
+            (
+                std::is_same_v<S,T>
+                ||
+                (ScalarTraits<T>::IsComplex && std::is_same_v<S,typename ScalarTraits<T>::Real>)
+            )
+            ,
+            void
+        >
+        Dot(
+            const Tiny::SquareMatrix<N,R,Int> & A,
+            const Tiny::SquareMatrix<N,S,Int> & B,
+                  Tiny::SquareMatrix<N,T,Int> & C
         )
         {
             for( Int i = 0; i < N; ++i )
             {
-                Tiny::Vector<N,Scalar,Int> C_i ( static_cast<Scalar>(0) );
+                Tiny::Vector<N,T,Int> C_i ( static_cast<T>(0) );
                 for( Int k = 0; k < N; ++k )
                 {
                     for( Int j = 0; j < N; ++j )
@@ -323,6 +362,18 @@ namespace Tensors
                 }
                 C_i.Write( C[i] );
             }
+        }
+        
+        
+        template< int N, typename Scalar, typename Int >
+        force_inline
+        Tiny::SquareMatrix<N,Scalar,Int> DiagonalMatrix( const Tiny::Vector<N,Scalar,Int> & v )
+        {
+            Tiny::SquareMatrix<N,Scalar,Int> A;
+            
+            A.MakeDiagonal(v);
+            
+            return A;
         }
         
     } // namespace Tiny

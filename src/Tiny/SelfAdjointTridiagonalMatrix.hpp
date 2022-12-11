@@ -150,7 +150,7 @@ namespace Tensors
             }
             
             template<typename T = Scalar>
-            force_inline void ToMatrix( SquareMatrix<n,T,Int> & B ) const
+            void ToMatrix( SquareMatrix<n,T,Int> & B ) const
             {
                 B.SetZero();
                 
@@ -170,23 +170,27 @@ namespace Tensors
                 std::is_same_v<S, Scalar> && !ScalarTraits<Scalar>::IsComplex,
                 void
             >
-            QRAlgorithm( SquareMatrix<n,S,Int> & Q, Vector<n,Real,Int> & eigs )
+            QRAlgorithm(
+                SquareMatrix<n,S,Int> & Q,
+                Vector<n,S,Int> & eigs,
+                const Real tol = eps_sqrt,
+                const Int max_iter = 4
+            )
             {
                 // Computes a unitary matrix Q and and a vector eigs such that
-                // Q . diag(eigs) . Q^T = A.
+                // Q . A . Q^T = diag(eigs).
+                // Caution: Performs computations in-place, so it modifies A.
                 
                 Q.SetIdentity();
                 
                 if constexpr ( n == 1 )
                 {
-                    qr_algorithm<1>(Q);
-                    
                     eigs[0] = diag[0];
                 }
                 
                 if constexpr ( n == 2 )
                 {
-                    qr_algorithm<0,2>(Q);
+                    qr_algorithm_2x2(Q);
                     
                     eigs[0] = diag[0];
                     eigs[1] = diag[1];
@@ -194,30 +198,57 @@ namespace Tensors
                 
                 if constexpr ( n >= 3 )
                 {
-                    // In order to leave the current matrix intact, we do a copy and process that one in-place.
-                    SelfAdjointTridiagonalMatrix<n,Real,Int> T;
+                    qr_algorithm(Q,n,tol,0,max_iter);
                     
-                    for( Int i = 0; i < n; ++i )
-                    {
-                        T.Diag(i) = real( Diag(i)  );
-                    }
+                    eigs.Read( &diag[0] );
+                }
+            }
+            
+            template<typename S>
+            force_inline std::enable_if_t<
+                std::is_same_v<S, Scalar> && !ScalarTraits<Scalar>::IsComplex,
+                void
+            >
+            QRAlgorithm(
+                Vector<n,S,Int> & eigs,
+                const Real tol = MyMath::sqrt(eps),
+                const Int max_iter = 4
+            )
+            {
+                // Computes the eigenvalues only.
+                // Caution: Performs computations in-place, so it modifies A.
+                
+                if constexpr ( n == 1 )
+                {
+                    eigs[0] = diag[0];
+                }
+                
+                if constexpr ( n == 2 )
+                {
+                    qr_algorithm_2x2();
                     
-                    for( Int i = 0; i < n-1; ++i )
-                    {
-                        T.Upper(i) = real( Upper(i)  );
-                    }
+                    eigs[0] = diag[0];
+                    eigs[1] = diag[1];
+                }
+                
+                if constexpr ( n >= 3 )
+                {
+                    qr_algorithm(n,tol,0,max_iter);
                     
-                    T.template qr_algorithm<0,n>(Q);
-                    
-                    eigs.Read( &T.Diag(0) );
+                    eigs.Read( &diag[0] );
                 }
             }
             
         public:
             
-            //Checked
-            force_inline void givens( const Real a_0, const Real a_1, const Real b_0, Real & c, Real & s )
+
+            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
+            qr_algorithm_2x2( SquareMatrix<n,Real,Int> & Q )
             {
+                const Real a_0 = diag[0];
+                const Real a_1 = diag[1];
+                const Real b_0 = upper[0];
+                
                 // Find c, s such that
                 //
                 //    /         \  /            \  /         \
@@ -225,153 +256,348 @@ namespace Tensors
                 //    |  s   c  |  |  b_0  a_1  |  |  -s  c  |
                 //    \         /  \            /  \         /
                 //
-                //  is diagonal;
-                
-                if( std::abs(b_0) < eps * ( std::abs(a_0)+std::abs(a_1) ) )
+                //  is diagonal.
+                if( std::abs(b_0) > eps * ( std::abs(a_0)+std::abs(a_1) ) )
                 {
-                    c = one;
-                    s = zero;
+                    const Real d = a_0 - a_1;
+                    const Real delta = std::sqrt( d * d + four * b_0 * b_0 );
+                    
+                    const Real s_ = (d + delta) / (two * b_0);
+                    const Real factor = one / std::sqrt(one + s_ * s_);
+                    
+                    const Real c = factor;
+                    const Real s = s_ * factor;
+                    
+                    diag[0]  = half * (a_0 + a_1 - delta);
+                    diag[1]  = half * (a_0 + a_1 + delta);
+                    upper[0] = 0;
+                    
+                    // Multiply Q by Givens(c,s,0,1) from the right.
+                    Q.GivensRight(c,s,0,1);
+                }
+            }
+            
+            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
+            qr_algorithm_2x2()
+            {
+                const Real a_0 = diag[0];
+                const Real a_1 = diag[1];
+                const Real b_0 = upper[0];
+                
+                // Find c, s such that
+                //
+                //    /         \  /            \  /         \
+                //    |  c  -s  |  |  a_0  b_0  |  |   c  s  |
+                //    |  s   c  |  |  b_0  a_1  |  |  -s  c  |
+                //    \         /  \            /  \         /
+                //
+                //  is diagonal.
+                if( std::abs(b_0) > eps * ( std::abs(a_0)+std::abs(a_1) ) )
+                {
+                    const Real d = a_0 - a_1;
+                    const Real delta = std::sqrt( d * d + four * b_0 * b_0 );
+                    
+                    diag[0]  = half * (a_0 + a_1 - delta);
+                    diag[1]  = half * (a_0 + a_1 + delta);
+                    upper[0] = 0;
+                }
+            }
+//
+            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
+            qr_algorithm(
+                SquareMatrix<n,Real,Int> & Q,
+                const Int m,
+                const Real tol,
+                const Int iter,
+                const Int max_iter
+            )
+            {
+                // Performs the implicit QR algorithm in the block A[begin..end-1][begin..end-1].
+                // Assumes that m > 2 (otherwise we would have called qr_algorithm_2x2 or stopped.
+                
+                // Compute Wilkinson’s shift mu
+                const Real a = diag[m-1];
+                const Real b = upper[m-2];
+                
+                const Real d_ = half * (diag[m-2] - a);
+                
+                const Real mu = ( std::abs(d_) <= eps * ( std::abs(diag[m-2]) + std::abs(a) ) )
+                    ?
+                    a - std::abs(b)
+                    :
+                    a - b * b / ( d_ + (d_ >= zero ? one : -one ) * std::sqrt( d_ * d_ + b * b ) );
+                
+                // Implicit QR step begins here
+                
+                Real x = diag[0] - mu;
+                Real y = upper[0];
+                
+                { // k = 0
+
+                    // Find c, s such that
+                    //
+                    //    /         \  /     \   /       \
+                    //    |  c  -s  |  |  x  | = |  rho  |
+                    //    |  s   c  |  |  y  |   |   0   |
+                    //    \         /  \     /   \       /
+                    //
+                    
+                    const Real rho_inv = one / std::sqrt(x * x + y * y);
+                    const Real c =   x * rho_inv;
+                    const Real s = - y * rho_inv;
+                    
+                    // Apply Givens rotation to tridiagonal matrix.
+                    const Real d = diag[0] - diag[1];
+                    const Real z = ( two * c * upper[0] + d * s ) * s;
+                    diag[0] -= z;
+                    diag[1] += z;
+                    upper[0] = d * c * s + (c * c - s * s) * upper[0];
+                    x = upper[0];
+                    y = - s * upper[1];
+                    upper[1] *= c;
+                    
+                    // Multiply Q by Givens(c,s,k,k+1) from the right.
+                    Q.GivensRight(c,s,0,1);
+                }
+                
+                for( Int k = 1; k < m-2; ++k )
+                {
+                    // Find c, s such that
+                    //
+                    //    /         \  /     \   /       \
+                    //    |  c  -s  |  |  x  | = |  rho  |
+                    //    |  s   c  |  |  y  |   |   0   |
+                    //    \         /  \     /   \       /
+                    //
+                    
+                    const Real rho_inv = one / std::sqrt(x * x + y * y);
+                    const Real c =   x * rho_inv;
+                    const Real s = - y * rho_inv;
+                    
+                    // Apply Givens rotation to tridiagonal matrix.
+                    const Real w = c * x - s * y;
+                    const Real d = diag[k] - diag[k+1];
+                    const Real z = ( two * c * upper[k] + d * s ) * s;
+                    diag[k  ] -= z;
+                    diag[k+1] += z;
+                    upper[k] = d * c * s + (c * c - s * s) * upper[k];
+                    x = upper[k];
+//                    if( k > 0 )
+//                    {
+                        upper[k-1] = w;
+//                    if( k < m-2 )
+//                    {
+                        y = - s * upper[k+1];
+                        upper[k+1] *= c;
+//                    }
+                    
+                    // Multiply Q by Givens(c,s,k,k+1) from the right.
+                    Q.GivensRight(c,s,k,k+1);
+                }
+                
+                {   // k = m-2
+                    
+                    // Find c, s such that
+                    //
+                    //    /         \  /     \   /       \
+                    //    |  c  -s  |  |  x  | = |  rho  |
+                    //    |  s   c  |  |  y  |   |   0   |
+                    //    \         /  \     /   \       /
+                    //
+                    
+                    const Real rho_inv = one / std::sqrt(x * x + y * y);
+                    const Real c =   x * rho_inv;
+                    const Real s = - y * rho_inv;
+                    
+                    // Apply Givens rotation to tridiagonal matrix.
+                    const Real w = c * x - s * y;
+                    const Real d = diag[m-2] - diag[m-1];
+                    const Real z = ( two * c * upper[m-2] + d * s ) * s;
+                    diag[m-2] -= z;
+                    diag[m-1] += z;
+                    upper[m-2] = d * c * s + (c * c - s * s) * upper[m-2];
+                    x = upper[m-2];
+                    upper[m-3] = w;
+                    
+                    // Multiply Q by Givens(c,s,k,k+1) from the right.
+                    Q.GivensRight(c,s,m-2,m-1);
+                }
+                // Implicit QR step ends here
+                
+
+                
+                // Check for possible deflation and do the next iteration.
+                if(
+                   (iter < max_iter)
+                   &&
+                   (std::abs(upper[m-2]) > tol * (std::abs(diag[m-2])+std::abs(diag[m-1])))
+                )
+                {
+                    qr_algorithm( Q, m, tol, iter+1, max_iter );
                 }
                 else
                 {
-                    const Real d = a_0 - a_1;
+                    if ( m == 3 )
+                    {
+                        qr_algorithm_2x2( Q );
+                    }
+                    else
+                    {
+                        qr_algorithm( Q, m-1, tol, 0, max_iter );
+                    }
+                }
+            }
+            
+            
+            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
+            qr_algorithm(
+                const Int m,
+                const Real tol,
+                const Int iter,
+                const Int max_iter
+            )
+            {
+                // Performs the implicit QR algorithm in the block A[begin..end-1][begin..end-1].
+                // Assumes that m > 2 (otherwise we would have called qr_algorithm_2x2 or stopped.
+                
+                // Compute Wilkinson’s shift mu
+                const Real a = diag[m-1];
+                const Real b = upper[m-2];
+                
+                const Real d_ = half * (diag[m-2] - a);
+                
+                const Real mu = ( std::abs(d_) <= eps * ( std::abs(diag[m-2]) + std::abs(a) ) )
+                    ?
+                    a - std::abs(b)
+                    :
+                    a - b * b / ( d_ + (d_ >= zero ? one : -one ) * std::sqrt( d_ * d_ + b * b ) );
+                
+                // Implicit QR step begins here
+                
+                Real x = diag[0] - mu;
+                Real y = upper[0];
+                
+                { // k = 0
+
+                    // Find c, s such that
+                    //
+                    //    /         \  /     \   /       \
+                    //    |  c  -s  |  |  x  | = |  rho  |
+                    //    |  s   c  |  |  y  |   |   0   |
+                    //    \         /  \     /   \       /
+                    //
                     
-                    const Real d_squared = d * d;
+                    const Real rho_inv = one / std::sqrt(x * x + y * y);
+                    const Real c =   x * rho_inv;
+                    const Real s = - y * rho_inv;
                     
-                    const Real delta_squared = d_squared + four * b_0 * b_0;
-                    
-                    const Real delta = std::sqrt(delta_squared);
-                    
-                    const Real s_ = (d + delta) / (two * b_0);
-                    
-                    const Real factor = one / std::sqrt(one + s_ * s_);
-                    
-                    c = factor;
-                    
-                    s = s_ * factor;
+                    // Apply Givens rotation to tridiagonal matrix.
+                    const Real d = diag[0] - diag[1];
+                    const Real z = ( two * c * upper[0] + d * s ) * s;
+                    diag[0] -= z;
+                    diag[1] += z;
+                    upper[0] = d * c * s + (c * c - s * s) * upper[0];
+                    x = upper[0];
+                    y = - s * upper[1];
+                    upper[1] *= c;
                 }
                 
-            }
-            
-            //Checked
-            force_inline void givens( const Real x, const Real y, Real & c, Real & s )
-            {
-                // Find c, s such that
-                //
-                //    /         \  /     \  /       \
-                //    |   c  s  |  |  x  |  |  rho  |
-                //    |  -s  c  |  |  y  |  |   0   |
-                //    \         /  \     /  \       /
-                //
-                //  is diagonal;
-                
-                const Real rho_inv = one / std::sqrt(x * x + y * y);
-                
-                c = x * rho_inv;
-                s = y * rho_inv;
-            }
-
-            
-//            template<Int begin, Int end>
-//            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
-//            qr_algorithm( SquareMatrix<n,Real,Int> & Q )
-//            {
-//                // Performs the implicit QR algorithm in the block A[begin..end-1][begin..end-1].
-//                dump(begin);
-//                dump(end);
-//                dump(*this);
-//                
-//                constexpr Real tol = 128 * eps;
-//                
-//                if constexpr ( end == begin+1 )
-//                {
-//                    return;
-//                }
-//                
-//                // Compute Wilkinson’s shift
-//                const Real a = diag[end-1];
-//                const Real b = upper[end-2];
-//                
-//                Real d_ = half * (diag[end-2] - a);
-//                
-//                Real shift = ( std::abs(d_) <= eps )
-//                    ?
-//                    a - std::abs(b)
-//                    :
-//                    a - b * b /( d_ + (d_<zero ? -one : one ) * std::sqrt( d_ * d_ + b * b ) );
-//
-//                // Implicit QR step begins here
-//                
-//                Real x = diag[begin] - shift;
-//                Real y = upper[begin];
-//                
-//                dump(x);
-//                dump(y);
-//                
-//                Real c = 0;
-//                Real s = 0;
-//                
-//                for( Int k = begin; k < end-1; ++k )
-//                {
-//                    dump(k);
-//                    
-//                    if constexpr ( end > begin + 2 )    // At least 3-dim
-//                    {
-//                        givens( x, y, c, s );
-//                    }
-//                    else // 2-dimensional case.
-//                    {
-//                        givens( diag[begin], diag[begin+1], upper[begin], c, s );
-//                    }
-//                    
-//                    dump(c);
-//                    dump(s);
-//                    
-//                    Real w = c * x - s * y;
-//                    Real d = diag[k] - diag[k+1];
-//                    Real z = ( two * c * upper[k] + d * s ) * s;
-//                    
-//                    diag[k  ] -= z;
-//                    diag[k+1] += z;
-//                    upper[k] = d * c * s + (c * c - s * s) * upper[k];
-//                    
-//                    x = upper[k];
-//                    
-//                    dump(upper[k]);
-//                    
+                for( Int k = 1; k < m-2; ++k )
+                {
+                    // Find c, s such that
+                    //
+                    //    /         \  /     \   /       \
+                    //    |  c  -s  |  |  x  | = |  rho  |
+                    //    |  s   c  |  |  y  |   |   0   |
+                    //    \         /  \     /   \       /
+                    //
+                    
+                    const Real rho_inv = one / std::sqrt(x * x + y * y);
+                    const Real c =   x * rho_inv;
+                    const Real s = - y * rho_inv;
+                    
+                    // Apply Givens rotation to tridiagonal matrix.
+                    const Real w = c * x - s * y;
+                    const Real d = diag[k] - diag[k+1];
+                    const Real z = ( two * c * upper[k] + d * s ) * s;
+                    diag[k  ] -= z;
+                    diag[k+1] += z;
+                    upper[k] = d * c * s + (c * c - s * s) * upper[k];
+                    x = upper[k];
 //                    if( k > 0 )
 //                    {
-//                        upper[k-1] = w;
-//                        dump(upper[k-1]);
-//                    }
-//                    if( k < end-2 )
+                        upper[k-1] = w;
+//                    if( k < m-2 )
 //                    {
-//                        y = - s * upper[k+1];
-//                        upper[k+1] *= c;
-//                        dump(upper[k+1]);
+                        y = - s * upper[k+1];
+                        upper[k+1] *= c;
 //                    }
-//                    
-//                    // Multiply Q by Givens(c,-s,k,k+1) from the right.
-//                    Q.GivensRight(c,-s,k,k+1);
-//                }
-//                
-//                // Implicit QR step ends here
-//                
-//                dump(*this);
-//                
-//                // Check for possible deflation and do the next iteration.
-//                if( std::abs(upper[end-2]) < tol * (std::abs(diag[end-2])+std::abs(diag[end-1])) )
-//                {
-//                    if constexpr ( end > begin +1 )
-//                    {
-//                        qr_algorithm<begin,end-1>( Q );
-//                    }
-//                }
-//                else
-//                {
-//                    qr_algorithm<begin,end>( Q );
-//                }
-//            }
+                }
+                
+                {   // k = m-2
+                    
+                    // Find c, s such that
+                    //
+                    //    /         \  /     \   /       \
+                    //    |  c  -s  |  |  x  | = |  rho  |
+                    //    |  s   c  |  |  y  |   |   0   |
+                    //    \         /  \     /   \       /
+                    //
+                    
+                    const Real rho_inv = one / std::sqrt(x * x + y * y);
+                    const Real c =   x * rho_inv;
+                    const Real s = - y * rho_inv;
+                    
+                    // Apply Givens rotation to tridiagonal matrix.
+                    const Real w = c * x - s * y;
+                    const Real d = diag[m-2] - diag[m-1];
+                    const Real z = ( two * c * upper[m-2] + d * s ) * s;
+                    diag[m-2] -= z;
+                    diag[m-1] += z;
+                    upper[m-2] = d * c * s + (c * c - s * s) * upper[m-2];
+                    x = upper[m-2];
+                    upper[m-3] = w;
+                }
+                // Implicit QR step ends here
+                
+
+                
+                // Check for possible deflation and do the next iteration.
+                
+                if( std::abs(upper[m-2]) > tol * (std::abs(diag[m-2])+std::abs(diag[m-1])) )
+                {
+                    if( iter < max_iter )
+                    {
+                        qr_algorithm( m, tol, iter+1, max_iter );
+                    }
+                    else
+                    {
+//                        dump(m);
+//                        dump(std::abs(upper[m-2])/(std::abs(diag[m-2])+std::abs(diag[m-1])));
+                        
+                        // We give up to improve this eigenvalue. Go to the next one.
+                        if ( m == 3 )
+                        {
+                            qr_algorithm_2x2();
+                        }
+                        else
+                        {
+                            qr_algorithm( m-1, tol, 0, max_iter );
+                        }
+                    }
+                }
+                else
+                {
+                    if ( m == 3 )
+                    {
+                        qr_algorithm_2x2();
+                    }
+                    else
+                    {
+                        qr_algorithm(m-1, tol, 0, max_iter );
+                    }
+                }
+            }
             
         public:
             

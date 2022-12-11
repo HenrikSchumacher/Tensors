@@ -23,6 +23,13 @@ namespace Tensors
             
             std::array<std::array<Scalar,n>,m> A;
             
+            
+        public:
+            
+            explicit CLASS( const Scalar init )
+            :   A {{{init}}}
+            {}
+            
 //######################################################
 //##                     Access                       ##
 //######################################################
@@ -170,6 +177,22 @@ namespace Tensors
                 sout << " }\n}";
                 return sout.str();
             }
+        
+        public:
+            
+            void Threshold( const Real threshold )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        if( std::abs(A[i][j]) <= threshold )
+                        {
+                            A[i][j] = static_cast<Scalar>(0);
+                        }
+                    }
+                }
+            }
             
         public:
             
@@ -181,23 +204,27 @@ namespace Tensors
             >
             GivensLeft( const T c, const T s, const Int i, const Int j )
             {
-                // Assumes that squared_abs(c) + squared_abs(s) == one.
-                // Multiplies matrix with the rotation
-                //
-                //    /              \
-                //    |  c  -conj(s) |
-                //    |  s   c       |
-                //    \              /
-                //
-                // in the i-j-plane from the left.
-                
-                for( Int k = 0; k < n; ++k )
+                if constexpr ( n >= 2 )
                 {
-                    const Scalar x = A[i][k];
-                    const Scalar y = A[j][k];
+                    // Assumes that squared_abs(c) + squared_abs(s) == one.
+                    // Assumes that i != j.
+                    // Multiplies matrix with the rotation
+                    //
+                    //    /               \
+                    //    |      c     s  |
+                    //    |  -conj(s)  c  |
+                    //    \               /
+                    //
+                    // in the i-j-plane from the left.
                     
-                    A[i][k] = c * x - conj(s) * y;
-                    A[j][k] = s * x +      c  * y;
+                    for( Int k = 0; k < n; ++k )
+                    {
+                        const Scalar x = A[i][k];
+                        const Scalar y = A[j][k];
+                        
+                        A[i][k] =      c    * x + s * y;
+                        A[j][k] = - conj(s) * x + c * y;
+                    }
                 }
             }
 
@@ -209,23 +236,27 @@ namespace Tensors
             >
             GivensRight( const T c, const T s, const Int i, const Int j )
             {
-                // Assumes that squared_abs(c) + squared_abs(s) == one.
-                // Multiplies matrix with rotation
-                //
-                //    /              \
-                //    |  c  -conj(s) |
-                //    |  s      c    |
-                //    \              /
-                //
-                // in the i-j-plane from the right.
-                
-                for( Int k = 0; k < m; ++k )
+                if constexpr ( n >= 2 )
                 {
-                    const Scalar x = A[k][i];
-                    const Scalar y = A[k][j];
+                    // Assumes that squared_abs(c) + squared_abs(s) == one.
+                    // Assumes that i != j.
+                    // Multiplies matrix with rotation
+                    //
+                    //    /               \
+                    //    |      c     s  |
+                    //    |  -conj(s)  c  |
+                    //    \               /
+                    //
+                    // in the i-j-plane from the right.
                     
-                    A[k][i] =     c    * x + s * y;
-                    A[k][j] = -conj(s) * x + c * y;
+                    for( Int k = 0; k < m; ++k )
+                    {
+                        const Scalar x = A[k][i];
+                        const Scalar y = A[k][j];
+                        
+                        A[k][i] = c * x - conj(s) * y;
+                        A[k][j] = s * x +    c    * y;
+                    }
                 }
             }
             
@@ -266,16 +297,35 @@ namespace Tensors
         
     } // namespace Tiny
         
-    template< int M, int N, typename Scalar, typename Int >
-    void Dot(
-        const Tiny::Matrix<M,N,Scalar,Int> & A,
-        const Tiny::Vector<N,Scalar,Int> & x,
-              Tiny::Vector<M,Scalar,Int> & y
+//    template< int M, int N, typename Scalar, typename Int >
+//    void
+    
+    template< int M, int N, typename Scalar, typename R, typename S, typename T, typename Int >
+    force_inline
+    std::enable_if_t<
+        (
+            std::is_same_v<R,T>
+            ||
+            (ScalarTraits<T>::IsComplex && std::is_same_v<R,typename ScalarTraits<T>::Real>)
+        )
+        &&
+        (
+            std::is_same_v<S,T>
+            ||
+            (ScalarTraits<T>::IsComplex && std::is_same_v<S,typename ScalarTraits<T>::Real>)
+        )
+        ,
+        void
+    >
+    Dot(
+        const Tiny::Matrix<M,N,R,Int> & A,
+        const Tiny::Vector<N,  S,Int> & x,
+              Tiny::Vector<M,  T,Int> & y
     )
     {
         for( Int i = 0; i < M; ++i )
         {
-            Scalar y_i (0);
+            T y_i (0);
             
             for( Int j = 0; j < N; ++j )
             {
@@ -286,16 +336,32 @@ namespace Tensors
         }
     }
     
-    template< int M, int K, int N, typename Scalar, typename Int >
-    void Dot(
-        const Tiny::Matrix<M,K,Scalar,Int> & A,
-        const Tiny::Matrix<K,N,Scalar,Int> & B,
-              Tiny::Matrix<M,N,Scalar,Int> & C
+    template< int M, int K, int N, typename R, typename S, typename T, typename Int >
+    force_inline
+    std::enable_if_t<
+        (
+            std::is_same_v<R,T>
+            ||
+            (ScalarTraits<T>::IsComplex && std::is_same_v<R,typename ScalarTraits<T>::Real>)
+        )
+        &&
+        (
+            std::is_same_v<S,T>
+            ||
+            (ScalarTraits<T>::IsComplex && std::is_same_v<S,typename ScalarTraits<T>::Real>)
+        )
+        ,
+        void
+    >
+    Dot(
+        const Tiny::Matrix<M,K,R,Int> & A,
+        const Tiny::Matrix<K,N,S,Int> & B,
+              Tiny::Matrix<M,N,T,Int> & C
     )
     {
         for( Int i = 0; i < M; ++i )
         {
-            Tiny::Vector<N,Scalar,Int> C_i = {};
+            Tiny::Vector<N,T,Int> C_i = {};
             for( Int k = 0; k < K; ++k )
             {
                 for( Int j = 0; j < N; ++j )

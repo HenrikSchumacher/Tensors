@@ -199,6 +199,22 @@ namespace Tensors
             }
             
             
+            force_inline std::enable_if_t<std::is_same_v<Real,Scalar>,Real> Min() const
+            {
+                if constexpr ( n > 0 )
+                {
+                    Real m = v[0];
+                    for( Int i = 1; i < n; ++i )
+                    {
+                        m = std::min(m,v[i]);
+                    }
+                    return m;
+                }
+                else
+                {
+                    return std::numeric_limits<Real>::max();
+                }
+            }
 
             
             force_inline friend Scalar Dot( const CLASS & x, const CLASS & y )

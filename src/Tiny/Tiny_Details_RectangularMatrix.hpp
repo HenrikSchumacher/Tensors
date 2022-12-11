@@ -4,10 +4,6 @@
             
 public:
     
-    explicit CLASS( const Scalar init )
-    :   A {{{init}}}
-    {}
-    
     void SetZero()
     {
         zerofy_buffer<m*n>( &A[0][0] );
@@ -121,6 +117,15 @@ public:
         }
     }
     
+    force_inline CLASS Transpose() const
+    {
+        CLASS B;
+        
+        Transpose(B);
+        
+        return B;
+    }
+
     force_inline void ConjugateTranspose( CLASS & B ) const
     {
         for( Int j = 0; j < n; ++j )
@@ -130,6 +135,15 @@ public:
                 B.A[j][i] = conj(A[i][j]);
             }
         }
+    }
+
+    force_inline CLASS ConjugateTranspose() const
+    {
+        CLASS B;
+        
+        ConjugateTranspose(B);
+        
+        return B;
     }
     
     force_inline void Conjugate( CLASS & B ) const
@@ -141,4 +155,13 @@ public:
                 B.A[i][j] = conj(A[i][j]);
             }
         }
+    }
+
+    force_inline CLASS Conjugate() const
+    {
+        CLASS B;
+        
+        Conjugate(B);
+        
+        return B;
     }

@@ -106,6 +106,16 @@ namespace Tensors
                 }
             }
             
+            template<typename T = Scalar>
+            SquareMatrix<n,T,Int> ToMatrix() const
+            {
+                SquareMatrix<n,T,Int> B;
+                
+                ToMatrix(B);
+                
+                return B;
+            }
+            
             static constexpr Int AmbientDimension()
             {
                 return n;

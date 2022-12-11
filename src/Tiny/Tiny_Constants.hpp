@@ -10,6 +10,7 @@ public:
     static constexpr Real two         = 2;
     static constexpr Real three       = 3;
     static constexpr Real four        = 4;
-    static constexpr Real eps         = std::numeric_limits<Real>::min();
+    static constexpr Real eps         = std::numeric_limits<Real>::epsilon();
     static constexpr Real eps_squared = eps * eps;
+    static constexpr Real eps_sqrt    = MyMath::sqrt(eps);
     static constexpr Real infty       = std::numeric_limits<Real>::max();
