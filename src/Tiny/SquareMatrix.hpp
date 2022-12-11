@@ -277,6 +277,21 @@ namespace Tensors
                 A[j][j] = c;
             }
             
+            void Diagonal( Vector<n,Scalar,Int> & v ) const
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v[i] = A[i][i];
+                }
+            }
+            
+            Vector<n,Scalar,Int>  Diagonal() const
+            {
+                Vector<n,Scalar,Int> v;
+                Diagonal(v);
+                return v;
+            }
+            
         public:
             
             static constexpr Int AmbientDimension()

@@ -18,7 +18,7 @@ using Scalar = double;
 using Real   = ScalarTraits<Scalar>::Real;
 using Int    = int32_t;
 
-constexpr Int n = 3;
+constexpr Int n = 4;
 
 using E_C_Matrix_T = Eigen::Matrix<Scalar,n,n>;
 using E_R_Matrix_T = Eigen::Matrix<Scalar,n,n>;
@@ -26,8 +26,8 @@ using E_R_Matrix_T = Eigen::Matrix<Scalar,n,n>;
 int main(int argc, const char * argv[])
 {
     
-    const Int reps = 1000000;
-//    const Int reps = 10;
+//    const Int reps = 1000000;
+    const Int reps = 1;
     
     dump(n);
     dump(reps);
@@ -232,12 +232,17 @@ int main(int argc, const char * argv[])
 //    }
     
     {
+        Tiny::SquareMatrix<n,Scalar,Int> Id;
+        Id.SetIdentity();
+        
         Tiny::SquareMatrix<n,Scalar,Int> U;
         Tiny::SquareMatrix<n,Scalar,Int> UH;
         Tiny::SquareMatrix<n,Scalar,Int> B;
         Tiny::SquareMatrix<n,Scalar,Int> C;
         Tiny::SquareMatrix<n,Real,  Int> D ( static_cast<Real>(0));
-        Real error = 0;
+        Real error_0 = 0;
+        Real error_1 = 0;
+        Real error_2 = 0;
         
         tic("Check Eigensystem");
         for( Int rep = 0; rep < reps; ++rep )
@@ -256,7 +261,16 @@ int main(int argc, const char * argv[])
             
             C -= A_mat;
             
-            error = std::max( error, C.MaxNorm() );
+            error_0 = std::max( error_0, C.MaxNorm() );
+            
+            Dot(UH,A_mat,B);
+            Dot(B,U,C);
+            C -= D;
+            error_1 = std::max( error_1, C.MaxNorm() );
+            
+            Dot(U,UH,C);
+            C-=Id;
+            error_2 = std::max( error_2, C.MaxNorm() );
             
             eigs.Write( eigs_list.data(rep) );
             
@@ -264,8 +278,59 @@ int main(int argc, const char * argv[])
         }
         toc("Check Eigensystem");
         
-        dump(error);
+        dump(error_0);
+        dump(error_1);
+        dump(error_2);
+        
+        
+        A.SetZero();
+        for( Int i = 0; i < n; ++i )
+        {
+            for( Int j = 0; j < n; ++j )
+            {
+                A[i][j] = i==j;
+            }
+        }
+        A[1][1] =  0.0001;
+        A[0][1] =  0.0001;
+        A[1][2] = -0.00001;
+        
+        dump(A);
+        
+        auto A_mat = A.ToMatrix();
+        
+        A.Eigensystem(U,eigs,0.0000000000000001);
+        dump(eigs);
+        
+        U.ConjugateTranspose(UH);
+        D.SetDiagonal(eigs);
+//
+        Dot(U,D,B);
+        Dot(B,UH,C);
+        
+        C -= A_mat;
+        dump(C.MaxNorm());
+        
+        Dot(A_mat,UH,B);
+        Dot(U,B,C);
+        C -= D;
+        dump(C.MaxNorm());
+        
+        auto v = C.Diagonal();
+        v /= eigs;
+        dump(v);
+        
+        
+        D.SetIdentity();
+        Dot(U,UH,B);
+        B -= D;
+        
+        
+    
+        valprint("orthogonality error",B.MaxNorm());
+
     }
+    
     
     return 0;
 }

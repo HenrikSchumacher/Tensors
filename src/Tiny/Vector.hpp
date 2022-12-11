@@ -139,6 +139,66 @@ namespace Tensors
                 std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
                 CLASS &
             >
+            operator+=( const Tiny::Vector<n,T,Int> & s )
+            {
+                for(Int i = 0; i < n; ++i )
+                {
+                    v[i] += s[i];
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator-=( const Tiny::Vector<n,T,Int> & s )
+            {
+                for(Int i = 0; i < n; ++i )
+                {
+                    v[i] -= s[i];
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator*=( const Tiny::Vector<n,T,Int> & s )
+            {
+                for(Int i = 0; i < n; ++i )
+                {
+                    v[i] *= s[i];
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
+            operator/=( const Tiny::Vector<n,T,Int> & s )
+            {
+                for(Int i = 0; i < n; ++i )
+                {
+                    v[i] /= s[i];
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline
+            std::enable_if_t<
+                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                CLASS &
+            >
             operator+=( const T & s )
             {
                 for(Int i = 0; i < n; ++i )

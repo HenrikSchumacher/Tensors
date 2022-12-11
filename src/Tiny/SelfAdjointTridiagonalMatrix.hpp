@@ -315,6 +315,8 @@ namespace Tensors
                 // Performs the implicit QR algorithm in the block A[begin..end-1][begin..end-1].
                 // Assumes that m > 2 (otherwise we would have called qr_algorithm_2x2 or stopped.
                 
+//                dump(*this);
+                
                 // Compute Wilkinson’s shift mu
                 const Real a = diag[m-1];
                 const Real b = upper[m-2];
@@ -333,7 +335,7 @@ namespace Tensors
                 Real y = upper[0];
                 
                 { // k = 0
-
+                    
                     // Find c, s such that
                     //
                     //    /         \  /     \   /       \
@@ -342,22 +344,27 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho_inv = one / std::sqrt(x * x + y * y);
-                    const Real c =   x * rho_inv;
-                    const Real s = - y * rho_inv;
+                    const Real rho = std::sqrt(x * x + y * y);
                     
-                    // Apply Givens rotation to tridiagonal matrix.
-                    const Real d = diag[0] - diag[1];
-                    const Real z = ( two * c * upper[0] + d * s ) * s;
-                    diag[0] -= z;
-                    diag[1] += z;
-                    upper[0] = d * c * s + (c * c - s * s) * upper[0];
-                    x = upper[0];
-                    y = - s * upper[1];
-                    upper[1] *= c;
-                    
-                    // Multiply Q by Givens(c,s,k,k+1) from the right.
-                    Q.GivensRight(c,s,0,1);
+                    if( rho > eps * diag[0] )
+                    {
+                        const Real rho_inv = one / rho;
+                        const Real c =   x * rho_inv;
+                        const Real s = - y * rho_inv;
+                        
+                        // Apply Givens rotation to tridiagonal matrix.
+                        const Real d = diag[0] - diag[1];
+                        const Real z = ( two * c * upper[0] + d * s ) * s;
+                        diag[0] -= z;
+                        diag[1] += z;
+                        upper[0] = d * c * s + (c * c - s * s) * upper[0];
+                        x = upper[0];
+                        y = - s * upper[1];
+                        upper[1] *= c;
+                        
+                        // Multiply Q by Givens(c,s,k,k+1) from the right.
+                        Q.GivensRight(c,s,0,1);
+                    }
                 }
                 
                 for( Int k = 1; k < m-2; ++k )
@@ -370,29 +377,34 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho_inv = one / std::sqrt(x * x + y * y);
-                    const Real c =   x * rho_inv;
-                    const Real s = - y * rho_inv;
+                    const Real rho = std::sqrt(x * x + y * y);
                     
-                    // Apply Givens rotation to tridiagonal matrix.
-                    const Real w = c * x - s * y;
-                    const Real d = diag[k] - diag[k+1];
-                    const Real z = ( two * c * upper[k] + d * s ) * s;
-                    diag[k  ] -= z;
-                    diag[k+1] += z;
-                    upper[k] = d * c * s + (c * c - s * s) * upper[k];
-                    x = upper[k];
-//                    if( k > 0 )
-//                    {
+                    if( rho > eps * diag[0] )
+                    {
+                        const Real rho_inv = one / rho;
+                        const Real c =   x * rho_inv;
+                        const Real s = - y * rho_inv;
+                        
+                        // Apply Givens rotation to tridiagonal matrix.
+                        const Real w = c * x - s * y;
+                        const Real d = diag[k] - diag[k+1];
+                        const Real z = ( two * c * upper[k] + d * s ) * s;
+                        diag[k  ] -= z;
+                        diag[k+1] += z;
+                        upper[k] = d * c * s + (c * c - s * s) * upper[k];
+                        x = upper[k];
+                        //                    if( k > 0 )
+                        //                    {
                         upper[k-1] = w;
-//                    if( k < m-2 )
-//                    {
+                        //                    if( k < m-2 )
+                        //                    {
                         y = - s * upper[k+1];
                         upper[k+1] *= c;
-//                    }
-                    
-                    // Multiply Q by Givens(c,s,k,k+1) from the right.
-                    Q.GivensRight(c,s,k,k+1);
+                        //                    }
+                        
+                        // Multiply Q by Givens(c,s,k,k+1) from the right.
+                        Q.GivensRight(c,s,k,k+1);
+                    }
                 }
                 
                 {   // k = m-2
@@ -405,22 +417,27 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho_inv = one / std::sqrt(x * x + y * y);
-                    const Real c =   x * rho_inv;
-                    const Real s = - y * rho_inv;
+                    const Real rho = std::sqrt(x * x + y * y);
                     
-                    // Apply Givens rotation to tridiagonal matrix.
-                    const Real w = c * x - s * y;
-                    const Real d = diag[m-2] - diag[m-1];
-                    const Real z = ( two * c * upper[m-2] + d * s ) * s;
-                    diag[m-2] -= z;
-                    diag[m-1] += z;
-                    upper[m-2] = d * c * s + (c * c - s * s) * upper[m-2];
-                    x = upper[m-2];
-                    upper[m-3] = w;
-                    
-                    // Multiply Q by Givens(c,s,k,k+1) from the right.
-                    Q.GivensRight(c,s,m-2,m-1);
+                    if( rho > eps * diag[0] )
+                    {
+                        const Real rho_inv = one / rho;
+                        const Real c =   x * rho_inv;
+                        const Real s = - y * rho_inv;
+                        
+                        // Apply Givens rotation to tridiagonal matrix.
+                        const Real w = c * x - s * y;
+                        const Real d = diag[m-2] - diag[m-1];
+                        const Real z = ( two * c * upper[m-2] + d * s ) * s;
+                        diag[m-2] -= z;
+                        diag[m-1] += z;
+                        upper[m-2] = d * c * s + (c * c - s * s) * upper[m-2];
+                        x = upper[m-2];
+                        upper[m-3] = w;
+                        
+                        // Multiply Q by Givens(c,s,k,k+1) from the right.
+                        Q.GivensRight(c,s,m-2,m-1);
+                    }
                 }
                 // Implicit QR step ends here
                 
@@ -487,19 +504,24 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho_inv = one / std::sqrt(x * x + y * y);
-                    const Real c =   x * rho_inv;
-                    const Real s = - y * rho_inv;
+                    const Real rho = std::sqrt(x * x + y * y);
                     
-                    // Apply Givens rotation to tridiagonal matrix.
-                    const Real d = diag[0] - diag[1];
-                    const Real z = ( two * c * upper[0] + d * s ) * s;
-                    diag[0] -= z;
-                    diag[1] += z;
-                    upper[0] = d * c * s + (c * c - s * s) * upper[0];
-                    x = upper[0];
-                    y = - s * upper[1];
-                    upper[1] *= c;
+                    if( rho > eps * diag[0] )
+                    {
+                        const Real rho_inv = one / rho;
+                        const Real c =   x * rho_inv;
+                        const Real s = - y * rho_inv;
+                        
+                        // Apply Givens rotation to tridiagonal matrix.
+                        const Real d = diag[0] - diag[1];
+                        const Real z = ( two * c * upper[0] + d * s ) * s;
+                        diag[0] -= z;
+                        diag[1] += z;
+                        upper[0] = d * c * s + (c * c - s * s) * upper[0];
+                        x = upper[0];
+                        y = - s * upper[1];
+                        upper[1] *= c;
+                    }
                 }
                 
                 for( Int k = 1; k < m-2; ++k )
@@ -512,26 +534,31 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho_inv = one / std::sqrt(x * x + y * y);
-                    const Real c =   x * rho_inv;
-                    const Real s = - y * rho_inv;
+                    const Real rho = std::sqrt(x * x + y * y);
                     
-                    // Apply Givens rotation to tridiagonal matrix.
-                    const Real w = c * x - s * y;
-                    const Real d = diag[k] - diag[k+1];
-                    const Real z = ( two * c * upper[k] + d * s ) * s;
-                    diag[k  ] -= z;
-                    diag[k+1] += z;
-                    upper[k] = d * c * s + (c * c - s * s) * upper[k];
-                    x = upper[k];
-//                    if( k > 0 )
-//                    {
+                    if( rho > eps * diag[0] )
+                    {
+                        const Real rho_inv = one / rho;
+                        const Real c =   x * rho_inv;
+                        const Real s = - y * rho_inv;
+                        
+                        // Apply Givens rotation to tridiagonal matrix.
+                        const Real w = c * x - s * y;
+                        const Real d = diag[k] - diag[k+1];
+                        const Real z = ( two * c * upper[k] + d * s ) * s;
+                        diag[k  ] -= z;
+                        diag[k+1] += z;
+                        upper[k] = d * c * s + (c * c - s * s) * upper[k];
+                        x = upper[k];
+                        //                    if( k > 0 )
+                        //                    {
                         upper[k-1] = w;
-//                    if( k < m-2 )
-//                    {
+                        //                    if( k < m-2 )
+                        //                    {
                         y = - s * upper[k+1];
                         upper[k+1] *= c;
-//                    }
+                        //                    }
+                    }
                 }
                 
                 {   // k = m-2
@@ -544,19 +571,24 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho_inv = one / std::sqrt(x * x + y * y);
-                    const Real c =   x * rho_inv;
-                    const Real s = - y * rho_inv;
+                    const Real rho = std::sqrt(x * x + y * y);
                     
-                    // Apply Givens rotation to tridiagonal matrix.
-                    const Real w = c * x - s * y;
-                    const Real d = diag[m-2] - diag[m-1];
-                    const Real z = ( two * c * upper[m-2] + d * s ) * s;
-                    diag[m-2] -= z;
-                    diag[m-1] += z;
-                    upper[m-2] = d * c * s + (c * c - s * s) * upper[m-2];
-                    x = upper[m-2];
-                    upper[m-3] = w;
+                    if( rho > eps * diag[0] )
+                    {
+                        const Real rho_inv = one / rho;
+                        const Real c =   x * rho_inv;
+                        const Real s = - y * rho_inv;
+                        
+                        // Apply Givens rotation to tridiagonal matrix.
+                        const Real w = c * x - s * y;
+                        const Real d = diag[m-2] - diag[m-1];
+                        const Real z = ( two * c * upper[m-2] + d * s ) * s;
+                        diag[m-2] -= z;
+                        diag[m-1] += z;
+                        upper[m-2] = d * c * s + (c * c - s * s) * upper[m-2];
+                        x = upper[m-2];
+                        upper[m-3] = w;
+                    }
                 }
                 // Implicit QR step ends here
                 

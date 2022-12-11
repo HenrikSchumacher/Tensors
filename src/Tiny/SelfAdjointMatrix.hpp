@@ -271,6 +271,12 @@ namespace Tensors
                             uu += abs_squared(u[k][i]);
                         }
                         
+                        if( uu < eps_squared )
+                        {
+                            // TODO: One could actually use this to split the matrix into two.
+                            continue;
+                        }
+                        
                         Real u_norm = std::sqrt( uu );
                         
                         Scalar u_pivot (u[k][k+1]);
@@ -599,6 +605,7 @@ namespace Tensors
             ) const
             {
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
+                
                 SquareMatrix<n,Scalar,Int> V;
                 SquareMatrix<n,Real,  Int> Q;
                 
