@@ -106,10 +106,7 @@ namespace Tensors
             {
                 if( this == &other )
                 {
-#pragma omp critical
-                    {
-                        wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
-                    }
+                    wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
                 }
                 swap( *this, other );
                 return *this;
