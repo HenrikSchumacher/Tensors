@@ -81,7 +81,6 @@ public:
                         
                         __builtin_prefetch( &ci[l_end] );
                     
-                        #pragma omp simd reduction( + : sum )
                         for( Int l = l_begin; l < l_end; ++l )
                         {
                             sum += static_cast<T>(x[ci[l]]);
@@ -115,7 +114,6 @@ public:
                         
                         __builtin_prefetch( &ci[l_end] );
                     
-                        #pragma omp simd reduction( + : sum )
                         for( Int l = l_begin; l < l_end; ++l )
                         {
                             sum += static_cast<T>(x[ci[l]]);

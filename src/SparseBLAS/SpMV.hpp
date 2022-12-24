@@ -66,7 +66,6 @@ public:
                         __builtin_prefetch( &ci[l_end] );
                         __builtin_prefetch( &a[l_end] );
                     
-                        #pragma omp simd reduction( + : sum )
                         for( Int l = l_begin; l < l_end; ++l )
                         {
                             const SInt j = ci[l];
@@ -104,7 +103,6 @@ public:
                         __builtin_prefetch( &ci[l_end] );
                         __builtin_prefetch( &a [l_end] );
                     
-                        #pragma omp simd reduction( + : sum )
                         for( Int l = l_begin; l < l_end; ++l )
                         {
                             const SInt j = ci[l];

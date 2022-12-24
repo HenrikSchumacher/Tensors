@@ -131,7 +131,6 @@ namespace Tensors {
             {
                 LInt * restrict const c_i = counters.data(i);
                 
-                #pragma omp simd
                 for( Int j = j_begin; j < j_end; ++j )
                 {
                     c_i[j] += correction;

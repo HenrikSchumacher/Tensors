@@ -13,23 +13,14 @@ protected:
             // alpha == 1;
             if constexpr ( beta_flag == 0 )
             {
-                #pragma omp simd
-                for( Int k = 0; k < cols; ++k )
-                {
-                    y[k] = static_cast<T_out>(z[k]);
-                }
+                copy_buffer<cols>(z,y);
             }
             else if constexpr ( beta_flag == 1 )
             {
-                #pragma omp simd
-                for( Int k = 0; k < cols; ++k )
-                {
-                    y[k] += static_cast<T_out>(z[k]);
-                }
+                add_to_buffer<cols>(z,y);
             }
             else
             {
-                #pragma omp simd
                 for( Int k = 0; k < cols; ++k )
                 {
                     y[k] = static_cast<T_out>(z[k]) + beta * y[k];
@@ -40,11 +31,7 @@ protected:
         {
             if constexpr ( beta_flag == 0 )
             {
-                #pragma omp simd
-                for( Int k = 0; k < cols; ++k )
-                {
-                    y[k] = static_cast<T_out>(0);
-                }
+                zerofy_buffer<cols>(y);
             }
             else if constexpr ( beta_flag == 1 )
             {
@@ -52,11 +39,7 @@ protected:
             }
             else
             {
-                #pragma omp simd
-                for( Int k = 0; k < cols; ++k )
-                {
-                    y[k] *= beta;
-                }
+                scale_buffer<cols>(y,beta);
             }
         }
         else
@@ -64,7 +47,6 @@ protected:
             // alpha arbitrary;
             if constexpr ( beta_flag == 0 )
             {
-                #pragma omp simd
                 for( Int k = 0; k < cols; ++k )
                 {
                     y[k] = alpha * static_cast<T_out>(z[k]);
@@ -72,7 +54,6 @@ protected:
             }
             else if constexpr ( beta_flag == 1 )
             {
-                #pragma omp simd
                 for( Int k = 0; k < cols; ++k )
                 {
                     y[k] += alpha * static_cast<T_out>(z[k]);
@@ -81,7 +62,6 @@ protected:
             else
             {
                 // general alpha and general beta
-                #pragma omp simd
                 for( Int k = 0; k < cols; ++k )
                 {
                     y[k] = alpha * static_cast<T_out>(z[k]) + beta * y[k];

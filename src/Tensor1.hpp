@@ -169,7 +169,6 @@ namespace Tensors {
 
             Scalar * restrict const a_ = a;
             
-            #pragma omp simd aligned( a_ : ALIGNMENT ) reduction( + : sum )
             for( Int i = 0; i < n; ++ i )
             {
                 sum += a_[i];
@@ -197,7 +196,6 @@ namespace Tensors {
             }
             const Int n_ = std::min( Size(), y.Size() );
 
-            #pragma omp simd aligned( x_a, y_a : ALIGNMENT ) reduction( + : sum )
             for( Int i = 0; i < n_; ++ i)
             {
                 sum += x_a[i] * y_a[i];
@@ -215,7 +213,6 @@ namespace Tensors {
         {
             Scalar * restrict const a_ = a;
             
-            #pragma omp simd aligned( a_ : ALIGNMENT )
             for( Int i = 0; i < n; ++i )
             {
                 a_[i] = static_cast<Scalar>(i);

@@ -234,7 +234,6 @@ void AddTo( Scalar * restrict const b ) const
 //{
 //    Int counter = 0;
 //     
-////    #pragma omp simd aligned( a : ALIGNMENT ) reduction( + : counter )
 //    for( Int i = 0 ; i < n; ++i )
 //    {
 //        counter += std::isnan(a[i]);
@@ -247,7 +246,6 @@ Real MaxNorm() const
 {
     Scalar result = static_cast<Scalar>(0);
 
-    #pragma omp simd aligned( a : ALIGNMENT ) reduction( max : result )
     for( Int i = 0 ; i < n; ++i )
     {
         result = std::max( result, std::abs(a[i]));
@@ -260,7 +258,6 @@ Real FrobeniusNorm() const
 {
     Real result = 0;
 
-    #pragma omp simd aligned( a : ALIGNMENT ) reduction( + : result )
     for( Int i = 0 ; i < n; ++i )
     {
         result += abs_squared(a[i]);
@@ -280,7 +277,6 @@ operator*=( const T alpha )
 {
     Scalar * restrict const a_ = a;
     
-    #pragma omp simd aligned( a_ : ALIGNMENT )
     for( Int i = 0; i < n; ++i )
     {
         a_[i] *= alpha;

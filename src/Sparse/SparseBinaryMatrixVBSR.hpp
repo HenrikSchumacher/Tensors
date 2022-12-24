@@ -247,7 +247,7 @@ namespace Tensors
                         const I b_k_begin = b_row_ptr[b_i];
                         const I b_k_end   = b_row_ptr[b_i+1];
                         // Each row in a block row has the same number of entries.
-#pragma omp simd
+
                         for( I b_k = b_k_begin; b_k < b_k_end; ++b_k )
                         {
                             outer__[b_k+1] = b_row_counter;

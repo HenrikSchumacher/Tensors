@@ -14,7 +14,6 @@ protected:
             // alpha == 1;
             if constexpr ( beta_flag == 0 )
             {
-                #pragma omp simd
                 for( Int k = 0; k < N; ++k )
                 {
                     z[k] = static_cast<T>(x[k]);
@@ -22,7 +21,6 @@ protected:
             }
             else if constexpr ( beta_flag == 1 )
             {
-                #pragma omp simd
                 for( Int k = 0; k < N; ++k )
                 {
                     z[k] += static_cast<T>(x[k]);
@@ -30,7 +28,6 @@ protected:
             }
             else
             {
-                #pragma omp simd
                 for( Int k = 0; k < N; ++k )
                 {
                     z[k] = static_cast<T>(x[k]) + beta * z[k];
@@ -41,7 +38,6 @@ protected:
         {
             if constexpr ( beta_flag == 0 )
             {
-                #pragma omp simd
                 for( Int k = 0; k < N; ++k )
                 {
                     z[k] = T_zero;
@@ -53,7 +49,6 @@ protected:
             }
             else
             {
-                #pragma omp simd
                 for( Int k = 0; k < N; ++k )
                 {
                     z[k] *= beta;
@@ -65,7 +60,6 @@ protected:
             // alpha arbitrary;
             if constexpr ( beta_flag == 0 )
             {
-                #pragma omp simd
                 for( Int k = 0; k < N; ++k )
                 {
                     z[k] = alpha * static_cast<T>(x[k]);
@@ -73,7 +67,6 @@ protected:
             }
             else if constexpr ( beta_flag == 1 )
             {
-                #pragma omp simd
                 for( Int k = 0; k < N; ++k )
                 {
                     z[k] += alpha * static_cast<T>(x[k]);
@@ -82,7 +75,6 @@ protected:
             else
             {
                 // general alpha and general beta
-                #pragma omp simd
                 for( Int k = 0; k < N; ++k )
                 {
                     z[k] = alpha * static_cast<T>(x[k]) + beta * z[k];

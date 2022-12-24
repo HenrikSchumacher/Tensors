@@ -14,6 +14,8 @@
         using namespace Tools;
     }
 
+    #include "src/Enums.hpp"
+
     #include "src/Tensor1.hpp"
     #include "src/Tensor2.hpp"
     #include "src/Tensor3.hpp"
@@ -33,10 +35,8 @@
     #include "src/PairAggregator.hpp"
     #include "src/TripleAggregator.hpp"
 
-    #include "src/TwoArrayQuickSort.hpp"
-    #include "src/TimSort.hpp"
-
-    #include "src/DenseBLAS.hpp"
+    #include "src/Sorting/TwoArrayQuickSort.hpp"
+//    #include "src/Sorting/TimSort.hpp"
 
     #include "src/SparseBLAS.hpp"
     #include "src/Sparse/SparsePatternCSR.hpp"
@@ -56,12 +56,5 @@
 //    #include "src/BlockKernels/BlockKernel_RM.hpp"
 //    #include "src/BlockKernels/DenseBlockKernel_RM.hpp"
 
-
-    #include "src/LUDecomposition.hpp"
-    #include "src/CholeskyDecomposition.hpp"
-
-//    #include "src/SparseCholeskyDecomposition/EliminationTree.hpp"
-//    #include "src/SparseCholeskyDecomposition/UniteSortedBuffers.hpp"
-//    #include "src/SparseCholeskyDecomposition.hpp"
 
 #endif

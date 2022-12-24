@@ -59,7 +59,6 @@ protected:
                         
                               T_out * restrict const Y_j = Y_buf + cols * j;
                         
-                        #pragma omp simd
                         for( Int k = 0; k < cols; ++k )
                         {
                             Y_j[k] += a_i_j * static_cast<T>(X_i[k]);
@@ -125,7 +124,6 @@ protected:
                               T_out * restrict const Y_i = Y_buf + cols * i;
                               T_out * restrict const Y_j = Y_buf + cols * j;
                         
-                        #pragma omp simd
                         for( Int k = 0; k < cols; ++k )
                         {
                             Y_i[k] += a_i_j * static_cast<T>(X_j[k]);
@@ -153,7 +151,6 @@ protected:
             {
                 const T_out * restrict const Y_buf = Y_buffer.data(thread,i);
                 
-                #pragma omp simd
                 for( Int k = 0; k < cols; ++k )
                 {
                     Y[pos+k] += Y_buf[k];

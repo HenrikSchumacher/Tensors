@@ -265,13 +265,17 @@ namespace Tensors
         }
         
         
-        //##############################################################################################
-        //####          Permute
-        //##############################################################################################
+//###########################################################################################
+//####          Permute
+//###########################################################################################
         
     public:
         
-        CLASS Permute( const Tensor1<Int,Int> & p, const Tensor1<Int,Int> & q, bool sort = true ) const
+        CLASS Permute(
+            const Tensor1<Int,Int> & p, // Vector of row    permutation.
+            const Tensor1<Int,Int> & q, // Vector of column permutation.
+            bool sort = true   // Whether to restore row-wise ordering (as in demanded by CSR).
+        )
         {
             if( p.Dimension(0) != m )
             {
@@ -288,7 +292,11 @@ namespace Tensors
             Permute( p.data(), q.data(), sort );
         }
         
-        CLASS Permute( const Int * restrict const p, const Int * restrict const q, bool sort = true ) const
+        CLASS Permute(
+            const Int * restrict const p,
+            const Int * restrict const q,
+            bool sort = true
+        )
         {
             if( p == nullptr )
             {
@@ -302,26 +310,27 @@ namespace Tensors
                     return PermuteCols(q,sort);
                 }
             }
+            else if( q == nullptr )
+            {
+                return PermuteRows(p);
+            }
             else
-                if( q == nullptr )
-                {
-                    return PermuteRows(p);
-                }
-                else
-                {
-                    return PermuteRowsCols(p,q,sort);
-                }
+            {
+                return PermuteRowsCols(p,q,sort);
+            }
         }
         
     protected:
         
-        CLASS PermuteRows( const Int * restrict const p ) const
+        CLASS PermuteRows(
+            const Int * restrict const p
+        )
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
             
             {
                 const LInt * restrict const A_outer = outer.data();
-                LInt * restrict const B_outer = B.Outer().data();
+                      LInt * restrict const B_outer = B.Outer().data();
                 
                 B_outer[0] = 0;
                 
@@ -345,9 +354,9 @@ namespace Tensors
                 const  Int * restrict const A_inner = inner.data();
                 
                 const LInt * restrict const B_outer = B.Outer().data();
-                Int * restrict const B_inner = B.Inner().data();
+                       Int * restrict const B_inner = B.Inner().data();
                 
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     const Int i_begin = B_job_ptr[thread  ];
@@ -357,7 +366,7 @@ namespace Tensors
                     {
                         const Int p_i = p[i];
                         const LInt A_begin = A_outer[p_i  ];
-                        //                        const LInt A_end   = A_outer[p_i+1];
+//                        const LInt A_end   = A_outer[p_i+1];
                         
                         const LInt B_begin = B_outer[i  ];
                         const LInt B_end   = B_outer[i+1];
@@ -370,7 +379,10 @@ namespace Tensors
             return B;
         }
         
-        CLASS PermuteCols( const Int * restrict const q, bool sort = true ) const
+        CLASS PermuteCols(
+            const Int * restrict const q,
+            bool sort = true
+        )
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
             
@@ -378,7 +390,7 @@ namespace Tensors
             Int * restrict const q_inv = q_inv_buffer.data();
             
             {
-#pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
+                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
                 for( Int j = 0; j < n; ++j )
                 {
                     q_inv[q[j]] = j;
@@ -395,9 +407,9 @@ namespace Tensors
                 const  Int * restrict const A_inner = inner.data();
                 
                 const LInt * restrict const B_outer = B.Outer().data();
-                Int * restrict const B_inner = B.Inner().data();
+                       Int * restrict const B_inner = B.Inner().data();
                 
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     const Int i_begin = B_job_ptr[thread  ];
@@ -424,7 +436,11 @@ namespace Tensors
             return B;
         }
         
-        CLASS PermuteRowsCols( const Int * restrict const p, const Int * restrict const q, bool sort = true ) const
+        CLASS PermuteRowsCols(
+            const Int * restrict const p,
+            const Int * restrict const q,
+            bool sort = true
+        )
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
             
@@ -432,7 +448,7 @@ namespace Tensors
             Int * restrict const q_inv = q_inv_buffer.data();
             
             {
-#pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
+                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
                 for( Int j = 0; j < n; ++j )
                 {
                     q_inv[q[j]] = j;
@@ -445,7 +461,7 @@ namespace Tensors
                 
                 B_outer[0] = 0;
                 
-#pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
+                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
                 for( Int i = 0; i < m; ++i )
                 {
                     const Int p_i = p[i];
@@ -467,7 +483,7 @@ namespace Tensors
                 const LInt * restrict const B_outer = B.Outer().data();
                 Int * restrict const B_inner = B.Inner().data();
                 
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     const Int i_begin = B_job_ptr[thread  ];
@@ -500,9 +516,9 @@ namespace Tensors
             return B;
         }
         
-        //##############################################################################################
-        //####          Matrix Multiplication
-        //##############################################################################################
+//#########################################################################################
+//####          Matrix Multiplication
+//#########################################################################################
         
     public:
         
@@ -529,31 +545,31 @@ namespace Tensors
         }
         
         
-        //##############################################################################################
-        //####          Matrix Multiplication
-        //##############################################################################################
+//###########################################################################################
+//####          Matrix Multiplication
+//###########################################################################################
         
         
         // Assume all nonzeros are equal to 1.
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-                 const T_ext alpha,
-                 const T_in  * X,
-                 const T_out beta,
-                 T_out * Y,
-                 const Int cols = static_cast<Int>(1)
-                 ) const
+            const T_ext   alpha,
+            const T_in  * X,
+            const T_out   beta,
+                  T_out * Y,
+            const Int     cols = static_cast<Int>(1)
+        ) const
         {
             Dot_( alpha, X, beta, Y, cols );
         }
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-                 const T_ext alpha,
-                 const Tensor1<T_in, Int> & X,
-                 const T_out beta,
-                 Tensor1<T_out,Int> & Y
-                 ) const
+            const T_ext                alpha,
+            const Tensor1<T_in, Int> & X,
+            const T_out                beta,
+                  Tensor1<T_out,Int> & Y
+        ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )
             {
@@ -567,11 +583,11 @@ namespace Tensors
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-                 const T_ext alpha,
-                 const Tensor2<T_in, Int> & X,
-                 const T_out beta,
-                 Tensor2<T_out,Int> & Y
-                 ) const
+             const T_ext                alpha,
+             const Tensor2<T_in, Int> & X,
+             const T_out                beta,
+                   Tensor2<T_out,Int> & Y
+        ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
             {
@@ -588,25 +604,25 @@ namespace Tensors
         // Supply an external list of values.
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-                 const T_ext * ext_values,
-                 const T_ext   alpha,
-                 const T_in  * X,
-                 const T_out   beta,
-                 T_out * Y,
-                 const Int     cols = static_cast<Int>(1)
-                 ) const
+            const T_ext * ext_values,
+            const T_ext   alpha,
+            const T_in  * X,
+            const T_out   beta,
+                  T_out * Y,
+            const Int     cols = static_cast<Int>(1)
+        ) const
         {
             Dot_( ext_values, alpha, X, beta, Y, cols );
         }
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-                 const Tensor1<T_ext, LInt> & ext_values,
-                 const T_ext                  alpha,
-                 const Tensor1<T_in, Int> &   X,
-                 const T_out                  beta,
-                 Tensor1<T_out,Int> &   Y
-                 ) const
+             const Tensor1<T_ext,LInt> & ext_values,
+             const T_ext                 alpha,
+             const Tensor1<T_in, Int > & X,
+             const T_out                 beta,
+                   Tensor1<T_out, Int> & Y
+         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )
             {
@@ -620,12 +636,12 @@ namespace Tensors
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-                 const Tensor1<T_ext, LInt> & ext_values,
-                 const                        T_ext alpha,
-                 const Tensor2<T_in, Int> &   X,
-                 const T_out                  beta,
-                 Tensor2<T_out,Int> &   Y
-                 ) const
+            const Tensor1<T_ext, LInt> & ext_values,
+            const                        T_ext alpha,
+            const Tensor2< T_in, Int > & X,
+            const T_out                  beta,
+                  Tensor2<T_out, Int > & Y
+        ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
             {

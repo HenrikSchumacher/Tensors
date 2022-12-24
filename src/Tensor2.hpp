@@ -321,7 +321,6 @@ namespace Tensors {
 //        Tensor2<double,Int> A1 ( A.data(), n , n );
 //        
 //        double * b = Ainv.data();
-//        #pragma omp simd collapse(2) aligned( b : ALIGNMENT )
 //        for( Int i = 0; i < n; ++i )
 //        {
 //            for( Int j = 0; j < n; ++j )
