@@ -1138,73 +1138,24 @@ namespace Tensors
         
         
     public:
+
+        template< Int RHS_COUNT, bool unitDiag = false>
+        void SolveUpperTriangular_Sequential_0(
+            const Scalar * restrict const b,
+                  Scalar * restrict const x
+        )
+        {
+            this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,Scalar,unitDiag>(values.data(),b,x);
+        }
         
         template< Int RHS_COUNT, bool unitDiag = false>
-        void SolveUpperTriangular_Sequential_0( const Scalar * restrict const b, Scalar * restrict const x )
+        void SolveUpperTriangular_Sequential_0(
+            const Scalar * restrict const values,
+            const Scalar * restrict const b,
+                  Scalar * restrict const x
+        )
         {
-            if( m != n )
-            {
-                eprint(ClassName()+"::SolveUpper: Matrix is not square.");
-                return;
-            }
-            
-            if( x != b )
-            {
-                copy_buffer( b, x, n * RHS_COUNT );
-            }
-            
-            SortInner();
-            
-            RequireDiag();
-            
-            const   LInt * restrict const diag_ptr__ = diag_ptr.data();
-            const   LInt * restrict const outer__    = outer.data();
-            const    Int * restrict const inner__    = inner.data();
-            const Scalar * restrict const values__   = values.data();
-            
-            for( Int i = m; i --> 0; )
-            {
-                const LInt diag = diag_ptr__[i];
-                
-                if constexpr ( !unitDiag )
-                {
-                    if( inner__[diag] != i )
-                    {
-                        eprint(ClassName()+"::SolveUpper: Row "+ToString(i)+" is missing a diagonal entry.");
-                        return;
-                    }
-                }
-                
-                const LInt l_begin = ( inner__[diag] > i ) ? diag : diag+1; // Implicitly assumes correct ordering of inner__.
-                const LInt l_end   = outer__[i+1];
-                
-                Scalar * restrict const x_i = &x[RHS_COUNT * i];
-                
-                // We do this in reverse order so that the value of a_ii will be likely hot after this loop.
-                for( LInt l = l_end; l --> l_begin; )
-                {
-                    const Int j = inner__[l];
-                    
-                    const Scalar a_ij = values__[l];
-                    
-                    const Scalar * restrict const x_j = &x[RHS_COUNT*j];
-                    
-                    for( Int k = RHS_COUNT; k --> 0; )
-                    {
-                        x_i[k] -= a_ij * x_j[k];
-                    }
-                }
-                
-                if constexpr ( !unitDiag )
-                {
-                    const Scalar a_ii_inv = static_cast<Scalar>(1) / values__[diag];
-                    
-                    for( Int k = RHS_COUNT; k --> 0;  )
-                    {
-                        x_i[k] *= a_ii_inv;
-                    }
-                }
-            }
+            this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,Scalar,unitDiag>(values,b,x);
         }
         
     public:

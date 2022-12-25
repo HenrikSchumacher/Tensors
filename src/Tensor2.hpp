@@ -77,11 +77,7 @@ namespace Tensors {
         template< typename S>
         void Write( const Int i, S * const b ) const
         {
-//            ptic(ClassName()+"::Write( const Int i, S * const b )");
-            
             copy_buffer( data(i), b, dims[1] );
-            
-//            ptoc(ClassName()+"::Write( const Int i, S * const b )");
         }
         
 
@@ -90,11 +86,7 @@ namespace Tensors {
         template< typename S>
         void Read( const Int i, const S * const b )
         {
-//            ptic(ClassName()+"::Read( const Int i, const S * const b )");
-            
             copy_buffer( b, data(i), dims[1] );
-            
-//            ptoc(ClassName()+"::Read( const Int i, const S * const b )");
         }
 
     private:

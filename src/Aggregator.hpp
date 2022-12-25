@@ -135,12 +135,10 @@ namespace Tensors
         
         void ShrinkToFit()
         {
-            tic("ShrinkToFit");
             Container_0_T new_container_0 ( container_0.data(), current_size );
             
             using std::swap;
             swap( container_0, new_container_0 );
-            toc("ShrinkToFit");
         }
         
         

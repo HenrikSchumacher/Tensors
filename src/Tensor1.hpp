@@ -182,31 +182,15 @@ namespace Tensors {
             return x.Total();
         }
         
-        Scalar Dot( const TENSOR_T & y ) const
-        {
-            Scalar sum = static_cast<Scalar>(0);
-            
-            const Scalar * restrict const x_a =   a;
-            const Scalar * restrict const y_a = y.a;
-            
-            if( Size() != y.Size() )
-            {
-                eprint(ClassName()+"::Dot: Sizes of vectors differ. Doing nothing.");
-                return sum;
-            }
-            const Int n_ = std::min( Size(), y.Size() );
-
-            for( Int i = 0; i < n_; ++ i)
-            {
-                sum += x_a[i] * y_a[i];
-            }
-
-            return sum;
-        }
-        
         inline friend Scalar Dot( const TENSOR_T & x, const TENSOR_T & y )
         {
-            return x.Dot(y);
+            if( x.Size() != y.Size() )
+            {
+                eprint(ClassName()+"::Dot: Sizes of vectors differ. Doing nothing.");
+                return 0;
+            }
+            
+            return dot( x.data(), y.data(), x.Size() );
         }
         
         void iota()

@@ -646,7 +646,7 @@ namespace Tensors
                 // https://en.wikipedia.org/wiki/Counting_sort
                 //            ptic("Counting");
                 
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     const Int i_begin = job_ptr[thread  ];
@@ -692,7 +692,7 @@ namespace Tensors
                 {
                     RequireJobPtr();
                     
-#pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
                     {
                         const Int i_begin = job_ptr[thread  ];
@@ -733,9 +733,9 @@ namespace Tensors
                     
                     LInt * restrict const new_outer__ = new_outer.data();
                     LInt * restrict const     outer__ = outer.data();
-                    Int * restrict const     inner__ = inner.data();
+                     Int * restrict const     inner__ = inner.data();
                     
-#pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
                     {
                         
@@ -801,11 +801,11 @@ namespace Tensors
                     
                     //TODO: Parallelization might be a bad idea here.
                     
-#pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
                     {
-                        const    Int i_begin = job_ptr[thread  ];
-                        const    Int i_end   = job_ptr[thread+1];
+                        const  Int i_begin = job_ptr[thread  ];
+                        const  Int i_end   = job_ptr[thread+1];
                         
                         const LInt new_pos = new_outer__[i_begin];
                         const LInt     pos =     outer__[i_begin];
@@ -827,11 +827,11 @@ namespace Tensors
             }
         }
         
-        //##############################################################################################
-        //####          Matrix Multiplication
-        //##############################################################################################
+//##############################################################################################
+//####          Matrix Multiplication
+//##############################################################################################
         
-    public:
+    protected:
         
         CLASS DotBinary_( const CLASS & B ) const
         {
@@ -847,13 +847,13 @@ namespace Tensors
                 
                 // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                 // https://en.wikipedia.org/wiki/Counting_sort
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    LInt * restrict const c = counters.data(thread);
+                          LInt * restrict const c = counters.data(thread);
                     
                     const LInt * restrict const A_outer  = Outer().data();
                     const  Int * restrict const A_inner  = Inner().data();
@@ -886,14 +886,14 @@ namespace Tensors
                 
                 ptic("Counting sort");
                 
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    LInt * restrict const c        = counters.data(thread);
+                          LInt * restrict const c        = counters.data(thread);
                     
                     const LInt * restrict const A_outer  = Outer().data();
                     const  Int * restrict const A_inner  = Inner().data();
@@ -994,10 +994,87 @@ namespace Tensors
         }
         
         
+//###########################################################################################
+//####          Triangular solve
+//###########################################################################################
         
-        //##############################################################################################
-        //####          Lookup Operations
-        //##############################################################################################
+    protected:
+        
+        template< Int RHS_COUNT, typename Scalar, bool unitDiag = false>
+        void SolveUpperTriangular_Sequential_0_(
+            const Scalar * restrict const values,
+            const Scalar * restrict const b,
+                  Scalar * restrict const x
+        )
+        {
+            if( m != n )
+            {
+                eprint(ClassName()+"::SolveUpper: Matrix is not square.");
+                return;
+            }
+            
+            if( x != b )
+            {
+                copy_buffer( b, x, n * RHS_COUNT );
+            }
+            
+            SortInner();
+            
+            RequireDiag();
+            
+            const   LInt * restrict const diag_ptr__ = diag_ptr.data();
+            const   LInt * restrict const outer__    = outer.data();
+            const    Int * restrict const inner__    = inner.data();
+            
+            for( Int i = m; i --> 0; )
+            {
+                const LInt diag = diag_ptr__[i];
+                
+                if constexpr ( !unitDiag )
+                {
+                    if( inner__[diag] != i )
+                    {
+                        eprint(ClassName()+"::SolveUpper: Row "+ToString(i)+" is missing a diagonal entry.");
+                        return;
+                    }
+                }
+                
+                // We implicitly assume correct ordering of inner__.
+                const LInt l_begin = ( inner__[diag] > i ) ? diag : diag+1;
+                const LInt l_end   = outer__[i+1];
+                
+                Scalar * restrict const x_i = &x[RHS_COUNT * i];
+                
+                // We do this in reverse order so that the value of a_ii will be likely hot after this loop.
+                for( LInt l = l_end; l --> l_begin; )
+                {
+                    const Int j = inner__[l];
+                    
+                    const Scalar a_ij = values[l];
+                    
+                    const Scalar * restrict const x_j = &x[RHS_COUNT*j];
+                    
+                    for( Int k = RHS_COUNT; k --> 0; )
+                    {
+                        x_i[k] -= a_ij * x_j[k];
+                    }
+                }
+                
+                if constexpr ( !unitDiag )
+                {
+                    const Scalar a_ii_inv = static_cast<Scalar>(1) / values[diag];
+                    
+                    for( Int k = RHS_COUNT; k --> 0;  )
+                    {
+                        x_i[k] *= a_ii_inv;
+                    }
+                }
+            }
+        }
+        
+//##############################################################################################
+//####          Lookup Operations
+//##############################################################################################
         
         
     private:

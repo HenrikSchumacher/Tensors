@@ -4,47 +4,53 @@ namespace Tensors
 {
         
 #define CLASS SparseBinaryMatrixCSR
-#define BASE  SparsePatternCSR<Int,LInt>
+    template<typename Int_, typename LInt_>
+    class CLASS : public SparsePatternCSR<Int_,LInt_>
+    {        
+    private:
         
-    template<typename Int, typename LInt>
-    class CLASS : public BASE
-    {
-        ASSERT_INT  (Int);
-        ASSERT_INT  (LInt);
-        
-    protected:
-        
-        using BASE::m;
-        using BASE::n;
-        using BASE::outer;
-        using BASE::inner;
-        using BASE::thread_count;
-        using BASE::job_ptr;
-        using BASE::upper_triangular_job_ptr;
-        using BASE::lower_triangular_job_ptr;
-        using BASE::Dot_;
+        using Base_T = SparsePatternCSR<Int_,LInt_>;
         
     public:
         
-        using BASE::RowCount;
-        using BASE::ColCount;
-        using BASE::NonzeroCount;
-        using BASE::ThreadCount;
-        using BASE::SetThreadCount;
-        using BASE::Outer;
-        using BASE::Inner;
-        using BASE::JobPtr;
-        using BASE::Diag;
-        using BASE::RequireJobPtr;
-        using BASE::RequireUpperTriangularJobPtr;
-        using BASE::RequireLowerTriangularJobPtr;
-        using BASE::UpperTriangularJobPtr;
-        using BASE::LowerTriangularJobPtr;
-        using BASE::CreateTransposeCounters;
-        using BASE::WellFormed;
+        using Int    = Int_;
+        using LInt   = LInt_;
+        
+    protected:
+        
+        using Base_T::m;
+        using Base_T::n;
+        using Base_T::outer;
+        using Base_T::inner;
+        using Base_T::thread_count;
+        using Base_T::job_ptr;
+        using Base_T::upper_triangular_job_ptr;
+        using Base_T::lower_triangular_job_ptr;
+        using Base_T::Dot_;
+        
+    public:
+        
+        using Base_T::RowCount;
+        using Base_T::ColCount;
+        using Base_T::NonzeroCount;
+        using Base_T::ThreadCount;
+        using Base_T::SetThreadCount;
+        using Base_T::Outer;
+        using Base_T::Inner;
+        using Base_T::JobPtr;
+        using Base_T::Diag;
+        using Base_T::SortInner;
+        using Base_T::RequireDiag;
+        using Base_T::RequireJobPtr;
+        using Base_T::RequireUpperTriangularJobPtr;
+        using Base_T::RequireLowerTriangularJobPtr;
+        using Base_T::UpperTriangularJobPtr;
+        using Base_T::LowerTriangularJobPtr;
+        using Base_T::CreateTransposeCounters;
+        using Base_T::WellFormed;
         
         CLASS()
-        :   BASE()
+        :   Base_T()
         {}
         
         template<typename I_0, typename I_1, typename I_3>
@@ -53,7 +59,7 @@ namespace Tensors
               const I_1 n_,
               const I_3 thread_count_
               )
-        :   BASE( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        :   Base_T( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
         {
             ASSERT_INT(I_0);
             ASSERT_INT(I_1);
@@ -67,7 +73,7 @@ namespace Tensors
               const I_2 nnz_,
               const I_3 thread_count_
               )
-        :   BASE( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) )
+        :   Base_T( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) )
         {
             ASSERT_INT(I_0);
             ASSERT_INT(I_1);
@@ -84,7 +90,7 @@ namespace Tensors
               const I_1 n_,
               const I_3 thread_count_
               )
-        :   BASE( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        :   Base_T( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
         {
             ASSERT_INT(J_0);
             ASSERT_INT(J_1);
@@ -101,7 +107,7 @@ namespace Tensors
               const I_1 n_,
               const I_3 thread_count_
               )
-        :   BASE( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        :   Base_T( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
         {
             ASSERT_INT(I_0);
             ASSERT_INT(I_1);
@@ -116,7 +122,7 @@ namespace Tensors
               const I_1 n_,
               const I_3 thread_count_
               )
-        :   BASE( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+        :   Base_T( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
         {
             ASSERT_INT(I_0);
             ASSERT_INT(I_1);
@@ -125,7 +131,7 @@ namespace Tensors
         
         // Copy constructor
         CLASS( const CLASS & other )
-        :   BASE( other )
+        :   Base_T( other )
         {
             logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
         }
@@ -173,7 +179,7 @@ namespace Tensors
               const bool compress   = true,
               const int  symmetrize = 0
               )
-        :   BASE ( idx, jdx, entry_counts, list_count, m_, n_, final_thread_count, compress, symmetrize )
+        :   Base_T ( idx, jdx, entry_counts, list_count, m_, n_, final_thread_count, compress, symmetrize )
         {}
         
         CLASS(
@@ -185,7 +191,7 @@ namespace Tensors
               const bool compress   = true,
               const int  symmetrize = 0
               )
-        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize )
+        :   Base_T( idx, jdx, m_, n_, final_thread_count, compress, symmetrize )
         {}
         
         CLASS(
@@ -197,7 +203,7 @@ namespace Tensors
               const bool compress   = true,
               const int  symmetrize = 0
               )
-        :   BASE( idx, jdx, m_, n_, final_thread_count, compress, symmetrize )
+        :   Base_T( idx, jdx, m_, n_, final_thread_count, compress, symmetrize )
         {}
         
         CLASS(
@@ -208,7 +214,7 @@ namespace Tensors
               const bool compress   = true,
               const int  symmetrize = 0
               )
-        :   BASE( idx, m_, n_, final_thread_count, compress, symmetrize )
+        :   Base_T( idx, m_, n_, final_thread_count, compress, symmetrize )
         {}
         
         virtual ~CLASS() = default;
@@ -526,7 +532,7 @@ namespace Tensors
         {
             CLASS<Int,LInt> result;
             
-            BASE C = this->DotBinary_(B);
+            Base_T C = this->DotBinary_(B);
             
             swap(result,C);
             
@@ -537,13 +543,12 @@ namespace Tensors
         {
             CLASS result;
             
-            BASE C = this->DotBinary_(B);
+            Base_T C = this->DotBinary_(B);
             
             swap(result,C);
             
             return result;
         }
-        
         
 //###########################################################################################
 //####          Matrix Multiplication
@@ -653,6 +658,21 @@ namespace Tensors
             }
         }
         
+//###########################################################################################
+//####          Triangular solve
+//###########################################################################################
+        
+    public:
+        
+        template< Int RHS_COUNT, typename Scalar, bool unitDiag = false>
+        void SolveUpperTriangular_Sequential_0(
+            const Scalar * restrict const values,
+            const Scalar * restrict const b,
+                  Scalar * restrict const x
+        )
+        {
+            this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,unitDiag>(values,b,x);
+        }
         
     public:
         
@@ -665,6 +685,4 @@ namespace Tensors
     
 } // namespace Tensors
 
-
 #undef CLASS
-#undef BASE

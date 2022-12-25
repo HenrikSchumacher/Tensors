@@ -113,10 +113,8 @@ namespace Tensors
         
         Tensor1<Int,Int> PostOrdering() const
         {
-            Tensor2<Int,Int> p ( VertexCount()+1 );
-            
-            Tensor1<Int,Int> stack ( VertexCount()+1 );
-            
+            Tensor1<Int, Int> p       ( VertexCount()+1 );
+            Tensor1<Int, Int> stack   ( VertexCount()+1 );
             Tensor1<bool,Int> visited ( VertexCount()+1, false );
             
             const Int * restrict const child_ptr = A.Outer();

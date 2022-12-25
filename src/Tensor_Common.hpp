@@ -113,21 +113,13 @@ Int Size() const
 template<typename S>
 void Read( const S * const a_ )
 {
-//    ptic(ClassName()+"::Read( const S * const a_ )");
-    
     copy_buffer( a_, a, static_cast<size_t>(n) );
-    
-//    ptoc(ClassName()+"::Read( const S * const a_ )");
 }
 
 template<typename S>
 void Write( S * a_ ) const
 {
-//    ptic(ClassName()+"::Write( S * a_ )");
-    
     copy_buffer( a, a_, n );
-
-//    ptoc(ClassName()+"::Write( S * a_ )");
 }
 
 void Fill( const Scalar init )
@@ -244,26 +236,12 @@ void AddTo( Scalar * restrict const b ) const
 
 Real MaxNorm() const
 {
-    Scalar result = static_cast<Scalar>(0);
-
-    for( Int i = 0 ; i < n; ++i )
-    {
-        result = std::max( result, std::abs(a[i]));
-    }
-    
-    return result;
+    return norm_max( a, Size() );
 }
 
 Real FrobeniusNorm() const
 {
-    Real result = 0;
-
-    for( Int i = 0 ; i < n; ++i )
-    {
-        result += abs_squared(a[i]);
-    }
-    
-    return std::sqrt( result );
+    return norm_2( a, Size() );
 }
 
 
@@ -275,12 +253,7 @@ std::enable_if_t<
 >
 operator*=( const T alpha )
 {
-    Scalar * restrict const a_ = a;
-    
-    for( Int i = 0; i < n; ++i )
-    {
-        a_[i] *= alpha;
-    }
+    scale_buffer( a, Size() );
     
     return *this;
 }

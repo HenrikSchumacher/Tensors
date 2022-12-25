@@ -41,16 +41,35 @@ namespace Tensors
             SparseMatrix_T L;
             SparseMatrix_T U;
             
+            Tensor1<Int,Int> p; // Row    permutation;
+            Tensor1<Int,Int> q; // Column permutation;
+            
             bool eTree_initialized = false;
             EliminationTree<Int> eTree;
             
+            //Supernode data:
+            
+            // Pointers from supernodes to their rows.
+            // k-th supernode has rows [ SN_rp[k],...,SN_rp[k+1] [
+            Tensor1<LInt, Int> SN_rp;
+            // Pointers from supernodes to their starting position in SN_inner.
+            Tensor1<LInt, Int> SN_outer;
+            // The column indices of the supernodes.
+            // k-th supernode has column indices [ SN_inner[SN_outer[k]],...,SN_innerSN_outer[k+1]] [
+            Tensor1< Int,LInt> SN_inner;
+            
+            // column indices of i-th row of U can be found in SN_inner in the half-open interval
+            // [ U_begin[i],...,U_end[i] [
+            Tensor1< Int,LInt> U_begin;
+            Tensor1< Int,LInt> U_end;
+            
         public:
             
-            SparseCholeskyDecomposition() = default;
+            CholeskyDecomposition() = default;
             
-            ~SparseCholeskyDecomposition() = default;
+            ~CholeskyDecomposition() = default;
             
-            SparseCholeskyDecomposition(
+            CholeskyDecomposition(
                 const LInt * restrict const outer_,
                 const  Int * restrict const inner_,
                 const  Int n_,
@@ -63,28 +82,30 @@ namespace Tensors
             {
                 if( uplo == Triangular::Upper)
                 {
+                    // TODO: Is there a way to avoid this copy?
                     tic("Initialize A_lo");
-                    
                     A_up = SparseMatrix_T( outer_, inner_, n, n, thread_count );
                     toc("Initialize A_lo");
                     
+                    // TODO: Is there a way to avoid this copy?
                     tic("Transpose");
                     A_lo = A_up.Transpose();
                     toc("Transpose");
                 }
                 else
                 {
+                    // TODO: Is there a way to avoid this copy?
                     tic("Initialize A_lo");
-                    
                     A_lo = SparseMatrix_T( outer_, inner_, n, n, thread_count );
                     toc("Initialize A_lo");
                     
+                    // TODO: Is there a way to avoid this copy?
                     tic("Transpose");
                     A_up = A_lo.Transpose();
                     toc("Transpose");
                 }
                 
-                //            FactorizeSymbolically();
+//                FactorizeSymbolically();
                 
                 //            FactorizeSymbolically2();
             }
@@ -93,7 +114,7 @@ namespace Tensors
             {
                 if( ! eTree_initialized )
                 {
-                    tic(ClassName()+":GetEliminationTree");
+                    tic(ClassName()+"::GetEliminationTree");
                     
                     // See Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
                     
@@ -131,53 +152,51 @@ namespace Tensors
                     
                     eTree_initialized = true;
                     
-                    toc(ClassName()+":GetEliminationTree");
+                    toc(ClassName()+"::GetEliminationTree");
                 }
                 
                 return eTree;
             }
             
+            
             void FactorizeSymbolically()
             {
-                // This is Aglorithm 8.1 from  Liu - The Role of Elimination Trees in Sparse Factorizations
+                // This is Algorithm 4.2 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
                 
-                // TODO: Read about parallel variant in :
-                //
-                // Tarjan and Yannakakis - Simple linear-time algorithms to test chordality of graphs, test acyclicity of hypergraphs, and selectively reduce acyclic hypergraphs
-                tic("FactorizeSymbolically");
+                tic(ClassName()+"::FactorizeSymbolically");
                 
-                tic("Prepare");
+                const LInt * restrict const A_rp      = A_up.Outer().data();
+                const  Int * restrict const A_ci      = A_up.Inner().data();
                 
-                const LInt * restrict const A_rp = A_up.Outer().data();
-                const  Int * restrict const A_ci = A_up.Inner().data();
+                const  Int * restrict const child_ptr = GetEliminationTree().ChildPointers().data();
+                const  Int * restrict const child_idx = GetEliminationTree().ChildIndices().data();
                 
                 Tensor1<Int,Int> U_i    ( n );  // An array to aggregate the rows of U.
                 Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
                 Int row_counter;                // Holds the current number of indices in U_i.
-                
-                Tensor1<Int,Int> parents ( n, n );
-                
-                constexpr Int child_threshold = 2;
-                Tensor2<Int,Int> child_info (n, child_threshold+1, 0);      // First entry in row is no. of children; followed by the children.
-                std::unordered_map<Int,std::vector<Int>> children_galore;   // If there are mire than child_threshold children, we push them here.
-                
-                Tensor1<LInt,Int> U_rp (n+1);                          // To be filled with the row pointers of U.
+
+                // To be filled with the row pointers of U.
+                Tensor1<LInt,Int> U_rp (n+1);
                 U_rp[0] = 0;
-                Aggregator<Int,LInt> U_ci ( 2 * A_up.NonzeroCount() ); // To be filled with the column indices of U.
                 
-                toc("Prepare");
+                // To be filled with the column indices of U.
+                Aggregator<Int,LInt> U_ci ( 2 * A_up.NonzeroCount() );
+
                 
-                tic("Main loop");
-                for( Int i = 0; i < n; ++i )
+                for( Int i = 0; i < n; ++i ) // Traverse rows.
                 {
                     // The nonzero pattern of A_up belongs definitely to the pattern of U.
                     row_counter = A_rp[i+1] - A_rp[i];
                     copy_buffer( &A_ci[A_rp[i]], U_i.data(), row_counter );
                     
+                    const Int l_begin = child_ptr[i  ];
+                    const Int l_end   = child_ptr[i+1];
+
+                    
                     // Traverse all children of i in the eTree. Most of the time it's a single child or no one at all. Sometimes it's two or more.
-                    for( Int l = 0; l < child_info(i,0); ++l )
+                    for( Int l = l_begin; l < l_end; ++l )
                     {
-                        const Int j = ( l < child_threshold ) ? child_info(i,l+1) : children_galore[i][l-child_threshold];
+                        const Int j = child_idx[l];
                         
                         // Merge row pointers of child j into U_i
                         const Int _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
@@ -186,271 +205,175 @@ namespace Tensors
                         if( _end > _begin )
                         {
                             row_counter = UniteSortedBuffers(
-                                                             U_i.data(),    row_counter,
-                                                             &U_ci[_begin], _end - _begin,
-                                                             buffer.data()
-                                                             );
+                                U_i.data(),    row_counter,
+                                &U_ci[_begin], _end - _begin,
+                                buffer.data()
+                            );
                             swap( U_i, buffer );
                         }
+                        
                     }
+                    
                     // Copy U_i to i-th row of U.
                     U_ci.Push( U_i.data(), row_counter );
                     U_rp[i+1] = U_ci.Size();
                     
-                    // Update the eTree.
-                    if( row_counter > 1 )       // U_i is sorted, thus U_i[0] = i. But i cannot be parent if i.
-                    {
-                        const Int j = U_i[1];    // First row entry strictly right of column i.
-                        parents[i] = j;
-                        
-                        const Int child_count = child_info(j,0);
-                        
-                        if( child_count < child_threshold )
-                        {
-                            child_info(j, child_count+1 ) = i;
-                        }
-                        else
-                        {
-                            children_galore[j].push_back(i);
-                        }
-                        ++child_info(j,0);
-                    }
+                    
                 } // for( Int i = 0; i < n; ++i )
-                toc("Main loop");
-                
-                // rows_to_cols encodes now G_{n}(A); we are done.
-                
-                eTree = EliminationTree<Int>( std::move(parents) );
-                
-                eTree_initialized = true;
                 
                 
-                tic("Create U");
                 U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), n, n, thread_count );
-                toc("Create U");
-                
-                toc("FactorizeSymbolically");
+
+                toc(ClassName()+"::FactorizeSymbolically");
             }
             
-            
-            //        void FactorizeSymbolically2()
-            //        {
-            //            This is Aglorithm 8.1 from  Liu - The Role of Elimination Trees in Sparse Factorizations
-            //            tic("FactorizeSymbolically2");
-            //
-            //            tic("Prepare");
-            //
-            //            const LInt * restrict const A_rp = A_up.Outer().data();
-            //            const  Int * restrict const A_ci = A_up.Inner().data();
-            //
-            //            Tensor1<Int,Int> U_i    ( n );
-            //            Tensor1<Int,Int> buffer ( n );
-            //
-            //            Int row_counter;
-            //
-            //
-            //
-            //            eTree = Tensor1<Int,Int>( n, n );
-            //            std::vector<std::vector<Int>> children (n);
-            //
-            //            // Idea of using "baby_sitter" is taken from Stewart - Building an Old-Fashioned Sparse Solver
-            // It is also mentioned as CLIST on page 159 of  Liu - The Role of Elimination Trees in Sparse Factorizations
-            //            const Int no_child = n + 1;
-            //            Tensor1<Int,Int> baby_sitter ( n, no_child );
-            //
-            //            Tensor1<LInt,Int> U_rp ( n + 1 );
-            //            U_rp[0] = 0;
-            //
-            //            std::vector<Int> U_ci (A_up.NonzeroCount() );
-            //
-            //            toc("Prepare");
-            //
-            //            tic("Main loop");
-            //            for( Int i = 0; i < n; ++i )
-            //            {
-            //                row_counter = A_rp[i+1] - A_rp[i];
-            //                copy_buffer( &A_ci[A_rp[i]], U_i.data(), row_counter );
-            //
-            //                // Use baby_sitter to visit all children of i.
-            //                {
-            //                    Int j = baby_sitter[i];
-            //
-            //                    while( j != no_child )
-            //                    {
-            //                        // Merge row pointers of child j into U_i
-            //                        const Int _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
-            //                        const Int _end   = U_rp[j+1];
-            //                        if( _end > _begin )
-            //                        {
-            //                            row_counter = UniteSortedBuffers(
-            //                                U_i.data(),    row_counter,
-            //                                &U_ci[_begin], _end - _begin,
-            //                                buffer.data()
-            //                            );
-            //
-            //                            std::swap( U_i, buffer );
-            //                        }
-            //
-            //                        const Int j_temp = baby_sitter[j];
-            //                        baby_sitter[j] = no_child;
-            //                        j = j_temp;
-            //                    }
-            //                }
-            //
-            //                // Copy U_i to i-th row of U.
-            //                U_rp[i+1] = U_rp[i] + row_counter;
-            //                U_ci.resize( U_rp[i+1] );
-            //                copy_buffer( U_i.data(), &U_ci[U_rp[i]], row_counter );
-            //
-            //                // Update baby_sitter and eTree.
-            //                if( row_counter > 1 )
-            //                {
-            //                    Int j = U_i[1]; // j is parent of i.
-            //                    eTree[i] = j;
-            //
-            //                    Int j_temp;
-            //                    // traverse children of j until a free place is found.
-            //                    while( j != no_child )
-            //                    {
-            //                        j_temp = j;
-            //                        j = baby_sitter[j_temp];
-            //                    }
-            //
-            //                    baby_sitter[j_temp] = i;
-            //                }
-            //            }
-            //            toc("Main loop");
-            //
-            //            // rows_to_cols encodes now G_{n}(A); we are done.
-            //
-            //            tic("Initialize U");
-            //            U = SparseMatrix_T( &U_rp[0], &U_ci[0], n, n, thread_count );
-            //
-            //            toc("Initialize U");
-            //
-            //            toc("FactorizeSymbolically2");
-            //        }
-            
-            void FactorizeSymbolically_Old()
+            template< Int RHS_COUNT, bool unitDiag = false>
+            void U_Solve_Sequential_0(
+                const Scalar * restrict const b,
+                      Scalar * restrict const x
+            )
             {
-                tic("FactorizeSymbolically_Old");
-                
-                std::vector<List_T> L_cols (n);
-                
-                const LInt * restrict const cp = A_up.Outer().data();
-                const  Int * restrict const ri = A_up.Inner().data();
-                
-                tic("Reserve");
-                for( Int i = 0; i < n; ++i )
-                {
-                    const LInt k_begin = cp[i  ];
-                    const LInt k_end   = cp[i+1];
-                    
-                    L_cols[i].Reserve(2 *(k_end-k_begin));
-                }
-                toc("Reserve");
-                
-                LInt L_nnz = 0;
-                
-                
-                List_T nonempty_rows;
-                nonempty_rows.Reserve(n);
-                
-                
-                tic("Main loop");
-                for( Int j = 0; j < n; ++j )
-                {
-                    //                dump(j);
-                    //                std::unordered_map<Int,bool> s_rows;
-                    
-                    const LInt k_begin = cp[j  ];
-                    const LInt k_end   = cp[j+1];
-                    
-                    // Push all nonzero rows in A_lo's column j onto s_rows.
-                    for( LInt k = k_begin; k < k_end; ++k )
-                    {
-                        //                    s_rows[ri[k]] = true;
-                        const Int i = ri[k];
-                        L_cols[i].PushBack(j);
-                        ++L_nnz;
-                        nonempty_rows.Insert(i);
-                    }
-                    
-                    const List_T & u = L_cols[j];
-                    
-                    if( !u.Empty() )
-                    {
-                        const Int row_begin = nonempty_rows.FindPosition(j);
-                        const Int row_end   = nonempty_rows.Size();
-                        
-#pragma omp parallel for num_threads( thread_count ) reduction( + : L_nnz ) schedule( static )
-                        for( Int row = row_begin; row < row_end; ++row )
-                        {
-                            const Int i = nonempty_rows[row];
-                            
-                            if( IntersectingQ( u, L_cols[i] ) )
-                            {
-                                // L_cols[j] and L_cols[i] intersect. Add position {i,j} as fill-in.
-                                if( L_cols[i].Max() != j ) // // We know already that L_cols[i] is nonempty, so using .back() is safe.
-                                {
-                                    L_cols[i].PushBack(j);
-                                    ++L_nnz;
-                                }
-                            }
-                        }
-                    }
-                    //
-                    //                // Now s_rows contains all nonzero rows of the j-th column of L.
-                    ////                print("Write fill-in.");
-                    //
-                    //
-                    ////                std::stringstream s;
-                    ////                s << "s_rows = { ";
-                    //                for( auto row : s_rows )
-                    //                {
-                    //                    const Int i = row.first;
-                    ////                    s << i <<", ";
-                    ////                    valprint("L_cols["+ToString(i)+"]",L_cols[i]);
-                    //                    L_cols[i].push_back(j);
-                    ////                    valprint("L_cols["+ToString(i)+"]",L_cols[i]);
-                    //                }
-                    ////                s <<" }";
-                    ////                print(s.str());
-                }
-                toc("Main loop");
-                
-                tic("Initialize L");
-                L = SparseMatrix_T( n, n, L_nnz, thread_count );
-                
-                //            print("Create row pointers of L.");
-                {
-                    LInt * restrict const outer = L.Outer().data();
-                    
-                    outer[0] = 0;
-                    
-                    for( Int i = 0; i < n; ++i )
-                    {
-                        outer[i+1] = outer[i] + L_cols[i].Size();
-                    }
-                }
-                
-                //            print("Copy column indices into L.");
-                {
-                    const LInt * restrict const outer = L.Outer().data();
-                    Int * restrict const inner = L.Inner().data();
-                    
-                    for( Int i = 0; i < n; ++i )
-                    {
-                        LInt i_nnz = outer[i+1] - outer[i];
-                        
-                        copy_buffer( &L_cols[i][0], &inner[outer[i]], i_nnz );
-                    }
-                }
-                toc("Initialize L");
-                
-                toc("FactorizeSymbolically_Old");
+                U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
             }
             
+//###########################################################################################
+//####          Supernodal
+//###########################################################################################
+            
+            void FactorizeSymbolically_SN()
+            {
+                // This is Algorithm 4.3 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
+                
+                // However, we reversed it: Instead of children "supplementing" their parents, the parents just pull from their children. This allows us to use less temporary memory.
+                
+                // Also we avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
+
+                tic(ClassName()+"::FactorizeSymbolically_SN");
+
+                const LInt * restrict const A_rp      = A_up.Outer().data();
+                const  Int * restrict const A_ci      = A_up.Inner().data();
+
+                const  Int * restrict const parents   = GetEliminationTree().Parents().data();
+                const  Int * restrict const child_ptr = GetEliminationTree().ChildPointers().data();
+                const  Int * restrict const child_idx = GetEliminationTree().ChildIndices().data();
+
+                Tensor1<Int,Int> U_i    ( n );  // An array to aggregate the rows of U.
+                Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
+                Int row_counter;                // Holds the current number of indices in U_i.
+                
+                // column indices of i-th row of U can be found in SN_inner in the half-open interval
+                // [ U_begin[i],...,U_end[i] [
+                U_begin = Tensor1<LInt,Int> (n);
+                U_end   = Tensor1<LInt,Int> (n);
+                
+                // Holds the current number of supernodes.
+                Int k = 0;
+                // Pointers from supernodes to their starting rows.
+                SN_rp    = Tensor1<LInt,Int> (n+1);
+                
+                // Pointers from supernodes to their starting position in SN_inner.
+                SN_outer = Tensor1<LInt,Int> (n+1);
+                SN_outer[0]  = 0;
+                
+                // To be filled with the column indices of super nodes.
+                // Will later be moved to SN_inner.
+                Aggregator<Int,LInt> SN_inner_agg ( 2 * A_up.NonzeroCount() );
+
+                
+                // The first row needs some special treatment because it does not have any predecessor.
+                {
+                    const Int i = 0;
+                    // The nonzero pattern of A_up belongs definitely to the pattern of U.
+                    row_counter = A_rp[i+1] - A_rp[i];
+                    copy_buffer( &A_ci[A_rp[i]], U_i.data(), row_counter );
+                    
+                    // No children to travers for first row.
+                    
+                    // start first supernode
+                    SN_rp[k] = i;
+                    ++k;
+                    // Copy U_i to new supernode.
+                    SN_inner_agg.Push( U_i.data(), row_counter );
+                    
+                    SN_outer[k] = SN_inner_agg.Size();
+                    
+                    // Remember where to find U_i within SN_inner_agg.
+                    U_begin[i] = 0;
+                    U_end  [i] = row_counter;
+                }
+                
+                for( Int i = 1; i < n; ++i ) // Traverse rows.
+                {
+                    // The nonzero pattern of A_up belongs definitely to the pattern of U.
+                    row_counter = A_rp[i+1] - A_rp[i];
+                    copy_buffer( &A_ci[A_rp[i]], U_i.data(), row_counter );
+                    
+                    const Int l_begin = child_ptr[i  ];
+                    const Int l_end   = child_ptr[i+1];
+                    
+                    // Traverse all children of i in the eTree. Most of the time it's a single child or no one at all. Sometimes it's two or more.
+                    for( Int l = l_begin; l < l_end; ++l )
+                    {
+                        const Int j = child_idx[l];
+                        
+                        // We have to merge row pointers of child j  (different from j) into U_i
+
+                        // We have to look up U_j \ {j} in SN_inner_agg in the interval [a,...,b[:
+                        const Int a = U_begin[j]+1;  // This excludes the first entry j.
+                        const Int b = U_end  [j]  ;
+                        
+                        if( b > a )
+                        {
+                            row_counter = UniteSortedBuffers(
+                                U_i.data(),    row_counter,
+                                &SN_inner_agg[a], b - a,
+                                buffer.data()
+                            );
+                            swap( U_i, buffer );
+                        }
+                        
+                    }
+                    
+                    const Int a = U_begin[i-1];
+                    const Int b = U_end  [i-1];
+                    
+                    if( (i == parents[i-1]) && (b - a == row_counter + 1) )
+                    {
+                        // continue supernode
+                        
+                        // Remember where to find U_i within SN_inner_agg.
+                        U_begin[i] = a+1;
+                        U_end  [i] = b;
+                    }
+                    else
+                    {
+                        // start new supernode
+                        SN_rp[k] = i; // row i does not belong to previous supernode.
+                        ++k;
+                        
+                        // Copy U_i to new supernode.
+                        SN_inner_agg.Push( U_i.data(), row_counter );
+                        
+                        SN_outer[k] = SN_inner_agg.Size();
+                        
+                        // Remember where to find U_i within SN_inner_agg.
+                        U_begin[i] = b;
+                        U_end[i]   = U_begin[i] + row_counter;
+                    }
+                    
+                } // for( Int i = 0; i < n; ++i )
+
+                // finish last supernode
+                SN_rp[k] = n; // row n does not belong to previous supernode.
+                
+                dump(k);
+                
+                SN_rp.Resize(k+1);
+                SN_outer.Resize(k+1);
+                SN_inner = std::move(SN_inner_agg.Get());
+
+                toc(ClassName()+"::FactorizeSymbolically_SN");
+            }
             
             const SparseMatrix_T & GetL() const
             {
@@ -472,204 +395,35 @@ namespace Tensors
                 return A_up;
             }
             
-            void FillGraph()
+            
+            const Tensor1<LInt, Int> & SN_RowPointers() const
             {
-                tic("FillGraph");
-                
-                tic("Prepare");
-                
-                const LInt * restrict const rp = A_up.Outer().data();
-                const  Int * restrict const ci = A_up.Inner().data();
-                
-                std::vector< List_T > rows_to_cols (n);
-                
-                for( Int i = 0; i < n; ++i )
-                {
-                    const Int k_begin = rp[i  ];
-                    const Int k_end   = rp[i+1];
-                    
-                    const Int len = k_end-k_begin;
-                    
-                    rows_to_cols[i] = List_T( &ci[k_begin], len, 2 * len );
-                }
-                
-                LInt U_nnz = 0;
-                toc("Prepare");
-                
-                // rows_to_cols encodes the adjacency graph G_{0}(A) of A.
-                // Each rows_to_cols[i] stores the neighbors j >= i.
-                
-                // Recursively build the eliminated graph G_{k+1}(A) from G_{k}(A).
-                // The vertices of G_{k+1}(A) are always 0,...,n-1.
-                // The set of edges of G_{k+1}(A) is the union of
-                //      1. edges of G_{k}(A) and
-                //      2. all {i,j}, where k < i < j and {k,i} and {k,j} are edges of G_{k}(A).
-                
-                tic("Main loop");
-                for( Int k = 0; k < n; ++k )
-                {
-                    // rows_to_cols encodes now G_{k}(A).
-                    
-                    List_T & cols_k = rows_to_cols[k];
-                    
-                    //                cols_k.Sort();
-                    //                cols_k.DeleteDuplicates();
-                    
-                    // cols_k contains all the neighbors j >= k in a sorted list.
-                    
-                    const Int col_count = cols_k.Size();
-                    
-                    // TODO: This loop could be parallelized. Not sure whether that would be helpful.
-#pragma omp parallel for schedule( static )
-                    for( Int a = 1; a < col_count; ++a )
-                    {
-                        const Int i = cols_k[a];
-                        // This cols_k is ordered, and the first entry is always k, this guarantees that i > k.
-                        
-                        List_T & cols_i = rows_to_cols[i];
-                        
-                        // TODO: We insert several increasing j. There must be a shortcut to this!
-                        // TODO: cols_i.Insert( cols_k, a+1, col_count );
-                        for( Int b = a+1; b < col_count; ++b )
-                        {
-                            const Int j = cols_k[b];
-                            
-                            // This cols_k is ordered, this guarantees that k < i < j
-                            cols_i.Insert(j);
-                        }
-                    }
-                    
-                    // cols_k should be finished by now. It is even sorted already.
-                    
-                    U_nnz += cols_k.Size();
-                    
-                    // rows_to_cols encodes now G_{k+1}(A).
-                }
-                toc("Main loop");
-                
-                // rows_to_cols encodes now G_{n}(A); we are done.
-                
-                tic("Initialize U");
-                U = SparseMatrix_T( n, n, U_nnz, thread_count );
-                
-                //            print("Create row pointers of U.");
-                {
-                    LInt * restrict const outer = U.Outer().data();
-                    
-                    outer[0] = 0;
-                    
-                    for( Int i = 0; i < n; ++i )
-                    {
-                        outer[i+1] = outer[i] + rows_to_cols[i].Size();
-                    }
-                }
-                
-                //            print("Copy column indices into U.");
-                {
-                    const LInt * restrict const outer = U.Outer().data();
-                    Int * restrict const inner = U.Inner().data();
-                    
-                    for( Int i = 0; i < n; ++i )
-                    {
-                        LInt i_nnz = outer[i+1] - outer[i];
-                        
-                        copy_buffer( &rows_to_cols[i][0], &inner[outer[i]], i_nnz );
-                    }
-                }
-                toc("Initialize U");
-                
-                toc("FillGraph");
+                return SN_rp;
             }
             
-            void FillGraph2()
+            const Tensor1<LInt, Int> & SN_Outer() const
             {
-                tic("FillGraph2");
-                
-                tic("Prepare");
-                
-                const LInt * restrict const rp = A_up.Outer().data();
-                const  Int * restrict const ci = A_up.Inner().data();
-                
-                std::vector< std::unordered_set<Int> > rows_to_cols (n);
-                
-                Tensor1<LInt,Int> U_rp (n+1);
-                U_rp[0] = 0;
-                
-                std::vector<Int>  U_ci (A_up.NonzeroCount(), -1 );
-                
-                
-                for( Int i = 0; i < n; ++i )
-                {
-                    rows_to_cols[i] = std::unordered_set<Int>( &ci[rp[i]], &ci[rp[i+1]] );
-                }
-                
-                toc("Prepare");
-                
-                // rows_to_cols encodes the adjacency graph G_{0}(A) of A.
-                // Each rows_to_cols[i] stores the neighbors j >= i.
-                
-                // Recursively build the eliminated graph G_{k+1}(A) from G_{k}(A).
-                // The vertices of G_{k+1}(A) are always 0,...,n-1.
-                // The set of edges of G_{k+1}(A) is the union of
-                //      1. edges of G_{k}(A) and
-                //      2. all {i,j}, where k < i < j and {k,i} and {k,j} are edges of G_{k}(A).
-                
-                tic("Main loop");
-                for( Int k = 0; k < n; ++k )
-                {
-                    // rows_to_cols encodes now G_{k}(A).
-                    //                dump(k);
-                    std::unordered_set<Int> & cols_k = rows_to_cols[k];
-                    
-                    const LInt _begin = U_rp[k];
-                    const LInt _end   = _begin + cols_k.size();
-                    U_rp[k+1] = _end;
-                    
-                    U_ci.resize(_end);
-                    
-                    std::copy( cols_k.begin(), cols_k.end(), U_ci.begin() + _begin );
-                    
-                    std::sort( U_ci.begin() + _begin, U_ci.begin() + _end );
-                    
-                    const Int * restrict const cols_k_ = &U_ci[_begin];
-                    // cols_k_ should be finished by now.
-                    // It is even sorted already?
-                    
-                    //                // We may release the memory, but it is probably not a good idea.
-                    //                cols_k = std::unordered_set<Int>();
-                    
-                    // cols_k_ contains all the neighbors j >= k in a sorted list.
-                    const Int col_count = _end - _begin;
-                    
-                    // TODO: This loop could be parallelized. Not sure whether that's worth it.
-                    //                #pragma omp parallel for schedule(static)
-                    for( Int a = 2; a < col_count; ++a )
-                    {
-                        // Since cols_k_ is ordered, and the first entry is always k, this guarantees that i > k.
-                        const Int i = cols_k_[a-1];
-                        //                    dump(i);
-                        rows_to_cols[i].insert( &cols_k_[a], &cols_k_[col_count] );
-                    }
-                    
-                    // rows_to_cols encodes now G_{k+1}(A).
-                }
-                toc("Main loop");
-                
-                // rows_to_cols encodes now G_{n}(A); we are done.
-                
-                tic("Initialize U");
-                // TODO: A constructor that moves U_rp and U_ci would be great here.
-                U = SparseMatrix_T( &U_rp[0], &U_ci[0], n, n, thread_count );
-                
-                toc("Initialize U");
-                
-                toc("FillGraph2");
+                return SN_outer;
             }
             
+            const Tensor1< Int,LInt> & SN_Inner() const
+            {
+                return SN_inner;
+            }
+            
+            const Tensor1<LInt, Int> & U_Begin() const
+            {
+                return U_begin;
+            }
+            
+            const Tensor1<LInt, Int> & U_End() const
+            {
+                return U_end;
+            }
             
             std::string ClassName()
             {
-                return "CholeskyDecomposition<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::CholeskyDecomposition<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
             }
             
             
