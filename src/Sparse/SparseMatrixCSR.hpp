@@ -395,9 +395,19 @@ namespace Tensors
         }
         
         
-        CLASS Transpose() const
+    protected:
+        
+        template< bool conjugate>
+        CLASS transpose() const
         {
-            ptic(ClassName()+"::Transpose");
+            if constexpr ( conjugate )
+            {
+                ptic(ClassName()+"::ConjugateTranspose");
+            }
+            else
+            {
+                ptoc(ClassName()+"::Transpose");
+            }
             
             if( WellFormed() )
             {
@@ -432,7 +442,15 @@ namespace Tensors
                             const Int j = A_inner[k];
                             const LInt pos = --c[ j ];
                             B_inner [pos] = i;
-                            B_values[pos] = A_values[k];
+                            
+                            if constexpr ( conjugate )
+                            {
+                                B_values[pos] = conj(A_values[k]);
+                            }
+                            else
+                            {
+                                B_values[pos] = A_values[k];
+                            }
                         }
                     }
                 }
@@ -442,7 +460,14 @@ namespace Tensors
                 // We only have to care about the correct ordering of inner indices and values.
                 B.SortInner();
                 
-                ptoc(ClassName()+"::Transpose");
+                if constexpr ( conjugate )
+                {
+                    ptoc(ClassName()+"::ConjugateTranspose");
+                }
+                else
+                {
+                    ptic(ClassName()+"::Transpose");
+                }
                 
                 return B;
             }
@@ -451,6 +476,18 @@ namespace Tensors
                 CLASS B ( n, m, 0, thread_count );
                 return B;
             }
+        }
+        
+    public:
+        
+        CLASS Transpose() const
+        {
+            return transpose<false>();
+        }
+        
+        CLASS ConjugateTranspose() const
+        {
+            return transpose<true>();
         }
         
         

@@ -232,7 +232,7 @@ namespace Tensors
             
             if( WellFormed() )
             {
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     const Int i_begin = job_ptr[thread  ];

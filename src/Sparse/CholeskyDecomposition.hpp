@@ -4,9 +4,9 @@
 #include <unordered_set>
 
 #include <Accelerate/Accelerate.h>
+//#include <openblas.h>
 
 #include "../BLAS_Wrappers.hpp"
-#include "../LAPACK_Wrappers.hpp"
 
 // Super helpful literature:
 // Stewart - Building an Old-Fashioned Sparse Solver
@@ -33,8 +33,10 @@ namespace Tensors
             
             using List_T = SortedList<Int,Int>;
             
-            
         protected:
+            
+            static constexpr Scalar zero = 0;
+            static constexpr Scalar one  = 1;
             
             const Int n = 0;
             const Int thread_count = 1;
@@ -59,27 +61,27 @@ namespace Tensors
             
             // Pointers from supernodes to their rows.
             // k-th supernode has rows [ SN_rp[k],...,SN_rp[k+1] [
-            Tensor1<LInt, Int> SN_rp;
+            Tensor1<  LInt, Int> SN_rp;
             // Pointers from supernodes to their starting position in SN_inner.
-            Tensor1<LInt, Int> SN_outer;
+            Tensor1<  LInt, Int> SN_outer;
             // The column indices of the supernodes.
             // k-th supernode has column indices [ SN_inner[SN_outer[k]],...,SN_innerSN_outer[k+1]] [
-            Tensor1< Int,LInt> SN_inner;
+            Tensor1<   Int,LInt> SN_inner;
             
             // column indices of i-th row of U can be found in SN_inner in the half-open interval
             // [ U_begin[i],...,U_end[i] [
-            Tensor1< Int,LInt> U_begin;
-            Tensor1< Int,LInt> U_end;
+            Tensor1<   Int,LInt> U_begin;
+            Tensor1<   Int,LInt> U_end;
             
             // Values of triangular part of k-th supernode is stored in
-            // [ SN_tri_values[SN_tri_ptr[k]],...,SN_tri_values[SN_tri_ptr[k]+1] [
-            Tensor1<LInt, Int>   SN_tri_ptr;
-            Tensor1<Scalar,LInt> SN_tri_values;
+            // [ SN_tri_vals[SN_tri_ptr[k]],...,SN_tri_vals[SN_tri_ptr[k]+1] [
+            Tensor1<  LInt, Int> SN_tri_ptr;
+            Tensor1<Scalar,LInt> SN_tri_vals;
             
             // Values of rectangular part of k-th supernode is stored in
-            // [ SN_rec_values[SN_rec_ptr[k]],...,SN_rec_values[SN_rec_ptr[k]+1] [
-            Tensor1<LInt, Int>   SN_rec_ptr;
-            Tensor1<Scalar,LInt> SN_rec_values;
+            // [ SN_rec_vals[SN_rec_ptr[k]],...,SN_rec_vals[SN_rec_ptr[k]+1] [
+            Tensor1<  LInt, Int>   SN_rec_ptr;
+            Tensor1<Scalar,LInt> SN_rec_vals;
             
         public:
             
@@ -426,65 +428,190 @@ namespace Tensors
                 
                 tic("Allocating nonzero values");
                 // Allocating memory for the nonzero values of the factorization.
-                SN_tri_values = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count]);
-                SN_rec_values = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count]);
+                
+                // TODO: Filling with 0 is not really needed.
+                SN_tri_vals = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count],0);
+                SN_rec_vals = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count],0);
                 toc("Allocating nonzero values");
                 
                 toc(ClassName()+"::FactorizeSymbolically_SN");
             }
             
             
-            void U_Solve_Sequential_SN(
-                      Scalar * restrict const b,
-                const Int rhs_count = 1
-            )
+            template<int nrhs>
+            void U_Solve_Sequential_SN( Scalar * restrict const b )
             {
+                tic("U_Solve_Sequential_SN<"+ToString(nrhs)+">");
                 // Solves U * x = b and stores the result back into b.
                 // Assumes that b has size n x rhs_count.
                 
                 // Some scratch space to read parts of x that belong to a supernode's rectangular part.
-                Tensor2<Scalar,Int> x_buffer ( b, n, rhs_count );
-                
+                Tensor2<Scalar,Int> x_buffer ( n, nrhs );
                 
                 for( Int k = SN_count; k --> 0; )
                 {
-                    const n_0 = SN_rp[k+1] - SN_rp[k];
+                    const Int n_0 = SN_rp[k+1] - SN_rp[k];
                     
                     const Int l_begin = SN_outer[k  ];
                     const Int l_end   = SN_outer[k+1];
                     const Int l_mid   = l_begin + n_0;
                     
-                    const n_1 = l_end - l_mid;
-
+                    const Int n_1 = l_end - l_mid;
+                    
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_rec_ptr[k]];
+                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
                     
                     // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
                     const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
                     
                     // x_0 is the part of x that interacts with A_0, size = n_0 x rhs_count.
-                          Scalar * restrict const x_0 = &b[rhs_count * SN_rp[k]];
+                          Scalar * restrict const x_0 = &b[nrhs * SN_rp[k]];
                     
                     // x_1 is the part of x that interacts with A_1, size = n_1 x rhs_count.
-                          Scalar * restrict x_1 const = x_buffer.data();
+                          Scalar * restrict const x_1 = x_buffer.data();
                     
-                    // Load the already computed values into x_1.
-                    for( Int j = 0; j < n_1; ++j )
+                    if( n_1 > 0 )
                     {
-                        copy_buffer( &b[ rhs_count * SN_inner[l_mid+j]], x_1[rhs_count * j], rhs_count );
+                        // Load the already computed values into x_1.
+                        for( Int j = 0; j < n_1; ++j )
+                        {
+                            copy_buffer<nrhs>( &b[ nrhs * SN_inner[l_mid+j]], &x_1[nrhs * j] );
+                        }
+                        
+                        // Compute x_0 -= A_1 * x_1
+                        if constexpr ( nrhs == 1 )
+                        {
+                            gemv(
+                                CblasRowMajor, CblasNoTrans, n_0, n_1,
+                               -one, A_1, n_1,
+                                     x_1, nrhs,
+                                one, x_0, nrhs
+                            );
+                        }
+                        else
+                        {
+                            gemm(
+                                CblasRowMajor, CblasNoTrans, CblasNoTrans, n_0, nrhs, n_1,
+                               -one, A_1, n_1,
+                                x_1, nrhs,
+                                one, x_0, nrhs
+                            );
+                        }
                     }
                     
-                    // Compute x_0 -= A_1 * x_1
-                    gemm(
-                         CblasRowMajor, CblasNoTrans, CblasNoTrans, n_0, rhs_count, n_1,
-                        -one, A_1, n_1,
-                              x_1, rhs_count,
-                         one, x_0, rhs_count
-                    );
+                    // Triangle solve A_0 * x_0 = b while overwriting x_0.
+                    if( n_0 == 1 )
+                    {
+                        scale_buffer<nrhs>( one / A_0[0], x_0 );
+                    }
+                    else
+                    {
+                        TriangularSolve<nrhs,CblasUpper,CblasNonUnit>( n_0, A_0, x_0 );
+                    }
+                }
+                toc("U_Solve_Sequential_SN<"+ToString(nrhs)+">");
+            }
+            
+            template<int nrhs_lo, int nrhs_hi>
+            void U_Solve_Sequential_SN( Scalar * restrict const b, const int nrhs )
+            {
+                if constexpr (nrhs_lo == nrhs_hi )
+                {
+                    U_Solve_Sequential_SN<nrhs_lo>(b);
+                }
+                else
+                {
+                    const int nrhs_mid = nrhs_lo + (nrhs_hi - nrhs_lo)/2;
+                    if( nrhs == nrhs_mid )
+                    {
+                        U_Solve_Sequential_SN<nrhs_mid>(b);
+                    }
+                    else if( nrhs < nrhs_mid )
+                    {
+                        U_Solve_Sequential_SN<nrhs_lo,nrhs_mid-1>(b,nrhs);
+                    }
+                    else
+                    {
+                        U_Solve_Sequential_SN<nrhs_mid+1,nrhs_hi>(b,nrhs);
+                    }
+                }
+            }
+            
+            void U_Solve_Sequential_SN( Scalar * restrict const b, const int nrhs )
+            {
+                tic("U_Solve_Sequential_SN");
+                // Solves U * x = b and stores the result back into b.
+                // Assumes that b has size n x rhs_count.
+                
+                if( nrhs == 1 )
+                {
+                    U_Solve_Sequential_SN<1>(b);
+                    toc("U_Solve_Sequential_SN");
+                    return;
+                }
+                else if( nrhs <= TriangularSolveDetails::MaxNRHS )
+                {
+                    U_Solve_Sequential_SN<2,TriangularSolveDetails::MaxNRHS>(b,nrhs);
+                    toc("U_Solve_Sequential_SN");
+                    return;
+                }
+                
+                // Some scratch space to read parts of x that belong to a supernode's rectangular part.
+                Tensor2<Scalar,Int> x_buffer ( n, nrhs );
+                
+                for( Int k = SN_count; k --> 0; )
+                {
+                    const Int n_0 = SN_rp[k+1] - SN_rp[k];
+                    
+                    const Int l_begin = SN_outer[k  ];
+                    const Int l_end   = SN_outer[k+1];
+                    const Int l_mid   = l_begin + n_0;
+                    
+                    const Int n_1 = l_end - l_mid;
+                    
+                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
+                    
+                    // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                    const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
+                    
+                    // x_0 is the part of x that interacts with A_0, size = n_0 x rhs_count.
+                          Scalar * restrict const x_0 = &b[nrhs * SN_rp[k]];
+                    
+                    // x_1 is the part of x that interacts with A_1, size = n_1 x rhs_count.
+                          Scalar * restrict const x_1 = x_buffer.data();
+                    
+                    if( n_1 > 0 )
+                    {
+                        // Load the already computed values into x_1.
+                        for( Int j = 0; j < n_1; ++j )
+                        {
+                            copy_buffer( &b[ nrhs * SN_inner[l_mid+j]], &x_1[nrhs * j], nrhs );
+                        }
+                        
+                        // Compute x_0 -= A_1 * x_1
+                        gemm(
+                            CblasRowMajor, CblasNoTrans, CblasNoTrans, n_0, nrhs, n_1,
+                           -one, A_1, n_1,
+                            x_1, nrhs,
+                            one, x_0, nrhs
+                        );
+                    }
                     
                     // Triangle solve A_0 * x_0 = b while overwriting x_0.
-                    trsm('L', 'U', 'N', 'N', n_0, rhs_count, one, A_0, n_0, x_0, rhs_count);
+                    if( n_0 == 1 )
+                    {
+                        scale_buffer( one / A_0[0], x_0, nrhs );
+                    }
+                    else
+                    {
+                        trsm(
+                            CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit,
+                            n_0, nrhs, one, A_0, n_0, x_0, nrhs
+                        );
+                    }
                 }
+                toc("U_Solve_Sequential_SN");
             }
             
             const SparseMatrix_T & GetL() const
@@ -508,47 +635,63 @@ namespace Tensors
             }
             
             
-            const Tensor1<LInt, Int> & SN_RowPointers() const
+            Int SN_Count() const
+            {
+                return SN_count;
+            }
+            
+            const Tensor1<LInt,Int> & SN_RowPointers() const
             {
                 return SN_rp;
             }
             
-            const Tensor1<LInt, Int> & SN_Outer() const
+            const Tensor1<LInt,Int> & SN_Outer() const
             {
                 return SN_outer;
             }
             
-            const Tensor1< Int,LInt> & SN_Inner() const
+            const Tensor1<Int,LInt> & SN_Inner() const
             {
                 return SN_inner;
             }
             
-            const Tensor1<LInt, Int> & SN_TrianglePointers() const
+            const Tensor1<LInt,Int> & SN_TrianglePointers() const
             {
                 return SN_tri_ptr;
             }
             
-            const Tensor1<Scalar,LInt> & SN_TriangleValues() const
+            
+            Tensor1<Scalar,LInt> & SN_TriangleValues()
             {
-                return SN_tri_values;
+                return SN_tri_vals;
             }
             
-            const Tensor1<LInt, Int> & SN_RectanglePointers() const
+            const Tensor1<Scalar,LInt> & SN_TriangleValues() const
+            {
+                return SN_tri_vals;
+            }
+            
+            const Tensor1<LInt,Int> & SN_RectanglePointers() const
             {
                 return SN_rec_ptr;
             }
             
-            const Tensor1<Scalar,LInt> & SN_RectangleValues() const
+            Tensor1<Scalar,LInt> & SN_RectangleValues()
             {
-                return SN_rec_values;
+                return SN_rec_vals;
             }
             
-            const Tensor1<LInt, Int> & U_Begin() const
+            const Tensor1<Scalar,LInt> & SN_RectangleValues() const
+            {
+                return SN_rec_vals;
+            }
+            
+            const Tensor1<LInt,Int> & U_Begin() const
             {
                 return U_begin;
             }
             
-            const Tensor1<LInt, Int> & U_End() const
+            const Tensor1<LInt,Int> & U_End() const
             {
                 return U_end;
             }

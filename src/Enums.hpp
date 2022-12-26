@@ -13,4 +13,17 @@ namespace Tensors
         Left  = true,
         Right = false
     };
+    
+    enum class Layout : bool
+    {
+        RowMajor  = true,
+        ColMajor = false
+    };
+    
+    enum class Op : char
+    {
+        Identity  = 'N',
+        Transpose = 'T',
+        ConjugateTranspose = 'C'
+    };
 }

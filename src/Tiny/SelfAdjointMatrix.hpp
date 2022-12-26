@@ -124,7 +124,7 @@ namespace Tensors
                 }
                 
                 // Upper triangular back substitution
-                for( Int i = n-1; i > -1; --i )
+                for( Int i = n; i --> 0; )
                 {
                     for( Int j = i+1; j < n; ++j )
                     {
