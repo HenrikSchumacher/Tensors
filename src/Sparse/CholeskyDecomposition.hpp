@@ -5,6 +5,9 @@
 
 #include <Accelerate/Accelerate.h>
 
+#include "../BLAS_Wrappers.hpp"
+#include "../LAPACK_Wrappers.hpp"
+
 // Super helpful literature:
 // Stewart - Building an Old-Fashioned Sparse Solver
 
@@ -432,22 +435,20 @@ namespace Tensors
             
             
             void U_Solve_Sequential_SN(
-                const Scalar * restrict const b_,
-                      Scalar * restrict const x_,
+                      Scalar * restrict const b,
                 const Int rhs_count = 1
             )
             {
+                // Solves U * x = b and stores the result back into b.
+                // Assumes that b has size n x rhs_count.
                 
-                Tensor2<Scalar,Int> x_0_buffer ( n, rhs_count );
-                Tensor2<Scalar,Int> x_1_buffer ( n, rhs_count );
-                Tensor2<Scalar,Int> b_buffer   ( b_, n, rhs_count );
+                // Some scratch space to read parts of x that belong to a supernode's rectangular part.
+                Tensor2<Scalar,Int> x_buffer ( b, n, rhs_count );
                 
-                Scalar * restrict x_0 const = x_0_buffer.data();
-                Scalar * restrict x_1 const = x_1_buffer.data();
                 
                 for( Int k = SN_count; k --> 0; )
                 {
-                    const n_0 = SN_rp[k+1]-SN_rp[k];
+                    const n_0 = SN_rp[k+1] - SN_rp[k];
                     
                     const Int l_begin = SN_outer[k  ];
                     const Int l_end   = SN_outer[k+1];
@@ -455,40 +456,34 @@ namespace Tensors
                     
                     const n_1 = l_end - l_mid;
 
+                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     const Scalar * restrict const A_0 = &SN_tri_vals[SN_rec_ptr[k]];
                     
+                    // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
                     const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
                     
-                          Scalar * restrict       b   = &b_buffer[SN_rp[k]];
+                    // x_0 is the part of x that interacts with A_0, size = n_0 x rhs_count.
+                          Scalar * restrict const x_0 = &b[rhs_count * SN_rp[k]];
                     
-                    copy_buffer( b, x_0, n_0 * rhs_count );
-                    
+                    // x_1 is the part of x that interacts with A_1, size = n_1 x rhs_count.
+                          Scalar * restrict x_1 const = x_buffer.data();
                     
                     // Load the already computed values into x_1.
                     for( Int j = 0; j < n_1; ++j )
                     {
-                        copy_buffer( &x_[ rhs_count * SN_inner[l_mid+j]], x_1[rhs_count * j], rhs_count );
+                        copy_buffer( &b[ rhs_count * SN_inner[l_mid+j]], x_1[rhs_count * j], rhs_count );
                     }
                     
-                    // Compute b -= A_1 * x_1
-                    // gemm(n_0, rhs_count, n_1, -one, A_1, x_1, one, &b[SN_rp[k]] );
-                    
-                    cblas_dgemm(CblasNoTrans,CblasNoTrans,n_0,rhs_count,n_1,
+                    // Compute x_0 -= A_1 * x_1
+                    gemm(
+                         CblasRowMajor, CblasNoTrans, CblasNoTrans, n_0, rhs_count, n_1,
                         -one, A_1, n_1,
                               x_1, rhs_count,
-                         one, b  , rhs_count
+                         one, x_0, rhs_count
                     );
                     
-                    // Triangle solve A_0 * x_0 = b
-                    dtrsm(side, uplo, transa, diag, n_0, rhs_count, one, A_0, n_0, x_0, rhs_count);
-                    
-                    // trsm( Side::Left, Triangular::Upper, true, n_0, rhs_count, one, A_0, &b[SN_rp[k]], x_0 );
-                    
-                    // Write the newly computed values from x_0 to x_. (The are consecutive!)
-                    for( Int j = 0; j < n_0; ++j )
-                    {
-                        copy_buffer( x_0[rhs_count * j], &x_[rhs_count * SN_inner[l_begin+j]], rhs_count );
-                    }
+                    // Triangle solve A_0 * x_0 = b while overwriting x_0.
+                    trsm('L', 'U', 'N', 'N', n_0, rhs_count, one, A_0, n_0, x_0, rhs_count);
                 }
             }
             
