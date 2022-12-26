@@ -289,17 +289,10 @@ namespace Tensors
         }
         else
         {
-            if( nrhs == 1 )
-            {
-                
-            }
-            else
-            {
-                trsm(
-                    CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit,
-                    n, nrhs, static_cast<Scalar>(1), A, n, B, nrhs
-                );
-            }
+            trsm(
+                CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit,
+                n, nrhs, static_cast<Scalar>(1), A, n, B, nrhs
+            );
         }
     }
     
