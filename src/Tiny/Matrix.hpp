@@ -261,6 +261,69 @@ namespace Tensors
             }
             
         public:
+            
+            template<
+                bool add_to,
+                int M, int K, int N,
+                typename R, typename S, typename T, typename Int
+            >
+            friend force_inline
+            std::enable_if_t<
+                (
+                    std::is_same_v<R,T>
+                    ||
+                    (ScalarTraits<T>::IsComplex && std::is_same_v<R,typename ScalarTraits<T>::Real>)
+                )
+                &&
+                (
+                    std::is_same_v<S,T>
+                    ||
+                    (ScalarTraits<T>::IsComplex && std::is_same_v<S,typename ScalarTraits<T>::Real>)
+                )
+                ,
+                void
+            >
+            Dot(
+                const CLASS<M,K,R,Int> & A,
+                const CLASS<K,N,S,Int> & B,
+                      CLASS<M,N,T,Int> & C
+            )
+            {
+                // First pass to overwrite (if desired).
+                LOOP_UNROLL_FULL
+                for( Int i = 0; i < M; ++i )
+                {
+                    LOOP_UNROLL_FULL
+                    for( Int j = 0; j < N; ++j )
+                    {
+                        if constexpr ( add_to )
+                        {
+                            C[i][j] += A[i][0] * B[0][j];
+                        }
+                        else
+                        {
+                            C[i][j] = A[i][0] * B[0][j];
+                        }
+                    }
+                }
+                
+                // Now add-in the rest.
+                LOOP_UNROLL_FULL
+                for( Int k = 1; k < K; ++k )
+                {
+                    LOOP_UNROLL_FULL
+                    for( Int i = 0; i < M; ++i )
+                    {
+                        LOOP_UNROLL_FULL
+                        for( Int j = 0; j < N; ++j )
+                        {
+                            C[i][j] += A[i][k] * B[k][j];
+                        }
+                    }
+                }
+            }
+            
+        public:
 
             static constexpr Int RowCount()
             {
@@ -297,10 +360,11 @@ namespace Tensors
         
     } // namespace Tiny
         
-//    template< int M, int N, typename Scalar, typename Int >
-//    void
-    
-    template< int M, int N, typename Scalar, typename R, typename S, typename T, typename Int >
+
+    template<
+        bool add_to,
+        int M, int N, typename Scalar, typename R, typename S, typename T, typename Int
+    >
     force_inline
     std::enable_if_t<
         (
@@ -323,55 +387,29 @@ namespace Tensors
               Tiny::Vector<M,  T,Int> & y
     )
     {
+        LOOP_UNROLL_FULL
         for( Int i = 0; i < M; ++i )
         {
             T y_i (0);
             
+            LOOP_UNROLL_FULL
             for( Int j = 0; j < N; ++j )
             {
                 y_i += A[i][j] * x[j];
             }
             
-            y[i] = y_i;
+            if constexpr ( add_to )
+            {
+                y[i] += y_i;
+            }
+            else
+            {
+                y[i] = y_i;
+            }
         }
     }
     
-    template< int M, int K, int N, typename R, typename S, typename T, typename Int >
-    force_inline
-    std::enable_if_t<
-        (
-            std::is_same_v<R,T>
-            ||
-            (ScalarTraits<T>::IsComplex && std::is_same_v<R,typename ScalarTraits<T>::Real>)
-        )
-        &&
-        (
-            std::is_same_v<S,T>
-            ||
-            (ScalarTraits<T>::IsComplex && std::is_same_v<S,typename ScalarTraits<T>::Real>)
-        )
-        ,
-        void
-    >
-    Dot(
-        const Tiny::Matrix<M,K,R,Int> & A,
-        const Tiny::Matrix<K,N,S,Int> & B,
-              Tiny::Matrix<M,N,T,Int> & C
-    )
-    {
-        for( Int i = 0; i < M; ++i )
-        {
-            Tiny::Vector<N,T,Int> C_i = {};
-            for( Int k = 0; k < K; ++k )
-            {
-                for( Int j = 0; j < N; ++j )
-                {
-                    C_i[j] += A[i][k] * B[k][j];
-                }
-            }
-            C_i.Write( C[i] );
-        }
-    }
+    
     
 } // namespace Tensors
 

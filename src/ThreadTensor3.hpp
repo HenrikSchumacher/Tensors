@@ -349,15 +349,15 @@ namespace Tensors {
         }
         
         template<typename S, typename J>
-        void AddReduce( Tensor2<S,J> & B, const bool addto ) const
+        void AddReduce( Tensor2<S,J> & B, const bool add_to ) const
         {
-            AddReduce( B.data(), addto );
+            AddReduce( B.data(), add_to );
         }
         
         template<typename S>
-        void AddReduce( S * const B, const bool addto ) const
+        void AddReduce( S * const B, const bool add_to ) const
         {
-            if( addto )
+            if( add_to )
             {
                 for( Int i = 0; i < dims[0]; ++ i )
                 {

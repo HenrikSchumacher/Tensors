@@ -254,14 +254,14 @@ namespace Tensors {
 //    template<typename Int>
 //    void Dot ( const Tensor2<double,Int> & A, const CBLAS_TRANSPOSE transA,
 //                      const Tensor2<double,Int> & B, const CBLAS_TRANSPOSE transB,
-//                            Tensor2<double,Int> & C, bool addTo = false )
+//                            Tensor2<double,Int> & C, bool add_to = false )
 //    {
 //        double alpha = 1.;
 //        Int m = C.Dimension(0);
 //        Int n = C.Dimension(1);
 //        Int k = A.Dimension(transA == CblasNoTrans);
 //
-//        cblas_dgemm( CblasRowMajor, transA, transB, m, n, k, alpha, A.data(), k, B.data(), n, addTo, C.data(), n );
+//        cblas_dgemm( CblasRowMajor, transA, transB, m, n, k, alpha, A.data(), k, B.data(), n, add_to, C.data(), n );
 //    }
 
 //    template<typename Int>
