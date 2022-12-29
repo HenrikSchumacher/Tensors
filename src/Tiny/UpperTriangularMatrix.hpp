@@ -13,7 +13,7 @@ namespace Tensors
             // Allocates a square array, but accesses only upper triangle.
             
         public:
-            
+
 #include "Tiny_Details.hpp"
             
             static constexpr Int n = n_;
@@ -62,7 +62,124 @@ namespace Tensors
                 
                 return det;
             }
+
+            template<Op op = Op::Identity, Diagonal diag = Diagonal::Generic>
+            void Solve( Vector<n,Scalar,Int> & b )
+            {
+                // Solves op(A) x = b and overwrites b with the solution.
+                
+                if constexpr ( op == Op::Identity )
+                {
+                    // Upper triangular back substitution
+                    for( int i = n; i --> 0; )
+                    {
+                        for( int j = i+1; j < n; ++j )
+                        {
+                            b[i] -= A[i][j] * b[j];
+                        }
+                        
+                        if constexpr (diag == Diagonal::Generic )
+                        {
+                            b[i] /= A[i][i];
+                        }
+                    }
+                }
+                else if constexpr ( op == Op::Transpose )
+                {
+                    // Lower triangular back substitution from the left
+                    for( Int i = 0; i < n; ++i )
+                    {
+                        for( Int j = 0; j < i; ++j )
+                        {
+                            b[i] -= A[j][i] * b[j];
+                        }
+                        
+                        if constexpr (diag == Diagonal::Generic )
+                        {
+                            b[i] /= A[i][i];
+                        }
+                    }
+                }
+                else if constexpr ( op == Op::ConjugateTranspose )
+                {
+                    // Lower triangular back substitution from the left
+                    for( Int i = 0; i < n; ++i )
+                    {
+                        for( Int j = 0; j < i; ++j )
+                        {
+                            b[i] -= conj(A[j][i]) * b[j];
+                        }
+                        
+                        if constexpr (diag == Diagonal::Generic )
+                        {
+                            b[i] /= conj(A[i][i]);
+                        }
+                    }
+                }
+            }
             
+            template<int nrhs, Op op = Op::Identity, Diagonal diag = Diagonal::Generic>
+            void Solve( Matrix<n,nrhs,Scalar,Int> & B )
+            {
+                // Solves op(A) * X == B and overwrites B the solution with X.
+                if constexpr ( op == Op::Identity )
+                {
+                    // Upper triangular back substitution from the left
+                    for( int i = n; i --> 0; )
+                    {
+                        for( int j = i+1; j < n; ++j )
+                        {
+                            for( int k = 0; k < nrhs; ++k )
+                            {
+                                B[i][k] -= A[i][j] * B[j][k];
+                            }
+                        }
+                        
+                        if constexpr (diag == Diagonal::Generic )
+                        {
+                            scale_buffer<nrhs>( static_cast<Scalar>(1) / A[i][i], &B[i][0] );
+                        }
+                    }
+                }
+                else if constexpr ( op == Op::Transpose )
+                {
+                    // Lower triangular back substitution from the left
+                    for( Int i = 0; i < n; ++i )
+                    {
+                        for( Int j = 0; j < i; ++j )
+                        {
+                            for( int k = 0; k < nrhs; ++k )
+                            {
+                                B[i][k] -= A[j][i] * B[j][k];
+                            }
+                        }
+                        
+                        if constexpr (diag == Diagonal::Generic )
+                        {
+                            scale_buffer<nrhs>( static_cast<Scalar>(1) / A[i][i], &B[i][0] );
+                        }
+                    }
+                }
+                else if constexpr ( op == Op::ConjugateTranspose )
+                {
+                    for( Int i = 0; i < n; ++i )
+                    {
+                        for( Int j = 0; j < i; ++j )
+                        {
+                            for( int k = 0; k < nrhs; ++k )
+                            {
+                                B[i][k] -= conj(A[j][i]) * B[j][k];
+                            }
+                        }
+                        
+                        if constexpr (diag == Diagonal::Generic )
+                        {
+                            scale_buffer<nrhs>( static_cast<Scalar>(1) / conj(A[i][i]), &B[i][0] );
+                        }
+                    }
+                }
+            }
+
             
             std::string ToString( const int p = 16) const
             {

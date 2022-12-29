@@ -2,21 +2,22 @@
 
 namespace Tensors
 {
-    
     namespace MyBLAS
     {
         
         template<
-            CBLAS_SIDE side,
-            CBLAS_UPLO uplo,
-            CBLAS_TRANSPOSE opA,
-            CBLAS_DIAG diag,
+            Side side,
+            Triangular uplo,
+            Op op,
+            Diagonal diag,
             int N, int NRHS,
-            ScalarFlag alpha_flag, ScalarFlag beta_flag,
+            ScalarFlag alpha_flag,
             typename Scalar
         >
         class TRSM
         {
+            static_assert( side == Side::Left, "TRSM is not defined for Side::Right." );
+            
         public:
             
             static constexpr int MaxN    = 16;
@@ -34,15 +35,8 @@ namespace Tensors
             {
                 if constexpr( (1 <= N) && (N<=MaxN) && (1 <= MaxNRHS) && (NRHS<=MaxNRHS) )
                 {
-                    Tiny::trsm<opB,M,N,K,alpha_flag,beta_flag>(
-                        side,uplo,opA,diag,
-                        alpha,A,ldA,B,ldB
-                    );
+                    Tiny::trsm<side,uplo,op,diag,N,NRHS,alpha_flag>(alpha,A,ldA,B,ldB);
                 }
-//                else if constexpr( (1 <= N) && (N<=MaxN) )
-//                {
-//                    gemm_N_<N>(m,k,alpha,A,ldA,B,ldB,beta,C,ldC);
-//                }
                 else
                 {
 //                    if constexpr ( NRHS == 1 )
@@ -61,7 +55,10 @@ namespace Tensors
 //                    else
                     {
                         Tensors::BLAS_Wrappers::trsm( CblasRowMajor,
-                            side,uplo,transa,diag,
+                            static_cast<CBLAS_SIDE>(side),
+                            static_cast<CBLAS_UPLO>(uplo),
+                            static_cast<CBLAS_TRANSPOSE>(op),
+                            static_cast<CBLAS_DIAG>(op),
                             n,nrhs,alpha,A,ldA,B,ldB
                         );
                     }

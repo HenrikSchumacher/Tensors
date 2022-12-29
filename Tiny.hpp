@@ -10,3 +10,4 @@
 
 
 #include "src/Tiny/gemm.hpp"
+#include "src/Tiny/trsm.hpp"

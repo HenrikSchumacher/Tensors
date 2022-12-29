@@ -5,54 +5,65 @@ namespace Tensors
     namespace Tiny
     {
         template<
-            const Op opA,
-            int N, int NRHS,
+            Side side,
+            Triangular uplo,
+            Op opA,
+            Diagonal diag,
+            int N,
+            int NRHS,
             ScalarFlag alpha_flag,
-            typename Scalar,    typename Int,
-            typename Scalar_in, typename Scalar_out
+            typename Scalar,
+            typename Int,
+            typename Scalar_in
         >
         void trsm(
-            const Scalar_out alpha,
+            const Scalar_in  alpha,
             const Scalar     * restrict const A_, const Int ldA,
             const Scalar_in  * restrict const B_, const Int ldB
         )
         {
-            // Computes C = alpha * opA(A) * opB(B) + beta * C.
-            Tiny::Matrix<M,K,Scalar,Int> A;
-            Tiny::Matrix<K,N,Scalar,Int> B;
-            Tiny::Matrix<M,N,Scalar,Int> C;
-            A.template Read<opA>(A_,ldA);
-            B.template Read<opB>(B_,ldB);
-            Dot<0>(A,B,C);
-            C.template Write<alpha_flag,beta_flag>(alpha,beta,C_,ldC);
+            // Solves opA(A) * C = alpha * B and stores the result in B.
+            
+            static_assert( side == Side::Left, "Tiny::trsm is not defined for Side::Right.");
+            static_assert( uplo == Triangular::Upper, "Tiny::trsm is not defined for Triangular::Lower.");
+
+            Tiny::UpperTriangularMatrix<N,Scalar,Int> A;
+            Tiny::Matrix<N,NRHS,Scalar,Int> B;
+            A.template Read(A_,ldA);
+            B.template Read<Op::Identity>(B_,ldB);
+            A.template Solve<opA,diag>(B);
+            B.template Write<alpha_flag,ScalarFlag::Zero>(alpha,0,B_,ldB);
         }
         
         template<
-            const Op opA, const Op opB,
-            int M, int N, int K,
-            ScalarFlag alpha_flag, ScalarFlag beta_flag,
-            typename Scalar,    typename Int,
-            typename Scalar_in, typename Scalar_out
+            Side side,
+            Triangular uplo,
+            Op opA,
+            Diagonal diag,
+            int N,
+            int NRHS,
+            ScalarFlag alpha_flag,
+            typename Scalar,
+            typename Int,
+            typename Scalar_in
         >
-        void gemm(
-            const Scalar_out alpha,
-            const Scalar     * restrict const A_, const Int ldA,
-            const Scalar_in  * restrict const B_, const Int ldB, const Int * restrict const idx,
-            const Scalar_out beta,
-                  Scalar_out * restrict const C_, const Int ldC
+        void trsm(
+            const Scalar_in  alpha,
+            const Scalar     * restrict const A_,
+            const Scalar_in  * restrict const B_
         )
         {
-            // Computes C = alpha * opA(A) * opB(B) + beta * C.
-            // Reads from B in row-scattered fashion.
+            // Solves opA(A) * C = alpha * B and stores the result in B.
             
-            Tiny::Matrix<M,K,Scalar,Int> A;
-            Tiny::Matrix<K,N,Scalar,Int> B;
-            Tiny::Matrix<M,N,Scalar,Int> C;
+            static_assert( side == Side::Left, "Tiny::trsm is not defined for Side::Right.");
+            static_assert( uplo == Triangular::Upper, "Tiny::trsm is not defined for Triangular::Lower.");
             
-            A.template Read<opA>(A_,ldA);
-            B.template Read<opB>(B_,ldB,idx);
-            Dot<0>(A,B,C);
-            C.template Write<alpha_flag,beta_flag>(alpha,beta,C_,ldC);
+            Tiny::UpperTriangularMatrix<N,Scalar,Int> A;
+            Tiny::Matrix<N,NRHS,Scalar,Int> B;
+            A.template Read(A_);
+            B.template Read<Op::Identity>(B_);
+            A.template Solve<opA,diag>(B);
+            B.template Write<alpha_flag,ScalarFlag::Zero>(alpha,0,B_);
         }
         
     } // namespace Tiny

@@ -25,19 +25,35 @@ public:
         }
     }
     
-    force_inline void Read( const Scalar * const source )
+    force_inline void Read( const Scalar * const B )
     {
         if constexpr ( n > 0 )
         {
-            read<0>(source);
+            read<0>(B);
+        }
+    }
+
+    force_inline void Read( const Scalar * const B, const Int ldB )
+    {
+        if constexpr ( n > 0 )
+        {
+            read<0>(B,ldB);
         }
     }
     
-    force_inline void Write( Scalar * target ) const
+    force_inline void Write( Scalar * B ) const
     {
         if constexpr ( n > 0 )
         {
-            write<0>(target);
+            write<0>(B);
+        }
+    }
+
+    force_inline void Write( Scalar * B, const Int ldB ) const
+    {
+        if constexpr ( n > 0 )
+        {
+            write<0>(B,ldB);
         }
     }
     
@@ -77,6 +93,17 @@ protected:
             read<k+1>( &B[n+1] );
         }
     }
+
+    template<Int k>
+    force_inline void read( const Scalar * restrict const B, const Int ldB )
+    {
+        copy_buffer<n-k>( B, &A[k][k] );
+        
+        if constexpr ( n > k+1 )
+        {
+            read<k+1>( &B[ldB+1], ldB );
+        }
+    }
     
     template<Int k>
     force_inline void write( Scalar * restrict const B ) const
@@ -86,6 +113,17 @@ protected:
         if constexpr ( n > k+1 )
         {
             write<k+1>( &B[n+1] );
+        }
+    }
+
+    template<Int k>
+    force_inline void write( Scalar * restrict const B, const Int ldB ) const
+    {
+        copy_buffer<n-k>( &A[k][k], B );
+        
+        if constexpr ( n > k+1 )
+        {
+            write<k+1>( &B[ldB+1], ldB );
         }
     }
 

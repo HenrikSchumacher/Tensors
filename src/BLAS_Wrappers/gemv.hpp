@@ -4,7 +4,6 @@ namespace Tensors
 {
     namespace BLAS_Wrappers
     {
-        
         template<typename Scalar>
         force_inline void gemv(
             const CBLAS_ORDER     layout,
