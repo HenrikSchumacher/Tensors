@@ -86,18 +86,6 @@ public:
         {
             copy_buffer<n>( B, &A[0][0] );
         }
-        else if constexpr ( op == Op::Conjugate )
-        {
-            for( Int i = 0; i < n; ++i )
-            {
-                const Scalar * restrict const B_i = &B[n*i];
-                
-                for( Int j = 0; j < m; ++j )
-                {
-                    A[i][j] = conj(B_i[j]);
-                }
-            }
-        }
         else if constexpr ( op == Op::Transpose )
         {
             // TODO: Not sure whether it would be better to swap the two loops here...
@@ -136,18 +124,6 @@ public:
             for( Int i = 0; i < m; ++i )
             {
                 copy_buffer<n>( &B[ldB*i], &A[i][0] );
-            }
-        }
-        else if constexpr ( op == Op::Conjugate )
-        {
-            for( Int i = 0; i < n; ++i )
-            {
-                const Scalar * restrict const B_i = &B[ldB*i];
-                
-                for( Int j = 0; j < m; ++j )
-                {
-                    A[i][j] = conj(B_i[j]);
-                }
             }
         }
         else if constexpr ( op == Op::Transpose )
@@ -189,18 +165,6 @@ public:
             for( Int i = 0; i < m; ++i )
             {
                 copy_buffer<n>( &B[ldB*idx[i]], &A[i][0] );
-            }
-        }
-        else if constexpr ( op == Op::Conjugate )
-        {
-            for( Int i = 0; i < n; ++i )
-            {
-                const Scalar * restrict const B_i = &B[ldB*idx[i]];
-                
-                for( Int j = 0; j < m; ++j )
-                {
-                    A[i][j] = conj(B_i[j]);
-                }
             }
         }
         else if constexpr ( op == Op::Transpose )

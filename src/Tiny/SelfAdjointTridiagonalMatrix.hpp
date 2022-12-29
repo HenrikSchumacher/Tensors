@@ -150,7 +150,7 @@ namespace Tensors
             }
             
             template<typename T = Scalar>
-            void ToMatrix( SquareMatrix<n,T,Int> & B ) const
+            void ToMatrix( Matrix<n,n,T,Int> & B ) const
             {
                 B.SetZero();
                 
@@ -171,8 +171,8 @@ namespace Tensors
                 void
             >
             QRAlgorithm(
-                SquareMatrix<n,S,Int> & Q,
-                Vector<n,S,Int> & eigs,
+                Matrix<n,n,S,Int> & Q,
+                Vector<n,  S,Int> & eigs,
                 const Real tol = eps_sqrt,
                 const Int max_iter = 4
             )
@@ -243,7 +243,7 @@ namespace Tensors
             
 
             force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
-            qr_algorithm_2x2( SquareMatrix<n,Real,Int> & Q )
+            qr_algorithm_2x2( Matrix<n,n,Real,Int> & Q )
             {
                 const Real a_0 = diag[0];
                 const Real a_1 = diag[1];
@@ -305,7 +305,7 @@ namespace Tensors
 //
             force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
             qr_algorithm(
-                SquareMatrix<n,Real,Int> & Q,
+                Matrix<n,n,Real,Int> & Q,
                 const Int m,
                 const Real tol,
                 const Int iter,
@@ -314,8 +314,6 @@ namespace Tensors
             {
                 // Performs the implicit QR algorithm in the block A[begin..end-1][begin..end-1].
                 // Assumes that m > 2 (otherwise we would have called qr_algorithm_2x2 or stopped.
-                
-//                dump(*this);
                 
                 // Compute Wilkinson’s shift mu
                 const Real a = diag[m-1];
@@ -604,9 +602,6 @@ namespace Tensors
                     }
                     else
                     {
-//                        dump(m);
-//                        dump(std::abs(upper[m-2])/(std::abs(diag[m-2])+std::abs(diag[m-1])));
-                        
                         // We give up to improve this eigenvalue. Go to the next one.
                         if ( m == 3 )
                         {

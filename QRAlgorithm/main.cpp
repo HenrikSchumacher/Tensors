@@ -77,12 +77,12 @@ int main(int argc, const char * argv[])
     
     print("");
     
-    Tiny::SquareMatrix<n,Scalar,Int> U;
-    Tiny::SquareMatrix<n,Scalar,Int> UH;
-    Tiny::SquareMatrix<n,Scalar,Int> A_mat;
+    Tiny::Matrix<n,n,Scalar,Int> U;
+    Tiny::Matrix<n,n,Scalar,Int> UH;
+    Tiny::Matrix<n,n,Scalar,Int> A_mat;
     
     Tiny::SelfAdjointTridiagonalMatrix<n,Real,Int> T;
-    Tiny::SquareMatrix<n,Scalar,Int> T_mat;
+    Tiny::Matrix<n,n,Scalar,Int> T_mat;
     
     tic("HessenbergDecomposition");
     for( Int rep = 0; rep < reps; ++rep )
@@ -188,12 +188,12 @@ int main(int argc, const char * argv[])
     
     U.ConjugateTranspose(UH);
     
-    Tiny::SquareMatrix<n,Scalar,Int> V;
-    Tiny::SquareMatrix<n,Scalar,Int> W;
+    Tiny::Matrix<n,n,Scalar,Int> V;
+    Tiny::Matrix<n,n,Scalar,Int> W;
     
     // W = U . T_mat . UH
-    Dot( T_mat, UH, V );
-    Dot( U, V, W );
+    Dot<0>( T_mat, UH, V );
+    Dot<0>( U, V, W );
     
     
     W -= A_mat;
@@ -215,12 +215,12 @@ int main(int argc, const char * argv[])
 //
 //            U.ConjugateTranspose(UH);
 //
-//            Tiny::SquareMatrix<n,Scalar,Int> V;
-//            Tiny::SquareMatrix<n,Scalar,Int> W;
+//            Tiny::Matrix<n,n,Scalar,Int> V;
+//            Tiny::Matrix<n,n,Scalar,Int> W;
 //
 //            // W = U . T_mat . UH
-//            Dot( T_mat, UH, V );
-//            Dot( U, V, W );
+//            Dot<0>( T_mat, UH, V );
+//            Dot<0>( U, V, W );
 //
 //            W -= A_mat;
 //
@@ -232,14 +232,14 @@ int main(int argc, const char * argv[])
 //    }
     
     {
-        Tiny::SquareMatrix<n,Scalar,Int> Id;
+        Tiny::Matrix<n,n,Scalar,Int> Id;
         Id.SetIdentity();
         
-        Tiny::SquareMatrix<n,Scalar,Int> U;
-        Tiny::SquareMatrix<n,Scalar,Int> UH;
-        Tiny::SquareMatrix<n,Scalar,Int> B;
-        Tiny::SquareMatrix<n,Scalar,Int> C;
-        Tiny::SquareMatrix<n,Real,  Int> D ( static_cast<Real>(0));
+        Tiny::Matrix<n,n,Scalar,Int> U;
+        Tiny::Matrix<n,n,Scalar,Int> UH;
+        Tiny::Matrix<n,n,Scalar,Int> B;
+        Tiny::Matrix<n,n,Scalar,Int> C;
+        Tiny::Matrix<n,n,Real,  Int> D ( static_cast<Real>(0));
         Real error_0 = 0;
         Real error_1 = 0;
         Real error_2 = 0;
@@ -256,19 +256,19 @@ int main(int argc, const char * argv[])
             U.ConjugateTranspose(UH);
             D.SetDiagonal(eigs);
             
-            Dot(U,D,B);
-            Dot(B,UH,C);
+            Dot<0>(U,D,B);
+            Dot<0>(B,UH,C);
             
             C -= A_mat;
             
             error_0 = std::max( error_0, C.MaxNorm() );
             
-            Dot(UH,A_mat,B);
-            Dot(B,U,C);
+            Dot<0>(UH,A_mat,B);
+            Dot<0>(B,U,C);
             C -= D;
             error_1 = std::max( error_1, C.MaxNorm() );
             
-            Dot(U,UH,C);
+            Dot<0>(U,UH,C);
             C-=Id;
             error_2 = std::max( error_2, C.MaxNorm() );
             
@@ -308,14 +308,14 @@ int main(int argc, const char * argv[])
 
         dump(U);
         
-        Dot(U,D,B);
-        Dot(B,UH,C);
+        Dot<0>(U,D,B);
+        Dot<0>(B,UH,C);
         
         C -= A_mat;
         dump(C.MaxNorm());
         
-        Dot(UH,A_mat,B);
-        Dot(B,U,C);
+        Dot<0>(UH,A_mat,B);
+        Dot<0>(B,U,C);
         C -= D;
         dump(C.MaxNorm());
         
@@ -325,7 +325,7 @@ int main(int argc, const char * argv[])
         
         
         D.SetIdentity();
-        Dot(U,UH,B);
+        Dot<0>(U,UH,B);
         B -= D;
     
         valprint("orthogonality error",B.MaxNorm());

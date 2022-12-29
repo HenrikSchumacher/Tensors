@@ -93,7 +93,7 @@ namespace Tensors
             }
             
             template<typename T = Scalar>
-            void ToMatrix( SquareMatrix<n,T,Int> & B ) const
+            void ToMatrix( Matrix<n,n,T,Int> & B ) const
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -107,9 +107,9 @@ namespace Tensors
             }
             
             template<typename T = Scalar>
-            SquareMatrix<n,T,Int> ToMatrix() const
+            Matrix<n,n,T,Int> ToMatrix() const
             {
-                SquareMatrix<n,T,Int> B;
+                Matrix<n,n,T,Int> B;
                 
                 ToMatrix(B);
                 

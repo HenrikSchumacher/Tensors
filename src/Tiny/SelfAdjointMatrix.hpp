@@ -216,8 +216,8 @@ namespace Tensors
             }
             
             void HessenbergDecomposition(
-                SquareMatrix                <n,Scalar,Int> & U,
-                SelfAdjointTridiagonalMatrix<n,Real,Int>   & T
+                Matrix                      <n,n,Scalar,Int> & U,
+                SelfAdjointTridiagonalMatrix<n,    Real,Int> & T
             ) const
             {
                 // Computes a unitary matrix U and and a self-adjoint tridiagonal matrix T such that U . T . U^H = A.
@@ -241,7 +241,7 @@ namespace Tensors
                 
                 if constexpr ( n > 2 )
                 {
-                    SquareMatrix<n, Scalar, Int> B ;
+                    Matrix<n,n, Scalar, Int> B ;
                     Write( &B[0][0] );
                     
 //                    Scalar u [n-2][n]; // vectors of the Householder reflections.
@@ -447,7 +447,7 @@ namespace Tensors
                 
                 if constexpr ( n > 2 )
                 {
-                    SquareMatrix<n, Scalar, Int> B ;
+                    Matrix<n,n, Scalar, Int> B ;
                     Write( &B[0][0] );
                     
 //                    Scalar u [n-2][n]; // vectors of the Householder reflections.
@@ -598,16 +598,16 @@ namespace Tensors
             
             
             void Eigensystem(
-                SquareMatrix<n,Scalar,Int> & U,
-                Vector      <n,Real,  Int> & eigs,
+                Matrix<n,n,Scalar,Int> & U,
+                Vector <n,   Real,Int> & eigs,
                 const Real tol      = eps_sqrt,
                 const Int  max_iter = 8
             ) const
             {
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
                 
-                SquareMatrix<n,Scalar,Int> V;
-                SquareMatrix<n,Real,  Int> Q;
+                Matrix<n,n,Scalar,Int> V;
+                Matrix<n,n,Real,  Int> Q;
                 
                 HessenbergDecomposition(V,T);
 
@@ -646,7 +646,7 @@ namespace Tensors
             }
             
             template<typename T = Scalar>
-            void ToMatrix( SquareMatrix<n,T,Int> & B ) const
+            void ToMatrix( Matrix<n,n,T,Int> & B ) const
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -661,9 +661,9 @@ namespace Tensors
                 }
             }
             
-            SquareMatrix<n,Scalar,Int> ToMatrix() const
+            Matrix<n,n,Scalar,Int> ToMatrix() const
             {
-                SquareMatrix<n,Scalar,Int> B;
+                Matrix<n,n,Scalar,Int> B;
                 
                 ToMatrix(B);
                 

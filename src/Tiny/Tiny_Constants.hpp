@@ -3,9 +3,11 @@ ASSERT_INT(Int_)
 
 public:
 
-    using Scalar = Scalar_;
-    using Real   = typename ScalarTraits<Scalar_>::Real;
-    using Int    = Int_;
+    using Scalar    = Scalar_;
+    using Real      = typename ScalarTraits<Scalar_>::Real;
+    using Int       = Int_;
+
+    static constexpr bool IsComplex   = ScalarTraits<Scalar>::IsComplex;
 
     static constexpr Real zero        = 0;
     static constexpr Real half        = 0.5;

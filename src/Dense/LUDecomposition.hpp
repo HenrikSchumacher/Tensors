@@ -38,9 +38,6 @@ namespace Tensors
             {
                 const Int max_rhs = 4 * ( (nrhs + static_cast<Int>(3))/ static_cast<Int>(4) );
                 
-                //            dump(nrhs);
-                //            dump(max_rhs);
-                
                 switch ( max_rhs )
                 {
                     case 0:

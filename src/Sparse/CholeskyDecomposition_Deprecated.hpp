@@ -221,7 +221,6 @@ void FactorizeSymbolically_Old()
     tic("Main loop");
     for( Int j = 0; j < n; ++j )
     {
-        //                dump(j);
         //                std::unordered_map<Int,bool> s_rows;
         
         const LInt k_begin = cp[j  ];
@@ -458,7 +457,7 @@ void FillGraph2()
     for( Int k = 0; k < n; ++k )
     {
         // rows_to_cols encodes now G_{k}(A).
-        //                dump(k);
+
         std::unordered_set<Int> & cols_k = rows_to_cols[k];
         
         const LInt _begin = U_rp[k];
@@ -487,7 +486,7 @@ void FillGraph2()
         {
             // Since cols_k_ is ordered, and the first entry is always k, this guarantees that i > k.
             const Int i = cols_k_[a-1];
-            //                    dump(i);
+
             rows_to_cols[i].insert( &cols_k_[a], &cols_k_[col_count] );
         }
         

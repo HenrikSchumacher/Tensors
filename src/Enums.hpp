@@ -22,9 +22,9 @@ namespace Tensors
     
     enum class Op : char
     {
-        Identity           = 'N',
-        Transpose          = 'T',
-        ConjugateTranspose = 'C',
-        Conjugate          = 'J'
+        Identity           = 111,
+        Transpose          = 112,
+        ConjugateTranspose = 113
+//        Conjugate          = 'J'
     };
 }

@@ -21,14 +21,7 @@
     #include "src/Tensor3.hpp"
     #include "src/ThreadTensor3.hpp"
 
-    #include "src/Tiny/Vector.hpp"
-    #include "src/Tiny/VectorList.hpp"
-    #include "src/Tiny/Matrix.hpp"
-    #include "src/Tiny/SquareMatrix.hpp"
-    #include "src/Tiny/UpperTriangularMatrix.hpp"
-    #include "src/Tiny/SelfAdjointTridiagonalMatrix.hpp"
-    #include "src/Tiny/SelfAdjointMatrix.hpp"
-    #include "src/Tiny/MatrixList.hpp"
+    #include "Tiny.hpp"
 
     #include "src/AssemblyCounters.hpp"
     #include "src/Aggregator.hpp"

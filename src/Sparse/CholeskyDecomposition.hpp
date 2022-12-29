@@ -6,7 +6,7 @@
 #include <Accelerate/Accelerate.h>
 //#include <openblas.h>
 
-#include "../BLAS_Wrappers.hpp"
+#include "../../MyBLAS.hpp"
 
 // Super helpful literature:
 // Stewart - Building an Old-Fashioned Sparse Solver
@@ -479,9 +479,22 @@ namespace Tensors
                         }
                         
                         // Compute x_0 -= A_1 * x_1
+                        
+//                        MyBLAS::GEMM<
+//                            Op::Identity, Op::Identity,
+//                            -1, nrhs, -1,
+//                            ScalarFlag::Minus, ScalarFlag::Plus, Scalar
+//                        >()(
+//                            n_0, nrhs, n_1,
+//                           -one, A_1, n_1,
+//                                 x_1, nrhs,
+//                            one, x_0, nrhs
+//                        );
+                        
+
                         if constexpr ( nrhs == 1 )
                         {
-                            gemv(
+                            BLAS_Wrappers::gemv(
                                 CblasRowMajor, CblasNoTrans, n_0, n_1,
                                -one, A_1, n_1,
                                      x_1, nrhs,
@@ -490,7 +503,7 @@ namespace Tensors
                         }
                         else
                         {
-                            gemm(
+                            BLAS_Wrappers::gemm(
                                 CblasRowMajor, CblasNoTrans, CblasNoTrans, n_0, nrhs, n_1,
                                -one, A_1, n_1,
                                 x_1, nrhs,
@@ -590,7 +603,7 @@ namespace Tensors
                         }
                         
                         // Compute x_0 -= A_1 * x_1
-                        gemm(
+                        BLAS_Wrappers::gemm(
                             CblasRowMajor, CblasNoTrans, CblasNoTrans, n_0, nrhs, n_1,
                            -one, A_1, n_1,
                             x_1, nrhs,
@@ -605,7 +618,7 @@ namespace Tensors
                     }
                     else
                     {
-                        trsm(
+                        BLAS_Wrappers::trsm(
                             CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit,
                             n_0, nrhs, one, A_0, n_0, x_0, nrhs
                         );

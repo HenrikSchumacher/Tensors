@@ -2,38 +2,43 @@
 
 namespace Tensors
 {
-    template<typename Scalar>
-    force_inline void trsm(
-        const CBLAS_ORDER layout,
-        const CBLAS_SIDE side,
-        const CBLAS_UPLO uplo,
-        const CBLAS_TRANSPOSE transa,
-        const CBLAS_DIAG diag,
-        const int n, const int nrhs,
-        const Scalar alpha, const Scalar * A, const int ldA, Scalar * B, const int ldB
-    )
+    namespace BLAS_Wrappers
     {
-        if constexpr ( std::is_same_v<Scalar,double> )
+        
+        template<typename Scalar>
+        force_inline void trsm(
+            const CBLAS_ORDER layout,
+            const CBLAS_SIDE side,
+            const CBLAS_UPLO uplo,
+            const CBLAS_TRANSPOSE transa,
+            const CBLAS_DIAG diag,
+            const int n, const int nrhs,
+            const Scalar alpha, const Scalar * A, const int ldA, Scalar * B, const int ldB
+        )
         {
-            return cblas_dtrsm( layout, side, uplo, transa, diag, n, nrhs, alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+            if constexpr ( std::is_same_v<Scalar,double> )
+            {
+                return cblas_dtrsm( layout, side, uplo, transa, diag, n, nrhs, alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+            }
+            else if constexpr ( std::is_same_v<Scalar,float> )
+            {
+                return cblas_strsm( layout, side, uplo, transa, diag, n, nrhs, alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+            }
+            else if constexpr ( std::is_same_v<Scalar,std::complex<double>> )
+            {
+                return cblas_ztrsm( layout, side, uplo, transa, diag, n, nrhs, &alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+            }
+            else if constexpr ( std::is_same_v<Scalar,std::complex<float>> )
+            {
+                return cblas_ctrsm( layout, side, uplo, transa, diag, n, nrhs, &alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+            }
+            else
+            {
+                eprint("trsm not defined for scalar type " + TypeName<Scalar>::Get() );
+            }
         }
-        else if constexpr ( std::is_same_v<Scalar,float> )
-        {
-            return cblas_strsm( layout, side, uplo, transa, diag, n, nrhs, alpha, const_cast<Scalar*>(A), ldA, B, ldB );
-        }
-        else if constexpr ( std::is_same_v<Scalar,std::complex<double>> )
-        {
-            return cblas_ztrsm( layout, side, uplo, transa, diag, n, nrhs, &alpha, const_cast<Scalar*>(A), ldA, B, ldB );
-        }
-        else if constexpr ( std::is_same_v<Scalar,std::complex<float>> )
-        {
-            return cblas_ctrsm( layout, side, uplo, transa, diag, n, nrhs, &alpha, const_cast<Scalar*>(A), ldA, B, ldB );
-        }
-        else
-        {
-            eprint("trsm not defined for scalar type " + TypeName<Scalar>::Get() );
-        }
-    }
+        
+    } // namespace BLAS_Wrappers
     
     
     template<int n, int nrhs,
@@ -272,7 +277,7 @@ namespace Tensors
             {
                 TriangularSolve<1,uplo,diag>(n,A,B);
                 
-//                trsv(
+//                BLAS_Wrappers::trsv(
 //                    CblasRowMajor, CblasUpper, CblasNoTrans, CblasNonUnit,
 //                    n, A, n, B, nrhs
 //                );
@@ -289,12 +294,12 @@ namespace Tensors
         }
         else
         {
-            trsm(
-                CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit,
+            BLAS_Wrappers::trsm(
+                CblasRowMajor, CblasLeft, uplo, CblasNoTrans, diag,
                 n, nrhs, static_cast<Scalar>(1), A, n, B, nrhs
             );
         }
     }
-    
+
 } // namespace Tensors
 
