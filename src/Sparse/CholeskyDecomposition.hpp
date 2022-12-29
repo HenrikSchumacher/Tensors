@@ -21,91 +21,92 @@
 
 namespace Tensors
 {
-    
-    template<
-        ScalarFlag alpha_flag, ScalarFlag beta_flag,
-        typename Scalar, typename Int
-    >
-    void gemm_input_scattered(
-        const Int M,
-        const Int N,
-        const Int K,
-        const Scalar alpha, const Scalar * restrict A,
-                            const Scalar * restrict B, const Int * restrict const idx,
-        const Scalar beta,        Scalar * restrict C,
-                                  Scalar * restrict S // some scratch memory
-    )
-    {
-        if constexpr ( beta_flag == ScalarFlag::Zero )
-        {
-            zerofy_buffer( C, M*N );
-        }
-        else if constexpr ( beta_flag == ScalarFlag::Plus )
-        {
-            // Do nothing.
-        }
-        else
-        {
-            scale_buffer( static_cast<Scalar>(-1), C, M*N );
-        }
-        
-        if constexpr ( alpha_flag == ScalarFlag::Plus )
-        {
-            for( Int k = 0; k < K; ++k )
-            {
-                const Scalar * restrict B_k = &B[N*idx[k]];
-                
-                for( Int i = 0; i < M; ++i )
-                {
-                    const Scalar A_ik = A[K*i+k];
-                    
-                    for( Int j = 0; j < N; ++j )
-                    {
-                        C[i][j] += A_ik * B_k[j];
-                    }
-                }
-            }
-        }
-        else if constexpr ( alpha_flag == ScalarFlag::Minus )
-        {
-            for( Int k = 0; k < K; ++k )
-            {
-                const Scalar * restrict B_k = &B[N*idx[k]];
-                
-                for( Int i = 0; i < M; ++i )
-                {
-                    const Scalar A_ik = A[K*i+k];
-                    
-                    for( Int j = 0; j < N; ++j )
-                    {
-                        C[i][j] -= A_ik * B_k[j];
-                    }
-                }
-            }
-        }
-        else if constexpr ( alpha_flag == ScalarFlag::Generic )
-        {
-            for( Int k = 0; k < K; ++k )
-            {
-                const Scalar * restrict B_k = &B[N*idx[k]];
-                
-                for( Int i = 0; i < M; ++i )
-                {
-                    const Scalar A_ik = alpha * A[K*i+k];
-                    
-                    for( Int j = 0; j < N; ++j )
-                    {
-                        C[i][j] += A_ik * B_k[j];
-                    }
-                }
-            }
-        }
-        else if constexpr ( alpha_flag == ScalarFlag::Zero )
-        {
-            // Do nothing.
-        }
-    }
-    
+//    template<
+//        int M, int N, int K,
+//        ScalarFlag alpha_flag, ScalarFlag beta_flag,
+//        typename Scalar, typename LInt
+//    >
+//    void gemm_input_scattered(
+//        const int M_,
+//        const int N_,
+//        const int K_,
+//        const Scalar alpha, const Scalar * restrict A,
+//                            const Scalar * restrict B, const LInt * restrict const idx,
+//        const Scalar beta,        Scalar * restrict C
+//    )
+//    {
+//        constexpr int Dyn = MyBLAS::Dynamic;
+//
+//        if constexpr ( beta_flag == ScalarFlag::Zero )
+//        {
+//            zerofy_buffer( C, M_*N_ );
+//        }
+//        else if constexpr ( beta_flag == ScalarFlag::Plus )
+//        {
+//            // Do nothing.
+//        }
+//        else
+//        {
+//            scale_buffer( beta, C, M_*N_ );
+//        }
+//
+//        if constexpr ( alpha_flag == ScalarFlag::Plus )
+//        {
+//            for( int k = 0; k < COND(K==Dyn,K_,K); ++k )
+//            {
+//                const Scalar * restrict B_k = &B[COND(N==Dyn,N_,N)*idx[k]];
+//
+//                for( int i = 0; i < COND(M==Dyn,M_,M); ++i )
+//                {
+//                    const Scalar A_ik = A[COND(K==Dyn,K_,K)*i+k];
+//
+//                    for( int j = 0; j < COND(N==Dyn,N_,N); ++j )
+//                    {
+//                        C[COND(N==Dyn,N_,N)*i+j] += A_ik * B_k[j];
+//                    }
+//                }
+//            }
+//        }
+//        else if constexpr ( alpha_flag == ScalarFlag::Minus )
+//        {
+//            for( int k = 0; k < COND(K==Dyn,K_,K); ++k )
+//            {
+//                const Scalar * restrict B_k = &B[COND(N==Dyn,N_,N)*idx[k]];
+//
+//                for( int i = 0; i < COND(M==Dyn,M_,M); ++i )
+//                {
+//                    const Scalar A_ik = A[COND(K==Dyn,K_,K)*i+k];
+//
+//                    for( int j = 0; j < COND(N==Dyn,N_,N); ++j )
+//                    {
+//                        C[COND(N==Dyn,N_,N)*i+j] -= A_ik * B_k[j];
+//                    }
+//                }
+//            }
+//        }
+//        else if constexpr ( alpha_flag == ScalarFlag::Generic )
+//        {
+//            for( int k = 0; k < COND(K==Dyn,K_,K); ++k )
+//            {
+//                const Scalar * restrict B_k = &B[COND(N==Dyn,N_,N)*idx[k]];
+//
+//                for( int i = 0; i < COND(M==Dyn,M_,M); ++i )
+//                {
+//                    const Scalar A_ik = alpha * A[COND(K==Dyn,K_,K)*i+k];
+//
+//                    for( int j = 0; j < COND(N==Dyn,N_,N); ++j )
+//                    {
+//                        C[COND(N==Dyn,N_,N)*i+j] += A_ik * B_k[j];
+//                    }
+//                }
+//            }
+//        }
+//        else if constexpr ( alpha_flag == ScalarFlag::Zero )
+//        {
+//            // Do nothing.
+//        }
+//    }
+
     namespace Sparse
     {
         
@@ -655,7 +656,7 @@ namespace Tensors
 //                }
 //            }
             
-            void U_Solve_Sequential_SN( Scalar * restrict const B, const int nrhs )
+            void U_Solve_Sequential_SN( Scalar * restrict const B, const Int nrhs )
             {
                 tic("U_Solve_Sequential_SN");
                 // Solves U * X = B and stores the result back into B.
@@ -684,7 +685,7 @@ namespace Tensors
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
                     
-                    // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                    // A_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
                     const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
                     
                     // X_0 is the part of X that interacts with A_0, size = n_0 x rhs_count.
@@ -698,17 +699,17 @@ namespace Tensors
                     {
                         copy_buffer( &B[nrhs * SN_inner[l_mid+j]], &X_1[nrhs * j], nrhs );
                     }
-                    
+
                     if( n_0 == 1 )
                     {
                         if( n_1 > 0 )
                         {
                             // Compute X_0 -= A_1 * X_1
-  
+
                             //  A_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
                             //  X_1 is a matrix of size n_1 x nrhs.
                             //  X_0 is a matrix of size 1 x nrhs; we can interpret it as vector of size nrhs.
-                            
+
                             // Hence we can compute X_0^T -= X_1^T * A_1^T via gemv instead:
                             BLAS_Wrappers::gemv(
                                 CblasRowMajor, CblasTrans,
@@ -736,7 +737,6 @@ namespace Tensors
                                 one, X_0, nrhs
                             );
                         }
-                            
                         // Triangle solve A_0 * X_0 = B while overwriting X_0.
                         BLAS_Wrappers::trsm(
                             CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit,
@@ -753,7 +753,7 @@ namespace Tensors
             {
                 // Solves U * x = b and stores the result back into b.
                 // Assumes that b has size n.
-                
+
                 // Some scratch space to read parts of x that belong to a supernode's rectangular part.
                 Tensor1<Scalar,Int> x_buffer ( n );
                 
@@ -764,32 +764,32 @@ namespace Tensors
                     const Int l_begin = SN_outer[k  ];
                     const Int l_end   = SN_outer[k+1];
                     const Int l_mid   = l_begin + n_0;
-                    
+
                     const Int n_1 = l_end - l_mid;
-                    
+
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
-                    
+
                     // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
                     const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
-                    
+
                     // x_0 is the part of x that interacts with A_0, size = n_0.
                           Scalar * restrict const x_0 = &b[SN_rp[k]];
 
-                    
+
                     if( n_0 == 1 )
                     {
                         Scalar A_1x_1 = 0;
-                        
+
                         if( n_1 > 0 )
                         {
                             // Compute X_0 -= A_1 * X_1
                             //  A_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
                             //  x_1 is a vector of size n_1.
                             //  x_0 is a matrix of size 1 x 1; we can interpret it as vector of size 1.
-                            
+
                             // Hence we can compute X_0 -= A_1 * X_1 via a simple dot product.
-                            
+
                             for( Int j = 0; j < n_1; ++j )
                             {
                                 A_1x_1 += A_1[j] * b[SN_inner[l_mid+j]];
@@ -799,8 +799,6 @@ namespace Tensors
                         // Triangle solve A_0 * X_0 = B while overwriting X_0.
                         // Since A_0 is a 1 x 1 matrix, it suffices to just scale X_0.
                         x_0[0] = (x_0[0] - A_1x_1) / A_0[0];
-                        
-                        
                     }
                     else // using BLAS2 routines.
                     {
@@ -808,13 +806,13 @@ namespace Tensors
                         {
                             // x_1 is the part of x that interacts with A_1, size = n_1.
                             Scalar * restrict const x_1 = x_buffer.data();
-                            
+
                             // Load the already computed values into X_1.
                             for( Int j = 0; j < n_1; ++j )
                             {
                                 x_1[j] = b[SN_inner[l_mid+j]];
                             }
-                            
+
                             // Compute x_0 -= A_1 * x_1
                             BLAS_Wrappers::gemv(
                                 CblasRowMajor, CblasNoTrans,
@@ -831,6 +829,184 @@ namespace Tensors
                             n_0, A_0, n_0, x_0, 1
                         );
                     }
+                   
+                }
+            }
+            
+            void L_Solve_Sequential_SN( Scalar * restrict const B, const Int nrhs )
+            {
+                tic("L_Solve_Sequential_SN");
+                // Solves L * X = B and stores the result back into B.
+                // Assumes that B has size n x rhs_count.
+             
+                if( nrhs == 1 )
+                {
+                    L_Solve_Sequential_SN(B);
+                    toc("L_Solve_Sequential_SN");
+                    return;
+                }
+                
+                // Some scratch space to read parts of x that belong to a supernode's rectangular part.
+                Tensor2<Scalar,Int> X_buffer ( n, nrhs );
+                
+                for( Int k = 0; k< SN_count; ++k )
+                {
+                    const Int n_0 = SN_rp[k+1] - SN_rp[k];
+                    
+                    const Int l_begin = SN_outer[k  ];
+                    const Int l_end   = SN_outer[k+1];
+                    const Int l_mid   = l_begin + n_0;
+                    
+                    const Int n_1 = l_end - l_mid;
+                    
+                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
+                    
+                    // A_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                    const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
+                    
+                    // X_0 is the part of X that interacts with A_0, size = n_0 x rhs_count.
+                          Scalar * restrict const X_0 = &B[nrhs * SN_rp[k]];
+                    
+                    // X_1 is the part of X that interacts with A_1, size = n_1 x rhs_count.
+                          Scalar * restrict const X_1 = X_buffer.data();
+
+
+                    if( n_0 == 1 )
+                    {
+                        // Triangle solve A_0 * X_0 = B while overwriting X_0.
+                        // Since A_0 is a 1 x 1 matrix, it suffices to just scale X_0.
+                        scale_buffer( one / A_0[0], X_0, nrhs );
+                        
+                        if( n_1 > 0 )
+                        {
+                            // Compute X_1 = - A_1^H * X_0
+
+                            //  A_1 is a matrix of size 1   x n_1.
+                            //  X_1 is a matrix of size n_1 x nrhs.
+                            //  X_0 is a matrix of size 1   x nrhs.
+
+                            for( Int i = 0; i < n_1; ++i )
+                            {
+                                const Scalar factor = - conj(A_1[i]);
+                                for( Int j = 0; j < nrhs; ++j )
+                                {
+                                    X_1[nrhs*i+j] = factor * X_0[j];
+                                }
+                            }
+                        }
+                    }
+                    else // using BLAS3 routines.
+                    {
+
+                        // Triangle solve A_0^H * X_0 = B_0 while overwriting X_0.
+                        BLAS_Wrappers::trsm(
+                            CblasRowMajor, CblasLeft, CblasUpper, CblasConjTrans, CblasNonUnit,
+                            n_0, nrhs,
+                            one, A_0, n_0,
+                                 X_0, nrhs
+                        );
+                        
+                        if( n_1 > 0 )
+                        {
+                            // Compute X_1 = - A_1^H * X_0
+                            BLAS_Wrappers::gemm(
+                                CblasRowMajor, CblasConjTrans, CblasNoTrans,
+                                n_1, nrhs, n_0, // ???
+                                -one, A_1, n_1,
+                                      X_0, nrhs,
+                                zero, X_1, nrhs
+                            );
+                        }
+                    }
+                    
+                    // Add X_1 into B_1
+                    for( Int j = 0; j < n_1; ++j )
+                    {
+                        add_to_buffer( &X_1[nrhs * j], &B[nrhs * SN_inner[l_mid+j]], nrhs );
+                    }
+                }
+                toc("L_Solve_Sequential_SN");
+            }
+            
+            
+            void L_Solve_Sequential_SN( Scalar * restrict const b )
+            {
+                // Solves L * x = b and stores the result back into b.
+                // Assumes that b has size n.
+
+                // Some scratch space to read parts of x that belong to a supernode's rectangular part.
+                Tensor1<Scalar,Int> x_buffer ( n );
+                
+                for( Int k = 0; k < SN_count; ++k )
+                {
+                    const Int n_0 = SN_rp[k+1] - SN_rp[k];
+                    
+                    const Int l_begin = SN_outer[k  ];
+                    const Int l_end   = SN_outer[k+1];
+                    const Int l_mid   = l_begin + n_0;
+
+                    const Int n_1 = l_end - l_mid;
+
+                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
+
+                    // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                    const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
+
+                    // x_0 is the part of x that interacts with A_0, size = n_0.
+                          Scalar * restrict const x_0 = &b[SN_rp[k]];
+                    
+                    if( n_0 == 1 )
+                    {
+                        // Triangle solve A_0 * x_0 = b_0 while overwriting x_0.
+                        // Since A_0 is a 1 x 1 matrix, it suffices to just scale x_0.
+                        x_0[0] /= A_0[0];
+
+                        if( n_1 > 0 )
+                        {
+                            // Compute x_1 = - A_1^H * x_0
+                            // x_1 is a vector of size n_1.
+                            // A_1 is a matrix of size 1 x n_1
+                            // x_0 is a vector of size 1.
+                            
+                            // Add x_1 into b_1.
+                            for( Int j = 0; j < n_1; ++j )
+                            {
+                                b[SN_inner[l_mid+j]] -= conj(A_1[j]) * x_0[0];
+                            }
+                        }
+                    }
+                    else // using BLAS2 routines.
+                    {
+                        // Triangle solve A_0^H * x_0 = b_0 while overwriting x_0.
+                        BLAS_Wrappers::trsv(
+                            CblasRowMajor, CblasUpper, CblasConjTrans, CblasNonUnit,
+                            n_0, A_0, n_0, x_0, 1
+                        );
+                        
+                        if( n_1 > 0 )
+                        {
+                            // x_1 is the part of x that interacts with A_1, size = n_1.
+                                  Scalar * restrict const x_1 = x_buffer.data();
+                            
+                            // Compute x_1 = - A_1^H * x_0
+                            BLAS_Wrappers::gemv(
+                                CblasRowMajor, CblasConjTrans,
+                                n_0, n_1,
+                                -one, A_1, n_1,
+                                      x_0, 1,
+                                zero, x_1, 1
+                            );
+                            
+                            // Add x_1 into b_1.
+                            for( Int j = 0; j < n_1; ++j )
+                            {
+                                b[SN_inner[l_mid+j]] += x_1[j];
+                            }
+                        }
+                    }
+                   
                 }
             }
             
