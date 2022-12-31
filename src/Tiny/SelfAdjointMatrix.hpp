@@ -79,6 +79,7 @@ namespace Tensors
             
             void Cholesky()
             {
+                // In-place Cholesky factorization.
                 for( Int k = 0; k < n; ++k )
                 {
                     const Real a ( std::sqrt( std::abs(A[k][k]) ) );
@@ -100,6 +101,44 @@ namespace Tensors
                         }
                     }
                 }
+            }
+            
+            UpperTriangularMatrix<n, Scalar, Int> & CholeskyDecomposition() const
+            {
+                // Computes and returns the upper factor U = L ^H such that A = U^H * U.
+                
+                UpperTriangularMatrix<n, Scalar, Int> U;
+                
+                U.Read( A.data() );
+                
+                for( Int k = 0; k < n; ++k ) // for each row
+                {
+                    const Real u ( std::sqrt( std::abs(U[k][k]) ) );
+                    
+                    U[k][k] = u;
+                    
+                    const Real uinv ( one/u );
+                    
+                    // scale_buffer( uinv, &U[k][k+1], n-k-1 );
+                    for( Int j = k+1; j < n; ++j )
+                    {
+                        U[k][j] *= uinv;
+                    }
+                    
+                    
+                    for( Int i = k+1; i < n; ++i ) // for each row i below k
+                    {
+                        // combine_buffers<ScalarFlag::Generic,ScalarFlag::One>(
+                        //     -U[k][i], &U[k][i], 1, &U[i][i], n-1
+                        // )
+                        for( Int j = i; j < n; ++j )
+                        {
+                            U[i][j] -= U[k][i] * U[k][j];
+                        }
+                    }
+                }
+                
+                return U;
             }
             
             

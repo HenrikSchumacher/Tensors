@@ -15,7 +15,7 @@ namespace Tensors
         
         explicit CLASS( Tensor1<Int,Int> && parents_ )
         {
-            tic("EliminationTree");
+            ptic("EliminationTree");
             
             std::swap( parents, parents_ );
             
@@ -42,7 +42,7 @@ namespace Tensors
                 list_count, n+1, n, thread_count, false, 0
             );
             
-            toc("EliminationTree");
+            ptoc("EliminationTree");
         }
         
         
@@ -117,8 +117,8 @@ namespace Tensors
             Tensor1<Int, Int> stack   ( VertexCount()+1 );
             Tensor1<bool,Int> visited ( VertexCount()+1, false );
             
-            const Int * restrict const child_ptr = A.Outer();
-            const Int * restrict const child_idx = A.Inner();
+            const Int * restrict const child_ptr = A.Outer().data();
+            const Int * restrict const child_idx = A.Inner().data();
             
             Int ptr = 0;
             stack[0]   = VertexCount(); // I use VertexCount() as root node because 0 is already an ordinary node and I do not want to force usage of signed integers.
@@ -152,9 +152,31 @@ namespace Tensors
             return p;
         }
         
+        
+        Tensor1<Int,Int> DescendantCounts() const
+        {
+            // Computed for each vertex i the number of its descendants.
+            // This can be used to determine fundamental supernodes.
+            // c.f. Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations.
+            
+            const Int n = VertexCount();
+            
+            Tensor1<Int,Int> descendant_counts (n,1);
+            
+            for( Int i = 0; i < n; ++i )
+            {
+                descendant_counts[parents[i]] += descendant_counts[i];
+            }
+            
+            return descendant_counts;
+        }
+        
     protected:
         
         Tensor1<Int,Int> parents;
+        
+//        Tensor1<Int,Int> descendant_counts;
+        
         
         SparseBinaryMatrixCSR<Int,Int> A;
         

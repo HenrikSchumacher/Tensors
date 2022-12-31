@@ -5,6 +5,8 @@ namespace Tensors
     template<typename T_0, typename LInt>
     class alignas(OBJECT_ALIGNMENT) Aggregator
     {
+        // A dynamically growing version of Tensor1 that allows pushing of several elements at once.
+        
         ASSERT_INT(LInt);
 
         using Container_0_T = Tensor1<T_0,LInt>;
@@ -140,7 +142,6 @@ namespace Tensors
             using std::swap;
             swap( container_0, new_container_0 );
         }
-        
         
     protected:
         

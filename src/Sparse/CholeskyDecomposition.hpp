@@ -19,6 +19,10 @@
 
 // TODO: https://www.jstor.org/stable/2132786 !!
 
+
+// TODO: Try whether postordering leads to better supernodes!
+// cf. Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations
+
 namespace Tensors
 {
 //    template<
@@ -150,14 +154,36 @@ namespace Tensors
             Tensor1<  LInt, Int> SN_rp;
             // Pointers from supernodes to their starting position in SN_inner.
             Tensor1<  LInt, Int> SN_outer;
-            // The column indices of the supernodes.
-            // k-th supernode has column indices [ SN_inner[SN_outer[k]],...,SN_innerSN_outer[k+1]] [
+            // The column indices of rectangular part of the supernodes.
             Tensor1<   Int,LInt> SN_inner;
+            // Hence k-th supernode has the following column indices:
+            // triangular  part = [ SN_rp[k],SN_rp[k]+1,...,SN_rp[k+1] [
+            // rectangular part = [
+            //                      SN_inner[j  ],
+            //                      SN_inner[j+1],
+            //                      SN_inner[j+2],
+            //                      ...,
+            //                      SN_inner[SN_outer[k+1]]
+            //                    [
+            // where j = SN_outer[k].
+
+//            // column indices of i-th row of U can be found in SN_inner in the half-open interval
+//            // [ U_begin[i],...,U_end[i] [
+//            Tensor1<   Int,LInt> U_begin;
+//            Tensor1<   Int,LInt> U_end;
             
-            // column indices of i-th row of U can be found in SN_inner in the half-open interval
-            // [ U_begin[i],...,U_end[i] [
-            Tensor1<   Int,LInt> U_begin;
-            Tensor1<   Int,LInt> U_end;
+            // i-th row of U belongs to supernode row_to_SN[i].
+            Tensor1<   Int, Int> row_to_SN;
+            // Hence the column indices of U for row i can are:
+            // triangular  part = [ i,i+1,...,SN_rp[row_to_SN[i]+1] [
+            // rectangular part = [
+            //                      SN_inner[j  ],
+            //                      SN_inner[j+1],
+            //                      SN_inner[j+2],
+            //                      ...,
+            //                      SN_inner[SN_outer[row_to_SN[i]+1]]
+            //                    [
+            // where j = SN_outer[row_to_SN[i]].
             
             // Values of triangular part of k-th supernode is stored in
             // [ SN_tri_vals[SN_tri_ptr[k]],...,SN_tri_vals[SN_tri_ptr[k]+1] [
@@ -166,8 +192,13 @@ namespace Tensors
             
             // Values of rectangular part of k-th supernode is stored in
             // [ SN_rec_vals[SN_rec_ptr[k]],...,SN_rec_vals[SN_rec_ptr[k]+1] [
-            Tensor1<  LInt, Int>   SN_rec_ptr;
+            Tensor1<  LInt, Int> SN_rec_ptr;
             Tensor1<Scalar,LInt> SN_rec_vals;
+            
+            // Maximal size of triangular part of supernodes.
+            Int max_n_0 = 0;
+            // Maximal size of rectangular part of supernodes.
+            Int max_n_1 = 0;
             
         public:
             
@@ -189,26 +220,18 @@ namespace Tensors
                 if( uplo == Triangular::Upper)
                 {
                     // TODO: Is there a way to avoid this copy?
-                    tic("Initialize A_lo");
                     A_up = SparseMatrix_T( outer_, inner_, n, n, thread_count );
-                    toc("Initialize A_lo");
                     
                     // TODO: Is there a way to avoid this copy?
-                    tic("Transpose");
                     A_lo = A_up.Transpose();
-                    toc("Transpose");
                 }
                 else
                 {
                     // TODO: Is there a way to avoid this copy?
-                    tic("Initialize A_lo");
                     A_lo = SparseMatrix_T( outer_, inner_, n, n, thread_count );
-                    toc("Initialize A_lo");
                     
                     // TODO: Is there a way to avoid this copy?
-                    tic("Transpose");
                     A_up = A_lo.Transpose();
-                    toc("Transpose");
                 }
                 
 //                FactorizeSymbolically();
@@ -220,7 +243,7 @@ namespace Tensors
             {
                 if( ! eTree_initialized )
                 {
-                    tic(ClassName()+"::GetEliminationTree");
+                    ptic(ClassName()+"::GetEliminationTree");
                     
                     // See Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
                     
@@ -230,7 +253,7 @@ namespace Tensors
                     const LInt * restrict const A_outer = A_lo.Outer().data();
                     const  Int * restrict const A_inner = A_lo.Inner().data();
                     
-                    tic("Main loop");
+//                    tic("Main loop");
                     for( Int i = 1; i < n; ++i )
                     {
                         const LInt k_begin = A_outer[i  ];
@@ -254,13 +277,13 @@ namespace Tensors
                             }
                         }
                     }
-                    toc("Main loop");
+//                    toc("Main loop");
                     
                     eTree = EliminationTree<Int> ( std::move(parents) );
                     
                     eTree_initialized = true;
                     
-                    toc(ClassName()+"::GetEliminationTree");
+                    ptoc(ClassName()+"::GetEliminationTree");
                 }
                 
                 return eTree;
@@ -271,7 +294,7 @@ namespace Tensors
             {
                 // This is Algorithm 4.2 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
                 
-                tic(ClassName()+"::FactorizeSymbolically");
+                ptic(ClassName()+"::FactorizeSymbolically");
                 
                 const LInt * restrict const A_rp      = A_up.Outer().data();
                 const  Int * restrict const A_ci      = A_up.Inner().data();
@@ -325,14 +348,13 @@ namespace Tensors
                     // Copy U_i to i-th row of U.
                     U_ci.Push( U_i.data(), row_counter );
                     U_rp[i+1] = U_ci.Size();
-                    
-                    
+
                 } // for( Int i = 0; i < n; ++i )
                 
                 
                 U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), n, n, thread_count );
 
-                toc(ClassName()+"::FactorizeSymbolically");
+                ptoc(ClassName()+"::FactorizeSymbolically");
             }
             
             template< Int RHS_COUNT, bool unitDiag = false>
@@ -345,39 +367,61 @@ namespace Tensors
             }
             
 //###########################################################################################
-//####          Supernodal factorization
+//####          Supernodal symbolic factorization
 //###########################################################################################
             
-            void FactorizeSymbolically_SN()
+            void SN_FactorizeSymbolically()
             {
-                // This is Algorithm 4.3 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
+                // Compute supernodal symbolic factorization with so-called _fundamental supernodes_.
+                // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations.
                 
-                // However, we reversed it: Instead of children "supplementing" their parents, the parents just pull from their children. This allows us to use less temporary memory.
+                // TODO: This requires that A is postordered, i.e., that
+                // TODO: GetEliminationTree().PostOrdering() == [0,...,n[.
                 
-                // Also we avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
+                auto p = GetEliminationTree().PostOrdering();
+                
+                bool postordered = true;
+                
+                for( Int i = 0; i < n; ++i )
+                {
+                    if( i != p[i] )
+                    {
+                        postordered =false;
+                        break;
+                    }
+                }
+                
+                if( !postordered )
+                {
+                    eprint(ClassName()+"::SN_FactorizeSymbolically requires postordering!");
+                }
+                
+                
+                // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
 
-                tic(ClassName()+"::FactorizeSymbolically_SN");
+                tic(ClassName()+"::SN_FactorizeSymbolically");
 
                 const LInt * restrict const A_rp      = A_up.Outer().data();
                 const  Int * restrict const A_ci      = A_up.Inner().data();
-
-                const  Int * restrict const parents   = GetEliminationTree().Parents().data();
+                
                 const  Int * restrict const child_ptr = GetEliminationTree().ChildPointers().data();
                 const  Int * restrict const child_idx = GetEliminationTree().ChildIndices().data();
-
-                Tensor1<Int,Int> U_i    ( n );  // An array to aggregate the rows of U.
-                Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
-                Int row_counter;                // Holds the current number of indices in U_i.
-                
-                // column indices of i-th row of U can be found in SN_inner in the half-open interval
-                // [ U_begin[i],...,U_end[i] [
-                U_begin = Tensor1<LInt,Int> (n);
-                U_end   = Tensor1<LInt,Int> (n);
+    
+                // temporary arrays
+                Tensor1<Int,Int> row        (n);// An array to aggregate the columnn indices of a row of U.
+                Tensor1<Int,Int> row_buffer (n);// Some scratch space for UniteSortedBuffers.
+                Int row_counter;                // Holds the current number of indices in row.
+    
+                Tensor1<Int,Int> prev_col_nz(n,0);
+                Tensor1<Int,Int> descendant_counts  = GetEliminationTree().DescendantCounts();
+//
+                // i-th row of U belongs to supernode row_to_SN[i].
+                row_to_SN = Tensor1< Int,Int> (n);
                 
                 // Holds the current number of supernodes.
                 SN_count = 0;
                 // Pointers from supernodes to their starting rows.
-                SN_rp    = Tensor1<LInt,Int> (n+1);
+                SN_rp    = Tensor1< Int,Int> (n+1);
                 
                 // Pointers from supernodes to their starting position in SN_inner.
                 SN_outer = Tensor1<LInt,Int> (n+1);
@@ -386,131 +430,185 @@ namespace Tensors
                 // To be filled with the column indices of super nodes.
                 // Will later be moved to SN_inner.
                 Aggregator<Int,LInt> SN_inner_agg ( 2 * A_up.NonzeroCount() );
-
-                // TODO: So far we store all column indices of a supernode.
-                // TODO: But this is redundant, because we know that the indices that belonging to the
-                // TODO: triangle part are contiguous; so we actually need to store only
-                // TODO:  - the starting row
-                // TODO:  - the column index after the triangle, or equivalently, the supernode rowcount
-                // TODO:    (these two are already stored in SN_rp)
-                // TODO:  - the (scattered) column indices for the rectangular part -> SN_inner
-                // TODO:  - the length of the rectangular part -> SN_outer
-                // TODO:  - for each row its supernode (this might allow us to replace U_begin and U_end).
-                // TODO:  - SN_tri_ptr and SN_rec_ptr as before.
                 
-                
-                // The first row needs some special treatment because it does not have any predecessor.
-                {
-                    const Int i = 0;
-                    // The nonzero pattern of A_up belongs definitely to the pattern of U.
-                    row_counter = A_rp[i+1] - A_rp[i];
-                    copy_buffer( &A_ci[A_rp[i]], U_i.data(), row_counter );
-                    
-                    // No children to travers for first row.
-                    
-                    // start first supernode
-                    SN_rp[SN_count] = i;
-                    ++SN_count;
-                    // Copy U_i to new supernode.
-                    SN_inner_agg.Push( U_i.data(), row_counter );
-                    
-                    SN_outer[SN_count] = SN_inner_agg.Size();
-                    
-                    // Remember where to find U_i within SN_inner_agg.
-                    U_begin[i] = 0;
-                    U_end  [i] = row_counter;
-                }
+                SN_rp[0]     = 0;
+                row_to_SN[0] = 0;
+                SN_count     = 0;
                 
                 tic("Main loop");
-                for( Int i = 1; i < n; ++i ) // Traverse rows.
+                for( Int i = 0; i < n+1; ++i ) // Traverse rows.
                 {
-                    // The nonzero pattern of A_up belongs definitely to the pattern of U.
-                    row_counter = A_rp[i+1] - A_rp[i];
-                    copy_buffer( &A_ci[A_rp[i]], U_i.data(), row_counter );
+                    // Using Theorem 2.3 and Corollary 3.2 in
+                    //
+                    //     Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations
+                    //
+                    // to determine whether a new fundamental supernode starts at node u.
                     
-                    const Int l_begin = child_ptr[i  ];
-                    const Int l_end   = child_ptr[i+1];
-                    
-                    // Traverse all children of i in the eTree. Most of the time it's a single child or no one at all. Sometimes it's two or more.
-                    for( Int l = l_begin; l < l_end; ++l )
-                    {
-                        const Int j = child_idx[l];
-                        
-                        // We have to merge row pointers of child j  (different from j) into U_i
+                    bool is_fundamental = ( i == n );
 
-                        // We have to look up U_j \ {j} in SN_inner_agg in the interval [a,...,b[:
-                        const Int a = U_begin[j]+1;  // This excludes the first entry j.
-                        const Int b = U_end  [j]  ;
+//                    if( i == n )
+//                    {
+//                        print("i==n");
+//                    }
+                    
+                    is_fundamental = is_fundamental || ( child_ptr[i+1] - child_ptr[i] > 1);
+                    
+//                    if( child_ptr[i+1] - child_ptr[i] > 1 )
+//                    {
+//                        print("child_ptr[i+1] - child_ptr[i] > 1");
+//                    }
+                    
+                    if( !is_fundamental )
+                    {
+                        const Int threshold = i+1 - descendant_counts[i] + 1;
+
+                        const Int k_begin = A_rp[i]+1; // exclude diagonal entry
+                        const Int k_end   = A_rp[i+1];
                         
-                        if( b > a )
+                        for( Int k = k_begin; k < k_end; ++k )
                         {
-                            row_counter = UniteSortedBuffers(
-                                U_i.data(),    row_counter,
-                                &SN_inner_agg[a], b - a,
-                                buffer.data()
-                            );
-                            swap( U_i, buffer );
+                            const Int j = A_ci[k];
+                            const Int l = prev_col_nz[j];
+                            
+                            if( l < threshold )
+                            {
+                                is_fundamental = true;
+                            }
+
+//                            is_fundamental = is_fundamental || ( l < threshold );
+
+                            prev_col_nz[j] = i+1;
                         }
-                        
                     }
                     
-                    const Int a = U_begin[i-1];
-                    const Int b = U_end  [i-1];
+                    is_fundamental = is_fundamental && ( 0 < i );
                     
-                    if( (i == parents[i-1]) && (b - a == row_counter + 1) )
+                    if( is_fundamental )
                     {
-                        // continue supernode
+
+                        // i is going to be the first node of the newly created fundamental supernode.
+                        // However, we do not now at the moment how long the supernode is going to be.
                         
-                        // Remember where to find U_i within SN_inner_agg.
-                        U_begin[i] = a+1;
-                        U_end  [i] = b;
+                        // Instead building the new supernode, we first have to finish current supernode.
+                        // Get first row in current supernode.
+                        const Int i_0 = SN_rp[SN_count];
+//                        dump(SN_count);
+//                        dump(i_0);
+//                        dump(i);
+                        // The nonzero pattern of A_up belongs definitely to the pattern of U.
+                        // We have to find all nonzero columns j of row i_0 of A such that j > i-1,
+                        // because that will be the ones belonging to the rectangular part.
+
+                        // We know that A_ci[A_rp[i_0]] == i_0 < i. Hence we can start the search here:
+                        {
+                            Int k = A_rp[i_0] + 1;
+                            
+                            const Int k_end = A_rp[i_0+1];
+                            
+                            while( A_ci[k] < i && k < k_end )
+                            {
+                                ++k;
+                            }
+                            
+                            row_counter = k_end - k;
+                            copy_buffer( &A_ci[k], row.data(), row_counter );
+                        }
+                        
+                        // Next, we have to merge the column indices of the children of i_0 into row.
+                        const Int l_begin = child_ptr[i_0  ];
+                        const Int l_end   = child_ptr[i_0+1];
+    
+                        // Traverse all children of i_0 in the eTree. Most of the time it's one or two children. Seldomly it's more.
+                        for( Int l = l_begin; l < l_end; ++l )
+                        {
+                            const Int j = child_idx[l];
+                            // We have to merge the column indices of child j that are greater than i into U_row.
+                            // This is the supernode where we find the j-th row of U.
+                            const Int k = row_to_SN[j];
+                            
+                            // Notice that because of j < i, we only have to consider the reactangular part of this supernode.
+                            
+                                  LInt a = SN_outer[k  ];
+                            const LInt b = SN_outer[k+1];
+                            
+                            // Only consider column indices of j-th row of U that are greater than last row i-1 in current supernode.
+                            while( SN_inner_agg[a] < i && a < b )
+                            {
+                                ++a;
+                            }
+                            
+                            if( a < b )
+                            {
+                                row_counter = UniteSortedBuffers(
+                                    row.data(),       row_counter,
+                                    &SN_inner_agg[a], b - a,
+                                    row_buffer.data()
+                                );
+                                swap( row, row_buffer );
+                            }
+                        }
+                        
+                        // Now row is ready to be pushed into SN_inner.
+//                        dump(ToString( row.data(), row_counter, 4));
+                        SN_inner_agg.Push( row.data(), row_counter );
+                        
+                        // Start new supernode.
+                        ++SN_count;
+                        
+                        SN_outer[SN_count] = SN_inner_agg.Size();
+                        SN_rp[SN_count] = i; // row i does not belong to previous supernode.
                     }
                     else
                     {
-                        // start new supernode
-                        SN_rp[SN_count] = i; // row i does not belong to previous supernode.
-                        ++SN_count;
-                        
-                        // Copy U_i to new supernode.
-                        SN_inner_agg.Push( U_i.data(), row_counter );
-                        
-                        SN_outer[SN_count] = SN_inner_agg.Size();
-                        
-                        // Remember where to find U_i within SN_inner_agg.
-                        U_begin[i] = b;
-                        U_end[i]   = U_begin[i] + row_counter;
+                        // Continue supernode -- do nothing!
                     }
                     
-                } // for( Int i = 0; i < n; ++i )
+                    // Remember where to find i-th row.
+                    row_to_SN[i] = SN_count;
+                    
+                } // for( Int i = 0; i < n+1; ++i )
                 toc("Main loop");
-                
-                // finish last supernode
-                SN_rp[SN_count] = n; // row n does not belong to previous supernode.
                 
                 dump(SN_count);
                 
                 SN_rp.Resize(SN_count+1);
                 SN_outer.Resize(SN_count+1);
+                
+//                dump(SN_rp);
+//                dump(SN_outer);
+                
                 SN_inner = std::move(SN_inner_agg.Get());
 
+//                dump(SN_inner);
+//                dump(row_to_SN);
+                
                 SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
                 SN_tri_ptr[0] = 0;
                 
                 SN_rec_ptr = Tensor1<LInt,Int> (SN_count+1);
                 SN_rec_ptr[0] = 0;
                 
+                max_n_0 = 0;
+                max_n_1 = 0;
+                
                 tic("Computing number of nonzeroes");
                 for( Int k = 0; k < SN_count; ++k )
                 {
                     // Warning: Taking differences of potentially signed numbers.
-                    // Should not be of concern because negative numbers appear here only of sumething went wron upstream.
-                    const LInt SN_cols = SN_rp[k+1]    - SN_rp[k];
-                    const LInt SN_rows = SN_outer[k+1] - SN_outer[k];
+                    // Should not be of concern because negative numbers appear here only of sumething went wrong upstream.
+                    const LInt n_0 = SN_rp[k+1]    - SN_rp[k];
+                    const LInt n_1 = SN_outer[k+1] - SN_outer[k];
+
+                    max_n_0 = std::max( max_n_0, n_0 );
+                    max_n_1 = std::max( max_n_1, n_1 );
                     
-                    SN_tri_ptr[k+1] = SN_tri_ptr[k] + SN_cols * SN_cols;
-                    SN_rec_ptr[k+1] = SN_rec_ptr[k] + SN_cols * (SN_rows - SN_cols);
+                    SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
+                    SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
                 }
                 toc("Computing number of nonzeroes");
+                
+                dump(max_n_0);
+                dump(max_n_1);
                 
                 tic("Allocating nonzero values");
                 // Allocating memory for the nonzero values of the factorization.
@@ -518,24 +616,133 @@ namespace Tensors
                 // TODO: Filling with 0 is not really needed.
                 SN_tri_vals = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count],0);
                 SN_rec_vals = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count],0);
-                toc("Allocating nonzero values");
                 
-                toc(ClassName()+"::FactorizeSymbolically_SN");
+                valprint("triangle_nnz ", SN_tri_vals.Size());
+                valprint("rectangle_nnz", SN_rec_vals.Size());
+                
+                toc("Allocating nonzero values");
+            
+                
+                toc(ClassName()+"::SN_FactorizeSymbolically");
             }
             
             
+            void SN_ReconstructU()
+            {
+                Tensor1<LInt,Int> U_rp (n+1);
+                U_rp[0] = 0;
+                
+                
+                for( Int k = 0; k < SN_count; ++k )
+                {
+                    const Int i_begin = SN_rp[k  ];
+                    const Int i_end   = SN_rp[k+1];
+                    
+                    const Int l_begin = SN_outer[k  ];
+                    const Int l_end   = SN_outer[k+1];
+                    
+//                    const Int n_0 = i_end - i_begin;
+                    const Int n_1 = l_end - l_begin;
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        U_rp[i+1] = U_rp[i] + (i_end-i) + n_1;
+                    }
+                }
+                
+                valprint("nnz",U_rp.Last());
+                
+                Tensor1<Int,LInt> U_ci (U_rp.Last());
+                
+                for( Int k = 0; k < SN_count; ++k )
+                {
+                    const Int i_begin = SN_rp[k  ];
+                    const Int i_end   = SN_rp[k+1];
+                    
+                    const Int l_begin = SN_outer[k  ];
+                    const Int l_end   = SN_outer[k+1];
+                    
+                    const Int n_0 = i_end - i_begin;
+                    const Int n_1 = l_end - l_begin;
+
+                    const Int start = U_rp[i_begin];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        const Int delta = i-i_begin;
+
+                        U_ci[start + delta] = i;
+                    }
+                    
+                    copy_buffer( &SN_inner[l_begin], &U_ci[U_rp[i_begin]+n_0], n_1 );
+                    
+                    for( Int i = i_begin+1; i < i_end; ++i )
+                    {
+                        const Int delta = i-i_begin;
+
+                        copy_buffer( &U_ci[start+delta], &U_ci[U_rp[i]], (i_end-i) + n_1 );
+                    }
+                }
+                
+                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci), n, n, thread_count );
+            }
             
             
+//###########################################################################################
+//####          Supernodal numeric factorization
+//###########################################################################################
             
+//            void SN_FactorizeNumerically()
+//            {
+//                tic(ClassName()+"::SN_FactorizeNumerically");
+//
+//
+//                Aggregator<Int,Int> I_pos (max_n_0);
+//                Aggregator<Int,Int> J_pos (max_n_1);
+//
+//                Aggregator<Int,Int> K_pos (max_n_0);
+//                Aggregator<Int,Int> L_pos (max_n_1);
+//
+//                toc(ClassName()+"::SN_FactorizeNumerically");
+//            }
+//
+//            void SN_Intersect(
+//                const Int i, const Int k,
+//                Tensor1<Int,Int> & I_pos, Int & I_ctr,
+//                Tensor1<Int,Int> & J_pos, Int & J_ctr,
+//                Tensor1<Int,Int> & K_pos, Int & K_ctr,
+//                Tensor1<Int,Int> & L_pos, Int & L_ctr
+//            )
+//            {
+//                // Computes the intersecting column indices of i-th and k-th supernode
+//
+//                // i-th supernode has triangular  part I = [i,i+1,...,i+n_0[
+//                //                and rectangular part J = [SN_inner[SN_outer[i]],...,[
+//                // i-th supernode has triangular part [i,i+1,...,i+n_0[
+//
+//                tic(ClassName()+"::SN_FactorizeNumerically");
+//
+//                I_ctr = 0;
+//                J_ctr = 0;
+//                K_ctr = 0;
+//                L_ctr = 0;
+//
+//                Aggregator<Int,Int> posI (max_n_0);
+//                Aggregator<Int,Int> posJ (max_n_1);
+//                Aggregator<Int,Int> posK (max_n_0);
+//                Aggregator<Int,Int> posL (max_n_1);
+//
+//                toc(ClassName()+"::SN_FactorizeNumerically");
+//            }
             
 //###########################################################################################
 //####          Supernodal back substitution
 //###########################################################################################
             
 //            template<int nrhs>
-//            void U_Solve_Sequential_SN( Scalar * restrict const b )
+//            void SN_UpperSolve_Sequential( Scalar * restrict const b )
 //            {
-//                tic("U_Solve_Sequential_SN<"+ToString(nrhs)+">");
+//                tic("SN_UpperSolve_Sequential<"+ToString(nrhs)+">");
 //                // Solves U * x = b and stores the result back into b.
 //                // Assumes that b has size n x rhs_count.
 //
@@ -548,9 +755,8 @@ namespace Tensors
 //
 //                    const Int l_begin = SN_outer[k  ];
 //                    const Int l_end   = SN_outer[k+1];
-//                    const Int l_mid   = l_begin + n_0;
 //
-//                    const Int n_1 = l_end - l_mid;
+//                    const Int n_1 = l_end - l_begin;
 //
 //                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
 //                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
@@ -569,7 +775,7 @@ namespace Tensors
 //                        // Load the already computed values into x_1.
 //                        for( Int j = 0; j < n_1; ++j )
 //                        {
-//                            copy_buffer<nrhs>( &b[ nrhs * SN_inner[l_mid+j]], &x_1[nrhs * j] );
+//                            copy_buffer<nrhs>( &b[ nrhs * SN_inner[l_begin+j]], &x_1[nrhs * j] );
 //                        }
 //
 //                        // Compute x_0 -= A_1 * x_1
@@ -628,11 +834,11 @@ namespace Tensors
 //                        >()(n_0, nrhs, A_0, x_0);
 //                    }
 //                }
-//                toc("U_Solve_Sequential_SN<"+ToString(nrhs)+">");
+//                toc("SN_UpperSolve_Sequential<"+ToString(nrhs)+">");
 //            }
 //
 //            template<int nrhs_lo, int nrhs_hi>
-//            void U_Solve_Sequential_SN( Scalar * restrict const b, const int nrhs )
+//            void SN_UpperSolve_Sequential( Scalar * restrict const b, const int nrhs )
 //            {
 //                if constexpr (nrhs_lo == nrhs_hi )
 //                {
@@ -656,16 +862,16 @@ namespace Tensors
 //                }
 //            }
             
-            void U_Solve_Sequential_SN( Scalar * restrict const B, const Int nrhs )
+            void SN_UpperSolve_Sequential( Scalar * restrict const B, const Int nrhs )
             {
-                tic("U_Solve_Sequential_SN");
+                tic("SN_UpperSolve_Sequential_SN");
                 // Solves U * X = B and stores the result back into B.
                 // Assumes that B has size n x rhs_count.
              
                 if( nrhs == 1 )
                 {
-                    U_Solve_Sequential_SN(B);
-                    toc("U_Solve_Sequential_SN");
+                    SN_UpperSolve_Sequential(B);
+                    toc("SN_UpperSolve_Sequential_SN");
                     return;
                 }
                 
@@ -678,9 +884,8 @@ namespace Tensors
                     
                     const Int l_begin = SN_outer[k  ];
                     const Int l_end   = SN_outer[k+1];
-                    const Int l_mid   = l_begin + n_0;
                     
-                    const Int n_1 = l_end - l_mid;
+                    const Int n_1 = l_end - l_begin;
                     
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
@@ -697,7 +902,7 @@ namespace Tensors
                     // Load the already computed values into X_1.
                     for( Int j = 0; j < n_1; ++j )
                     {
-                        copy_buffer( &B[nrhs * SN_inner[l_mid+j]], &X_1[nrhs * j], nrhs );
+                        copy_buffer( &B[nrhs * SN_inner[l_begin+j]], &X_1[nrhs * j], nrhs );
                     }
 
                     if( n_0 == 1 )
@@ -746,10 +951,10 @@ namespace Tensors
                         );
                     }
                 }
-                toc("U_Solve_Sequential_SN");
+                toc("SN_UpperSolve_Sequential");
             }
             
-            void U_Solve_Sequential_SN( Scalar * restrict const b )
+            void SN_UpperSolve_Sequential( Scalar * restrict const b )
             {
                 // Solves U * x = b and stores the result back into b.
                 // Assumes that b has size n.
@@ -763,9 +968,8 @@ namespace Tensors
                     
                     const Int l_begin = SN_outer[k  ];
                     const Int l_end   = SN_outer[k+1];
-                    const Int l_mid   = l_begin + n_0;
 
-                    const Int n_1 = l_end - l_mid;
+                    const Int n_1 = l_end - l_begin;
 
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
@@ -792,7 +996,7 @@ namespace Tensors
 
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                A_1x_1 += A_1[j] * b[SN_inner[l_mid+j]];
+                                A_1x_1 += A_1[j] * b[SN_inner[l_begin+j]];
                             }
                         }
 
@@ -810,7 +1014,7 @@ namespace Tensors
                             // Load the already computed values into X_1.
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                x_1[j] = b[SN_inner[l_mid+j]];
+                                x_1[j] = b[SN_inner[l_begin+j]];
                             }
 
                             // Compute x_0 -= A_1 * x_1
@@ -833,16 +1037,16 @@ namespace Tensors
                 }
             }
             
-            void L_Solve_Sequential_SN( Scalar * restrict const B, const Int nrhs )
+            void SN_LowerSolve_Sequential( Scalar * restrict const B, const Int nrhs )
             {
-                tic("L_Solve_Sequential_SN");
+                tic("SN_LowerSolve_Sequential");
                 // Solves L * X = B and stores the result back into B.
                 // Assumes that B has size n x rhs_count.
              
                 if( nrhs == 1 )
                 {
-                    L_Solve_Sequential_SN(B);
-                    toc("L_Solve_Sequential_SN");
+                    SN_LowerSolve_Sequential(B);
+                    toc("SN_LowerSolve_Sequential");
                     return;
                 }
                 
@@ -855,9 +1059,8 @@ namespace Tensors
                     
                     const Int l_begin = SN_outer[k  ];
                     const Int l_end   = SN_outer[k+1];
-                    const Int l_mid   = l_begin + n_0;
                     
-                    const Int n_1 = l_end - l_mid;
+                    const Int n_1 = l_end - l_begin;
                     
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
@@ -923,14 +1126,14 @@ namespace Tensors
                     // Add X_1 into B_1
                     for( Int j = 0; j < n_1; ++j )
                     {
-                        add_to_buffer( &X_1[nrhs * j], &B[nrhs * SN_inner[l_mid+j]], nrhs );
+                        add_to_buffer( &X_1[nrhs * j], &B[nrhs * SN_inner[l_begin+j]], nrhs );
                     }
                 }
-                toc("L_Solve_Sequential_SN");
+                toc("SN_LowerSolve_Sequential");
             }
             
             
-            void L_Solve_Sequential_SN( Scalar * restrict const b )
+            void SN_LowerSolve_Sequential( Scalar * restrict const b )
             {
                 // Solves L * x = b and stores the result back into b.
                 // Assumes that b has size n.
@@ -944,9 +1147,8 @@ namespace Tensors
                     
                     const Int l_begin = SN_outer[k  ];
                     const Int l_end   = SN_outer[k+1];
-                    const Int l_mid   = l_begin + n_0;
 
-                    const Int n_1 = l_end - l_mid;
+                    const Int n_1 = l_end - l_begin;
 
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
@@ -973,7 +1175,7 @@ namespace Tensors
                             // Add x_1 into b_1.
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                b[SN_inner[l_mid+j]] -= conj(A_1[j]) * x_0[0];
+                                b[SN_inner[l_begin+j]] -= conj(A_1[j]) * x_0[0];
                             }
                         }
                     }
@@ -1002,12 +1204,24 @@ namespace Tensors
                             // Add x_1 into b_1.
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                b[SN_inner[l_mid+j]] += x_1[j];
+                                b[SN_inner[l_begin+j]] += x_1[j];
                             }
                         }
                     }
                    
                 }
+            }
+            
+            void SN_Solve_Sequential( Scalar * restrict const B, const Int nrhs )
+            {
+                SN_LowerSolve_Sequential( B, nrhs );
+                SN_UpperSolve_Sequential( B, nrhs );
+            }
+            
+            void SN_Solve_Sequential( Scalar * restrict const b )
+            {
+                SN_LowerSolve_Sequential( b );
+                SN_UpperSolve_Sequential( b );
             }
             
             const SparseMatrix_T & GetL() const
@@ -1082,14 +1296,9 @@ namespace Tensors
                 return SN_rec_vals;
             }
             
-            const Tensor1<LInt,Int> & U_Begin() const
+            const Tensor1<Int,Int> & RowToSN() const
             {
-                return U_begin;
-            }
-            
-            const Tensor1<LInt,Int> & U_End() const
-            {
-                return U_end;
+                return row_to_SN;
             }
             
             std::string ClassName()
