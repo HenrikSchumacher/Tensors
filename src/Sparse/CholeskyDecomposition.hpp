@@ -494,7 +494,6 @@ namespace Tensors
                 // TODO: EliminationTree().PostOrdering() == [0,...,n[.
                 
                 
-                
                 // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
 
                 if( !SN_initialized )
@@ -534,7 +533,7 @@ namespace Tensors
         
                     Tensor1<Int,Int> prev_col_nz(n,-1);
                     Tensor1<Int,Int> descendant_counts  = EliminationTree().DescendantCounts();
-    //
+    
                     // i-th row of U belongs to supernode row_to_SN[i].
                     row_to_SN = Tensor1< Int,Int> (n);
                     
@@ -583,13 +582,9 @@ namespace Tensors
                                 const Int j = A_ci[k];
                                 const Int l = prev_col_nz[j];
                                 
-                                if( l < threshold )
-                                {
-                                    is_fundamental = true;
-                                    break;
-                                }
-
                                 prev_col_nz[j] = i;
+                                
+                                is_fundamental = is_fundamental || ( l < threshold );
                             }
                         }
                         
