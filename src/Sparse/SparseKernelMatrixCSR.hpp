@@ -79,9 +79,10 @@ namespace Tensors
                 
                 const Int thread_count = job_ptr.Size()-1;
                 
+                // OpenMP has a considerable overhead at launching the threads...
                 if( thread_count > 1)
                 {
-#pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
                     {
                         Kernel_T ker ( values );
@@ -126,47 +127,43 @@ namespace Tensors
                 }
                 else
                 {
-                    for( Int thread = 0; thread < thread_count; ++thread )
+                    Kernel_T ker ( values );
+                    
+                    const Int i_begin = job_ptr[0  ];
+                    const Int i_end   = job_ptr[0+1];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        Kernel_T ker ( values );
+                        const LInt k_begin = outer[i];
+                        const LInt k_end   =  diag[i];
                         
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                        for( LInt k = k_begin; k < k_end; ++k )
                         {
-                            const LInt k_begin = outer[i];
-                            const LInt k_end   =  diag[i];
+                            const Int j = inner[k];
                             
-                            for( LInt k = k_begin; k < k_end; ++k )
+                            LInt L =  diag[j];
+                            LInt R = outer[j+1]-1;
+                            
+                            while( L < R )
                             {
-                                const Int j = inner[k];
+                                const LInt M = R - (R-L)/static_cast<LInt>(2);
+                                const  Int col = inner[M];
                                 
-                                LInt L =  diag[j];
-                                LInt R = outer[j+1]-1;
-                                
-                                while( L < R )
+                                if( col > i )
                                 {
-                                    const LInt M = R - (R-L)/static_cast<LInt>(2);
-                                    const  Int col = inner[M];
-                                    
-                                    if( col > i )
-                                    {
-                                        R = M-1;
-                                    }
-                                    else
-                                    {
-                                        L = M;
-                                    }
+                                    R = M-1;
                                 }
-                                
-                                ker.TransposeBlock(L,k);
-                                
-                            } // for( Int k = k_begin; k < k_end; ++k )
+                                else
+                                {
+                                    L = M;
+                                }
+                            }
                             
-                        } // for( Int i = i_begin; i < i_end; ++i )
+                            ker.TransposeBlock(L,k);
+                            
+                        } // for( Int k = k_begin; k < k_end; ++k )
                         
-                    }
+                    } // for( Int i = i_begin; i < i_end; ++i )
                 }
             }
             
@@ -184,38 +181,22 @@ namespace Tensors
             
             if( beta == static_cast<Scalar_out>(0) )
             {
-                zerofy_buffer(Y, size);
+                zerofy_buffer( Y, size, pattern.ThreadCount() );
             }
             else
             {
-                const Int thread_count = pattern.ThreadCount();
-                
-                if( thread_count > 1)
-                {
-#pragma omp parallel for simd num_threads( thread_count ) schedule( static )
-                    for( Int i = 0; i < size; ++i )
-                    {
-                        Y[i] *= beta;
-                    }
-                }
-                else
-                {
-                    for( Int i = 0; i < size; ++i )
-                    {
-                        Y[i] *= beta;
-                    }
-                }
+                scale_buffer(beta, Y, size, pattern.ThreadCount() );
             }
         }
         
         __attribute__((flatten)) void Dot(
-                                          const Scalar     * restrict const A,
-                                          const Scalar_out                  alpha,
-                                          const Scalar_in  * restrict const X,
-                                          const Scalar_out                  beta,
-                                          Scalar_out * restrict const Y,
-                                          const Int                         rhs_count
-                                          ) const
+            const Scalar     * restrict const A,
+            const Scalar_out                  alpha,
+            const Scalar_in  * restrict const X,
+            const Scalar_out                  beta,
+                  Scalar_out * restrict const Y,
+            const Int                         rhs_count
+        ) const
         {
             ptic(ClassName()+"::Dot" );
             
@@ -232,10 +213,10 @@ namespace Tensors
             
             const Int thread_count = job_ptr.Size()-1;
             
-            if( thread_count > 1)
+            // OpenMP has a considerable overhead at launching the threads...
+            if( thread_count > 1 )
             {
-                // OpenMP has a considerable overhead at launching the threads...
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
                     // Initialize local kernel and feed it all the information that is going to be constant along its life time.
@@ -297,65 +278,61 @@ namespace Tensors
             }
             else
             {
-                for( Int thread = 0; thread < thread_count; ++thread )
+                // Initialize local kernel and feed it all the information that is going to be constant along its life time.
+                Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
+                
+                const LInt * restrict const rp = pattern.Outer().data();
+                const  Int * restrict const ci = pattern.Inner().data();
+                
+                // Kernel is supposed the following rows of pattern:
+                const Int i_begin = job_ptr[0  ];
+                const Int i_end   = job_ptr[0+1];
+                
+                for( Int i = i_begin; i < i_end; ++i )
                 {
-                    // Initialize local kernel and feed it all the information that is going to be constant along its life time.
-                    Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
+                    // These are the corresponding nonzero blocks in i-th row.
+                    const LInt k_begin = rp[i  ];
+                    const LInt k_end   = rp[i+1];
                     
-                    const LInt * restrict const rp = pattern.Outer().data();
-                    const  Int * restrict const ci = pattern.Inner().data();
-                    
-                    // Kernel is supposed the following rows of pattern:
-                    const Int i_begin = job_ptr[thread  ];
-                    const Int i_end   = job_ptr[thread+1];
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+                    if( k_end > k_begin )
                     {
-                        // These are the corresponding nonzero blocks in i-th row.
-                        const LInt k_begin = rp[i  ];
-                        const LInt k_end   = rp[i+1];
+                        // Clear the local vector chunk of the kernel.
+                        ker.CleanseY();
                         
-                        if( k_end > k_begin )
+                        // Perform all but the last calculation in row with prefetch.
+                        for( LInt k = k_begin; k < k_end-1; ++k )
                         {
-                            // Clear the local vector chunk of the kernel.
-                            ker.CleanseY();
+                            const Int j = ci[k];
                             
-                            // Perform all but the last calculation in row with prefetch.
-                            for( LInt k = k_begin; k < k_end-1; ++k )
-                            {
-                                const Int j = ci[k];
-                                
-                                ker.Prefetch(k,ci[k+1]);
-                                
-                                // Let the kernel apply to the k-th block to the j-th chunk of the input.
-                                // The result is stored in the kernel's local vector chunk X.
-                                ker.ApplyBlock(k,j);
-                            }
+                            ker.Prefetch(k,ci[k+1]);
                             
-                            // Perform last calculation in row without prefetch.
-                            {
-                                const LInt k = k_end-1;
-                                
-                                const Int j = ci[k];
-                                
-                                // Let the kernel apply to the k-th block to the j-th chunk of the input X.
-                                // The result is stored in the kernel's local vector chunk.
-                                ker.ApplyBlock(k,j);
-                            }
-                            
-                            // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
-                            
-                            ker.WriteY(i);
-                        }
-                        else
-                        {
-                            // Make sure that Y(i) is correctly overwritten in the case that there are not entries in the row.
-                            ker.WriteYZero(i);
+                            // Let the kernel apply to the k-th block to the j-th chunk of the input.
+                            // The result is stored in the kernel's local vector chunk X.
+                            ker.ApplyBlock(k,j);
                         }
                         
+                        // Perform last calculation in row without prefetch.
+                        {
+                            const LInt k = k_end-1;
+                            
+                            const Int j = ci[k];
+                            
+                            // Let the kernel apply to the k-th block to the j-th chunk of the input X.
+                            // The result is stored in the kernel's local vector chunk.
+                            ker.ApplyBlock(k,j);
+                        }
+                        
+                        // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
+                        
+                        ker.WriteY(i);
+                    }
+                    else
+                    {
+                        // Make sure that Y(i) is correctly overwritten in the case that there are not entries in the row.
+                        ker.WriteYZero(i);
                     }
                     
-                } // for( Int thread = 0; thread < thread_count; ++thread )
+                }
                 
             }
             ptoc(ClassName()+"::Dot" );

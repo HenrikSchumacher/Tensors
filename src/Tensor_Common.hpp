@@ -116,10 +116,22 @@ void Read( const S * const a_ )
     copy_buffer( a_, a, static_cast<size_t>(n) );
 }
 
+// Parallelized version.
+template<typename S>
+void Read( const S * const a_, const Int thread_count )
+{
+    copy_buffer( a_, a, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
+}
+
 template<typename S>
 void Write( S * a_ ) const
 {
-    copy_buffer( a, a_, n );
+    copy_buffer( a, a_, static_cast<size_t>(n) );
+}
+template<typename S>
+void Write( S * a_, const Int thread_count ) const
+{
+    copy_buffer( a, a_, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
 }
 
 void Fill( const Scalar init )
@@ -127,9 +139,19 @@ void Fill( const Scalar init )
     fill_buffer( a, static_cast<size_t>(n), init );
 }
 
+void Fill( const Scalar init, const Int thread_count )
+{
+    fill_buffer( a, static_cast<size_t>(n), init, static_cast<size_t>(thread_count) );
+}
+
 void SetZero()
 {
     zerofy_buffer( a, n );
+}
+
+void SetZero( const Int thread_count )
+{
+    zerofy_buffer( a, n, static_cast<size_t>(thread_count) );
 }
 
 void Random()
@@ -204,22 +226,12 @@ force_inline const Scalar * data() const
 
 void AddFrom( const Scalar * restrict const b )
 {
-    #pragma omp parallel for simd schedule( static )
-    for( Int i = 0; i < n; ++i )
-    {
-        // cppcheck-suppress [arithOperationsOnVoidPointer]
-        a[i] += b[i];
-    }
+    add_to_buffer( b, a, n);
 }
 
 void AddTo( Scalar * restrict const b ) const
 {
-    #pragma omp parallel for simd schedule( static )
-    for( Int i = 0; i < n; ++i )
-    {
-        // cppcheck-suppress [arithOperationsOnVoidPointer]
-        b[i] += a[i];
-    }
+    add_to_buffer( a, b, n);
 }
 
 //Int CountNan() const

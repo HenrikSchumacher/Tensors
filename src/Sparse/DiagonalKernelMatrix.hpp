@@ -139,26 +139,11 @@ namespace Tensors
             
             if( beta == static_cast<Scalar_out>(0) )
             {
-                zerofy_buffer(Y, size);
+                zerofy_buffer( Y, size, thread_count );
             }
             else
             {
-                if( thread_count > 1)
-                {
-                    // OpenMP has a considerable overhead at launching the threads...
-                    #pragma omp parallel for simd num_threads( thread_count ) schedule( static )
-                    for( Int i = 0; i < size; ++i )
-                    {
-                        Y[i] *= beta;
-                    }
-                }
-                else
-                {
-                    for( Int i = 0; i < size; ++i )
-                    {
-                        Y[i] *= beta;
-                    }
-                }
+                scale_buffer( beta, Y, size, thread_count );
             }
         }
         
@@ -185,6 +170,7 @@ namespace Tensors
             
             const auto & job_ptr = JobPointers<Int>(n,thread_count);
             
+            // OpenMP has a considerable overhead at launching the threads...
             if( thread_count > 1)
             {
                 #pragma omp parallel for num_threads( thread_count )
@@ -206,20 +192,17 @@ namespace Tensors
             }
             else
             {
-                for( Int thread = 0; thread < thread_count; ++thread )
+                // Initialize local kernel and feed it all the information that is going to be constant along its life time.
+                Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
+                
+                const Int i_begin = job_ptr[0  ];
+                const Int i_end   = job_ptr[0+1];
+                
+                for( Int i = i_begin; i < i_end; ++i )
                 {
-                    // Initialize local kernel and feed it all the information that is going to be constant along its life time.
-                    Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
-                    
-                    const Int i_begin = job_ptr[thread  ];
-                    const Int i_end   = job_ptr[thread+1];
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
-                    {
-                        ker.CleanseY();
-                        ker.ApplyBlock(i,i);
-                        ker.WriteY(i);
-                    }
+                    ker.CleanseY();
+                    ker.ApplyBlock(i,i);
+                    ker.WriteY(i);
                 }
             }
             

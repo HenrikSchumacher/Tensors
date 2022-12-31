@@ -235,8 +235,6 @@ namespace Tensors
                 }
                 
 //                FactorizeSymbolically();
-                
-                //            FactorizeSymbolically2();
             }
             
             const EliminationTree<Int> & GetEliminationTree()
@@ -378,6 +376,14 @@ namespace Tensors
                 // TODO: This requires that A is postordered, i.e., that
                 // TODO: GetEliminationTree().PostOrdering() == [0,...,n[.
                 
+                
+                
+                // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
+
+                tic(ClassName()+"::SN_FactorizeSymbolically");
+                
+                tic("Preparations");
+                
                 auto p = GetEliminationTree().PostOrdering();
                 
                 bool postordered = true;
@@ -395,11 +401,6 @@ namespace Tensors
                 {
                     eprint(ClassName()+"::SN_FactorizeSymbolically requires postordering!");
                 }
-                
-                
-                // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
-
-                tic(ClassName()+"::SN_FactorizeSymbolically");
 
                 const LInt * restrict const A_rp      = A_up.Outer().data();
                 const  Int * restrict const A_ci      = A_up.Inner().data();
@@ -429,14 +430,17 @@ namespace Tensors
                 
                 // To be filled with the column indices of super nodes.
                 // Will later be moved to SN_inner.
-                Aggregator<Int,LInt> SN_inner_agg ( 2 * A_up.NonzeroCount() );
+                Aggregator<Int,LInt> SN_inner_agg ( 2 * A_up.NonzeroCount(), thread_count );
                 
+                toc("Preparations");
+                
+                // Start first supernode.
                 SN_rp[0]     = 0;
                 row_to_SN[0] = 0;
                 SN_count     = 0;
                 
                 tic("Main loop");
-                for( Int i = 0; i < n+1; ++i ) // Traverse rows.
+                for( Int i = 1; i < n+1; ++i ) // Traverse rows.
                 {
                     // Using Theorem 2.3 and Corollary 3.2 in
                     //
@@ -445,18 +449,8 @@ namespace Tensors
                     // to determine whether a new fundamental supernode starts at node u.
                     
                     bool is_fundamental = ( i == n );
-
-//                    if( i == n )
-//                    {
-//                        print("i==n");
-//                    }
                     
                     is_fundamental = is_fundamental || ( child_ptr[i+1] - child_ptr[i] > 1);
-                    
-//                    if( child_ptr[i+1] - child_ptr[i] > 1 )
-//                    {
-//                        print("child_ptr[i+1] - child_ptr[i] > 1");
-//                    }
                     
                     if( !is_fundamental )
                     {
@@ -473,19 +467,15 @@ namespace Tensors
                             if( l < threshold )
                             {
                                 is_fundamental = true;
+                                break;
                             }
-
-//                            is_fundamental = is_fundamental || ( l < threshold );
 
                             prev_col_nz[j] = i+1;
                         }
                     }
                     
-                    is_fundamental = is_fundamental && ( 0 < i );
-                    
                     if( is_fundamental )
                     {
-
                         // i is going to be the first node of the newly created fundamental supernode.
                         // However, we do not now at the moment how long the supernode is going to be.
                         
@@ -532,7 +522,7 @@ namespace Tensors
                             const LInt b = SN_outer[k+1];
                             
                             // Only consider column indices of j-th row of U that are greater than last row i-1 in current supernode.
-                            while( SN_inner_agg[a] < i && a < b )
+                            while( (SN_inner_agg[a] < i) && (a < b) )
                             {
                                 ++a;
                             }
@@ -569,18 +559,18 @@ namespace Tensors
                 } // for( Int i = 0; i < n+1; ++i )
                 toc("Main loop");
                 
+                tic("Finalization");
+                
                 dump(SN_count);
                 
-                SN_rp.Resize(SN_count+1);
-                SN_outer.Resize(SN_count+1);
+                SN_rp.Resize( SN_count+1 );
+                SN_outer.Resize( SN_count+1 );
                 
-//                dump(SN_rp);
-//                dump(SN_outer);
-                
+                tic("SN_inner_agg.Get()");
                 SN_inner = std::move(SN_inner_agg.Get());
-
-//                dump(SN_inner);
-//                dump(row_to_SN);
+                
+                SN_inner_agg = Aggregator<Int, LInt>(0);
+                toc("SN_inner_agg.Get()");
                 
                 SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
                 SN_tri_ptr[0] = 0;
@@ -591,11 +581,10 @@ namespace Tensors
                 max_n_0 = 0;
                 max_n_1 = 0;
                 
-                tic("Computing number of nonzeroes");
                 for( Int k = 0; k < SN_count; ++k )
                 {
                     // Warning: Taking differences of potentially signed numbers.
-                    // Should not be of concern because negative numbers appear here only of sumething went wrong upstream.
+                    // Should not be of concern because negative numbers appear here only of something went wrong upstream.
                     const LInt n_0 = SN_rp[k+1]    - SN_rp[k];
                     const LInt n_1 = SN_outer[k+1] - SN_outer[k];
 
@@ -605,22 +594,21 @@ namespace Tensors
                     SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
                     SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
                 }
-                toc("Computing number of nonzeroes");
+                
                 
                 dump(max_n_0);
                 dump(max_n_1);
                 
-                tic("Allocating nonzero values");
                 // Allocating memory for the nonzero values of the factorization.
                 
                 // TODO: Filling with 0 is not really needed.
-                SN_tri_vals = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count],0);
-                SN_rec_vals = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count],0);
+                SN_tri_vals = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count]);
+                SN_rec_vals = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count]);
                 
                 valprint("triangle_nnz ", SN_tri_vals.Size());
                 valprint("rectangle_nnz", SN_rec_vals.Size());
                 
-                toc("Allocating nonzero values");
+                toc("Finalization");
             
                 
                 toc(ClassName()+"::SN_FactorizeSymbolically");
@@ -676,6 +664,7 @@ namespace Tensors
                     
                     copy_buffer( &SN_inner[l_begin], &U_ci[U_rp[i_begin]+n_0], n_1 );
                     
+                    #pragma omp parallel for num_threads( thread_count )
                     for( Int i = i_begin+1; i < i_end; ++i )
                     {
                         const Int delta = i-i_begin;

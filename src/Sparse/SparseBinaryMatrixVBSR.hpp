@@ -200,15 +200,15 @@ namespace Tensors
             const I * restrict const         b_col_ptr =          blk_col_ptr.data();
             const I * restrict const           b_outer =      blk_pat.Outer().data();
             const I * restrict const           b_inner =      blk_pat.Inner().data();
-            I * restrict const           outer__ =                outer.data();
-            I * restrict const         b_row_ctr =          blk_row_ctr.data();
-            I * restrict const upp_tri_b_row_ctr =  upp_tri_blk_row_ctr.data();
+                  I * restrict const           outer__ =                outer.data();
+                  I * restrict const         b_row_ctr =          blk_row_ctr.data();
+                  I * restrict const upp_tri_b_row_ctr =  upp_tri_blk_row_ctr.data();
             
             const auto & b_job_ptr = blk_pat.JobPtr();
             
             const I thread_count = b_job_ptr.Size()-1;
             
-#pragma omp parallel for num_threads( thread_count )
+            #pragma omp parallel for num_threads( thread_count )
             for( I thread = 0; thread < thread_count; ++thread )
             {
                 
@@ -267,7 +267,7 @@ namespace Tensors
                 
                 // Computing inner for CSR format.
                 
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( I thread = 0; thread < thread_count; ++thread )
                 {
                     
@@ -297,10 +297,10 @@ namespace Tensors
                                 
                                 for( I j = j_begin; j < j_end; ++j )      // write the column indices for row i
                                 {
-                                    //                                if( has_diagonal && (i == j) )
-                                    //                                {
-                                    //                                    diag_ptr__[i] = ptr;
-                                    //                                }
+//                                if( has_diagonal && (i == j) )
+//                                {
+//                                    diag_ptr__[i] = ptr;
+//                                }
                                     inner__[ptr] = j;
                                     ptr++;
                                 }
@@ -316,7 +316,7 @@ namespace Tensors
                 auto num_bef_b_row = Tensor1<I,I>(b_m+1);
                 I * restrict const num_bef_b_row__ = num_bef_b_row.data();
                 
-#pragma omp parallel for num_threads(thread_count)
+                #pragma omp parallel for num_threads(thread_count)
                 for( I b_i = 0; b_i < b_m; ++b_i )
                 {
                     const I m_i = b_row_ptr[b_i+1] - b_row_ptr[b_i];
@@ -326,7 +326,7 @@ namespace Tensors
                 
                 num_bef_b_row.Accumulate( thread_count );
                 
-#pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count )
                 for( I thread = 0; thread < thread_count; ++thread )
                 {
                     const I b_i_begin = b_job_ptr[thread  ];
@@ -366,7 +366,7 @@ namespace Tensors
                 I * restrict const upp_tri_b_costs = upp_tri_blk_costs.data();
                 I * restrict const low_tri_b_costs = low_tri_blk_costs.data();
                 
-#pragma omp parallel for num_threads(thread_count)
+                #pragma omp parallel for num_threads(thread_count)
                 for( I b_i = 0; b_i < b_m; ++b_i )
                 {
                     const I rows = b_row_ptr[b_i+1] - b_row_ptr[b_i];
@@ -386,11 +386,11 @@ namespace Tensors
                 low_tri_blk_costs.Accumulate( thread_count );
                 
                 blk_job_ptr = JobPointers<I>(
-                                             b_m,         blk_costs.data(), thread_count, false );
+                    b_m,         blk_costs.data(), thread_count, false );
                 upp_tri_blk_job_ptr = JobPointers<I>(
-                                                     b_m, upp_tri_blk_costs.data(), thread_count, false );
+                    b_m, upp_tri_blk_costs.data(), thread_count, false );
                 low_tri_blk_job_ptr = JobPointers<I>(
-                                                     b_m, low_tri_blk_costs.data(), thread_count, false );
+                    b_m, low_tri_blk_costs.data(), thread_count, false );
                 
                 max_row_count = *std::max_element( b_row_ctr, b_row_ctr + b_m );
             }

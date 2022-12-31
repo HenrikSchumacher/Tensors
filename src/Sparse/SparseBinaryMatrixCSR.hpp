@@ -238,10 +238,8 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    LInt * restrict const c = counters.data(thread);
-                    
-                    Int * restrict const B_inner  = B.Inner().data();
-                    
+                          LInt * restrict const c        = counters.data(thread);
+                           Int * restrict const B_inner  = B.Inner().data();
                     const LInt * restrict const A_outer  = Outer().data();
                     const  Int * restrict const A_inner  = Inner().data();
                     
@@ -340,7 +338,7 @@ namespace Tensors
                 
                 B_outer[0] = 0;
                 
-#pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
+                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
                 for( Int i = 0; i < m; ++i )
                 {
                     const Int p_i = p[i];
@@ -387,7 +385,7 @@ namespace Tensors
         
         CLASS PermuteCols(
             const Int * restrict const q,
-            bool sort = true
+            const bool sort = true
         )
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );

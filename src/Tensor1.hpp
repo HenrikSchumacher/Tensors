@@ -154,6 +154,24 @@ namespace Tensors {
             swap( *this, b );
         }
         
+        void Resize( const Int m_, Int thread_count )
+        {
+            const Int m = std::max( static_cast<Int>(0),m_);
+            
+            TENSOR_T b (m);
+            
+            if( m <= n )
+            {
+                b.Read(a,thread_count);
+            }
+            else
+            {
+                Write(b.data(),thread_count);
+            }
+            
+            swap( *this, b );
+        }
+        
         void Accumulate( Int thread_count = 1 )
         {
 //            for( Int i = 1; i < n; ++i )
