@@ -1,21 +1,19 @@
 #pragma once
 
-#define CLASS EliminationTree
-
 namespace Tensors
 {
     template<typename Int>
-    class CLASS
+    class Tree
     {
     public:
         
-        CLASS() = default;
+        Tree() = default;
         
-        ~CLASS() = default;
+        ~Tree() = default;
         
-        explicit CLASS( Tensor1<Int,Int> && parents_ )
+        explicit Tree( Tensor1<Int,Int> && parents_ )
         {
-            ptic("EliminationTree");
+            ptic("Tree");
             
             std::swap( parents, parents_ );
             
@@ -42,17 +40,17 @@ namespace Tensors
                 list_count, n+1, n, thread_count, false, 0
             );
             
-            ptoc("EliminationTree");
+            ptoc("Tree");
         }
         
         
         // Copy constructor
-        CLASS( const CLASS & other )
+        Tree( const Tree & other )
         :   parents ( other.parents )
         ,   A       ( other.A       )
         {}
         
-        friend void swap (CLASS &A, CLASS &B ) noexcept
+        friend void swap (Tree &A, Tree &B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
@@ -62,7 +60,7 @@ namespace Tensors
         }
         
         // Copy assignment operator
-        CLASS & operator=(CLASS other)
+        Tree & operator=(Tree other)
         {
             // copy-and-swap idiom
             // see https://stackoverflow.com/a/3279550/8248900 for details
@@ -73,7 +71,7 @@ namespace Tensors
         }
 
         // Move constructor
-        CLASS( CLASS && other ) noexcept : CLASS()
+        Tree( Tree && other ) noexcept : Tree()
         {
             swap(*this, other);
         }
@@ -182,5 +180,3 @@ namespace Tensors
         
     };
 }
-
-#undef CLASS
