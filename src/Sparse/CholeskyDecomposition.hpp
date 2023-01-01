@@ -260,7 +260,9 @@ namespace Tensors
                     
                     // See Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
                     
-                    // We have to use somethint else instead of 0 to mark empty places.
+                    // I want to make it possible to use unsigned integer types for Int.
+                    // Hence using -1 as "no_element" is not an option.
+                    // We have to use something else instead of 0 to mark empty places.
                     const Int no_element = n;
                     
                     Tensor1<Int,Int> parents ( n, no_element );
@@ -365,41 +367,37 @@ namespace Tensors
 //                return eTree;
 //            }
             
+        protected:
+            
+            void CreateAssemblyTree()
+            {
+                ptic(ClassName()+"::CreateAssemblyTree");
+                
+                const Tensor1<Int,Int> & parents = EliminationTree().Parents();
+                
+                Tensor1<Int,Int> SN_parents ( SN_count );
+                
+                for( Int k = 0; k < SN_count-1; ++k )
+                {
+                    Int last_row = SN_rp[k+1]-1;
+
+                    Int last_rows_parent = parents[last_row];
+
+                    SN_parents[k] = (last_rows_parent<n) ? row_to_SN[last_rows_parent] : SN_count;
+                }
+                
+                SN_parents[SN_count-1] = SN_count;
+                
+                aTree = Tree<Int> ( std::move(SN_parents) );
+                
+                ptoc(ClassName()+"::CreateAssemblyTree");
+            }
+            
+        public:
+            
             const Tree<Int> & AssemblyTree()
             {
-                if( ! aTree_initialized )
-                {
-                    ptic(ClassName()+"::AssemblyTree");
-                 
-                    SN_FactorizeSymbolically();
-                    
-                    const Tensor1<Int,Int> & parents = EliminationTree().Parents();
-                    
-                    Tensor1<Int,Int> SN_parents ( SN_count );
-                    
-                    dump(n);
-                    dump(row_to_SN.Size());
-                    dump(SN_count);
-                    dump(SN_rp.Size());
-                    
-                    
-                    for( Int k = 0; k < SN_count-1; ++k )
-                    {
-                        Int last_row = SN_rp[k+1]-1;
-
-                        Int last_rows_parent = parents[last_row];
-
-                        SN_parents[k] = (last_rows_parent<n) ? row_to_SN[last_rows_parent] : SN_count;
-                    }
-                    
-                    SN_parents[SN_count-1] = SN_count;
-                    
-                    aTree = Tree<Int> ( std::move(SN_parents) );
-                    
-                    aTree_initialized = true;
-                    
-                    ptoc(ClassName()+"::AssemblyTree");
-                }
+                SN_FactorizeSymbolically();
                 
                 return aTree;
             }
@@ -502,20 +500,7 @@ namespace Tensors
                     
                     tic("Preparations");
                     
-                    auto p = EliminationTree().PostOrdering();
-                    
-                    bool postordered = true;
-                    
-                    for( Int i = 0; i < n; ++i )
-                    {
-                        if( i != p[i] )
-                        {
-                            postordered =false;
-                            break;
-                        }
-                    }
-                    
-                    if( !postordered )
+                    if( !EliminationTree().PostOrdered() )
                     {
                         eprint(ClassName()+"::SN_FactorizeSymbolically requires postordering!");
                     }
@@ -718,6 +703,8 @@ namespace Tensors
                     valprint("triangle_nnz ", SN_tri_vals.Size());
                     valprint("rectangle_nnz", SN_rec_vals.Size());
                     
+                    CreateAssemblyTree();
+                    
                     toc("Finalization");
                     
                     toc(ClassName()+"::SN_FactorizeSymbolically");
@@ -735,6 +722,11 @@ namespace Tensors
             {
                 // Left-looking factorization.
 
+                if( !AssemblyTree().PostOrdered() )
+                {
+                    eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
+                }
+                
                 // TODO: Make the function accept a root node s_0 of the AssemblyTree.
                 // TODO: It shall then do the factorization of the full subtree.
                 tic(ClassName()+"::SN_FactorizeNumerically_Sequential");
@@ -743,10 +735,15 @@ namespace Tensors
                 const  Int * restrict const child_idx = EliminationTree().ChildIndices().data();
 
                 // Working space for intersection calculations.
-                Tensor1<Int,Int> II_pos (max_n_0);
-                Tensor1<Int,Int> IL_pos (max_n_1);
-                Tensor1<Int,Int> JJ_pos (max_n_0);
-                Tensor1<Int,Int> JL_pos (max_n_1);
+                Tensor1<Int,Int> II_pos_buffer (max_n_0);
+                Tensor1<Int,Int> IL_pos_buffer (max_n_1);
+                Tensor1<Int,Int> JJ_pos_buffer (max_n_0);
+                Tensor1<Int,Int> JL_pos_buffer (max_n_1);
+                
+                Int * restrict const II_pos = II_pos_buffer.data();
+                Int * restrict const IL_pos = IL_pos_buffer.data();
+                Int * restrict const JJ_pos = JJ_pos_buffer.data();
+                Int * restrict const JL_pos = JL_pos_buffer.data();
 
                 Int IL_ctr = 0;
                 Int JL_ctr = 0;
@@ -758,8 +755,8 @@ namespace Tensors
                 Tensor1<Scalar,Int> C_1 ( max_n_0 * max_n_1 );
 
                 // TODO: We need the AssemblyTree!
-                const Int * restrict const subtree_begin = GetAssemblyTree().SubTreeBegin().data();
-                const Int * restrict const subtree_end   = GetAssemblyTree().SubTreeEnd().data();
+                const Int * restrict const subtree_begin = AssemblyTree().SubTreeBegin().data();
+                const Int * restrict const subtree_end   = AssemblyTree().SubTreeEnd().data();
 
 
                 for( Int s = 0; s < SN_count; ++s )
@@ -834,8 +831,12 @@ namespace Tensors
             void SN_Intersect(
                 const Int s,
                 const Int t,
-                Tensor1<Int,Int> & II_pos, Tensor1<Int,Int> & IL_pos, Int & IL_ctr,
-                Tensor1<Int,Int> & JJ_pos, Tensor1<Int,Int> & JL_pos, Int & JL_ctr
+                Int * restrict const II_pos,
+                Int * restrict const IL_pos,
+                Int & IL_ctr,
+                Int * restrict const JJ_pos,
+                Int * restrict const JL_pos,
+                Int & JL_ctr
             )
             {
                 tic(ClassName()+"::SN_Intersect");
@@ -993,7 +994,7 @@ namespace Tensors
                                 CblasRowMajor, CblasTrans,
                                 n_1, nrhs,
                                -one, X_1, nrhs,
-                                     A_1, 1,        // XXX Problem: We need conj(A_1)
+                                     A_1, 1,        // XXX Problem: We need conj(A_1)!
                                 one, X_0, 1
                             );
                         }
@@ -1008,9 +1009,10 @@ namespace Tensors
                         {
                             // Compute X_0 -= A_1 * X_1
                             BLAS_Wrappers::gemm(
-                                CblasRowMajor, CblasNoTrans, CblasNoTrans,
+                                CblasRowMajor, CblasNoTrans, // XX CblasNoTrans -> CblasConjTrans
+                                               CblasNoTrans,
                                 n_0, nrhs, n_1,
-                               -one, A_1, n_1,      // XXX
+                               -one, A_1, n_1,      // XXX n_1 -> n_0
                                      X_1, nrhs,
                                 one, X_0, nrhs
                             );
@@ -1094,7 +1096,7 @@ namespace Tensors
                             BLAS_Wrappers::gemv(
                                 CblasRowMajor, CblasNoTrans, // XXX CblasNoTrans -> CblasConjTrans
                                 n_0, n_1,
-                               -one, A_1, n_1,
+                               -one, A_1, n_1, // XXX n_1 -> n_0
                                      x_1, 1,
                                 one, x_0, 1
                             );
@@ -1186,10 +1188,11 @@ namespace Tensors
                         if( n_1 > 0 )
                         {
                             // Compute X_1 = - A_1^H * X_0
-                            BLAS_Wrappers::gemm( //XXX CblasConjTrans -> CblasTrans
-                                CblasRowMajor, CblasConjTrans, CblasNoTrans,
+                            BLAS_Wrappers::gemm(
+                                CblasRowMajor, CblasConjTrans, //XXX CblasConjTrans -> CblasTrans
+                                               CblasNoTrans,
                                 n_1, nrhs, n_0, // ???
-                                -one, A_1, n_1,
+                                -one, A_1, n_1, // n_1 -> n_0
                                       X_0, nrhs,
                                 zero, X_1, nrhs
                             );
@@ -1267,9 +1270,9 @@ namespace Tensors
                             
                             // Compute x_1 = - A_1^H * x_0
                             BLAS_Wrappers::gemv(
-                                CblasRowMajor, CblasConjTrans,  //XXX CblasConjTrans -> CblasTrans
+                                CblasRowMajor, CblasConjTrans,  // XXX CblasConjTrans -> CblasTrans
                                 n_0, n_1,
-                                -one, A_1, n_1,
+                                -one, A_1, n_1, // XXX n_1 -> n_0
                                       x_0, 1,
                                 zero, x_1, 1
                             );
@@ -1362,6 +1365,9 @@ namespace Tensors
                 U = SparseMatrix_T( std::move(U_rp), std::move(U_ci), n, n, thread_count );
             }
             
+//###########################################################################################
+//####          Get routines
+//###########################################################################################
             
             const SparseMatrix_T & GetL() const
             {
@@ -1450,4 +1456,36 @@ namespace Tensors
         
     } // namespace Sparse
         
+    //###########################################################################################
+    //####          Get routines
+    //###########################################################################################
+                
+    template<typename Scalar,typename Int>
+    void read_scattered(
+        const Scalar * restrict const x,
+              Scalar * restrict const y,
+        const Int    * restrict const idx,
+        const size_t n
+    )
+    {
+        for( size_t i = 0; i < n; ++i )
+        {
+            y[i] = x[idx[i]];
+        }
+    }
+    
+    template<typename Scalar,typename Int>
+    void write_scattered(
+        const Scalar * restrict const x,
+              Scalar * restrict const y,
+        const Int    * restrict const idx,
+        const size_t n
+    )
+    {
+        for( size_t i = 0; i < n; ++i )
+        {
+            y[idx[i]] = x[i];
+        }
+    }
+    
 } // namespace Tensors

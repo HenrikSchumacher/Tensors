@@ -12,51 +12,145 @@ namespace Tensors
         ~Tree() = default;
         
         explicit Tree( Tensor1<Int,Int> && parents_ )
+        :   n                 ( parents_.Size() )
+        ,   post              ( n               )
+        ,   descendant_counts ( n               )
+        ,   postordered       ( true            )
         {
-            ptic("Tree");
+            ptic(ClassName());
             
             std::swap( parents, parents_ );
             
-            const Int n = parents.Size()-1;
+            // Next we build the adjacency matrix A of the tree.
             
-            Tensor1<Int,Int> id (n);
+            // There should be exactly one entry in the array parents that is not valid,
+            // i.e., not in the range [0,n[. This one is the root.
             
-            for( Int i = 0; i < n; ++i )
+            // idx and jdx are to be filled by the nonzero positions of the adjacency matrix.
+            Tensor1<Int,Int> idx (n-1);
+            Tensor1<Int,Int> jdx (n-1);
+            
+            Int root;
             {
-                id[i] = i;
+                Int j = 0;
+                for( Int k = 0; k < n; ++k )
+                {
+                    const Int i = parents[k];
+                    
+                    if( ( 0 <= i ) && ( i < n ) )
+                    {
+                        idx[j] = i;
+                        jdx[j] = j;
+                        ++j;
+                    }
+                    else
+                    {
+                        root = k;
+                    }
+                }
             }
             
-            Int thread_count  = 1;
-            Int list_count  = 1;
-            Int entry_counts [1] = {n};
+            Int thread_count     = 1;
+            Int list_count       = 1;
+            Int entry_counts [1] = {n-1};
             
-            Int * parent_data = parents.data();
-            Int * id_data = id.data();
+            Int * idx_data = idx.data();
+            Int * jdx_data = jdx.data();
             
             A = SparseBinaryMatrixCSR<Int,Int> (
-                &parent_data,
-                &id_data,
+                &idx_data,
+                &jdx_data,
                 &entry_counts[0],
-                list_count, n+1, n, thread_count, false, 0
+                list_count, n, n, thread_count, false, 0
             );
             
-            ptoc("Tree");
+            // Compute postordering and descendant counts. Also check whether tree is already postordered.
+            
+            Tensor1<Int, Int> stack   ( n+1 );
+            Tensor1<bool,Int> visited ( n+1, false );
+            
+            const Int * restrict const child_ptr = A.Outer().data();
+            const Int * restrict const child_idx = A.Inner().data();
+            
+            Int ptr    = 0;
+            stack  [0] = root;
+            visited[0] = false;
+            
+            Int counter = 0;
+            
+            // post order traversal of the tree
+            while( ptr >= 0 )
+            {
+                const Int node = stack[ptr];
+                
+                if( !visited[ptr] )
+                {
+                    // The first time we visit this node we mark it as visited
+                    visited[ptr] = true;
+                    
+                    const Int k_begin = child_ptr[node  ];
+                    const Int k_end   = child_ptr[node+1];
+                    
+                    // Pushing the children in reverse order onto the stack.
+                    for( Int k = k_end; k --> k_begin; )
+                    {
+                        stack[++ptr] = child_idx[k];
+                    }
+                }
+                else
+                {
+                    // Visiting the node for the second time.
+                    // We are moving in direction towards the root.
+                    // Hence all children have already been visited.
+                    
+                    // Popping current node from the stack.
+                    visited[ptr--] = false;
+                    
+                    post[counter] = node;
+                    postordered   = postordered && (counter == node);
+                    ++counter;
+                    
+                    const Int k_begin = child_ptr[node  ];
+                    const Int k_end   = child_ptr[node+1];
+                    
+                    Int sum = 1; // The node itself is also called as its own descendant.
+                    
+                    for( Int k = k_begin; k < k_end; ++k )
+                    {
+                        sum += descendant_counts[child_idx[k]];
+                    }
+
+                    descendant_counts[node] = sum;
+                    
+                }
+            }
+            
+            ptoc(ClassName());
         }
         
         
+    
         // Copy constructor
         Tree( const Tree & other )
-        :   parents ( other.parents )
-        ,   A       ( other.A       )
+        :   n                 ( other.n                 )
+        ,   post              ( other.post              )
+        ,   descendant_counts ( other.descendant_counts )
+        ,   parents           ( other.parents           )
+        ,   A                 ( other.A                 )
         {}
+        
+        // We could also simply use the implicitly created copy constructor.
         
         friend void swap (Tree &A, Tree &B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
 
-            swap( A.parents, B.parents );
-            swap( A.A,       B.A       );
+            swap( A.n,                 B.n                 );
+            swap( A.post,              B.post              );
+            swap( A.descendant_counts, B.descendant_counts );
+            swap( A.parents,           B.parents           );
+            swap( A.A,                 B.A                 );
         }
         
         // Copy assignment operator
@@ -82,6 +176,16 @@ namespace Tensors
             return parents;
         }
         
+        const Tensor1<Int,Int> & PostOrdering() const
+        {
+            return post;
+        }
+        
+        const Tensor1<Int,Int> & DescendantCounts() const
+        {
+            return descendant_counts;
+        }
+        
         const Tensor1<Int,Int> & ChildPointers() const
         {
             return A.Outer();
@@ -94,7 +198,7 @@ namespace Tensors
         
         force_inline Int VertexCount() const
         {
-            return parents.Size()-static_cast<Int>(1);
+            return n;
         }
         
         force_inline Int ChildCount( const Int i ) const
@@ -108,75 +212,33 @@ namespace Tensors
             // Returns k-th child of node i.
             return A.Inner()[A.Outer()[i]+k];
         }
+
         
-        Tensor1<Int,Int> PostOrdering() const
+        bool PostOrdered() const
         {
-            Tensor1<Int, Int> p       ( VertexCount()+1 );
-            Tensor1<Int, Int> stack   ( VertexCount()+1 );
-            Tensor1<bool,Int> visited ( VertexCount()+1, false );
-            
-            const Int * restrict const child_ptr = A.Outer().data();
-            const Int * restrict const child_idx = A.Inner().data();
-            
-            Int ptr = 0;
-            stack[0]   = VertexCount(); // I use VertexCount() as root node because 0 is already an ordinary node and I do not want to force usage of signed integers.
-            visited[0] = false;
-            
-            Int counter = 0;
-            
-            while( ptr >= 0 )
-            {
-                Int node = stack[ptr];
-                
-                if( visited[ptr] )
-                {
-                    visited[ptr--] = false;
-                    p[counter++] = node;
-                }
-                else
-                {
-                    visited[ptr] = true;
-                    
-                    const Int k_begin = child_ptr[node  ];
-                    const Int k_end   = child_ptr[node+1];
-                    
-                    for( Int k = k_end; k --> k_begin; )
-                    {
-                        stack[++ptr] = child_idx[k];
-                    }
-                }
-            }
-            
-            return p;
-        }
-        
-        
-        Tensor1<Int,Int> DescendantCounts() const
-        {
-            // Computed for each vertex i the number of its descendants.
-            // This can be used to determine fundamental supernodes.
-            // c.f. Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations.
-            
-            const Int n = VertexCount();
-            
-            Tensor1<Int,Int> descendant_counts (n,1);
-            
-            for( Int i = 0; i < n; ++i )
-            {
-                descendant_counts[parents[i]] += descendant_counts[i];
-            }
-            
-            return descendant_counts;
+            return postordered;
         }
         
     protected:
         
+        Int n;
+        
+        Tensor1<Int,Int> post;
+        
+        Tensor1<Int,Int> descendant_counts;
+    
         Tensor1<Int,Int> parents;
         
-//        Tensor1<Int,Int> descendant_counts;
-        
-        
         SparseBinaryMatrixCSR<Int,Int> A;
+      
         
+        bool postordered = true;
+        
+    public:
+        
+        std::string ClassName() const
+        {
+            return "Tree<"+TypeName<Int>::Get()+">";
+        }
     };
 }
