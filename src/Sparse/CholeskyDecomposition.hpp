@@ -8,6 +8,8 @@
 
 #include "../../MyBLAS.hpp"
 
+#include "SuperNodalCholeskyFactorizer.hpp"
+
 // Super helpful literature:
 // Stewart - Building an Old-Fashioned Sparse Solver
 
@@ -25,95 +27,8 @@
 
 namespace Tensors
 {
-//    template<
-//        int M, int N, int K,
-//        ScalarFlag alpha_flag, ScalarFlag beta_flag,
-//        typename Scalar, typename LInt
-//    >
-//    void gemm_input_scattered(
-//        const int M_,
-//        const int N_,
-//        const int K_,
-//        const Scalar alpha, const Scalar * restrict A,
-//                            const Scalar * restrict B, const LInt * restrict const idx,
-//        const Scalar beta,        Scalar * restrict C
-//    )
-//    {
-//        constexpr int Dyn = MyBLAS::Dynamic;
-//
-//        if constexpr ( beta_flag == ScalarFlag::Zero )
-//        {
-//            zerofy_buffer( C, M_*N_ );
-//        }
-//        else if constexpr ( beta_flag == ScalarFlag::Plus )
-//        {
-//            // Do nothing.
-//        }
-//        else
-//        {
-//            scale_buffer( beta, C, M_*N_ );
-//        }
-//
-//        if constexpr ( alpha_flag == ScalarFlag::Plus )
-//        {
-//            for( int k = 0; k < COND(K==Dyn,K_,K); ++k )
-//            {
-//                const Scalar * restrict B_k = &B[COND(N==Dyn,N_,N)*idx[k]];
-//
-//                for( int i = 0; i < COND(M==Dyn,M_,M); ++i )
-//                {
-//                    const Scalar A_ik = A[COND(K==Dyn,K_,K)*i+k];
-//
-//                    for( int j = 0; j < COND(N==Dyn,N_,N); ++j )
-//                    {
-//                        C[COND(N==Dyn,N_,N)*i+j] += A_ik * B_k[j];
-//                    }
-//                }
-//            }
-//        }
-//        else if constexpr ( alpha_flag == ScalarFlag::Minus )
-//        {
-//            for( int k = 0; k < COND(K==Dyn,K_,K); ++k )
-//            {
-//                const Scalar * restrict B_k = &B[COND(N==Dyn,N_,N)*idx[k]];
-//
-//                for( int i = 0; i < COND(M==Dyn,M_,M); ++i )
-//                {
-//                    const Scalar A_ik = A[COND(K==Dyn,K_,K)*i+k];
-//
-//                    for( int j = 0; j < COND(N==Dyn,N_,N); ++j )
-//                    {
-//                        C[COND(N==Dyn,N_,N)*i+j] -= A_ik * B_k[j];
-//                    }
-//                }
-//            }
-//        }
-//        else if constexpr ( alpha_flag == ScalarFlag::Generic )
-//        {
-//            for( int k = 0; k < COND(K==Dyn,K_,K); ++k )
-//            {
-//                const Scalar * restrict B_k = &B[COND(N==Dyn,N_,N)*idx[k]];
-//
-//                for( int i = 0; i < COND(M==Dyn,M_,M); ++i )
-//                {
-//                    const Scalar A_ik = alpha * A[COND(K==Dyn,K_,K)*i+k];
-//
-//                    for( int j = 0; j < COND(N==Dyn,N_,N); ++j )
-//                    {
-//                        C[COND(N==Dyn,N_,N)*i+j] += A_ik * B_k[j];
-//                    }
-//                }
-//            }
-//        }
-//        else if constexpr ( alpha_flag == ScalarFlag::Zero )
-//        {
-//            // Do nothing.
-//        }
-//    }
-
     namespace Sparse
-    {
-        
+    {   
         template<typename Scalar_, typename Int_, typename LInt_>
         class CholeskyDecomposition
         {
@@ -128,6 +43,8 @@ namespace Tensors
             
             using List_T = SortedList<Int,Int>;
 
+            
+            friend class SupernodalCholeskyFactorizer<Scalar,Int,LInt>;
             
         protected:
             
@@ -199,14 +116,14 @@ namespace Tensors
             // where j = SN_outer[row_to_SN[i]].
             
             // Values of triangular part of k-th supernode is stored in
-            // [ SN_tri_vals[SN_tri_ptr[k]],...,SN_tri_vals[SN_tri_ptr[k]+1] [
+            // [ SN_tri_val[SN_tri_ptr[k]],...,SN_tri_val[SN_tri_ptr[k]+1] [
             Tensor1<  LInt, Int> SN_tri_ptr;
-            Tensor1<Scalar,LInt> SN_tri_vals;
+            Tensor1<Scalar,LInt> SN_tri_val;
             
             // Values of rectangular part of k-th supernode is stored in
-            // [ SN_rec_vals[SN_rec_ptr[k]],...,SN_rec_vals[SN_rec_ptr[k]+1] [
+            // [ SN_rec_val[SN_rec_ptr[k]],...,SN_rec_val[SN_rec_ptr[k]+1] [
             Tensor1<  LInt, Int> SN_rec_ptr;
-            Tensor1<Scalar,LInt> SN_rec_vals;
+            Tensor1<Scalar,LInt> SN_rec_val;
             
             // Maximal size of triangular part of supernodes.
             Int max_n_0 = 0;
@@ -646,11 +563,14 @@ namespace Tensors
                         }
                         else
                         {
-                            // Continue supernode -- do nothing!
+                            // Continue supernode.
                         }
                         
                         // Remember where to find i-th row.
-                        row_to_SN[i] = SN_count;
+                        if( i < n )
+                        {
+                            row_to_SN[i] = SN_count;
+                        }
                         
                     } // for( Int i = 0; i < n+1; ++i )
                     toc("Main loop");
@@ -662,11 +582,11 @@ namespace Tensors
                     SN_rp.Resize( SN_count+1 );
                     SN_outer.Resize( SN_count+1 );
                     
-                    tic("SN_inner_agg.Get()");
+//                    tic("SN_inner_agg.Get()");
                     SN_inner = std::move(SN_inner_agg.Get());
                     
                     SN_inner_agg = Aggregator<Int, LInt>(0);
-                    toc("SN_inner_agg.Get()");
+//                    toc("SN_inner_agg.Get()");
                     
                     SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
                     SN_tri_ptr[0] = 0;
@@ -697,11 +617,11 @@ namespace Tensors
                     // Allocating memory for the nonzero values of the factorization.
                     
                     // TODO: Filling with 0 is not really needed.
-                    SN_tri_vals = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count]);
-                    SN_rec_vals = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count]);
+                    SN_tri_val = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count]);
+                    SN_rec_val = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count]);
                     
-                    valprint("triangle_nnz ", SN_tri_vals.Size());
-                    valprint("rectangle_nnz", SN_rec_vals.Size());
+                    valprint("triangle_nnz ", SN_tri_val.Size());
+                    valprint("rectangle_nnz", SN_rec_val.Size());
                     
                     CreateAssemblyTree();
                     
@@ -718,218 +638,38 @@ namespace Tensors
 //####          Supernodal numeric factorization
 //###########################################################################################
             
-            void SN_FactorizeNumerically_Sequential()
+            void SN_FactorizeNumerically_Sequential( const Scalar * restrict const A_val )
             {
                 // Left-looking factorization.
+                
+                // TODO: Make the function accept a root node s_0 of the AssemblyTree.
+                // TODO: It shall then do the factorization of the full subtree.
+                
+                tic(ClassName()+"::SN_FactorizeNumerically_Sequential");
 
                 if( !AssemblyTree().PostOrdered() )
                 {
                     eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
+                    return;
                 }
+//                else
+//                {
+//                    print("Well done! The AssemblyTree is postordered.");
+//                }
                 
-                // TODO: Make the function accept a root node s_0 of the AssemblyTree.
-                // TODO: It shall then do the factorization of the full subtree.
-                tic(ClassName()+"::SN_FactorizeNumerically_Sequential");
-
-                const  Int * restrict const child_ptr = EliminationTree().ChildPointers().data();
-                const  Int * restrict const child_idx = EliminationTree().ChildIndices().data();
-
-                // Working space for intersection calculations.
-                Tensor1<Int,Int> II_pos_buffer (max_n_0);
-                Tensor1<Int,Int> IL_pos_buffer (max_n_1);
-                Tensor1<Int,Int> JJ_pos_buffer (max_n_0);
-                Tensor1<Int,Int> JL_pos_buffer (max_n_1);
+//                tic("SetZero");
+                SN_tri_val.SetZero();
+                SN_rec_val.SetZero();
+//                toc("SetZero");
                 
-                Int * restrict const II_pos = II_pos_buffer.data();
-                Int * restrict const IL_pos = IL_pos_buffer.data();
-                Int * restrict const JJ_pos = JJ_pos_buffer.data();
-                Int * restrict const JL_pos = JL_pos_buffer.data();
-
-                Int IL_ctr = 0;
-                Int JL_ctr = 0;
-
-                // Working space for BLAS3 routines.
-                Tensor1<Scalar,Int> B_0 ( max_n_0 * max_n_0 );
-                Tensor1<Scalar,Int> B_1 ( max_n_0 * max_n_1 );
-                Tensor1<Scalar,Int> C_0 ( max_n_0 * max_n_0 );
-                Tensor1<Scalar,Int> C_1 ( max_n_0 * max_n_1 );
-
-                // TODO: We need the AssemblyTree!
-                const Int * restrict const subtree_begin = AssemblyTree().SubTreeBegin().data();
-                const Int * restrict const subtree_end   = AssemblyTree().SubTreeEnd().data();
-
+                SupernodalCholeskyFactorizer<Scalar,Int,LInt> SN ( *this, A_val );
 
                 for( Int s = 0; s < SN_count; ++s )
                 {
-                    Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[s]];
-                    Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[s]];
-
-                    const Int n_0 = SN_rp   [s+1] - SN_rp   [s];
-                    const Int n_1 = SN_outer[s+1] - SN_outer[s];
-
-                    const Int t_begin = subtree_begin[s];
-                    const Int t_end   = subtree_end  [s];
-
-                    // Go trough all descendants of s -- not only through its children!!!!!
-                    // Using a postordering guarantees, that the descandants of s are already computed.
-                    // Moreover we can exploit that all children of s lie contiguously
-                    // But where exactly?
-                    // The AssemblyTree can tell us!
-
-                    // TODO: Check that the ordering that we use for supernodes really coincides with the PostOrdering of the AssemblyTree!!
-
-                    for( Int t = t_begin; t < t_end; ++t )
-                    {
-                        // Compute the intersection of supernode s with t.
-                        SN_Intersect( s, t, II_pos, IL_pos, IL_ctr, JJ_pos, JL_pos, JL_ctr );
-
-                        Scalar * restrict const t_tri = &SN_tri_vals[SN_tri_ptr[t]];
-                        Scalar * restrict const t_rec = &SN_rec_vals[SN_rec_ptr[t]];
-
-                        // TODO: transpose t_rec to allow row-scattered read
-
-                        // Col-scatter-read t_rec[:,IL_pos] into matrix B_0 of size m_0 x IL_ctr;
-
-                        // Do C_0 = upper(B_0^H * B_0), where C_0 is matrix of size IL_ctr x IL_ctr;
-                        // --> use syrk
-
-                        // Row-col-scatter-add C_0 into A_0, matrix of size n_0 x n_0;
-
-
-                        // Col-scatter-read t_rec[:,JL_pos] into matrix B_1 of size m_0 x JL_ctr;
-
-                        // Do C_1 = B_0^H * B_1, where C_1 is matrix of size IL_ctr x JL_ctr;
-                        // --> use gemm
-
-                        // Row-col-scatter-add C_1 into A_1, matrix of size n_0 x n_1;
-
-                        // TODO: Add specializations for n_0 == 1 and m_0 == 1.
-                        // TODO: Add specializations for n_0 == 1 and m_0 >  1.
-                        // TODO: Add specializations for n_0 >  1 and m_0 == 1.
-                    }
-
-                    // TODO: Do the scaling.
-
-                    for( Int i = 0; i < n_0; ++i )
-                    {
-                        const Real a ( std::sqrt( std::abs( A_0[(n_0+1)*i] ) ) );
-
-                        A_0[(n_0+1)*i] = a;
-
-                        const Real ainv ( static_cast<Real>(1)/a );
-
-                        scale_buffer( ainv, &A_0[(n_0+1)*i+1], n_0-i-1 );
-
-                        // TODO: Replace by column-wise scaling.
-                        scale_buffer( ainv, &A_1[n_0*i], n_1 ); /// XXX
-                    }
+                    SN.Factorize(s);
                 }
 
                 toc(ClassName()+"::SN_FactorizeNumerically_Sequential");
-            }
-
-            void SN_Intersect(
-                const Int s,
-                const Int t,
-                Int * restrict const II_pos,
-                Int * restrict const IL_pos,
-                Int & IL_ctr,
-                Int * restrict const JJ_pos,
-                Int * restrict const JL_pos,
-                Int & JL_ctr
-            )
-            {
-                tic(ClassName()+"::SN_Intersect");
-                // Computes the intersecting column indices of s-th and t-th supernode
-                
-                // We assume that t < s.
-                if( t >= s )
-                {
-                    eprint(ClassName()+"::SN_Intersect: t >= s, but t < s is required.");
-                }
-
-                
-                // s-th supernode has triangular part I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
-                // and rectangular part J = [SN_inner[SN_outer[s]],[SN_inner[SN_outer[s]+1],...,[
-                // t-th supernode has triangular part K = [SN_rp[t],SN_rp[t]+1,...,SN_rp[t+1][
-                // and rectangular part L = [SN_inner[SN_outer[t]],[SN_inner[SN_outer[t]+1],...,[
-                
-                // We have to compute
-                // - the positions II_pos of I \cap L in I,
-                // - the positions IL_pos of I \cap L in L,
-                // - the positions JJ_pos of J \cap L in J,
-                // - the positions JL_pos of J \cap L in L.
-
-                // On return the numbers IL_ctr, JL_ctr contain the lengths of the respective lists.
-
-                IL_ctr = 0;
-                JL_ctr = 0;
-
-                
-                const LInt l_begin = SN_outer[t  ];
-                const LInt l_end   = SN_outer[t+1];
-                
-                // Go through I and L in ascending order and collect intersection indices.
-                const  Int i_begin = SN_rp[s  ];
-                const  Int i_end   = SN_rp[s+1];
-                
-                 Int i = i_begin;
-                LInt l = l_begin;
-                
-                Int L_l = SN_inner[l];
-                
-                while( (i < i_end) && (l < l_end) )
-                {
-                    if( i < L_l )
-                    {
-                        ++i;
-                    }
-                    else if( i > L_l )
-                    {
-                        L_l = SN_inner[++l];
-                    }
-                    else // i == L_l
-                    {
-                        II_pos[IL_ctr] = static_cast<Int>(i-i_begin);
-                        IL_pos[IL_ctr] = static_cast<Int>(l-l_begin);
-                        ++IL_ctr;
-                        ++i;
-                        L_l = SN_inner[++l];
-                    }
-                }
-                
-                // Go through J and L in ascending order and collect intersection indices.
-                const LInt j_begin = SN_outer[s  ];
-                const LInt j_end   = SN_outer[s+1];
-                
-                LInt j = j_begin;
-//                LInt l = l_begin;         // We can continue with l where it were before...
-                
-                Int J_j = SN_inner[j];
-//                Int L_l = SN_inner[l];    // ... and thus, we can keep the old L_l, too.
-                
-                while( (j < j_end) && (l < l_end) )
-                {
-                    if( J_j < L_l )
-                    {
-                        J_j = SN_inner[++j];
-                        
-                    }
-                    else if( J_j > L_l )
-                    {
-                        L_l = SN_inner[++l];
-                    }
-                    else // J_j == L_l
-                    {
-                        JJ_pos[JL_ctr] = static_cast<Int>(j-j_begin);
-                        JL_pos[JL_ctr] = static_cast<Int>(l-l_begin);
-                        ++JL_ctr;
-                        J_j = SN_inner[++j];
-                        L_l = SN_inner[++l];
-                    }
-                }
-                
-                toc(ClassName()+"::SN_Intersect");
             }
             
 //###########################################################################################
@@ -962,10 +702,10 @@ namespace Tensors
                     const Int n_1 = l_end - l_begin;
                     
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
+                    const Scalar * restrict const A_0 = &SN_tri_val[SN_tri_ptr[k]];
                     
                     // A_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
+                    const Scalar * restrict const A_1 = &SN_rec_val[SN_rec_ptr[k]];
                     
                     // X_0 is the part of X that interacts with A_0, size = n_0 x rhs_count.
                           Scalar * restrict const X_0 = &B[nrhs * SN_rp[k]];
@@ -1047,10 +787,10 @@ namespace Tensors
                     const Int n_1 = l_end - l_begin;
 
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
+                    const Scalar * restrict const A_0 = &SN_tri_val[SN_tri_ptr[k]];
 
                     // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
+                    const Scalar * restrict const A_1 = &SN_rec_val[SN_rec_ptr[k]];
 
                     // x_0 is the part of x that interacts with A_0, size = n_0.
                           Scalar * restrict const x_0 = &b[SN_rp[k]];
@@ -1138,10 +878,10 @@ namespace Tensors
                     const Int n_1 = l_end - l_begin;
                     
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
+                    const Scalar * restrict const A_0 = &SN_tri_val[SN_tri_ptr[k]];
                     
                     // A_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
+                    const Scalar * restrict const A_1 = &SN_rec_val[SN_rec_ptr[k]];
                     
                     // X_0 is the part of X that interacts with A_0, size = n_0 x rhs_count.
                           Scalar * restrict const X_0 = &B[nrhs * SN_rp[k]];
@@ -1227,10 +967,10 @@ namespace Tensors
                     const Int n_1 = l_end - l_begin;
 
                     // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
+                    const Scalar * restrict const A_0 = &SN_tri_val[SN_tri_ptr[k]];
 
                     // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
+                    const Scalar * restrict const A_1 = &SN_rec_val[SN_rec_ptr[k]];
 
                     // x_0 is the part of x that interacts with A_0, size = n_0.
                           Scalar * restrict const x_0 = &b[SN_rp[k]];
@@ -1266,7 +1006,7 @@ namespace Tensors
                         if( n_1 > 0 )
                         {
                             // x_1 is the part of x that interacts with A_1, size = n_1.
-                                  Scalar * restrict const x_1 = x_buffer.data();
+                            Scalar * restrict const x_1 = x_buffer.data();
                             
                             // Compute x_1 = - A_1^H * x_0
                             BLAS_Wrappers::gemv(
@@ -1368,6 +1108,16 @@ namespace Tensors
 //###########################################################################################
 //####          Get routines
 //###########################################################################################
+
+            Int RowCount() const
+            {
+                return n;
+            }
+            
+            Int ColCount() const
+            {
+                return n;
+            }
             
             const SparseMatrix_T & GetL() const
             {
@@ -1418,12 +1168,12 @@ namespace Tensors
             
             Tensor1<Scalar,LInt> & SN_TriangleValues()
             {
-                return SN_tri_vals;
+                return SN_tri_val;
             }
             
             const Tensor1<Scalar,LInt> & SN_TriangleValues() const
             {
-                return SN_tri_vals;
+                return SN_tri_val;
             }
             
             const Tensor1<LInt,Int> & SN_RectanglePointers() const
@@ -1433,12 +1183,12 @@ namespace Tensors
             
             Tensor1<Scalar,LInt> & SN_RectangleValues()
             {
-                return SN_rec_vals;
+                return SN_rec_val;
             }
             
             const Tensor1<Scalar,LInt> & SN_RectangleValues() const
             {
-                return SN_rec_vals;
+                return SN_rec_val;
             }
             
             const Tensor1<Int,Int> & RowToSN() const
@@ -1455,37 +1205,5 @@ namespace Tensors
         }; // class CholeskyDecomposition
         
     } // namespace Sparse
-        
-    //###########################################################################################
-    //####          Get routines
-    //###########################################################################################
-                
-    template<typename Scalar,typename Int>
-    void read_scattered(
-        const Scalar * restrict const x,
-              Scalar * restrict const y,
-        const Int    * restrict const idx,
-        const size_t n
-    )
-    {
-        for( size_t i = 0; i < n; ++i )
-        {
-            y[i] = x[idx[i]];
-        }
-    }
-    
-    template<typename Scalar,typename Int>
-    void write_scattered(
-        const Scalar * restrict const x,
-              Scalar * restrict const y,
-        const Int    * restrict const idx,
-        const size_t n
-    )
-    {
-        for( size_t i = 0; i < n; ++i )
-        {
-            y[idx[i]] = x[i];
-        }
-    }
     
 } // namespace Tensors
