@@ -596,9 +596,7 @@ namespace Tensors
                             // Instead building the new supernode, we first have to finish current supernode.
                             // Get first row in current supernode.
                             const Int i_0 = SN_rp[SN_count];
-    //                        dump(SN_count);
-    //                        dump(i_0);
-    //                        dump(i);
+
                             // The nonzero pattern of A_up belongs definitely to the pattern of U.
                             // We have to find all nonzero columns j of row i_0 of A such that j > i-1,
                             // because that will be the ones belonging to the rectangular part.
@@ -653,7 +651,6 @@ namespace Tensors
                             }
                             
                             // Now row is ready to be pushed into SN_inner.
-    //                        dump(ToString( row.data(), row_counter, 4));
                             SN_inner_agg.Push( row.data(), row_counter );
                             
                             // Start new supernode.
@@ -709,7 +706,6 @@ namespace Tensors
                         SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
                     }
                     
-                    
                     dump(max_n_0);
                     dump(max_n_1);
                     
@@ -731,171 +727,109 @@ namespace Tensors
             }
             
             
-            void SN_ReconstructU()
-            {
-                Tensor1<LInt,Int> U_rp (n+1);
-                U_rp[0] = 0;
-                
-                
-                for( Int k = 0; k < SN_count; ++k )
-                {
-                    const Int i_begin = SN_rp[k  ];
-                    const Int i_end   = SN_rp[k+1];
-                    
-                    const Int l_begin = SN_outer[k  ];
-                    const Int l_end   = SN_outer[k+1];
-                    
-//                    const Int n_0 = i_end - i_begin;
-                    const Int n_1 = l_end - l_begin;
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
-                    {
-                        U_rp[i+1] = U_rp[i] + (i_end-i) + n_1;
-                    }
-                }
-                
-                valprint("nnz",U_rp.Last());
-                
-                Tensor1<Int,LInt> U_ci (U_rp.Last());
-                
-                for( Int k = 0; k < SN_count; ++k )
-                {
-                    const Int i_begin = SN_rp[k  ];
-                    const Int i_end   = SN_rp[k+1];
-                    
-                    const Int l_begin = SN_outer[k  ];
-                    const Int l_end   = SN_outer[k+1];
-                    
-                    const Int n_0 = i_end - i_begin;
-                    const Int n_1 = l_end - l_begin;
-
-                    const Int start = U_rp[i_begin];
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
-                    {
-                        const Int delta = i-i_begin;
-
-                        U_ci[start + delta] = i;
-                    }
-                    
-                    copy_buffer( &SN_inner[l_begin], &U_ci[U_rp[i_begin]+n_0], n_1 );
-                    
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int i = i_begin+1; i < i_end; ++i )
-                    {
-                        const Int delta = i-i_begin;
-
-                        copy_buffer( &U_ci[start+delta], &U_ci[U_rp[i]], (i_end-i) + n_1 );
-                    }
-                }
-                
-                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci), n, n, thread_count );
-            }
-            
-            
 //###########################################################################################
 //####          Supernodal numeric factorization
 //###########################################################################################
             
-//            void SN_FactorizeNumerically_Sequential()
-//            {
-//                // Left-looking factorization.
-//
-//                // TODO: Make the function accept a root node s_0 of the AssemblyTree.
-//                // TODO: It shall then do the factorization of the full subtree.
-//                tic(ClassName()+"::SN_FactorizeNumerically_Sequential");
-//
-//                const  Int * restrict const child_ptr = EliminationTree().ChildPointers().data();
-//                const  Int * restrict const child_idx = EliminationTree().ChildIndices().data();
-//
-//                // Working space for intersection calculations.
-//                Tensor1<Int,Int> II_pos (max_n_0);
-//                Tensor1<Int,Int> IL_pos (max_n_1);
-//                Tensor1<Int,Int> JJ_pos (max_n_0);
-//                Tensor1<Int,Int> JL_pos (max_n_1);
-//
-//                Int IL_ctr = 0;
-//                Int JL_ctr = 0;
-//
-//                // Working space for BLAS3 routines.
-//                Tensor1<Scalar,Int> B_0 ( max_n_0 * max_n_0 );
-//                Tensor1<Scalar,Int> B_1 ( max_n_0 * max_n_1 );
-//                Tensor1<Scalar,Int> C_0 ( max_n_0 * max_n_0 );
-//                Tensor1<Scalar,Int> C_1 ( max_n_0 * max_n_1 );
-//
-//                // TODO: We need the AssemblyTree!
-//                const Int * restrict const subtree_begin = GetAssemblyTree().SubTreeBegin().data();
-//                const Int * restrict const subtree_end   = GetAssemblyTree().SubTreeEnd().data();
-//
-//
-//                for( Int s = 0; s < SN_count; ++s )
-//                {
-//                    Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[s]];
-//                    Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[s]];
-//
-//                    const Int n_0 = SN_rp   [s+1] - SN_rp   [s];
-//                    const Int n_1 = SN_outer[s+1] - SN_outer[s];
-//
-//                    const Int t_begin = subtree_begin[s];
-//                    const Int t_end   = subtree_end  [s];
-//
-//                    // Go trough all descendants of s -- not only through its children!!!!!
-//                    // Using a postordering guarantees, that the descandants of s are already computed.
-//                    // Moreover we can exploit that all children of s lie contiguously
-//                    // But where exactly?
-//                    // The AssemblyTree can tell us!
-//
-//                    // TODO: Check that the ordering that we use for supernodes really coincides with the PostOrdering of the AssemblyTree!!
-//
-//                    for( Int t = t_begin; t < t_end; ++t )
-//                    {
-//                        // Compute the intersection of supernode s with t.
-//                        SN_Intersect( s, t, II_pos, IL_pos, IL_ctr, JJ_pos, JL_pos, JL_ctr );
-//
-//                        Scalar * restrict const t_tri = &SN_tri_vals[SN_tri_ptr[t]];
-//                        Scalar * restrict const t_rec = &SN_rec_vals[SN_rec_ptr[t]];
-//
-//                        // TODO: transpose t_rec to allow row-scattered read
-//
-//                        // Col-scatter-read t_rec[:,IL_pos] into matrix B_0 of size m_0 x IL_ctr;
-//
-//                        // Do C_0 = upper(B_0^H * B_0), where C_0 is matrix of size IL_ctr x IL_ctr;
-//                        // --> use syrk
-//
-//                        // Row-col-scatter-add C_0 into A_0, matrix of size n_0 x n_0;
-//
-//
-//                        // Col-scatter-read t_rec[:,JL_pos] into matrix B_1 of size m_0 x JL_ctr;
-//
-//                        // Do C_1 = B_0^H * B_1, where C_1 is matrix of size IL_ctr x JL_ctr;
-//                        // --> use gemm
-//
-//                        // Row-col-scatter-add C_1 into A_1, matrix of size n_0 x n_1;
-//
-//                        // TODO: Add specializations for n_0 == 1 and m_0 == 1.
-//                        // TODO: Add specializations for n_0 == 1 and m_0 >  1.
-//                        // TODO: Add specializations for n_0 >  1 and m_0 == 1.
-//                    }
-//
-//                    // TODO: Do the scaling.
-//
-//                    for( Int i = 0; i < n_0; ++i )
-//                    {
-//                        const Real a ( std::sqrt( std::abs( A_0[(n_0+1)*i] ) ) );
-//
-//                        A_0[(n_0+1)*i] = a;
-//
-//                        const Real ainv ( static_cast<Real>(1)/a );
-//
-//                        scale_buffer( ainv, &A_0[(n_0+1)*i+1], n_0-i-1 );
-//
-//                        // TODO: Replace by column-wise scaling.
-//                        scale_buffer( ainv, &A_1[n_0*i], n_1 );
-//                    }
-//                }
-//
-//                toc(ClassName()+"::SN_FactorizeNumerically_Sequential");
-//            }
+            void SN_FactorizeNumerically_Sequential()
+            {
+                // Left-looking factorization.
+
+                // TODO: Make the function accept a root node s_0 of the AssemblyTree.
+                // TODO: It shall then do the factorization of the full subtree.
+                tic(ClassName()+"::SN_FactorizeNumerically_Sequential");
+
+                const  Int * restrict const child_ptr = EliminationTree().ChildPointers().data();
+                const  Int * restrict const child_idx = EliminationTree().ChildIndices().data();
+
+                // Working space for intersection calculations.
+                Tensor1<Int,Int> II_pos (max_n_0);
+                Tensor1<Int,Int> IL_pos (max_n_1);
+                Tensor1<Int,Int> JJ_pos (max_n_0);
+                Tensor1<Int,Int> JL_pos (max_n_1);
+
+                Int IL_ctr = 0;
+                Int JL_ctr = 0;
+
+                // Working space for BLAS3 routines.
+                Tensor1<Scalar,Int> B_0 ( max_n_0 * max_n_0 );
+                Tensor1<Scalar,Int> B_1 ( max_n_0 * max_n_1 );
+                Tensor1<Scalar,Int> C_0 ( max_n_0 * max_n_0 );
+                Tensor1<Scalar,Int> C_1 ( max_n_0 * max_n_1 );
+
+                // TODO: We need the AssemblyTree!
+                const Int * restrict const subtree_begin = GetAssemblyTree().SubTreeBegin().data();
+                const Int * restrict const subtree_end   = GetAssemblyTree().SubTreeEnd().data();
+
+
+                for( Int s = 0; s < SN_count; ++s )
+                {
+                    Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[s]];
+                    Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[s]];
+
+                    const Int n_0 = SN_rp   [s+1] - SN_rp   [s];
+                    const Int n_1 = SN_outer[s+1] - SN_outer[s];
+
+                    const Int t_begin = subtree_begin[s];
+                    const Int t_end   = subtree_end  [s];
+
+                    // Go trough all descendants of s -- not only through its children!!!!!
+                    // Using a postordering guarantees, that the descandants of s are already computed.
+                    // Moreover we can exploit that all children of s lie contiguously
+                    // But where exactly?
+                    // The AssemblyTree can tell us!
+
+                    // TODO: Check that the ordering that we use for supernodes really coincides with the PostOrdering of the AssemblyTree!!
+
+                    for( Int t = t_begin; t < t_end; ++t )
+                    {
+                        // Compute the intersection of supernode s with t.
+                        SN_Intersect( s, t, II_pos, IL_pos, IL_ctr, JJ_pos, JL_pos, JL_ctr );
+
+                        Scalar * restrict const t_tri = &SN_tri_vals[SN_tri_ptr[t]];
+                        Scalar * restrict const t_rec = &SN_rec_vals[SN_rec_ptr[t]];
+
+                        // TODO: transpose t_rec to allow row-scattered read
+
+                        // Col-scatter-read t_rec[:,IL_pos] into matrix B_0 of size m_0 x IL_ctr;
+
+                        // Do C_0 = upper(B_0^H * B_0), where C_0 is matrix of size IL_ctr x IL_ctr;
+                        // --> use syrk
+
+                        // Row-col-scatter-add C_0 into A_0, matrix of size n_0 x n_0;
+
+
+                        // Col-scatter-read t_rec[:,JL_pos] into matrix B_1 of size m_0 x JL_ctr;
+
+                        // Do C_1 = B_0^H * B_1, where C_1 is matrix of size IL_ctr x JL_ctr;
+                        // --> use gemm
+
+                        // Row-col-scatter-add C_1 into A_1, matrix of size n_0 x n_1;
+
+                        // TODO: Add specializations for n_0 == 1 and m_0 == 1.
+                        // TODO: Add specializations for n_0 == 1 and m_0 >  1.
+                        // TODO: Add specializations for n_0 >  1 and m_0 == 1.
+                    }
+
+                    // TODO: Do the scaling.
+
+                    for( Int i = 0; i < n_0; ++i )
+                    {
+                        const Real a ( std::sqrt( std::abs( A_0[(n_0+1)*i] ) ) );
+
+                        A_0[(n_0+1)*i] = a;
+
+                        const Real ainv ( static_cast<Real>(1)/a );
+
+                        scale_buffer( ainv, &A_0[(n_0+1)*i+1], n_0-i-1 );
+
+                        // TODO: Replace by column-wise scaling.
+                        scale_buffer( ainv, &A_1[n_0*i], n_1 ); /// XXX
+                    }
+                }
+
+                toc(ClassName()+"::SN_FactorizeNumerically_Sequential");
+            }
 
             void SN_Intersect(
                 const Int s,
@@ -1000,130 +934,7 @@ namespace Tensors
 //###########################################################################################
 //####          Supernodal back substitution
 //###########################################################################################
-            
-//            template<int nrhs>
-//            void SN_UpperSolve_Sequential( Scalar * restrict const b )
-//            {
-//                tic("SN_UpperSolve_Sequential<"+ToString(nrhs)+">");
-//                // Solves U * x = b and stores the result back into b.
-//                // Assumes that b has size n x rhs_count.
-//
-//                // Some scratch space to read parts of x that belong to a supernode's rectangular part.
-//                Tensor2<Scalar,Int> x_buffer ( n, nrhs );
-//
-//                for( Int k = SN_count; k --> 0; )
-//                {
-//                    const Int n_0 = SN_rp[k+1] - SN_rp[k];
-//
-//                    const Int l_begin = SN_outer[k  ];
-//                    const Int l_end   = SN_outer[k+1];
-//
-//                    const Int n_1 = l_end - l_begin;
-//
-//                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-//                    const Scalar * restrict const A_0 = &SN_tri_vals[SN_tri_ptr[k]];
-//
-//                    // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-//                    const Scalar * restrict const A_1 = &SN_rec_vals[SN_rec_ptr[k]];
-//
-//                    // x_0 is the part of x that interacts with A_0, size = n_0 x rhs_count.
-//                          Scalar * restrict const x_0 = &b[nrhs * SN_rp[k]];
-//
-//                    // x_1 is the part of x that interacts with A_1, size = n_1 x rhs_count.
-//                          Scalar * restrict const x_1 = x_buffer.data();
-//
-//                    if( n_1 > 0 )
-//                    {
-//                        // Load the already computed values into x_1.
-//                        for( Int j = 0; j < n_1; ++j )
-//                        {
-//                            copy_buffer<nrhs>( &b[ nrhs * SN_inner[l_begin+j]], &x_1[nrhs * j] );
-//                        }
-//
-//                        // Compute x_0 -= A_1 * x_1
-//
-////                        MyBLAS::GEMM<
-////                            Op::Identity, Op::Identity,
-////                            -1, nrhs, -1,
-////                            ScalarFlag::Minus, ScalarFlag::Plus, Scalar
-////                        >()(
-////                            n_0, nrhs, n_1,
-////                           -one, A_1, n_1,
-////                                 x_1, nrhs,
-////                            one, x_0, nrhs
-////                        );
-//
-//
-//                        if constexpr ( nrhs == 1 )
-//                        {
-//                            BLAS_Wrappers::gemv(
-//                                CblasRowMajor, CblasNoTrans, n_0, n_1,
-//                               -one, A_1, n_1,
-//                                     x_1, nrhs,
-//                                one, x_0, nrhs
-//                            );
-//                        }
-//                        else
-//                        {
-//                            BLAS_Wrappers::gemm(
-//                                CblasRowMajor, CblasNoTrans, CblasNoTrans, n_0, nrhs, n_1,
-//                               -one, A_1, n_1,
-//                                x_1, nrhs,
-//                                one, x_0, nrhs
-//                            );
-//                        }
-//                    }
-//
-//                    // Triangle solve A_0 * x_0 = b while overwriting x_0.
-//                    if( n_0 == 1 )
-//                    {
-//                        scale_buffer<nrhs>( one / A_0[0], x_0 );
-//                    }
-//                    else
-//                    {
-////                        TriangularSolve<nrhs,CblasUpper,CblasNonUnit>( n_0, A_0, x_0 );
-////
-////
-//                        MyBLAS::TRSM<
-//                            Side::Left,
-//                            Triangular::Upper,
-//                            Op::Identity,
-//                            Diagonal::Generic,
-//                            MyBLAS::Dynamic,
-//                            nrhs,
-//                            ScalarFlag::Plus,
-//                            Scalar
-//                        >()(n_0, nrhs, A_0, x_0);
-//                    }
-//                }
-//                toc("SN_UpperSolve_Sequential<"+ToString(nrhs)+">");
-//            }
-//
-//            template<int nrhs_lo, int nrhs_hi>
-//            void SN_UpperSolve_Sequential( Scalar * restrict const b, const int nrhs )
-//            {
-//                if constexpr (nrhs_lo == nrhs_hi )
-//                {
-//                    U_Solve_Sequential_SN<nrhs_lo>(b);
-//                }
-//                else
-//                {
-//                    const int nrhs_mid = nrhs_lo + (nrhs_hi - nrhs_lo)/2;
-//                    if( nrhs == nrhs_mid )
-//                    {
-//                        U_Solve_Sequential_SN<nrhs_mid>(b);
-//                    }
-//                    else if( nrhs < nrhs_mid )
-//                    {
-//                        U_Solve_Sequential_SN<nrhs_lo,nrhs_mid-1>(b,nrhs);
-//                    }
-//                    else
-//                    {
-//                        U_Solve_Sequential_SN<nrhs_mid+1,nrhs_hi>(b,nrhs);
-//                    }
-//                }
-//            }
-            
+
             void SN_UpperSolve_Sequential( Scalar * restrict const B, const Int nrhs )
             {
                 tic("SN_UpperSolve_Sequential_SN");
@@ -1182,7 +993,7 @@ namespace Tensors
                                 CblasRowMajor, CblasTrans,
                                 n_1, nrhs,
                                -one, X_1, nrhs,
-                                     A_1, 1,
+                                     A_1, 1,        // XXX Problem: We need conj(A_1)
                                 one, X_0, 1
                             );
                         }
@@ -1199,7 +1010,7 @@ namespace Tensors
                             BLAS_Wrappers::gemm(
                                 CblasRowMajor, CblasNoTrans, CblasNoTrans,
                                 n_0, nrhs, n_1,
-                               -one, A_1, n_1,
+                               -one, A_1, n_1,      // XXX
                                      X_1, nrhs,
                                 one, X_0, nrhs
                             );
@@ -1258,7 +1069,7 @@ namespace Tensors
 
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                A_1x_1 += A_1[j] * b[SN_inner[l_begin+j]];
+                                A_1x_1 += A_1[j] * b[SN_inner[l_begin+j]]; // XXX conj(A_1[j])
                             }
                         }
 
@@ -1281,7 +1092,7 @@ namespace Tensors
 
                             // Compute x_0 -= A_1 * x_1
                             BLAS_Wrappers::gemv(
-                                CblasRowMajor, CblasNoTrans,
+                                CblasRowMajor, CblasNoTrans, // XXX CblasNoTrans -> CblasConjTrans
                                 n_0, n_1,
                                -one, A_1, n_1,
                                      x_1, 1,
@@ -1353,7 +1164,7 @@ namespace Tensors
 
                             for( Int i = 0; i < n_1; ++i )
                             {
-                                const Scalar factor = - conj(A_1[i]);
+                                const Scalar factor = - conj(A_1[i]); // XXX conj(A_1[i])-> A_1[i]
                                 for( Int j = 0; j < nrhs; ++j )
                                 {
                                     X_1[nrhs*i+j] = factor * X_0[j];
@@ -1375,7 +1186,7 @@ namespace Tensors
                         if( n_1 > 0 )
                         {
                             // Compute X_1 = - A_1^H * X_0
-                            BLAS_Wrappers::gemm(
+                            BLAS_Wrappers::gemm( //XXX CblasConjTrans -> CblasTrans
                                 CblasRowMajor, CblasConjTrans, CblasNoTrans,
                                 n_1, nrhs, n_0, // ???
                                 -one, A_1, n_1,
@@ -1438,7 +1249,7 @@ namespace Tensors
                             for( Int j = 0; j < n_1; ++j )
                             {
                                 b[SN_inner[l_begin+j]] -= conj(A_1[j]) * x_0[0];
-                            }
+                            }   // XXX conj(A_1[j]) -> A_1[j]
                         }
                     }
                     else // using BLAS2 routines.
@@ -1456,7 +1267,7 @@ namespace Tensors
                             
                             // Compute x_1 = - A_1^H * x_0
                             BLAS_Wrappers::gemv(
-                                CblasRowMajor, CblasConjTrans,
+                                CblasRowMajor, CblasConjTrans,  //XXX CblasConjTrans -> CblasTrans
                                 n_0, n_1,
                                 -one, A_1, n_1,
                                       x_0, 1,
@@ -1485,6 +1296,72 @@ namespace Tensors
                 SN_LowerSolve_Sequential( b );
                 SN_UpperSolve_Sequential( b );
             }
+            
+            
+//###########################################################################################
+//####          Supernodes to matrix
+//###########################################################################################
+            
+            void SN_ReconstructU()
+            {
+                Tensor1<LInt,Int> U_rp (n+1);
+                U_rp[0] = 0;
+                
+                for( Int k = 0; k < SN_count; ++k )
+                {
+                    const Int i_begin = SN_rp[k  ];
+                    const Int i_end   = SN_rp[k+1];
+                    
+                    const Int l_begin = SN_outer[k  ];
+                    const Int l_end   = SN_outer[k+1];
+                    
+//                    const Int n_0 = i_end - i_begin;
+                    const Int n_1 = l_end - l_begin;
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        U_rp[i+1] = U_rp[i] + (i_end-i) + n_1;
+                    }
+                }
+                
+                valprint("nnz",U_rp.Last());
+                
+                Tensor1<Int,LInt> U_ci (U_rp.Last());
+                
+                for( Int k = 0; k < SN_count; ++k )
+                {
+                    const Int i_begin = SN_rp[k  ];
+                    const Int i_end   = SN_rp[k+1];
+                    
+                    const Int l_begin = SN_outer[k  ];
+                    const Int l_end   = SN_outer[k+1];
+                    
+                    const Int n_0 = i_end - i_begin;
+                    const Int n_1 = l_end - l_begin;
+
+                    const Int start = U_rp[i_begin];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        const Int delta = i-i_begin;
+
+                        U_ci[start + delta] = i;
+                    }
+                    
+                    copy_buffer( &SN_inner[l_begin], &U_ci[U_rp[i_begin]+n_0], n_1 );
+                    
+                    #pragma omp parallel for num_threads( thread_count )
+                    for( Int i = i_begin+1; i < i_end; ++i )
+                    {
+                        const Int delta = i-i_begin;
+
+                        copy_buffer( &U_ci[start+delta], &U_ci[U_rp[i]], (i_end-i) + n_1 );
+                    }
+                }
+                
+                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci), n, n, thread_count );
+            }
+            
             
             const SparseMatrix_T & GetL() const
             {
