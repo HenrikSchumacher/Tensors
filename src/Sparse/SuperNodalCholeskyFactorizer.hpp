@@ -564,7 +564,6 @@ namespace Tensors
                     if( J_j < L_l )
                     {
                         J_j = SN_inner[++j];
-                        
                     }
                     else if( J_j > L_l )
                     {
