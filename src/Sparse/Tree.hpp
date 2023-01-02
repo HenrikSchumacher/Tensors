@@ -11,8 +11,10 @@ namespace Tensors
         
         ~Tree() = default;
         
-        explicit Tree( Tensor1<Int,Int> && parents_ )
+        explicit Tree( Tensor1<Int,Int> && parents_, const Int root_, const Int thread_count_ = 1 )
         :   n                 ( parents_.Size() )
+        ,   root              ( root_           )
+        ,   thread_count      ( thread_count_   )
         ,   post              ( n               )
         ,   descendant_counts ( n               )
         ,   postordered       ( true            )
@@ -20,6 +22,8 @@ namespace Tensors
             ptic(ClassName());
             
             std::swap( parents, parents_ );
+            
+            ptic("Adjacency matrix");
             
             // Next we build the adjacency matrix A of the tree.
             
@@ -30,42 +34,40 @@ namespace Tensors
             Tensor1<Int,Int> idx (n-1);
             Tensor1<Int,Int> jdx (n-1);
             
-            Int root;
+            #pragma omp parallel for num_threads( thread_count )
+            for( Int k = 0; k < n; ++k )
             {
-                Int j = 0;
-                for( Int k = 0; k < n; ++k )
+                if( k < root )
                 {
-                    const Int i = parents[k];
-                    
-                    if( ( 0 <= i ) && ( i < n ) )
-                    {
-                        idx[j] = i;
-                        jdx[j] = j;
-                        ++j;
-                    }
-                    else
-                    {
-                        root = k;
-                    }
+                    idx[k] = parents[k];
+                    jdx[k] = k;
+                }
+                else if( k > root )
+                {
+                    idx[k-1] = parents[k];
+                    jdx[k-1] = k-1;
                 }
             }
-            
-            Int thread_count     = 1;
+
             Int list_count       = 1;
             Int entry_counts [1] = {n-1};
             
             Int * idx_data = idx.data();
             Int * jdx_data = jdx.data();
             
+
             A = SparseBinaryMatrixCSR<Int,Int> (
                 &idx_data,
                 &jdx_data,
                 &entry_counts[0],
                 list_count, n, n, thread_count, false, 0
             );
+            ptoc("Adjacency matrix");
             
             // Compute postordering and descendant counts. Also check whether tree is already postordered.
             
+            // TODO: Can be parallelized.
+            ptic("Postorder traversal");
             Tensor1<Int, Int> stack   ( n+1 );
             Tensor1<bool,Int> visited ( n+1, false );
             
@@ -113,7 +115,7 @@ namespace Tensors
                     const Int k_begin = child_ptr[node  ];
                     const Int k_end   = child_ptr[node+1];
                     
-                    Int sum = 1; // The node itself is also called as its own descendant.
+                    Int sum = 1; // The node itself is also counted as its own descendant.
                     
                     for( Int k = k_begin; k < k_end; ++k )
                     {
@@ -121,9 +123,9 @@ namespace Tensors
                     }
 
                     descendant_counts[node] = sum;
-                    
                 }
             }
+            ptoc("Postorder traversal");
             
             ptoc(ClassName());
         }
@@ -133,6 +135,8 @@ namespace Tensors
         // Copy constructor
         Tree( const Tree & other )
         :   n                 ( other.n                 )
+        ,   root              ( other.root              )
+        ,   thread_count      ( other.thread_count      )
         ,   post              ( other.post              )
         ,   descendant_counts ( other.descendant_counts )
         ,   parents           ( other.parents           )
@@ -147,6 +151,8 @@ namespace Tensors
             using std::swap;
 
             swap( A.n,                 B.n                 );
+            swap( A.root,              B.root              );
+            swap( A.thread_count,      B.thread_count      );
             swap( A.post,              B.post              );
             swap( A.descendant_counts, B.descendant_counts );
             swap( A.parents,           B.parents           );
@@ -219,9 +225,18 @@ namespace Tensors
             return postordered;
         }
         
+        Int Root() const
+        {
+            return root;
+        }
+        
     protected:
         
         Int n;
+        
+        Int root;
+        
+        Int thread_count;
         
         Tensor1<Int,Int> post;
         

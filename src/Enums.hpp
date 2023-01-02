@@ -5,10 +5,10 @@ namespace Tensors
     // cf. CBLAS_TRANSPOSE
     enum class Op : unsigned char
     {
-        Identity           = 111,
-        Transpose          = 112,
-        ConjugateTranspose = 113
-//        Conjugate          = 'J'
+        Id           = 111,
+        Trans        = 112,
+        ConjTrans    = 113
+//        Conj         = 114
     };
     
     // cf. CBLAS_LAYOUT
@@ -26,9 +26,9 @@ namespace Tensors
     };
     
     // cf. CBLAS_DIAG
-    enum class Diagonal : unsigned char
+    enum class Diag : unsigned char
     {
-        Generic = 131,
+        NonUnit = 131,
         Unit    = 132
     };
     

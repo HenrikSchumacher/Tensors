@@ -9,7 +9,7 @@ namespace Tensors
             Side side,
             Triangular uplo,
             Op op,
-            Diagonal diag,
+            Diag diag,
             int N, int NRHS,
             ScalarFlag alpha_flag,
             typename Scalar
@@ -41,10 +41,9 @@ namespace Tensors
                 {
 //                    if constexpr ( NRHS == 1 )
 //                    {
-//                        Tensors::BLAS_Wrappers::trsv( CblasRowMajor,
-//                            CblasRowMajor,side,uplo,opA,diag,
-//                            n,A,ldA,B,ldB
-//                        );
+//                        Tensors::BLAS_Wrappers::trsv<
+//                            Layout::RowMajor, uplo, op, diag
+//                          >( n,A,ldA,B,ldB );
 //                        const CBLAS_ORDER layout,
 //                        const CBLAS_UPLO uplo,
 //                        const CBLAS_TRANSPOSE transa,
@@ -54,13 +53,9 @@ namespace Tensors
 //                    }
 //                    else
                     {
-                        Tensors::BLAS_Wrappers::trsm( CblasRowMajor,
-                            static_cast<CBLAS_SIDE>(side),
-                            static_cast<CBLAS_UPLO>(uplo),
-                            static_cast<CBLAS_TRANSPOSE>(op),
-                            static_cast<CBLAS_DIAG>(op),
-                            n,nrhs,alpha,A,ldA,B,ldB
-                        );
+                        Tensors::BLAS_Wrappers::trsm<
+                            Layout::RowMajor, side, uplo, op, diag
+                        >( n,nrhs,alpha,A,ldA,B,ldB );
                     }
                 }
             }

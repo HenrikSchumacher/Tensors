@@ -631,7 +631,7 @@ namespace Tensors
         
     protected:
         
-        Tensor2<Int,Int> CreateTransposeCounters() const
+        Tensor2<LInt,Int> CreateTransposeCounters() const
         {
             ptic(ClassName()+"::CreateTransposeCounters");
             

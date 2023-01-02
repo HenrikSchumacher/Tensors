@@ -78,15 +78,15 @@ public:
 
 
     // We are extremely generous and provide an extra read method without stride.
-    template<Op op = Op::Identity, typename T>
+    template<Op op = Op::Id, typename T>
     void Read( const T * restrict const B )
     {
         // Reading A = op(B)
-        if constexpr ( op == Op::Identity )
+        if constexpr ( op == Op::Id )
         {
             copy_buffer<n>( B, &A[0][0] );
         }
-        else if constexpr ( op == Op::Transpose )
+        else if constexpr ( op == Op::Trans )
         {
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
@@ -99,7 +99,7 @@ public:
                 }
             }
         }
-        else if constexpr ( op == Op::ConjugateTranspose )
+        else if constexpr ( op == Op::ConjTrans )
         {
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
@@ -115,18 +115,18 @@ public:
     }
 
     // BLAS-like read-modify method with stride.
-    template<Op op = Op::Identity, typename T>
+    template<Op op = Op::Id, typename T>
     void Read( const T * restrict const B, const Int ldB )
     {
         // Reading A = op(B)
-        if constexpr ( op == Op::Identity )
+        if constexpr ( op == Op::Id )
         {
             for( Int i = 0; i < m; ++i )
             {
                 copy_buffer<n>( &B[ldB*i], &A[i][0] );
             }
         }
-        else if constexpr ( op == Op::Transpose )
+        else if constexpr ( op == Op::Trans )
         {
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
@@ -139,7 +139,7 @@ public:
                 }
             }
         }
-        else if constexpr ( op == Op::ConjugateTranspose )
+        else if constexpr ( op == Op::ConjTrans )
         {
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
@@ -156,18 +156,18 @@ public:
 
     // Scattered read-modify method.
     // Useful in supernodal arithmetic for sparse matrices.
-    template<Op op = Op::Identity, typename T>
+    template<Op op = Op::Id, typename T>
     void Read( const T * restrict const B, const Int ldB, const Int * restrict const idx )
     {
         // Reading A = op(B)
-        if constexpr ( op == Op::Identity )
+        if constexpr ( op == Op::Id )
         {
             for( Int i = 0; i < m; ++i )
             {
                 copy_buffer<n>( &B[ldB*idx[i]], &A[i][0] );
             }
         }
-        else if constexpr ( op == Op::Transpose )
+        else if constexpr ( op == Op::Trans )
         {
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
@@ -180,7 +180,7 @@ public:
                 }
             }
         }
-        else if constexpr ( op == Op::ConjugateTranspose )
+        else if constexpr ( op == Op::ConjTrans )
         {
             // TODO: Not sure whether it would be better to  swap the two loops here...
             for( Int j = 0; j < n; ++j )

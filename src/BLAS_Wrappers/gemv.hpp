@@ -4,10 +4,8 @@ namespace Tensors
 {
     namespace BLAS_Wrappers
     {
-        template<typename Scalar>
+        template<Layout layout, Op opA, typename Scalar>
         force_inline void gemv(
-            const CBLAS_ORDER     layout,
-            const CBLAS_TRANSPOSE transA,
             const int m, const int n,
             const Scalar & alpha, const Scalar * A, const int ldA,
                                   const Scalar * x, const int incx,
@@ -16,19 +14,23 @@ namespace Tensors
         {
             if constexpr ( std::is_same_v<Scalar,double> )
             {
-                return cblas_dgemv( layout, transA, m, n, alpha, A, ldA, x, incx, beta, y, incy );
+                return cblas_dgemv(
+                    to_BLAS(layout), to_BLAS(opA), m, n, alpha, A, ldA, x, incx, beta, y, incy );
             }
             else if constexpr ( std::is_same_v<Scalar,float> )
             {
-                return cblas_sgemv( layout, transA, m, n, alpha, A, ldA, x, incx, beta, y, incy );
+                return cblas_sgemv(
+                    to_BLAS(layout), to_BLAS(opA), m, n, alpha, A, ldA, x, incx, beta, y, incy );
             }
             else if constexpr ( std::is_same_v<Scalar,std::complex<double>> )
             {
-                return cblas_zgemv( layout, transA, m, n, &alpha, A, ldA, x, incx, &beta, y, incy );
+                return cblas_zgemv(
+                    to_BLAS(layout), to_BLAS(opA), m, n, &alpha, A, ldA, x, incx, &beta, y, incy );
             }
             else if constexpr ( std::is_same_v<Scalar,std::complex<float>> )
             {
-                return cblas_cgemv( layout, transA, m, n, &alpha, A, ldA, x, incx, &beta, y, incy );
+                return cblas_cgemv(
+                    to_BLAS(layout), to_BLAS(opA), m, n, &alpha, A, ldA, x, incx, &beta, y, incy );
             }
             else
             {

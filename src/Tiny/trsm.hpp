@@ -8,7 +8,7 @@ namespace Tensors
             Side side,
             Triangular uplo,
             Op opA,
-            Diagonal diag,
+            Diag diag,
             int N,
             int NRHS,
             ScalarFlag alpha_flag,
@@ -30,7 +30,7 @@ namespace Tensors
             Tiny::UpperTriangularMatrix<N,Scalar,Int> A;
             Tiny::Matrix<N,NRHS,Scalar,Int> B;
             A.template Read(A_,ldA);
-            B.template Read<Op::Identity>(B_,ldB);
+            B.template Read<Op::Id>(B_,ldB);
             A.template Solve<opA,diag>(B);
             B.template Write<alpha_flag,ScalarFlag::Zero>(alpha,0,B_,ldB);
         }
@@ -39,7 +39,7 @@ namespace Tensors
             Side side,
             Triangular uplo,
             Op opA,
-            Diagonal diag,
+            Diag diag,
             int N,
             int NRHS,
             ScalarFlag alpha_flag,
@@ -61,7 +61,7 @@ namespace Tensors
             Tiny::UpperTriangularMatrix<N,Scalar,Int> A;
             Tiny::Matrix<N,NRHS,Scalar,Int> B;
             A.template Read(A_);
-            B.template Read<Op::Identity>(B_);
+            B.template Read<Op::Id>(B_);
             A.template Solve<opA,diag>(B);
             B.template Write<alpha_flag,ScalarFlag::Zero>(alpha,0,B_);
         }

@@ -51,16 +51,13 @@ namespace Tensors
                 {
                     if constexpr ( N == 1 )
                     {
-                        Tensors::BLAS_Wrappers::gemv( CblasRowMajor,
-                            static_cast<CBLAS_TRANSPOSE>(opA),
+                        Tensors::BLAS_Wrappers::gemv<Layout::RowMajor, opA>(
                             m,k,alpha,A,ldA,B,ldB,beta,C,ldC
                         );
                     }
                     else
                     {
-                        Tensors::BLAS_Wrappers::gemm( CblasRowMajor,
-                            static_cast<CBLAS_TRANSPOSE>(opA),
-                            static_cast<CBLAS_TRANSPOSE>(opB),
+                        Tensors::BLAS_Wrappers::gemm<Layout::RowMajor, opA, opB>(
                             m,n,k,alpha,A,ldA,B,ldB,beta,C,ldC
                         );
                     }
@@ -164,16 +161,13 @@ namespace Tensors
                     {
                         if constexpr ( N_ == 1 )
                         {
-                            Tensors::BLAS_Wrappers::gemv( CblasRowMajor,
-                                static_cast<CBLAS_TRANSPOSE>(opA),
+                            Tensors::BLAS_Wrappers::gemv<Layout::RowMajor,opA>(
                                 m,k,alpha,A,ldA,B,ldB,beta,C,ldC
                             );
                         }
                         else
                         {
-                            Tensors::BLAS_Wrappers::gemm( CblasRowMajor,
-                                static_cast<CBLAS_TRANSPOSE>(opA),
-                                static_cast<CBLAS_TRANSPOSE>(opB),
+                            Tensors::BLAS_Wrappers::gemm<Layout::RowMajor,opA,opB>(
                                 m,N_,k,alpha,A,ldA,B,ldB,beta,C,ldC
                             );
                         }
@@ -275,16 +269,13 @@ namespace Tensors
                     {
                         if constexpr ( N_ == 1 )
                         {
-                            Tensors::BLAS_Wrappers::gemv( CblasRowMajor,
-                                static_cast<CBLAS_TRANSPOSE>(opA),
+                            Tensors::BLAS_Wrappers::gemv<Layout::RowMajor,opA>(
                                 M_,k,alpha,A,ldA,B,ldB,beta,C,ldC
                             );
                         }
                         else
                         {
-                            Tensors::BLAS_Wrappers::gemm( CblasRowMajor,
-                                static_cast<CBLAS_TRANSPOSE>(opA),
-                                static_cast<CBLAS_TRANSPOSE>(opB),
+                            Tensors::BLAS_Wrappers::gemm<Layout::RowMajor,opA,opB>(
                                 M_,N_,k,alpha,A,ldA,B,ldB,beta,C,ldC
                             );
                         }

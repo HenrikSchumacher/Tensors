@@ -3,8 +3,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#define LAPACK_DISABLE_NAN_CHECK
 
-#include <Accelerate/Accelerate.h>
+//#include <Accelerate/Accelerate.h>
+#include <cblas.h>
+#include <lapacke.h>
 
 #include "../../MyBLAS.hpp"
 
@@ -40,9 +43,8 @@ namespace Tensors
             using LInt      = LInt_;
             
             using SparseMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
-            
-            using List_T = SortedList<Int,Int>;
 
+            using Factorizer = SupernodalCholeskyFactorizer<Scalar,Int,LInt>;
             
             friend class SupernodalCholeskyFactorizer<Scalar,Int,LInt>;
             
@@ -81,7 +83,7 @@ namespace Tensors
             
             // Pointers from supernodes to their rows.
             // k-th supernode has rows [ SN_rp[k],...,SN_rp[k+1] [
-            Tensor1<  LInt, Int> SN_rp;
+            Tensor1<   Int, Int> SN_rp;
             // Pointers from supernodes to their starting position in SN_inner.
             Tensor1<  LInt, Int> SN_outer;
             // The column indices of rectangular part of the supernodes.
@@ -171,6 +173,11 @@ namespace Tensors
             
             const Tree<Int> & EliminationTree()
             {
+                // TODO: How can this be parallelized?
+                
+                // TODO: read Kumar, Kumar, Basu - A parallel algorithm for elimination tree computation and symbolic factorization
+
+                
                 if( ! eTree_initialized )
                 {
                     ptic(ClassName()+"::EliminationTree");
@@ -190,7 +197,6 @@ namespace Tensors
                     const LInt * restrict const A_outer = A_lo.Outer().data();
                     const  Int * restrict const A_inner = A_lo.Inner().data();
                     
-//                    tic("Main loop");
                     for( Int k = 1; k < n; ++k )
                     {
                         // We need visit all i < k with A_ik != 0.
@@ -215,9 +221,8 @@ namespace Tensors
                             }
                         }
                     }
-//                    toc("Main loop");
                     
-                    eTree = Tree<Int> ( std::move(parents) );
+                    eTree = Tree<Int> ( std::move(parents), n-1, thread_count );
                     
                     eTree_initialized = true;
                     
@@ -226,63 +231,7 @@ namespace Tensors
                 
                 return eTree;
             }
-            
-//            const Tree<Int> & EliminationTree()
-//            {
-//                if( ! eTree_initialized )
-//                {
-//                    ptic(ClassName()+"::EliminationTree");
-//
-//                    // See Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
-//
-//                    Tensor1<Int,Int> parents ( n, n );
-//                    Tensor1<Int,Int> buffer  ( n, n );
-//
-//                    const LInt * restrict const A_outer = A_lo.Outer().data();
-//                    const  Int * restrict const A_inner = A_lo.Inner().data();
-//
-////                    tic("Main loop");
-//                    for( Int i = 1; i < n; ++i )
-//                    {
-//                        // We need visit all j < i with A_ji != 0.
-//                        const LInt k_begin = A_outer[i  ];
-//                        const LInt k_end   = A_outer[i+1]-1;
-//
-//                        for( LInt k = k_begin; k < k_end; ++k )
-//                        {
-//                            Int j = A_inner[k];
-//
-//
-//                            if( j>= i )
-//                            {
-//                                print("!!");
-//                            }
-//
-//                            while( j != n && j < i)
-//                            {
-//                                Int j_temp = buffer[j];
-//
-//                                buffer[j] = i;
-//
-//                                if( j_temp == n )
-//                                {
-//                                    parents[j] = i;
-//                                }
-//                                j = j_temp;
-//                            }
-//                        }
-//                    }
-////                    toc("Main loop");
-//
-//                    eTree = Tree<Int> ( std::move(parents) );
-//
-//                    eTree_initialized = true;
-//
-//                    ptoc(ClassName()+"::EliminationTree");
-//                }
-//
-//                return eTree;
-//            }
+
             
         protected:
             
@@ -305,7 +254,7 @@ namespace Tensors
                 
                 SN_parents[SN_count-1] = SN_count;
                 
-                aTree = Tree<Int> ( std::move(SN_parents) );
+                aTree = Tree<Int> ( std::move(SN_parents), SN_count-1, thread_count );
                 
                 ptoc(ClassName()+"::CreateAssemblyTree");
             }
@@ -322,6 +271,10 @@ namespace Tensors
             
             void FactorizeSymbolically()
             {
+                // Non-supernodal way to perform symbolic analysis.
+                // Only meant as reference! In practice rather use the supernodal version SN_FactorizeSymbolically.
+                
+                
                 // This is Algorithm 4.2 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
                 
                 ptic(ClassName()+"::FactorizeSymbolically");
@@ -360,14 +313,14 @@ namespace Tensors
                         const Int j = child_idx[l];
                         
                         // Merge row pointers of child j into U_i
-                        const Int _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
-                        const Int _end   = U_rp[j+1];
+                        const LInt _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
+                        const LInt _end   = U_rp[j+1];
                         
                         if( _end > _begin )
                         {
                             row_counter = UniteSortedBuffers(
                                 U_i.data(),    row_counter,
-                                &U_ci[_begin], _end - _begin,
+                                &U_ci[_begin], static_cast<Int>(_end - _begin),
                                 buffer.data()
                             );
                             swap( U_i, buffer );
@@ -405,23 +358,18 @@ namespace Tensors
                 // Compute supernodal symbolic factorization with so-called _fundamental supernodes_.
                 // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations.
                 
-                // TODO: This requires that A is postordered, i.e., that
-                // TODO: EliminationTree().PostOrdering() == [0,...,n[.
-                
                 
                 // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
 
                 if( !SN_initialized )
                 {
-                    tic(ClassName()+"::SN_FactorizeSymbolically");
-                    
-                    tic("Preparations");
+                    ptic(ClassName()+"::SN_FactorizeSymbolically");
                     
                     if( !EliminationTree().PostOrdered() )
                     {
                         eprint(ClassName()+"::SN_FactorizeSymbolically requires postordering!");
                     }
-
+                    
                     const LInt * restrict const A_rp      = A_up.Outer().data();
                     const  Int * restrict const A_ci      = A_up.Inner().data();
                     
@@ -450,16 +398,16 @@ namespace Tensors
                     
                     // To be filled with the column indices of super nodes.
                     // Will later be moved to SN_inner.
-                    Aggregator<Int,LInt> SN_inner_agg ( 2 * A_up.NonzeroCount(), thread_count );
+                    Aggregator<Int,LInt> SN_inner_agg ( 4 * A_up.NonzeroCount(), thread_count );
                     
-                    toc("Preparations");
                     
                     // Start first supernode.
                     SN_rp[0]     = 0;
                     row_to_SN[0] = 0;
                     SN_count     = 0;
                     
-                    tic("Main loop");
+                    // TODO: Should be parallelizable by processing subtrees of elimination tree in parallel.
+                    ptic("Main loop");
                     for( Int i = 1; i < n+1; ++i ) // Traverse rows.
                     {
                         // Using Theorem 2.3 and Corollary 3.2 in
@@ -545,7 +493,7 @@ namespace Tensors
                                 {
                                     row_counter = UniteSortedBuffers(
                                         row.data(),       row_counter,
-                                        &SN_inner_agg[a], b - a,
+                                        &SN_inner_agg[a], static_cast<Int>(b - a),
                                         row_buffer.data()
                                     );
                                     swap( row, row_buffer );
@@ -559,7 +507,7 @@ namespace Tensors
                             ++SN_count;
                             
                             SN_outer[SN_count] = SN_inner_agg.Size();
-                            SN_rp[SN_count] = i; // row i does not belong to previous supernode.
+                            SN_rp   [SN_count] = i; // row i does not belong to previous supernode.
                         }
                         else
                         {
@@ -573,20 +521,20 @@ namespace Tensors
                         }
                         
                     } // for( Int i = 0; i < n+1; ++i )
-                    toc("Main loop");
+                    ptoc("Main loop");
                     
-                    tic("Finalization");
+                    ptic("Finalization");
                     
-                    dump(SN_count);
+                    pdump(SN_count);
                     
                     SN_rp.Resize( SN_count+1 );
                     SN_outer.Resize( SN_count+1 );
                     
-//                    tic("SN_inner_agg.Get()");
+                    ptic("SN_inner_agg.Get()");
                     SN_inner = std::move(SN_inner_agg.Get());
                     
                     SN_inner_agg = Aggregator<Int, LInt>(0);
-//                    toc("SN_inner_agg.Get()");
+                    ptoc("SN_inner_agg.Get()");
                     
                     SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
                     SN_tri_ptr[0] = 0;
@@ -600,34 +548,34 @@ namespace Tensors
                     for( Int k = 0; k < SN_count; ++k )
                     {
                         // Warning: Taking differences of potentially signed numbers.
-                        // Should not be of concern because negative numbers appear here only of something went wrong upstream.
-                        const LInt n_0 = SN_rp[k+1]    - SN_rp[k];
-                        const LInt n_1 = SN_outer[k+1] - SN_outer[k];
+                        // Should not be of concern because negative numbers appear here only if something went wrong upstream.
+                        const Int n_0 =                  SN_rp   [k+1] - SN_rp   [k];
+                        const Int n_1 = static_cast<Int>(SN_outer[k+1] - SN_outer[k]);
 
                         max_n_0 = std::max( max_n_0, n_0 );
                         max_n_1 = std::max( max_n_1, n_1 );
-                        
+
                         SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
                         SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
                     }
+
                     
-                    dump(max_n_0);
-                    dump(max_n_1);
+                    pdump(max_n_0);
+                    pdump(max_n_1);
                     
                     // Allocating memory for the nonzero values of the factorization.
                     
-                    // TODO: Filling with 0 is not really needed.
                     SN_tri_val = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count]);
                     SN_rec_val = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count]);
                     
-                    valprint("triangle_nnz ", SN_tri_val.Size());
-                    valprint("rectangle_nnz", SN_rec_val.Size());
+                    logvalprint("triangle_nnz ", SN_tri_val.Size());
+                    logvalprint("rectangle_nnz", SN_rec_val.Size());
                     
                     CreateAssemblyTree();
                     
-                    toc("Finalization");
+                    ptoc("Finalization");
                     
-                    toc(ClassName()+"::SN_FactorizeSymbolically");
+                    ptoc(ClassName()+"::SN_FactorizeSymbolically");
                     
                     SN_initialized = true;
                 }
@@ -638,14 +586,135 @@ namespace Tensors
 //####          Supernodal numeric factorization
 //###########################################################################################
             
+            void SN_FactorizeNumerically_Parallel(
+                const Scalar * restrict const A_val,
+                const Int max_depth
+            )
+            {
+                ptic(ClassName()+"::SN_FactorizeNumerically_Parallel");
+
+                
+                ptic("Postorder traversal of assembly tree");
+                const Int root = AssemblyTree().Root();
+
+                const Int * restrict const child_ptr   = AssemblyTree().ChildPointers().data();
+                const Int * restrict const child_idx   = AssemblyTree().ChildIndices().data();
+                const Int * restrict const desc_counts = AssemblyTree().DescendantCounts().data();
+                
+                std::vector<std::vector<Int>> levels (max_depth+1);
+                
+                Tensor1<Int, Int> stack   ( 2*max_depth+1 );
+                Tensor1<Int, Int> depth   ( 2*max_depth+1 );
+                Tensor1<bool,Int> visited ( 2*max_depth+1, false );
+                
+                Int ptr    = 0;
+                stack  [0] = root;
+                depth  [0] = 0;
+                visited[0] = false;
+                
+                // post order traversal of the tree
+                while( ptr >= 0 )
+                {
+                    const Int node = stack[ptr];
+                    const Int d    = depth[ptr];
+                    
+                    if( !visited[ptr] && d < max_depth )
+                    {
+                        // The first time we visit this node we mark it as visited
+                        visited[ptr] = true;
+                        
+                        const Int k_begin = child_ptr[node  ];
+                        const Int k_end   = child_ptr[node+1];
+                        
+                        // Pushing the children in reverse order onto the stack.
+                        for( Int k = k_end; k --> k_begin; )
+                        {
+                            stack[++ptr] = child_idx[k];
+                            depth[ptr]   = d+1;
+                        }
+                    }
+                    else
+                    {
+                        // Visiting the node for the second time.
+                        // We are moving in direction towards the root.
+                        // Hence all children have already been visited.
+                        
+                        // Popping current node from the stack.
+                        visited[ptr--] = false;
+                        
+                        levels[d].push_back(node);
+                    }
+                }
+                
+                ptoc("Postorder traversal of assembly tree");
+                
+//                for( Int s : levels[max_depth] )
+//                {
+//                    valprint("|T("+ToString(s)+")|",desc_counts[s]);
+//                }
+                
+                ptic("Parallel treatment of subtrees");
+                
+                ptic("Zerofy buffers.");
+                zerofy_buffer( SN_tri_val.data(), SN_tri_ptr.Last(), thread_count );
+                zerofy_buffer( SN_rec_val.data(), SN_rec_ptr.Last(), thread_count );
+                ptoc("Zerofy buffers.");
+                
+                ptic("Initialize factorizers");
+                std::vector<std::unique_ptr<Factorizer>> SN_list ( thread_count);
+                
+                #pragma omp parallel for num_threads( thread_count ) schedule(static)
+                for( Int thread = 0; thread < thread_count; ++thread )
+                {
+//                    dump(thread);
+//                    dump(omp_get_thread_num());
+                    SN_list[thread] = std::make_unique<Factorizer>(*this, A_val);
+                }
+                ptoc("Initialize factorizers");
+                
+                for( Int d = max_depth+1; d -->0 ; )
+                {
+                    ptic("Parallel treatment of subtrees (depth = "+ToString(d)+")");
+//                    valprint("level["+ToString(d)+"]",levels[d]);
+                    #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
+                    for( size_t r = 0; r < levels[d].size(); ++r )
+                    {
+                        const Int thread = omp_get_thread_num();
+
+                        Factorizer & SN = *SN_list[thread];
+
+                        const Int s = levels[d][r];
+
+                        if( d == max_depth )
+                        {
+                            const Int t_begin = (s+1) - desc_counts[s] ;
+                            const Int t_end   = (s+1);  // Factorize also yourself.
+                            
+                            for( Int t = t_begin; t < t_end; ++t )
+                            {
+                                SN.Factorize(t);
+                            }
+                        }
+                        else
+                        {
+                            SN.Factorize(s);
+                        }
+                    }
+                    ptoc("Parallel treatment of subtrees (depth = "+ToString(d)+")");
+                }
+                
+                ptoc("Parallel treatment of subtrees");
+                
+                ptoc(ClassName()+"::SN_FactorizeNumerically_Parallel");
+                
+            }
+            
             void SN_FactorizeNumerically_Sequential( const Scalar * restrict const A_val )
             {
-                // Left-looking factorization.
-                
                 // TODO: Make the function accept a root node s_0 of the AssemblyTree.
                 // TODO: It shall then do the factorization of the full subtree.
                 
-                tic(ClassName()+"::SN_FactorizeNumerically_Sequential");
+                ptic(ClassName()+"::SN_FactorizeNumerically_Sequential");
 
                 if( !AssemblyTree().PostOrdered() )
                 {
@@ -657,10 +726,10 @@ namespace Tensors
 //                    print("Well done! The AssemblyTree is postordered.");
 //                }
                 
-//                tic("SetZero");
+                ptic("SetZero");
                 SN_tri_val.SetZero();
                 SN_rec_val.SetZero();
-//                toc("SetZero");
+                ptoc("SetZero");
                 
                 SupernodalCholeskyFactorizer<Scalar,Int,LInt> SN ( *this, A_val );
 
@@ -669,7 +738,7 @@ namespace Tensors
                     SN.Factorize(s);
                 }
 
-                toc(ClassName()+"::SN_FactorizeNumerically_Sequential");
+                ptoc(ClassName()+"::SN_FactorizeNumerically_Sequential");
             }
             
 //###########################################################################################
@@ -678,14 +747,14 @@ namespace Tensors
 
             void SN_UpperSolve_Sequential( Scalar * restrict const B, const Int nrhs )
             {
-                tic("SN_UpperSolve_Sequential_SN");
+                ptic("SN_UpperSolve_Sequential");
                 // Solves U * X = B and stores the result back into B.
                 // Assumes that B has size n x rhs_count.
              
                 if( nrhs == 1 )
                 {
                     SN_UpperSolve_Sequential(B);
-                    toc("SN_UpperSolve_Sequential_SN");
+                    ptoc("SN_UpperSolve_Sequential");
                     return;
                 }
                 
@@ -696,21 +765,21 @@ namespace Tensors
                 {
                     const Int n_0 = SN_rp[k+1] - SN_rp[k];
                     
-                    const Int l_begin = SN_outer[k  ];
-                    const Int l_end   = SN_outer[k+1];
+                    const LInt l_begin = SN_outer[k  ];
+                    const LInt l_end   = SN_outer[k+1];
                     
-                    const Int n_1 = l_end - l_begin;
+                    const Int n_1 = static_cast<Int>(l_end - l_begin);
                     
-                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                    const Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[k]];
                     
-                    // A_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const A_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                    const Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[k]];
                     
-                    // X_0 is the part of X that interacts with A_0, size = n_0 x rhs_count.
+                    // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
                           Scalar * restrict const X_0 = &B[nrhs * SN_rp[k]];
                     
-                    // X_1 is the part of X that interacts with A_1, size = n_1 x rhs_count.
+                    // X_1 is the part of X that interacts with U_1, size = n_1 x rhs_count.
                           Scalar * restrict const X_1 = X_buffer.data();
                     
                     // Load the already computed values into X_1.
@@ -723,50 +792,49 @@ namespace Tensors
                     {
                         if( n_1 > 0 )
                         {
-                            // Compute X_0 -= A_1 * X_1
+                            // Compute X_0 -= U_1 * X_1
 
-                            //  A_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
+                            //  U_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
                             //  X_1 is a matrix of size n_1 x nrhs.
                             //  X_0 is a matrix of size 1 x nrhs; we can interpret it as vector of size nrhs.
 
-                            // Hence we can compute X_0^T -= X_1^T * A_1^T via gemv instead:
-                            BLAS_Wrappers::gemv(
-                                CblasRowMajor, CblasTrans,
+                            // Hence we can compute X_0^T -= X_1^T * U_1^T via gemv instead:
+                            BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans>(
                                 n_1, nrhs,
                                -one, X_1, nrhs,
-                                     A_1, 1,        // XXX Problem: We need conj(A_1)!
+                                     U_1, 1,        // XXX Problem: We need conj(U_1)!
                                 one, X_0, 1
                             );
                         }
 
-                        // Triangle solve A_0 * X_0 = B while overwriting X_0.
-                        // Since A_0 is a 1 x 1 matrix, it suffices to just scale X_0.
-                        scale_buffer( one / A_0[0], X_0, nrhs );
+                        // Triangle solve U_0 * X_0 = B while overwriting X_0.
+                        // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
+                        scale_buffer( one / U_0[0], X_0, nrhs );
                     }
                     else // using BLAS3 routines.
                     {
                         if( n_1 > 0 )
                         {
-                            // Compute X_0 -= A_1 * X_1
-                            BLAS_Wrappers::gemm(
-                                CblasRowMajor, CblasNoTrans, // XX CblasNoTrans -> CblasConjTrans
-                                               CblasNoTrans,
+                            // Compute X_0 -= U_1 * X_1
+                            BLAS_Wrappers::gemm<Layout::RowMajor,Op::Id,Op::Id>(
+                                // XX Op::Id -> Op::ConjugateTranspose
                                 n_0, nrhs, n_1,
-                               -one, A_1, n_1,      // XXX n_1 -> n_0
+                               -one, U_1, n_1,      // XXX n_1 -> n_0
                                      X_1, nrhs,
                                 one, X_0, nrhs
                             );
                         }
-                        // Triangle solve A_0 * X_0 = B while overwriting X_0.
-                        BLAS_Wrappers::trsm(
-                            CblasRowMajor, CblasLeft, CblasUpper, CblasNoTrans, CblasNonUnit,
+                        // Triangle solve U_0 * X_0 = B while overwriting X_0.
+                        BLAS_Wrappers::trsm<Layout::RowMajor,
+                            Side::Left, Triangular::Upper, Op::Id, Diag::NonUnit
+                        >(
                             n_0, nrhs,
-                            one, A_0, n_0,
+                            one, U_0, n_0,
                                  X_0, nrhs
                         );
                     }
                 }
-                toc("SN_UpperSolve_Sequential");
+                ptoc("SN_UpperSolve_Sequential");
             }
             
             void SN_UpperSolve_Sequential( Scalar * restrict const b )
@@ -781,49 +849,49 @@ namespace Tensors
                 {
                     const Int n_0 = SN_rp[k+1] - SN_rp[k];
                     
-                    const Int l_begin = SN_outer[k  ];
-                    const Int l_end   = SN_outer[k+1];
+                    const LInt l_begin = SN_outer[k  ];
+                    const LInt l_end   = SN_outer[k+1];
 
-                    const Int n_1 = l_end - l_begin;
+                    const Int n_1 = static_cast<Int>(l_end - l_begin);
 
-                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                    const Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[k]];
 
-                    // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const A_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    // U_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                    const Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[k]];
 
-                    // x_0 is the part of x that interacts with A_0, size = n_0.
+                    // x_0 is the part of x that interacts with U_0, size = n_0.
                           Scalar * restrict const x_0 = &b[SN_rp[k]];
 
 
                     if( n_0 == 1 )
                     {
-                        Scalar A_1x_1 = 0;
+                        Scalar U_1x_1 = 0;
 
                         if( n_1 > 0 )
                         {
-                            // Compute X_0 -= A_1 * X_1
-                            //  A_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
+                            // Compute X_0 -= U_1 * X_1
+                            //  U_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
                             //  x_1 is a vector of size n_1.
                             //  x_0 is a matrix of size 1 x 1; we can interpret it as vector of size 1.
 
-                            // Hence we can compute X_0 -= A_1 * X_1 via a simple dot product.
+                            // Hence we can compute X_0 -= U_1 * X_1 via a simple dot product.
 
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                A_1x_1 += A_1[j] * b[SN_inner[l_begin+j]]; // XXX conj(A_1[j])
+                                U_1x_1 += U_1[j] * b[SN_inner[l_begin+j]]; // XXX conj(U_1[j])
                             }
                         }
 
-                        // Triangle solve A_0 * X_0 = B while overwriting X_0.
-                        // Since A_0 is a 1 x 1 matrix, it suffices to just scale X_0.
-                        x_0[0] = (x_0[0] - A_1x_1) / A_0[0];
+                        // Triangle solve U_0 * X_0 = B while overwriting X_0.
+                        // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
+                        x_0[0] = (x_0[0] - U_1x_1) / U_0[0];
                     }
                     else // using BLAS2 routines.
                     {
                         if( n_1 > 0 )
                         {
-                            // x_1 is the part of x that interacts with A_1, size = n_1.
+                            // x_1 is the part of x that interacts with U_1, size = n_1.
                             Scalar * restrict const x_1 = x_buffer.data();
 
                             // Load the already computed values into X_1.
@@ -832,20 +900,18 @@ namespace Tensors
                                 x_1[j] = b[SN_inner[l_begin+j]];
                             }
 
-                            // Compute x_0 -= A_1 * x_1
-                            BLAS_Wrappers::gemv(
-                                CblasRowMajor, CblasNoTrans, // XXX CblasNoTrans -> CblasConjTrans
+                            // Compute x_0 -= U_1 * x_1
+                            BLAS_Wrappers::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
                                 n_0, n_1,
-                               -one, A_1, n_1, // XXX n_1 -> n_0
+                               -one, U_1, n_1, // XXX n_1 -> n_0
                                      x_1, 1,
                                 one, x_0, 1
                             );
                         }
 
-                        // Triangle solve A_0 * x_0 = B while overwriting x_0.
-                        BLAS_Wrappers::trsv(
-                            CblasRowMajor, CblasUpper, CblasNoTrans, CblasNonUnit,
-                            n_0, A_0, n_0, x_0, 1
+                        // Triangle solve U_0 * x_0 = B while overwriting x_0.
+                        BLAS_Wrappers::trsv<Layout::RowMajor,Triangular::Upper,Op::Id,Diag::NonUnit>(
+                            n_0, U_0, n_0, x_0, 1
                         );
                     }
                    
@@ -854,14 +920,14 @@ namespace Tensors
             
             void SN_LowerSolve_Sequential( Scalar * restrict const B, const Int nrhs )
             {
-                tic("SN_LowerSolve_Sequential");
+                ptic("SN_LowerSolve_Sequential");
                 // Solves L * X = B and stores the result back into B.
                 // Assumes that B has size n x rhs_count.
              
                 if( nrhs == 1 )
                 {
                     SN_LowerSolve_Sequential(B);
-                    toc("SN_LowerSolve_Sequential");
+                    ptoc("SN_LowerSolve_Sequential");
                     return;
                 }
                 
@@ -872,41 +938,41 @@ namespace Tensors
                 {
                     const Int n_0 = SN_rp[k+1] - SN_rp[k];
                     
-                    const Int l_begin = SN_outer[k  ];
-                    const Int l_end   = SN_outer[k+1];
+                    const LInt l_begin = SN_outer[k  ];
+                    const LInt l_end   = SN_outer[k+1];
                     
-                    const Int n_1 = l_end - l_begin;
+                    const Int n_1 = static_cast<Int>(l_end - l_begin);
                     
-                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                    const Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[k]];
                     
-                    // A_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const A_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                    const Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[k]];
                     
-                    // X_0 is the part of X that interacts with A_0, size = n_0 x rhs_count.
+                    // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
                           Scalar * restrict const X_0 = &B[nrhs * SN_rp[k]];
                     
-                    // X_1 is the part of X that interacts with A_1, size = n_1 x rhs_count.
+                    // X_1 is the part of X that interacts with U_1, size = n_1 x rhs_count.
                           Scalar * restrict const X_1 = X_buffer.data();
 
 
                     if( n_0 == 1 )
                     {
-                        // Triangle solve A_0 * X_0 = B while overwriting X_0.
-                        // Since A_0 is a 1 x 1 matrix, it suffices to just scale X_0.
-                        scale_buffer( one / A_0[0], X_0, nrhs );
+                        // Triangle solve U_0 * X_0 = B while overwriting X_0.
+                        // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
+                        scale_buffer( one / U_0[0], X_0, nrhs );
                         
                         if( n_1 > 0 )
                         {
-                            // Compute X_1 = - A_1^H * X_0
+                            // Compute X_1 = - U_1^H * X_0
 
-                            //  A_1 is a matrix of size 1   x n_1.
+                            //  U_1 is a matrix of size 1   x n_1.
                             //  X_1 is a matrix of size n_1 x nrhs.
                             //  X_0 is a matrix of size 1   x nrhs.
 
                             for( Int i = 0; i < n_1; ++i )
                             {
-                                const Scalar factor = - conj(A_1[i]); // XXX conj(A_1[i])-> A_1[i]
+                                const Scalar factor = - conj(U_1[i]); // XXX conj(U_1[i])-> U_1[i]
                                 for( Int j = 0; j < nrhs; ++j )
                                 {
                                     X_1[nrhs*i+j] = factor * X_0[j];
@@ -917,22 +983,25 @@ namespace Tensors
                     else // using BLAS3 routines.
                     {
 
-                        // Triangle solve A_0^H * X_0 = B_0 while overwriting X_0.
-                        BLAS_Wrappers::trsm(
-                            CblasRowMajor, CblasLeft, CblasUpper, CblasConjTrans, CblasNonUnit,
+                        // Triangle solve U_0^H * X_0 = B_0 while overwriting X_0.
+                        BLAS_Wrappers::trsm<
+                            Layout::RowMajor, Side::Left,
+                            Triangular::Upper, Op::ConjTrans, Diag::NonUnit
+                        >(
                             n_0, nrhs,
-                            one, A_0, n_0,
+                            one, U_0, n_0,
                                  X_0, nrhs
                         );
                         
                         if( n_1 > 0 )
                         {
-                            // Compute X_1 = - A_1^H * X_0
-                            BLAS_Wrappers::gemm(
-                                CblasRowMajor, CblasConjTrans, //XXX CblasConjTrans -> CblasTrans
-                                               CblasNoTrans,
+                            // Compute X_1 = - U_1^H * X_0
+                            BLAS_Wrappers::gemm<
+                                Layout::RowMajor, Op::ConjTrans, Op::Id
+                            >(
+                               //XXX Op::ConjTrans -> Op::Id?
                                 n_1, nrhs, n_0, // ???
-                                -one, A_1, n_1, // n_1 -> n_0
+                                -one, U_1, n_1, // n_1 -> n_0
                                       X_0, nrhs,
                                 zero, X_1, nrhs
                             );
@@ -945,7 +1014,7 @@ namespace Tensors
                         add_to_buffer( &X_1[nrhs * j], &B[nrhs * SN_inner[l_begin+j]], nrhs );
                     }
                 }
-                toc("SN_LowerSolve_Sequential");
+                ptoc("SN_LowerSolve_Sequential");
             }
             
             
@@ -961,58 +1030,58 @@ namespace Tensors
                 {
                     const Int n_0 = SN_rp[k+1] - SN_rp[k];
                     
-                    const Int l_begin = SN_outer[k  ];
-                    const Int l_end   = SN_outer[k+1];
+                    const LInt l_begin = SN_outer[k  ];
+                    const LInt l_end   = SN_outer[k+1];
 
-                    const Int n_1 = l_end - l_begin;
+                    const Int n_1 = static_cast<Int>(l_end - l_begin);
 
-                    // A_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const A_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                    const Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[k]];
 
-                    // A_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const A_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    // U_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                    const Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[k]];
 
-                    // x_0 is the part of x that interacts with A_0, size = n_0.
+                    // x_0 is the part of x that interacts with U_0, size = n_0.
                           Scalar * restrict const x_0 = &b[SN_rp[k]];
                     
                     if( n_0 == 1 )
                     {
-                        // Triangle solve A_0 * x_0 = b_0 while overwriting x_0.
-                        // Since A_0 is a 1 x 1 matrix, it suffices to just scale x_0.
-                        x_0[0] /= A_0[0];
+                        // Triangle solve U_0 * x_0 = b_0 while overwriting x_0.
+                        // Since U_0 is a 1 x 1 matrix, it suffices to just scale x_0.
+                        x_0[0] /= U_0[0];
 
                         if( n_1 > 0 )
                         {
-                            // Compute x_1 = - A_1^H * x_0
+                            // Compute x_1 = - U_1^H * x_0
                             // x_1 is a vector of size n_1.
-                            // A_1 is a matrix of size 1 x n_1
+                            // U_1 is a matrix of size 1 x n_1
                             // x_0 is a vector of size 1.
                             
                             // Add x_1 into b_1.
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                b[SN_inner[l_begin+j]] -= conj(A_1[j]) * x_0[0];
-                            }   // XXX conj(A_1[j]) -> A_1[j]
+                                b[SN_inner[l_begin+j]] -= conj(U_1[j]) * x_0[0];
+                            }   // XXX conj(U_1[j]) -> U_1[j]
                         }
                     }
                     else // using BLAS2 routines.
                     {
-                        // Triangle solve A_0^H * x_0 = b_0 while overwriting x_0.
-                        BLAS_Wrappers::trsv(
-                            CblasRowMajor, CblasUpper, CblasConjTrans, CblasNonUnit,
-                            n_0, A_0, n_0, x_0, 1
-                        );
+                        // Triangle solve U_0^H * x_0 = b_0 while overwriting x_0.
+                        BLAS_Wrappers::trsv<
+                            Layout::RowMajor, Triangular::Upper, Op::ConjTrans, Diag::NonUnit
+                        >( n_0, U_0, n_0, x_0, 1 );
                         
                         if( n_1 > 0 )
                         {
-                            // x_1 is the part of x that interacts with A_1, size = n_1.
+                            // x_1 is the part of x that interacts with U_1, size = n_1.
                             Scalar * restrict const x_1 = x_buffer.data();
                             
-                            // Compute x_1 = - A_1^H * x_0
-                            BLAS_Wrappers::gemv(
-                                CblasRowMajor, CblasConjTrans,  // XXX CblasConjTrans -> CblasTrans
+                            // Compute x_1 = - U_1^H * x_0
+                            BLAS_Wrappers::gemv<
+                                Layout::RowMajor, Op::ConjTrans // XXX Op::ConjTrans -> Op::Trans
+                            >(
                                 n_0, n_1,
-                                -one, A_1, n_1, // XXX n_1 -> n_0
+                                -one, U_1, n_1, // XXX n_1 -> n_0
                                       x_0, 1,
                                 zero, x_1, 1
                             );
@@ -1055,11 +1124,11 @@ namespace Tensors
                     const Int i_begin = SN_rp[k  ];
                     const Int i_end   = SN_rp[k+1];
                     
-                    const Int l_begin = SN_outer[k  ];
-                    const Int l_end   = SN_outer[k+1];
+                    const LInt l_begin = SN_outer[k  ];
+                    const LInt l_end   = SN_outer[k+1];
                     
 //                    const Int n_0 = i_end - i_begin;
-                    const Int n_1 = l_end - l_begin;
+                    const Int n_1 = static_cast<Int>(l_end - l_begin);
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -1076,11 +1145,11 @@ namespace Tensors
                     const Int i_begin = SN_rp[k  ];
                     const Int i_end   = SN_rp[k+1];
                     
-                    const Int l_begin = SN_outer[k  ];
-                    const Int l_end   = SN_outer[k+1];
+                    const LInt l_begin = SN_outer[k  ];
+                    const LInt l_end   = SN_outer[k+1];
                     
                     const Int n_0 = i_end - i_begin;
-                    const Int n_1 = l_end - l_begin;
+                    const Int n_1 = static_cast<Int>(l_end - l_begin);
 
                     const Int start = U_rp[i_begin];
                     
@@ -1145,7 +1214,7 @@ namespace Tensors
                 return SN_count;
             }
             
-            const Tensor1<LInt,Int> & SN_RowPointers() const
+            const Tensor1<Int,Int> & SN_RowPointers() const
             {
                 return SN_rp;
             }

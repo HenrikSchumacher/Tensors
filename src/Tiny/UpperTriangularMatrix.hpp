@@ -63,12 +63,12 @@ namespace Tensors
                 return det;
             }
 
-            template<Op op = Op::Identity, Diagonal diag = Diagonal::Generic>
+            template<Op op = Op::Id, Diag diag = Diag::NonUnit>
             void Solve( Vector<n,Scalar,Int> & b )
             {
                 // Solves op(A) x = b and overwrites b with the solution.
                 
-                if constexpr ( op == Op::Identity )
+                if constexpr ( op == Op::Id )
                 {
                     // Upper triangular back substitution
                     for( int i = n; i --> 0; )
@@ -78,13 +78,13 @@ namespace Tensors
                             b[i] -= A[i][j] * b[j];
                         }
                         
-                        if constexpr (diag == Diagonal::Generic )
+                        if constexpr (diag == Diag::NonUnit )
                         {
                             b[i] /= A[i][i];
                         }
                     }
                 }
-                else if constexpr ( op == Op::Transpose )
+                else if constexpr ( op == Op::Trans )
                 {
                     // Lower triangular back substitution from the left
                     for( Int i = 0; i < n; ++i )
@@ -94,13 +94,13 @@ namespace Tensors
                             b[i] -= A[j][i] * b[j];
                         }
                         
-                        if constexpr (diag == Diagonal::Generic )
+                        if constexpr (diag == Diag::NonUnit )
                         {
                             b[i] /= A[i][i];
                         }
                     }
                 }
-                else if constexpr ( op == Op::ConjugateTranspose )
+                else if constexpr ( op == Op::ConjTrans )
                 {
                     // Lower triangular back substitution from the left
                     for( Int i = 0; i < n; ++i )
@@ -110,7 +110,7 @@ namespace Tensors
                             b[i] -= conj(A[j][i]) * b[j];
                         }
                         
-                        if constexpr (diag == Diagonal::Generic )
+                        if constexpr (diag == Diag::NonUnit )
                         {
                             b[i] /= conj(A[i][i]);
                         }
@@ -118,11 +118,11 @@ namespace Tensors
                 }
             }
             
-            template<int nrhs, Op op = Op::Identity, Diagonal diag = Diagonal::Generic>
+            template<int nrhs, Op op = Op::Id, Diag diag = Diag::NonUnit>
             void Solve( Matrix<n,nrhs,Scalar,Int> & B )
             {
                 // Solves op(A) * X == B and overwrites B the solution with X.
-                if constexpr ( op == Op::Identity )
+                if constexpr ( op == Op::Id )
                 {
                     // Upper triangular back substitution from the left
                     for( int i = n; i --> 0; )
@@ -135,13 +135,13 @@ namespace Tensors
                             }
                         }
                         
-                        if constexpr (diag == Diagonal::Generic )
+                        if constexpr (diag == Diag::NonUnit )
                         {
                             scale_buffer<nrhs>( static_cast<Scalar>(1) / A[i][i], &B[i][0] );
                         }
                     }
                 }
-                else if constexpr ( op == Op::Transpose )
+                else if constexpr ( op == Op::Trans )
                 {
                     // Lower triangular back substitution from the left
                     for( Int i = 0; i < n; ++i )
@@ -154,13 +154,13 @@ namespace Tensors
                             }
                         }
                         
-                        if constexpr (diag == Diagonal::Generic )
+                        if constexpr (diag == Diag::NonUnit )
                         {
                             scale_buffer<nrhs>( static_cast<Scalar>(1) / A[i][i], &B[i][0] );
                         }
                     }
                 }
-                else if constexpr ( op == Op::ConjugateTranspose )
+                else if constexpr ( op == Op::ConjTrans )
                 {
                     for( Int i = 0; i < n; ++i )
                     {
@@ -172,7 +172,7 @@ namespace Tensors
                             }
                         }
                         
-                        if constexpr (diag == Diagonal::Generic )
+                        if constexpr (diag == Diag::NonUnit )
                         {
                             scale_buffer<nrhs>( static_cast<Scalar>(1) / conj(A[i][i]), &B[i][0] );
                         }

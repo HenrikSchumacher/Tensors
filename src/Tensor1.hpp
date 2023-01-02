@@ -172,7 +172,7 @@ namespace Tensors {
             swap( *this, b );
         }
         
-        void Accumulate( Int thread_count = 1 )
+        void Accumulate( const Int thread_count = 1 )
         {
 //            for( Int i = 1; i < n; ++i )
 //            {

@@ -5,11 +5,8 @@ namespace Tensors
     namespace BLAS_Wrappers
     {
         
-        template<typename Scalar>
+        template<Layout layout, Triangular uplo, Op op, typename Scalar>
         force_inline void herk(
-            const CBLAS_ORDER     layout,
-            const CBLAS_UPLO      uplo,
-            const CBLAS_TRANSPOSE trans,
             const int n, const int k,
             const typename ScalarTraits<Scalar>::Real & alpha, const Scalar * A, const int ldA,
             const typename ScalarTraits<Scalar>::Real & beta ,       Scalar * C, const int ldC
@@ -37,46 +34,70 @@ namespace Tensors
             
             if constexpr ( std::is_same_v<Scalar,double> )
             {
-                if( trans == CblasNoTrans )
+                if constexpr ( op == Op::Id )
                 {
-                    return cblas_dsyrk( layout, uplo, CblasNoTrans, n, k, alpha, A, ldA, beta, C, ldC );
+                    return cblas_dsyrk(
+                        to_BLAS(layout), to_BLAS(uplo), to_BLAS(Op::Id),
+                        n, k, alpha, A, ldA, beta, C, ldC
+                    );
                 }
                 else
                 {
-                    return cblas_dsyrk( layout, uplo, CblasTrans  , n, k, alpha, A, ldA, beta, C, ldC );
+                    return cblas_dsyrk(
+                        to_BLAS(layout), to_BLAS(uplo), to_BLAS(Op::Trans),
+                        n, k, alpha, A, ldA, beta, C, ldC
+                    );
                 }
             }
             else if constexpr ( std::is_same_v<Scalar,float> )
             {
-                if( trans == CblasNoTrans )
+                if( op == Op::Id )
                 {
-                    return cblas_ssyrk( layout, uplo, CblasNoTrans, n, k, alpha, A, ldA, beta, C, ldC );
+                    return cblas_ssyrk(
+                        to_BLAS(layout), to_BLAS(uplo), to_BLAS(Op::Id),
+                        n, k, alpha, A, ldA, beta, C, ldC
+                    );
                 }
                 else
                 {
-                    return cblas_ssyrk( layout, uplo, CblasTrans  , n, k, alpha, A, ldA, beta, C, ldC );
+                    return cblas_ssyrk(
+                        to_BLAS(layout), to_BLAS(uplo), to_BLAS(Op::Trans),
+                        n, k, alpha, A, ldA, beta, C, ldC
+                    );
                 }
             }
             else if constexpr ( std::is_same_v<Scalar,std::complex<double>> )
             {
-                if( trans == CblasNoTrans )
+                if( op == Op::Id )
                 {
-                    return cblas_zherk( layout, uplo, CblasNoTrans, n, k, alpha, A, ldA, beta, C, ldC );
+                    return cblas_zherk(
+                        to_BLAS(layout), to_BLAS(uplo), to_BLAS(Op::Id),
+                        n, k, alpha, A, ldA, beta, C, ldC
+                    );
                 }
                 else
                 {
-                    return cblas_zherk( layout, uplo, CblasConjTrans, n, k, alpha, A, ldA, beta, C, ldC );
+                    return cblas_zherk(
+                        to_BLAS(layout), to_BLAS(uplo), to_BLAS(Op::ConjTrans),
+                        n, k, alpha, A, ldA, beta, C, ldC
+                    );
                 }
             }
             else if constexpr ( std::is_same_v<Scalar,std::complex<float>> )
             {
-                if( trans == CblasNoTrans )
+                if( op == Op::Id )
                 {
-                    return cblas_cherk( layout, uplo, CblasNoTrans, n, k, alpha, A, ldA, beta, C, ldC );
+                    return cblas_cherk(
+                        to_BLAS(layout), to_BLAS(uplo), to_BLAS(Op::Id),
+                        n, k, alpha, A, ldA, beta, C, ldC
+                    );
                 }
                 else
                 {
-                    return cblas_cherk( layout, uplo, CblasConjTrans, n, k, alpha, A, ldA, beta, C, ldC );
+                    return cblas_cherk(
+                        to_BLAS(layout), to_BLAS(uplo), to_BLAS(Op::ConjTrans),
+                        n, k, alpha, A, ldA, beta, C, ldC
+                    );
                 }
             }
             else

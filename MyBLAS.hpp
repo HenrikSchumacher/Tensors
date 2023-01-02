@@ -10,6 +10,9 @@ namespace Tensors
 
 //#include "Tiny.hpp"
 #include "src/BLAS_Wrappers.hpp"
+#include "src/LAPACK_Wrappers.hpp"
 
 #include "src/MyBLAS/GEMM.hpp"
 #include "src/MyBLAS/TRSM.hpp"
+
+
