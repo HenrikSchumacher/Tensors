@@ -50,12 +50,12 @@ namespace Tensors
             
         protected:
             
-            static constexpr Scalar zero = 0;
-            static constexpr Scalar one  = 1;
+            static constexpr Real zero = 0;
+            static constexpr Real one  = 1;
             
             const Int n = 0;
             const Int thread_count = 1;
-            const Triangular uplo  = Triangular::Upper;
+            const UpLo uplo  = UpLo::Upper;
             
             SparseMatrix_T A_lo;
             SparseMatrix_T A_up;
@@ -143,13 +143,13 @@ namespace Tensors
                 const  Int * restrict const inner_,
                 const  Int n_,
                 const  Int thread_count_,
-                const Triangular uplo_ = Triangular::Upper
+                const UpLo uplo_ = UpLo::Upper
             )
             :   n ( n_ )
             ,   thread_count( thread_count_ )
             ,   uplo( uplo_ )
             {
-                if( uplo == Triangular::Upper)
+                if( uplo == UpLo::Upper)
                 {
                     // TODO: Is there a way to avoid this copy?
                     A_up = SparseMatrix_T( outer_, inner_, n, n, thread_count );
@@ -801,9 +801,9 @@ namespace Tensors
                             // Hence we can compute X_0^T -= X_1^T * U_1^T via gemv instead:
                             BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans>(
                                 n_1, nrhs,
-                               -one, X_1, nrhs,
-                                     U_1, 1,        // XXX Problem: We need conj(U_1)!
-                                one, X_0, 1
+                                Scalar(-1), X_1, nrhs,
+                                            U_1, 1,        // XXX Problem: We need conj(U_1)!
+                                Scalar( 1), X_0, 1
                             );
                         }
 
@@ -819,18 +819,18 @@ namespace Tensors
                             BLAS_Wrappers::gemm<Layout::RowMajor,Op::Id,Op::Id>(
                                 // XX Op::Id -> Op::ConjugateTranspose
                                 n_0, nrhs, n_1,
-                               -one, U_1, n_1,      // XXX n_1 -> n_0
-                                     X_1, nrhs,
-                                one, X_0, nrhs
+                                Scalar(-1), U_1, n_1,      // XXX n_1 -> n_0
+                                            X_1, nrhs,
+                                Scalar( 1), X_0, nrhs
                             );
                         }
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
                         BLAS_Wrappers::trsm<Layout::RowMajor,
-                            Side::Left, Triangular::Upper, Op::Id, Diag::NonUnit
+                            Side::Left, UpLo::Upper, Op::Id, Diag::NonUnit
                         >(
                             n_0, nrhs,
-                            one, U_0, n_0,
-                                 X_0, nrhs
+                            Scalar(1), U_0, n_0,
+                                       X_0, nrhs
                         );
                     }
                 }
@@ -903,14 +903,14 @@ namespace Tensors
                             // Compute x_0 -= U_1 * x_1
                             BLAS_Wrappers::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
                                 n_0, n_1,
-                               -one, U_1, n_1, // XXX n_1 -> n_0
-                                     x_1, 1,
-                                one, x_0, 1
+                                Scalar(-1), U_1, n_1, // XXX n_1 -> n_0
+                                            x_1, 1,
+                                Scalar( 1), x_0, 1
                             );
                         }
 
                         // Triangle solve U_0 * x_0 = B while overwriting x_0.
-                        BLAS_Wrappers::trsv<Layout::RowMajor,Triangular::Upper,Op::Id,Diag::NonUnit>(
+                        BLAS_Wrappers::trsv<Layout::RowMajor,UpLo::Upper,Op::Id,Diag::NonUnit>(
                             n_0, U_0, n_0, x_0, 1
                         );
                     }
@@ -986,11 +986,11 @@ namespace Tensors
                         // Triangle solve U_0^H * X_0 = B_0 while overwriting X_0.
                         BLAS_Wrappers::trsm<
                             Layout::RowMajor, Side::Left,
-                            Triangular::Upper, Op::ConjTrans, Diag::NonUnit
+                            UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                         >(
                             n_0, nrhs,
-                            one, U_0, n_0,
-                                 X_0, nrhs
+                            Scalar(1), U_0, n_0,
+                                       X_0, nrhs
                         );
                         
                         if( n_1 > 0 )
@@ -1001,9 +1001,9 @@ namespace Tensors
                             >(
                                //XXX Op::ConjTrans -> Op::Id?
                                 n_1, nrhs, n_0, // ???
-                                -one, U_1, n_1, // n_1 -> n_0
-                                      X_0, nrhs,
-                                zero, X_1, nrhs
+                                Scalar(-1), U_1, n_1, // n_1 -> n_0
+                                            X_0, nrhs,
+                                Scalar( 0), X_1, nrhs
                             );
                         }
                     }
@@ -1068,7 +1068,7 @@ namespace Tensors
                     {
                         // Triangle solve U_0^H * x_0 = b_0 while overwriting x_0.
                         BLAS_Wrappers::trsv<
-                            Layout::RowMajor, Triangular::Upper, Op::ConjTrans, Diag::NonUnit
+                            Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                         >( n_0, U_0, n_0, x_0, 1 );
                         
                         if( n_1 > 0 )
@@ -1081,9 +1081,9 @@ namespace Tensors
                                 Layout::RowMajor, Op::ConjTrans // XXX Op::ConjTrans -> Op::Trans
                             >(
                                 n_0, n_1,
-                                -one, U_1, n_1, // XXX n_1 -> n_0
-                                      x_0, 1,
-                                zero, x_1, 1
+                                Scalar(-1), U_1, n_1, // XXX n_1 -> n_0
+                                            x_0, 1,
+                                Scalar( 0), x_1, 1
                             );
                             
                             // Add x_1 into b_1.

@@ -12,7 +12,6 @@ namespace Tensors
         {
             // Performs a left-looking factorization.
             
-            ASSERT_ARITHMETIC(Scalar_);
             ASSERT_INT(Int_);
             ASSERT_INT(LInt_)
             
@@ -30,8 +29,8 @@ namespace Tensors
             
         protected:
             
-            static constexpr Scalar zero = 0;
-            static constexpr Scalar one  = 1;
+            static constexpr Real zero = 0;
+            static constexpr Real one  = 1;
 
             const Int n;
             
@@ -206,14 +205,14 @@ namespace Tensors
             {
 //                valprint("factorizing supernode",s);
                 
-                const Int i_begin = SN_rp[s  ];
-                const Int i_end   = SN_rp[s+1];
+                const  Int i_begin = SN_rp[s  ];
+                const  Int i_end   = SN_rp[s+1];
                 
                 const LInt l_begin = SN_outer[s  ];
                 const LInt l_end   = SN_outer[s+1];
                 
-                const Int n_0 = i_end - i_begin;
-                const Int n_1 = static_cast<Int>(l_end - l_begin);
+                const  Int n_0     = i_end - i_begin;
+                const  Int n_1     = static_cast<Int>(l_end - l_begin);
                                 
 //                dump(n_0);
 //                dump(n_1);
@@ -230,7 +229,8 @@ namespace Tensors
                     const LInt k_begin = A_rp[i  ];
                     const LInt k_end   = A_rp[i+1];
                     
-                    Int k;
+                    LInt k;
+                    
                     for( k = k_begin; k < k_end; ++k )
                     {
                         const Int j = A_ci [k];
@@ -250,7 +250,7 @@ namespace Tensors
                     Int l     = l_begin;
                     Int col_l = SN_inner[l];
                     
-                    // continue the loop where the previous one was aborted.
+                    // Continue the loop where the previous one was aborted.
                     for( ; k < k_end; ++k )
                     {
                         const Int j = A_ci [k];
@@ -265,8 +265,9 @@ namespace Tensors
                     }
                 }
                 
-                // Fetch row updates of all descendants of s.
-                // ==========================================
+                /*============================================*/
+                /* Fetch row updates of all descendants of s. */
+                /*============================================*/
 
                 // Using a postordering guarantees, that the descendants of s are already computed.
                 // Moreover we can exploit that all children of s lie contiguously directly before s.
@@ -350,11 +351,11 @@ namespace Tensors
                         
                         _tic();
                         BLAS_Wrappers::herk<
-                            Layout::RowMajor,Triangular::Upper,Op::ConjTrans
+                            Layout::RowMajor,UpLo::Upper,Op::ConjTrans
                         >(
                             IL_len, m_0,
-                            -one, B_0, IL_len,
-                            zero, C_0, IL_len
+                            Real(-1), B_0, IL_len,
+                            Real( 0), C_0, IL_len
                         );
                         herk_time += _toc();
                         
@@ -415,9 +416,9 @@ namespace Tensors
                         _tic();
                         BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                             IL_len, JL_len, m_0,
-                            -one, B_0, IL_len,
+                            Scalar(-1), B_0, IL_len,
                                   B_1, JL_len,
-                            zero, C_1, JL_len
+                            Scalar( 0), C_1, JL_len
                         );
                         gemm_time += _toc();
 
@@ -437,24 +438,27 @@ namespace Tensors
                 }
                 
                 
-                // Intra-supernode factorization
-                // =============================
+                /*============================================*/
+                /* Intra-supernode factorization              */
+                /*============================================*/
                 
                 _tic();
+                
                 // Cholesky factorization of U_0
-                (void)LAPACK_Wrappers::potrf<Layout::RowMajor,Triangular::Upper>( n_0, U_0, n_0);
+                (void)LAPACK_Wrappers::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
 
                 // Triangular solve U_1 = U_0^{-H} U_1.
                 if( n_1 > 0 )
                 {
                     BLAS_Wrappers::trsm<Layout::RowMajor,
-                    Side::Left, Triangular::Upper, Op::ConjTrans, Diag::NonUnit
+                        Side::Left, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                     >(
                         n_0, n_1,
-                        one, U_0, n_0,
-                             U_1, n_1
+                        Scalar(1), U_0, n_0,
+                                   U_1, n_1
                     );
                 }
+                
                 chol_time += _toc();
             }
             

@@ -6,7 +6,7 @@ namespace Tensors
     {
         template<
             Side side,
-            Triangular uplo,
+            UpLo uplo,
             Op opA,
             Diag diag,
             int N,
@@ -25,7 +25,7 @@ namespace Tensors
             // Solves opA(A) * C = alpha * B and stores the result in B.
             
             static_assert( side == Side::Left, "Tiny::trsm is not defined for Side::Right.");
-            static_assert( uplo == Triangular::Upper, "Tiny::trsm is not defined for Triangular::Lower.");
+            static_assert( uplo == UpLo::Upper, "Tiny::trsm is not defined for UpLo::Lower.");
 
             Tiny::UpperTriangularMatrix<N,Scalar,Int> A;
             Tiny::Matrix<N,NRHS,Scalar,Int> B;
@@ -37,7 +37,7 @@ namespace Tensors
         
         template<
             Side side,
-            Triangular uplo,
+            UpLo uplo,
             Op opA,
             Diag diag,
             int N,
@@ -56,7 +56,7 @@ namespace Tensors
             // Solves opA(A) * C = alpha * B and stores the result in B.
             
             static_assert( side == Side::Left, "Tiny::trsm is not defined for Side::Right.");
-            static_assert( uplo == Triangular::Upper, "Tiny::trsm is not defined for Triangular::Lower.");
+            static_assert( uplo == UpLo::Upper, "Tiny::trsm is not defined for UpLo::Lower.");
             
             Tiny::UpperTriangularMatrix<N,Scalar,Int> A;
             Tiny::Matrix<N,NRHS,Scalar,Int> B;

@@ -148,7 +148,7 @@
 ////
 //                        MyBLAS::TRSM<
 //                            Side::Left,
-//                            Triangular::Upper,
+//                            UpLo::Upper,
 //                            Op::Id,
 //                            Diagonal::NonUnit,
 //                            MyBLAS::Dynamic,

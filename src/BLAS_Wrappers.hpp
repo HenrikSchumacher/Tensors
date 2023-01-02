@@ -32,13 +32,13 @@ namespace Tensors
             }
         }
         
-        constexpr CBLAS_UPLO to_BLAS( Triangular uplo )
+        constexpr CBLAS_UPLO to_BLAS( UpLo uplo )
         {
-            if ( uplo == Triangular::Upper )
+            if ( uplo == UpLo::Upper )
             {
                 return CblasUpper;
             }
-            else // if ( uplo == Triangular::Lower )
+            else // if ( uplo == UpLo::Lower )
             {
                 return CblasLower;
             }

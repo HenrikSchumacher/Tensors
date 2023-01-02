@@ -6,10 +6,7 @@ namespace Tensors
     {
         
         template<
-            Side side,
-            Triangular uplo,
-            Op op,
-            Diag diag,
+            Side side, UpLo uplo, Op op, Diag diag,
             int N, int NRHS,
             ScalarFlag alpha_flag,
             typename Scalar

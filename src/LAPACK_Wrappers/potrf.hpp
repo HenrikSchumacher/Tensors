@@ -5,7 +5,7 @@ namespace Tensors
 
     namespace LAPACK_Wrappers
     {
-        template<Layout layout, Triangular uplo, typename Scalar>
+        template<Layout layout, UpLo uplo, typename Scalar>
         force_inline int potrf(
             const int n,
             Scalar * A, const int ldA

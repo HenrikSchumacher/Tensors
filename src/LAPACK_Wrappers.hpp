@@ -32,13 +32,13 @@ namespace Tensors
             }
         }
         
-        constexpr char to_LAPACK( Triangular uplo )
+        constexpr char to_LAPACK( UpLo uplo )
         {
-            if ( uplo == Triangular::Upper )
+            if ( uplo == UpLo::Upper )
             {
                 return 'U';
             }
-            else // if ( uplo == Triangular::Lower )
+            else // if ( uplo == UpLo::Lower )
             {
                 return 'L';
             }

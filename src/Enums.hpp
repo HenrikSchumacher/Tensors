@@ -19,7 +19,7 @@ namespace Tensors
     };
     
     // cf. CBLAS_UPLO
-    enum class Triangular : unsigned char
+    enum class UpLo : unsigned char
     {
         Upper = 121,
         Lower = 122

@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace BLAS_Wrappers
     {
-        template<Layout layout, Triangular uplo, Op opA, Diag diag, typename Scalar>
+        template<Layout layout, UpLo uplo, Op opA, Diag diag, typename Scalar>
         force_inline void trsv(
             const int n,
             const Scalar * A, const int ldA, Scalar * const x, const int incx
