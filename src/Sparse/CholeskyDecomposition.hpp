@@ -11,28 +11,66 @@
 
 #include "../../MyBLAS.hpp"
 
-#include "SuperNodalCholeskyFactorizer.hpp"
+#include "CholeskyFactorizer.hpp"
+
+// Priority I:
+// TODO: Allow the user to supply a permutation.
+// TODO: Automatically determine postordering and apply it!
+// TODO: Reordering in the solve phase.
+//          --> Copy-cast during pre- and post-permutation.
+//          --> ReadRightHandSide, WriteSolution
+
+// TODO: Parallelize solve phases.
+
+// TODO: Call SN_FactorizeSymbolically, SN_FactorizeNumerically,... when dependent routines are called.
+
+// TODO: Compute nested dissection --> Metis, Scotch. Parallel versions? MT-Metis?
+
+// Priority II:
+// TODO: Currently, EliminationTree breaks down if the matrix is reducible.
+//           --> What we need is an EliminationForest!
+//           --> Maybe it just suffices to append a virtual root (that is not to be factorized).
+
+// TODO: Speed up supernode update in factorization phase.
+//           --> transpose U_0 and U_1 to reduce scatter_reads/scatter_adds.
+//           --> employ Tiny::BLAS kernels.
+//           --> is there a way to skip unrelevant descendants?
+
+// Priority III:
+// TODO: Improve scheduling for parallel factorization.
+// TODO: - What to do if top of the tree is not a binary tree?
+// TODO: - What to do in case of a forest?
+// TODO: - Estimate work to do in subtrees.
+
+// TODO: Deactivate OpenMP if thread_count == 1 of OpenMP is not found.
+
+// Priority IV:
+// TODO: Load A + eps * Id during factorization.
+// TODO: Maybe load linear combination of matrices A (with sub-pattern, of course) during factorization?
+
+// TODO: parallelize update of supernodes with many descendants.
+//           --> fetching updates from descendants can be done in parallel
+
+// TODO: parallelize potrf + trsm of large supernodes.
+//           --> fetching updates from descendants can be done in parallel
+
 
 // Super helpful literature:
-// Stewart - Building an Old-Fashioned Sparse Solver
+// Stewart - Building an Old-Fashioned Sparse Solver. http://hdl.handle.net/1903/1312
 
-// TODO: https://arxiv.org/pdf/1711.08446.pdf: On Computing Min-Degree Elimination Orderings
+// TODO: On Computing Min-Degree Elimination Orderings. https://arxiv.org/pdf/1711.08446.pdf:
 
-// TODO: Find supernodes: https://www.osti.gov/servlets/purl/6756314
+// TODO: Kayaaslan, Ucar - Reducing elimination tree height for parallel LU factorization of sparse unsymmetric matrices. https://hal.inria.fr/hal-01114413/document
 
-// TODO: https://hal.inria.fr/hal-01114413/document
-
-// TODO: https://www.jstor.org/stable/2132786 !!
+// TODO: Liu - The Multifrontal Method for Sparse Matrix Solution: Theory and Practice. https://www.jstor.org/stable/2132786 !!
 
 
-// TODO: Try whether postordering leads to better supernodes!
-// cf. Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations
 
 namespace Tensors
 {
     namespace Sparse
     {   
-        template<typename Scalar_, typename Int_, typename LInt_>
+        template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_ = Scalar_>
         class CholeskyDecomposition
         {
         public:
@@ -42,11 +80,13 @@ namespace Tensors
             using Int       = Int_;
             using LInt      = LInt_;
             
+            using ExtScalar = ExtScalar_;
+            
             using SparseMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
 
-            using Factorizer = SupernodalCholeskyFactorizer<Scalar,Int,LInt>;
+            friend class CholeskyFactorizer<Scalar,Int,LInt,ExtScalar>;
             
-            friend class SupernodalCholeskyFactorizer<Scalar,Int,LInt>;
+            using Factorizer = CholeskyFactorizer<Scalar,Int,LInt,ExtScalar>;
             
         protected:
             
@@ -63,18 +103,17 @@ namespace Tensors
             SparseMatrix_T L;
             SparseMatrix_T U;
             
-            Tensor1<Int,Int> p; // Row    permutation;
-            Tensor1<Int,Int> q; // Column permutation;
+            Tensor1<Int,Int> p;     // permutation
+            Tensor1<Int,Int> p_inv; // inverse permutation
             
             // elimination tree
             bool eTree_initialized = false;
             Tree<Int> eTree;
             
             // assembly three
-            bool aTree_initialized = false;
             Tree<Int> aTree;
             
-            //Supernode data:
+            // Supernode data:
             
             bool SN_initialized = false;
             
@@ -82,40 +121,43 @@ namespace Tensors
             Int SN_count = 0;
             
             // Pointers from supernodes to their rows.
-            // k-th supernode has rows [ SN_rp[k],...,SN_rp[k+1] [
+            // k-th supernode has rows [ SN_rp[k],SN_rp[k]+1,...,SN_rp[k+1] [
             Tensor1<   Int, Int> SN_rp;
             // Pointers from supernodes to their starting position in SN_inner.
             Tensor1<  LInt, Int> SN_outer;
             // The column indices of rectangular part of the supernodes.
             Tensor1<   Int,LInt> SN_inner;
+            
             // Hence k-th supernode has the following column indices:
-            // triangular  part = [ SN_rp[k],SN_rp[k]+1,...,SN_rp[k+1] [
+            // triangular  part = [ i_begin, i_begin+1,...,i_end [
             // rectangular part = [
-            //                      SN_inner[j  ],
-            //                      SN_inner[j+1],
-            //                      SN_inner[j+2],
+            //                      SN_inner[j_begin  ],
+            //                      SN_inner[j_begin+1],
+            //                      SN_inner[j_begin+2],
             //                      ...,
-            //                      SN_inner[SN_outer[k+1]]
+            //                      SN_inner[j_end]
             //                    [
-            // where j = SN_outer[k].
-
-//            // column indices of i-th row of U can be found in SN_inner in the half-open interval
-//            // [ U_begin[i],...,U_end[i] [
-//            Tensor1<   Int,LInt> U_begin;
-//            Tensor1<   Int,LInt> U_end;
+            // where i_begin = SN_rp[k],
+            //       i_end   = SN_rp[k+1],
+            //       j_begin = SN_outer[k], and
+            //       j_end   = SN_outer[SN_outer[k+1]].
             
             // i-th row of U belongs to supernode row_to_SN[i].
             Tensor1<   Int, Int> row_to_SN;
+            
             // Hence the column indices of U for row i can are:
-            // triangular  part = [ i,i+1,...,SN_rp[row_to_SN[i]+1] [
+            // triangular  part = [ i_begin,i_begin+1,...,i_end [
             // rectangular part = [
-            //                      SN_inner[j  ],
-            //                      SN_inner[j+1],
-            //                      SN_inner[j+2],
+            //                      SN_inner[j_begin  ],
+            //                      SN_inner[j_begin+1],
+            //                      SN_inner[j_begin+2],
             //                      ...,
-            //                      SN_inner[SN_outer[row_to_SN[i]+1]]
+            //                      SN_inner[j_end]
             //                    [
-            // where j = SN_outer[row_to_SN[i]].
+            // where i_begin = SN_rp[row_to_SN[i]] = i,
+            //       i_end   = SN_rp[row_to_SN[i]+1],
+            //       j_begin = SN_outer[row_to_SN[i]  ], and
+            //       j_end   = SN_outer[row_to_SN[i]+1].
             
             // Values of triangular part of k-th supernode is stored in
             // [ SN_tri_val[SN_tri_ptr[k]],...,SN_tri_val[SN_tri_ptr[k]+1] [
@@ -138,17 +180,22 @@ namespace Tensors
             
             ~CholeskyDecomposition() = default;
             
+            template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                const LInt * restrict const outer_,
-                const  Int * restrict const inner_,
-                const  Int n_,
-                const  Int thread_count_,
-                const UpLo uplo_ = UpLo::Upper
+                const ExtLInt * restrict const outer_,
+                const  ExtInt * restrict const inner_,
+                const     Int                  n_,
+                const     Int                  thread_count_,
+                const    UpLo                  uplo_ = UpLo::Upper
             )
             :   n ( n_ )
-            ,   thread_count( thread_count_ )
+            ,   thread_count( std::max(Int(1), thread_count_) )
             ,   uplo( uplo_ )
             {
+                if( n <= 0 )
+                {
+                    eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
+                }
                 if( uplo == UpLo::Upper)
                 {
                     // TODO: Is there a way to avoid this copy?
@@ -167,8 +214,6 @@ namespace Tensors
                 }
                 
                 // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
-                
-//                FactorizeSymbolically();
             }
             
             const Tree<Int> & EliminationTree()
@@ -177,6 +222,7 @@ namespace Tensors
                 
                 // TODO: read Kumar, Kumar, Basu - A parallel algorithm for elimination tree computation and symbolic factorization
 
+                // TODO: Does not work if matrix is reducible. What we need is an EliminationForest!
                 
                 if( ! eTree_initialized )
                 {
@@ -188,7 +234,7 @@ namespace Tensors
                     // Hence using -1 as "no_element" is not an option.
                     // We have to use something else instead of 0 to mark empty places.
                     const Int no_element = n;
-                    
+
                     Tensor1<Int,Int> parents ( n, no_element );
                     
                     // A vector for path compression.
@@ -196,7 +242,7 @@ namespace Tensors
                     
                     const LInt * restrict const A_outer = A_lo.Outer().data();
                     const  Int * restrict const A_inner = A_lo.Inner().data();
-                    
+
                     for( Int k = 1; k < n; ++k )
                     {
                         // We need visit all i < k with A_ik != 0.
@@ -221,9 +267,9 @@ namespace Tensors
                             }
                         }
                     }
-                    
+
                     eTree = Tree<Int> ( std::move(parents), n-1, thread_count );
-                    
+
                     eTree_initialized = true;
                     
                     ptoc(ClassName()+"::EliminationTree");
@@ -245,6 +291,7 @@ namespace Tensors
                 
                 for( Int k = 0; k < SN_count-1; ++k )
                 {
+                    // Thus subtraction is safe as each supernode has at least one row.
                     Int last_row = SN_rp[k+1]-1;
 
                     Int last_rows_parent = parents[last_row];
@@ -356,7 +403,8 @@ namespace Tensors
             void SN_FactorizeSymbolically()
             {
                 // Compute supernodal symbolic factorization with so-called _fundamental supernodes_.
-                // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations.
+                // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
+                // https://www.osti.gov/servlets/purl/6756314
                 
                 
                 // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
@@ -412,7 +460,8 @@ namespace Tensors
                     {
                         // Using Theorem 2.3 and Corollary 3.2 in
                         //
-                        //     Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations
+                        //     Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
+                        //     https://www.osti.gov/servlets/purl/6756314
                         //
                         // to determine whether a new fundamental supernode starts at node u.
                         
@@ -586,13 +635,19 @@ namespace Tensors
 //####          Supernodal numeric factorization
 //###########################################################################################
             
+            template<typename ExtScalar>
             void SN_FactorizeNumerically_Parallel(
-                const Scalar * restrict const A_val,
-                const Int max_depth
+                const ExtScalar * restrict const A_val,
+                const       Int                  max_depth
             )
             {
                 ptic(ClassName()+"::SN_FactorizeNumerically_Parallel");
 
+                if( !AssemblyTree().PostOrdered() )
+                {
+                    eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
+                    return;
+                }
                 
                 ptic("Postorder traversal of assembly tree");
                 const Int root = AssemblyTree().Root();
@@ -711,9 +766,6 @@ namespace Tensors
             
             void SN_FactorizeNumerically_Sequential( const Scalar * restrict const A_val )
             {
-                // TODO: Make the function accept a root node s_0 of the AssemblyTree.
-                // TODO: It shall then do the factorization of the full subtree.
-                
                 ptic(ClassName()+"::SN_FactorizeNumerically_Sequential");
 
                 if( !AssemblyTree().PostOrdered() )
@@ -721,17 +773,13 @@ namespace Tensors
                     eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
                     return;
                 }
-//                else
-//                {
-//                    print("Well done! The AssemblyTree is postordered.");
-//                }
                 
                 ptic("SetZero");
                 SN_tri_val.SetZero();
                 SN_rec_val.SetZero();
                 ptoc("SetZero");
                 
-                SupernodalCholeskyFactorizer<Scalar,Int,LInt> SN ( *this, A_val );
+                Factorizer SN ( *this, A_val );
 
                 for( Int s = 0; s < SN_count; ++s )
                 {
@@ -1097,6 +1145,8 @@ namespace Tensors
                 }
             }
             
+            // TODO: Make this work also for arrays B of other types. -> Copy?
+            // TODO: We can merge this with the pre- and post- permutations!
             void SN_Solve_Sequential( Scalar * restrict const B, const Int nrhs )
             {
                 SN_LowerSolve_Sequential( B, nrhs );
@@ -1116,6 +1166,8 @@ namespace Tensors
             
             void SN_ReconstructU()
             {
+                // TODO: Fill also the nonzero values.
+                
                 Tensor1<LInt,Int> U_rp (n+1);
                 U_rp[0] = 0;
                 

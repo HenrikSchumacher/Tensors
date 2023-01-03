@@ -5,16 +5,15 @@ namespace Tensors
     namespace Sparse
     {
         
-        template<typename Scalar_, typename Int_, typename LInt_> class CholeskyDecomposition;
+        template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_> class CholeskyDecomposition;
         
-        template<typename Scalar_, typename Int_, typename LInt_>
-        class SupernodalCholeskyFactorizer
+        template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_>
+        class CholeskyFactorizer
         {
             // Performs a left-looking factorization.
             
             ASSERT_INT(Int_);
             ASSERT_INT(LInt_)
-            
             
             using steady_clock = std::chrono::steady_clock;
             
@@ -24,6 +23,8 @@ namespace Tensors
             using Real      = typename ScalarTraits<Scalar_>::Real;
             using Int       = Int_;
             using LInt      = LInt_;
+            
+            using ExtScalar = ExtScalar_;
             
             using SparseMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
             
@@ -36,23 +37,23 @@ namespace Tensors
             
             
             // shared data
-            const   LInt * restrict const A_rp;  // row pointers of upper triangle of A
-            const    Int * restrict const A_ci;  // column indices of upper triangle of A
-            const Scalar * restrict const A_val; // nonzero values upper triangle of A
+            const      LInt * restrict const A_rp;  // row pointers of upper triangle of A
+            const       Int * restrict const A_ci;  // column indices of upper triangle of A
+            const ExtScalar * restrict const A_val; // nonzero values upper triangle of A
             
-            const    Int * restrict const child_ptr;
-            const    Int * restrict const child_idx;
+            const       Int * restrict const child_ptr;
+            const       Int * restrict const child_idx;
             
-            const    Int * restrict const SN_rp;
-            const   LInt * restrict const SN_outer;
-            const    Int * restrict const SN_inner;
+            const       Int * restrict const SN_rp;
+            const      LInt * restrict const SN_outer;
+            const       Int * restrict const SN_inner;
             
-            const   LInt * restrict const SN_tri_ptr;
-                  Scalar * restrict const SN_tri_val;
-            const   LInt * restrict const SN_rec_ptr;
-                  Scalar * restrict const SN_rec_val;
+            const      LInt * restrict const SN_tri_ptr;
+                     Scalar * restrict const SN_tri_val;
+            const      LInt * restrict const SN_rec_ptr;
+                     Scalar * restrict const SN_rec_val;
             
-            const    Int * restrict const desc_counts;
+            const       Int * restrict const desc_counts;
             
             
             // local data
@@ -104,11 +105,11 @@ namespace Tensors
             
         public:
             
-//            ~SupernodalCholeskyFactorizer() = default;
+//            ~CholeskyFactorizer() = default;
             
-            ~SupernodalCholeskyFactorizer()
+            ~CholeskyFactorizer()
             {
-//                tic("~SupernodalCholeskyFactorizer");
+//                tic("~CholeskyFactorizer");
 //                dump(intersec);
 //                dump(empty_intersec_undetected);
 //                dump(empty_intersec_detected);
@@ -122,12 +123,12 @@ namespace Tensors
 //                dump(herk_time);
 //                dump(gemm_time);
 //                dump(chol_time);
-//                toc("~SupernodalCholeskyFactorizer");
+//                toc("~CholeskyFactorizer");
             }
             
-            SupernodalCholeskyFactorizer(
-                CholeskyDecomposition<Scalar,Int,LInt> & chol,
-                const Scalar * restrict A_val_
+            CholeskyFactorizer(
+                CholeskyDecomposition<Scalar,Int,LInt,ExtScalar> & chol,
+                const ExtScalar * restrict A_val_
             )
             // shared data
             :   n               ( chol.n                                        )
@@ -238,7 +239,7 @@ namespace Tensors
                         if( j < i_end )
                         {
                             // j belongs to the triangular part
-                            U_0[ n_0 * (i - i_begin) + (j - i_begin) ] = A_val[k];
+                            U_0[ n_0 * (i - i_begin) + (j - i_begin) ] = static_cast<Scalar>(A_val[k]);
                         }
                         else
                         {
@@ -261,7 +262,7 @@ namespace Tensors
                         {
                             col_l = SN_inner[++l];
                         }
-                        U_1[n_1 * (i - i_begin) + (l - l_begin)] = A_val[k]; // XXX conj-transpose here.
+                        U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scalar>(A_val[k]); // XXX conj-transpose here.
                     }
                 }
                 
@@ -277,6 +278,7 @@ namespace Tensors
 //                dump(s);
 //                dump(desc_counts[s]);
                 
+                // TODO: This can be parallelized by adding into local buffers V_0 and V_1 and reducing them into U_0 and U_1.
                 for( Int t = t_begin; t < t_end; ++t )
                 {
                     // Compute the intersection of supernode s with t.
@@ -692,10 +694,10 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return "Sparse::SupernodalCholeskyFactorizer<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::CholeskyFactorizer<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
             }
             
-        }; // class SupernodalCholeskyFactorizer
+        }; // class CholeskyFactorizer
         
         
     } // namespace Sparse
