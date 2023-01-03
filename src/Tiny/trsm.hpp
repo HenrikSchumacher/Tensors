@@ -5,21 +5,14 @@ namespace Tensors
     namespace Tiny
     {
         template<
-            Side side,
-            UpLo uplo,
-            Op opA,
-            Diag diag,
-            int N,
-            int NRHS,
+            Side side, UpLo uplo, Op opA, Diag diag,
+            int N, int NRHS,
             ScalarFlag alpha_flag,
-            typename Scalar,
-            typename Int,
-            typename Scalar_in
+            typename Scalar, typename Int, typename Scalar_in
         >
         void trsm(
-            const Scalar_in  alpha,
-            const Scalar     * restrict const A_, const Int ldA,
-            const Scalar_in  * restrict const B_, const Int ldB
+            const Scalar_in alpha, ptr<Scalar>    A_, const Int ldA,
+                                   mut<Scalar_in> B_, const Int ldB
         )
         {
             // Solves opA(A) * C = alpha * B and stores the result in B.
@@ -36,22 +29,12 @@ namespace Tensors
         }
         
         template<
-            Side side,
-            UpLo uplo,
-            Op opA,
-            Diag diag,
-            int N,
-            int NRHS,
+            Side side, UpLo uplo, Op opA, Diag diag,
+            int N, int NRHS,
             ScalarFlag alpha_flag,
-            typename Scalar,
-            typename Int,
-            typename Scalar_in
+            typename Scalar, typename Int, typename Scalar_in
         >
-        void trsm(
-            const Scalar_in  alpha,
-            const Scalar     * restrict const A_,
-            const Scalar_in  * restrict const B_
-        )
+        void trsm( const Scalar_in  alpha, ptr<Scalar> A_, mut<Scalar_in> const B_ )
         {
             // Solves opA(A) * C = alpha * B and stores the result in B.
             

@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename T, typename Int, typename SInt, typename T_in, typename T_out>
+    template<typename T, typename Int, typename LInt, typename T_in, typename T_out>
     class SparseBLAS
     {
         ASSERT_INT(Int);
@@ -41,13 +41,9 @@ namespace Tensors
         
     protected:
         
-        void scale( T_out * restrict const y, const T_out beta, const Int size, const Int thread_count_ )
+        void scale( mut<T_out> y, const T_out beta, const Int size, const Int thread_count_ )
         {
-            #pragma omp parallel for simd num_threads( thread_count_ ) schedule( static )
-            for( Int i = 0; i < size; ++i )
-            {
-                y[i] *= beta;
-            }
+            scale_buffer( beta, y, size, thread_count_ );
         }
 
 
@@ -65,7 +61,7 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return "SparseBLAS<"+TypeName<T>::Get()+","+TypeName<Int>::Get()+","+TypeName<SInt>::Get()+","+TypeName<T_in>::Get()+","+TypeName<T_out>::Get()+">";
+            return "SparseBLAS<"+TypeName<T>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+","+TypeName<T_in>::Get()+","+TypeName<T_out>::Get()+">";
         }
         
 

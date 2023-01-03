@@ -1,17 +1,10 @@
 public:
 
-    void SpMM_gen
-    (
-        const Int   * restrict const rp,
-        const Int   * restrict const ci,
-        const T     * restrict const a,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha_,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y,
-        const Int                    cols,
+    void SpMM_gen (
+        ptr<Int> rp, ptr<Int>  ci, mut<T> a, const Int m, const Int n,
+        const T     alpha_, ptr<T_in>  X,
+        const T_out beta,   mut<T_out> Y,
+        const Int   cols,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -122,16 +115,10 @@ public:
 
     template<bool a_flag, int alpha_flag, int beta_flag >
     void SpMM_gen_implementation(
-        const Int   * restrict const rp,
-        const Int   * restrict const ci,
-        const T     * restrict const a,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y,
-        const Int                    cols,
+        ptr<Int> rp, ptr<Int>  ci, mut<T> a, const Int m, const Int n,
+        const T     alpha,  ptr<T_in>  X,
+        const T_out beta,   mut<T_out> Y,
+        const Int   cols,
         const JobPointers<Int> & job_ptr
     )
     {

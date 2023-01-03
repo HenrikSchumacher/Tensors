@@ -6,8 +6,8 @@ public:
 
     void Multiply_BinaryMatrix_Vector
     (
-        const Int   * restrict const rp,
-        const SInt  * restrict const ci,
+        const LInt   * restrict const rp,
+        const Int  * restrict const ci,
         const Int                    m,
         const Int                    n,
         const T                      alpha,
@@ -23,8 +23,8 @@ public:
     
     void Multiply_BinaryMatrix_Vector
     (
-        const Int   * restrict const rp,
-        const SInt  * restrict const ci,
+        const LInt   * restrict const rp,
+        const Int  * restrict const ci,
         const Int                    m,
         const Int                    n,
         const T                      alpha,
@@ -133,8 +133,8 @@ public:
     
     void Multiply_BinaryMatrix_DenseMatrix
     (
-        const Int   * restrict const rp,
-        const SInt  * restrict const ci,
+        const LInt   * restrict const rp,
+        const Int  * restrict const ci,
         const Int                    m,
         const Int                    n,
         const T                      alpha,
@@ -149,8 +149,8 @@ public:
     
     void Multiply_BinaryMatrix_DenseMatrix
     (
-        const Int   * restrict const rp,
-        const SInt  * restrict const ci,
+        const LInt   * restrict const rp,
+        const Int  * restrict const ci,
         const Int                    m,
         const Int                     n,
         const T                      alpha,

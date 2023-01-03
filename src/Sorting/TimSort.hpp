@@ -21,7 +21,7 @@ namespace Tensors
         
         // This function sorts array from left index to
         // to right index which is of size atmost RUN
-        void InsertionSort(T * restrict const a, const I left, const I right )
+        void InsertionSort( mut<T> a, const I left, const I right )
         {
             for( I i = left + 1; i <= right; ++i )
             {
@@ -37,13 +37,13 @@ namespace Tensors
         }
          
         // Merge function merges the sorted runs
-        void Merge( T * restrict const a, const I l, const I m, const I r )
+        void Merge( mut<T>  a, const I l, const I m, const I r )
         {
             // Original array is broken in two parts L and R array.
             I L_size = m - l + 1;
             I R_size = r - m;
-            I * restrict const L = &buffer.data()[0];
-            I * restrict const R = &buffer.data()[L_size];
+            mut<I> L = &buffer.data()[0];
+            mut<I> R = &buffer.data()[L_size];
             
             copy_buffer( &a[l],   L, L_size );
             copy_buffer( &a[m+1], R, R_size );
@@ -87,12 +87,12 @@ namespace Tensors
          
     public:
         
-        void operator()( T * restrict const begin, const T * restrict const end )
+        void operator()( mut<T> begin, ptr<T> end )
         {
             operator()( begin, std::max( static_cast<I>(0), static_cast<I>(2)*static_cast<I>(end-begin)) );
         }
         
-        void operator()( T * restrict const a, const I n )
+        void operator()( mut<T> a, const I n )
         {
             // https://www.geeksforgeeks.org/timsort/
             

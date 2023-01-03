@@ -48,7 +48,7 @@ namespace Tensors {
         
         LInt * S_buffer = nullptr;
         safe_alloc(S_buffer,thread_count+1);
-        LInt * restrict const S = S_buffer;
+        mut<LInt> S = S_buffer;
         S[0] = static_cast<LInt>(0);
 
         const Int step = line_count / thread_count;
@@ -129,7 +129,7 @@ namespace Tensors {
             
             for( Int i = 0; i < thread_count; ++i )
             {
-                LInt * restrict const c_i = counters.data(i);
+                mut<LInt> c_i = counters.data(i);
                 
                 for( Int j = j_begin; j < j_end; ++j )
                 {
@@ -167,12 +167,12 @@ namespace Tensors {
         #pragma omp parallel for num_threads( list_count )
         for( Int thread = 0; thread < list_count; ++thread )
         {
-            const Int * restrict const thread_idx = idx[thread];
-            const Int * restrict const thread_jdx = jdx[thread];
+            ptr<Int> thread_idx = idx[thread];
+            ptr<Int> thread_jdx = jdx[thread];
             
             const LInt entry_count = entry_counts[thread];
             
-            LInt * restrict const c = counters.data(thread);
+            mut<LInt> c = counters.data(thread);
             
             if( symmetrize!=0 )
             {

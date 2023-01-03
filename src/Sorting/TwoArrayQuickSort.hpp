@@ -14,9 +14,7 @@ namespace Tensors
         
     public:
         
-        void operator()(
-            S * restrict const a, T * restrict const b, const I n, const bool reverse = false
-        )
+        void operator()( mut<S> a, mut<T> b, const I n, const bool reverse = false )
         {
             // a - the list that is to be sorted.
             // b - the list to which each move of a shall also be applied.

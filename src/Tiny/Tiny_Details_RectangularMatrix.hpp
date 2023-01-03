@@ -19,14 +19,14 @@ public:
 //######################################################
 
     template<typename T>
-    void Write( T * restrict const target ) const
+    void Write( mut<T> target ) const
     {
         copy_buffer<m*n>( &A[0][0], target );
     }
 
     // Copy stride.
     template<typename T>
-    void Write( T * restrict const B, const Int ld_B ) const
+    void Write( mut<T> B, const Int ld_B ) const
     {
         for( Int i = 0; i < m; ++i )
         {
@@ -36,7 +36,7 @@ public:
 
     // BLAS-like write-modify method without stride.
     template<ScalarFlag alpha_flag, ScalarFlag beta_flag, typename R, typename S, typename T>
-    void Write( const R alpha, const S beta, T * restrict const B) const
+    void Write( const R alpha, const S beta, mut<T> B) const
     {
         // Writing B = alpha * A + beta * B
         combine_buffers<m*n, alpha_flag, beta_flag>( alpha, &A[0][0], beta, B );
@@ -44,7 +44,7 @@ public:
 
     // BLAS-like write-modify method with stride.
     template<ScalarFlag alpha_flag, ScalarFlag beta_flag, typename R, typename S, typename T>
-    void Write( const R alpha, const S beta, T * restrict const B, const Int ldB ) const
+    void Write( const R alpha, const S beta, mut<T> B, const Int ldB ) const
     {
         // Writing B = alpha * A + beta * B
         for( Int i = 0; i < m; ++i )
@@ -79,7 +79,7 @@ public:
 
     // We are extremely generous and provide an extra read method without stride.
     template<Op op = Op::Id, typename T>
-    void Read( const T * restrict const B )
+    void Read( ptr<T> B )
     {
         // Reading A = op(B)
         if constexpr ( op == Op::Id )
@@ -116,7 +116,7 @@ public:
 
     // BLAS-like read-modify method with stride.
     template<Op op = Op::Id, typename T>
-    void Read( const T * restrict const B, const Int ldB )
+    void Read( ptr<T> B, const Int ldB )
     {
         // Reading A = op(B)
         if constexpr ( op == Op::Id )
@@ -157,7 +157,7 @@ public:
     // Scattered read-modify method.
     // Useful in supernodal arithmetic for sparse matrices.
     template<Op op = Op::Id, typename T>
-    void Read( const T * restrict const B, const Int ldB, const Int * restrict const idx )
+    void Read( ptr<T> B, const Int ldB, const Int * restrict const idx )
     {
         // Reading A = op(B)
         if constexpr ( op == Op::Id )

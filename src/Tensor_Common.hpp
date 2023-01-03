@@ -213,23 +213,23 @@ force_inline Int Dimension( const Int i ) const
 
 public:
 
-force_inline Scalar * data()
+force_inline mut<Scalar> data()
 {
     return a;
 }
 
-force_inline const Scalar * data() const
+force_inline ptr<Scalar> data() const
 {
     return a;
 }
 
 
-void AddFrom( const Scalar * restrict const b )
+void AddFrom( ptr<Scalar> b )
 {
     add_to_buffer( b, a, n);
 }
 
-void AddTo( Scalar * restrict const b ) const
+void AddTo( mut<Scalar> b ) const
 {
     add_to_buffer( a, b, n);
 }
@@ -273,9 +273,9 @@ operator*=( const T alpha )
 
 friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 {
-    const Scalar * restrict const x_a = x.a;
-    const Scalar * restrict const y_a = y.a;
-          Scalar * restrict const z_a = z.a;
+    ptr<Scalar> x_a = x.a;
+    ptr<Scalar> y_a = y.a;
+    mut<Scalar> z_a = z.a;
     
     const Int last = x.Size();
     
@@ -288,9 +288,9 @@ friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 
 friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 {
-    const Scalar * restrict const x_a = x.a;
-    const Scalar * restrict const y_a = y.a;
-          Scalar * restrict const z_a = z.a;
+    ptr<Scalar> x_a = x.a;
+    ptr<Scalar> y_a = y.a;
+    mut<Scalar> z_a = z.a;
    
     const Int last = x.Size();
     
@@ -303,8 +303,8 @@ friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 
 friend void Times( const Scalar alpha, const TENSOR_T & x, TENSOR_T & y )
 {
-    const Scalar * restrict const x_a = x.a;
-          Scalar * restrict const y_a = y.a;
+    ptr<Scalar> x_a = x.a;
+    mut<Scalar> y_a = y.a;
     
     const Int last = x.Size();
     

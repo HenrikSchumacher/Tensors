@@ -4,13 +4,7 @@ namespace Tensors
 {
         
     template<typename T, typename Int, int M, int N, int K>
-    inline void GEMM(
-        const T alpha,
-        const T * restrict const A,
-        const T * restrict const B,
-        const T beta,
-              T * restrict const C
-    )
+    inline void GEMM( const T alpha, ptr<T> A, ptr<T> B, const T beta, mut<T> C )
     {
         T c_i [K] = {};
         
@@ -103,10 +97,10 @@ namespace Tensors
         const Int N,
         const Int K,
         const T alpha,
-        const T * const A,
-        const T * const B,
+        ptr<T> A,
+        ptr<T> B,
         const T beta,
-              T * const C
+        mut<T> C
     )
     {
         T a_i [BUFFER_SIZE]     = {};

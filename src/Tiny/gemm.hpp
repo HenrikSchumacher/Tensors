@@ -12,11 +12,11 @@ namespace Tensors
             typename Scalar_in, typename Scalar_out
         >
         void gemm(
-            const Scalar_out                  alpha,
-            const Scalar     * restrict const A_,
-            const Scalar_in  * restrict const B_,
-            const Scalar_out                  beta,
-                  Scalar_out * restrict const C_
+            const Scalar_out alpha,
+            ptr<Scalar>      A_,
+            ptr<Scalar_in>   B_,
+            const Scalar_out beta,
+            mut<Scalar_out>  C_
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
@@ -40,10 +40,10 @@ namespace Tensors
         >
         void gemm(
             const Scalar_out alpha,
-            const Scalar     * restrict const A_, const Int ldA,
-            const Scalar_in  * restrict const B_, const Int ldB,
+            ptr<Scalar>      A_, const Int ldA,
+            ptr<Scalar_in>   B_, const Int ldB,
             const Scalar_out beta,
-                  Scalar_out * restrict const C_, const Int ldC
+            mut<Scalar_out>  C_, const Int ldC
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
@@ -65,10 +65,10 @@ namespace Tensors
         >
         void gemm(
             const Scalar_out alpha,
-            const Scalar     * restrict const A_, const Int ldA,
-            const Scalar_in  * restrict const B_, const Int ldB, const Int * restrict const idx,
+            ptr<Scalar>      A_, const Int ldA,
+            ptr<Scalar_in>   B_, const Int ldB, ptr<Int> idx,
             const Scalar_out beta,
-                  Scalar_out * restrict const C_, const Int ldC
+            mut<Scalar_out>  C_, const Int ldC
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
@@ -93,10 +93,10 @@ namespace Tensors
         >
         void gemm(
             const Scalar_out alpha,
-            const Scalar     * restrict const A_, const Int ldA,
-            const Scalar_in  * restrict const B_, const Int ldB,
+            ptr<Scalar>      A_, const Int ldA,
+            ptr<Scalar_in>   B_, const Int ldB,
             const Scalar_out beta,
-                  Scalar_out * restrict const C_, const Int ldC, const Int * restrict const idx
+            mut<Scalar_out>  C_, const Int ldC, ptr<Int> idx
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.

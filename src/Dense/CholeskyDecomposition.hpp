@@ -21,7 +21,7 @@ namespace Tensors
             CholeskyDecomposition() = default;
             
             template<typename T>
-            CholeskyDecomposition( const T * restrict const A_, const Int ldA )
+            CholeskyDecomposition( ptr<T> A_, const Int ldA )
             {
                 Factorize( A_, ldA );
             }
@@ -29,11 +29,7 @@ namespace Tensors
             ~CholeskyDecomposition() = default;
             
             template<typename T>
-            void Solve(
-                const T * restrict B, const Int ldB,
-                      T * restrict X, const Int ldX,
-                const Int nrhs
-            )
+            void Solve( ptr<T> B, const Int ldB, mut<T> X, const Int ldX, const Int nrhs )
             {
                 const Int max_rhs = 4 * ( (nrhs + static_cast<Int>(3))/ static_cast<Int>(4) );
                 
@@ -93,8 +89,8 @@ namespace Tensors
             
             //        template<typename T>
             //        void Solve(
-            //            const T * restrict B, const Int ldB,
-            //                  T * restrict X, const Int ldX,
+            //            ptr<T> B, const Int ldB,
+            //            mut<T> X, const Int ldX,
             //            const Int nrhs
             //        )
             //        {
@@ -269,11 +265,7 @@ namespace Tensors
             //        }
             
             template<Int max_rhs, typename T>
-            void solve(
-                const T * restrict B, const Int ldB,
-                T * restrict X, const Int ldX,
-                const Int nrhs
-            )
+            void solve( ptr<T> B, const Int ldB, mut<T> X, const Int ldX, const Int nrhs )
             {
                 //Goal is to solve (U^T U) X = B
                 
@@ -342,11 +334,7 @@ namespace Tensors
             
             
             template<typename T>
-            void solve_gen(
-                const T * restrict B, const Int ldB,
-                T * restrict X, const Int ldX,
-                const Int nrhs
-            )
+            void solve_gen( ptr<T> B, const Int ldB, mut<T> X, const Int ldX, const Int nrhs )
             {
                 //Goal is to solve (U^T U) X = B
                 
@@ -412,7 +400,7 @@ namespace Tensors
             
             
             template<typename T>
-            void Factorize( const T * restrict const A_, const Int ldA )
+            void Factorize( ptr<T> A_, const Int ldA )
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
@@ -444,7 +432,7 @@ namespace Tensors
             }
             
             template<typename T>
-            void WriteFactors( T * restrict const A_, const Int ldA ) const
+            void WriteFactors( mut<T> A_, const Int ldA ) const
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
@@ -454,7 +442,7 @@ namespace Tensors
             }
             
             template<typename T>
-            void ReadFactors( const T * restrict const A_, const Int ldA )
+            void ReadFactors( ptr<T> A_, const Int ldA )
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )

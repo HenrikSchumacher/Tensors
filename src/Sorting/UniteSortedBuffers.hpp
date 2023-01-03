@@ -4,9 +4,9 @@ namespace Tensors
 {
     template<typename T, typename Int>
     Int UniteSortedBuffers(
-        const T * restrict const u, const Int m,
-        const T * restrict const v, const Int n,
-              T * restrict const w
+        ptr<T> u, const Int m,
+        ptr<T> v, const Int n,
+        mut<T> w
     )
     {
         // Assumes that u, v are arrays of lengths m, n respectively.

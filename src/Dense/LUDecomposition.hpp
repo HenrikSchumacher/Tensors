@@ -22,7 +22,7 @@ namespace Tensors
             LUDecomposition() = default;
             
             template<typename T>
-            LUDecomposition( const T * restrict const A_, const Int ldA )
+            LUDecomposition( ptr<T> A_, const Int ldA )
             {
                 Factorize( A_, ldA );
             }
@@ -31,10 +31,10 @@ namespace Tensors
             
             template<typename T>
             void Solve(
-                       const T * restrict B, const Int ldB,
-                       T * restrict X, const Int ldX,
-                       const Int nrhs
-                       )
+               ptr<T> B, const Int ldB,
+               mut<T> X, const Int ldX,
+               const Int nrhs
+           )
             {
                 const Int max_rhs = 4 * ( (nrhs + static_cast<Int>(3))/ static_cast<Int>(4) );
                 
@@ -94,8 +94,8 @@ namespace Tensors
             
             //        template<typename T>
             //        void Solve(
-            //            const T * restrict B, const Int ldB,
-            //                  T * restrict X, const Int ldX,
+            //            ptr<T> B, const Int ldB,
+            //            mut<T> X, const Int ldX,
             //            const Int nrhs
             //        )
             //        {
@@ -271,8 +271,8 @@ namespace Tensors
             
             template<Int max_rhs, typename T>
             void solve(
-                       const T * restrict B, const Int ldB,
-                       T * restrict X, const Int ldX,
+                       ptr<T> B, const Int ldB,
+                       mut<T> X, const Int ldX,
                        const Int nrhs
                        )
             {
@@ -336,10 +336,10 @@ namespace Tensors
             
             template<typename T>
             void solve_gen(
-                           const T * restrict B, const Int ldB,
-                           T * restrict X, const Int ldX,
-                           const Int nrhs
-                           )
+                ptr<T> B, const Int ldB,
+                mut<T> X, const Int ldX,
+                const Int nrhs
+            )
             {
                 //Goal is to solve (L U) X = B
                 
@@ -397,7 +397,7 @@ namespace Tensors
             
             
             template<typename T>
-            void Factorize( const T * restrict const A_, const Int ldA )
+            void Factorize( ptr<T> A_, const Int ldA )
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
@@ -454,7 +454,7 @@ namespace Tensors
             }
             
             template<typename T>
-            void WriteFactors( T * restrict const A_, const Int ldA ) const
+            void WriteFactors( mut<T> A_, const Int ldA ) const
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
@@ -464,13 +464,13 @@ namespace Tensors
             }
             
             template<typename I>
-            void WritePermutation( I * restrict const p_ ) const
+            void WritePermutation( mut<I> p_ ) const
             {
                 copy_buffer( &p[0], p_, n );
             }
             
             template<typename T>
-            void ReadFactors( const T * restrict const A_, const Int ldA )
+            void ReadFactors( ptr<T> A_, const Int ldA )
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
@@ -480,7 +480,7 @@ namespace Tensors
             }
             
             template<typename I>
-            void ReadPermutation( const I * restrict const p_ )
+            void ReadPermutation( ptr<I> const p_ )
             {
                 copy_buffer( p_, &p[0], n );
             }

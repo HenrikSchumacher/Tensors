@@ -30,7 +30,7 @@ namespace Tensors {
         }
         
         template<typename S>
-        TENSOR_T( const S * a_, const Int d0 )
+        TENSOR_T( ptr<S> a_, const Int d0 )
         :   TENSOR_T( d0 )
         {
             Read(a_);
@@ -54,7 +54,7 @@ namespace Tensors {
         }
         
 
-        force_inline Scalar * data( const Int i )
+        force_inline mut<Scalar> data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -62,7 +62,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline const Scalar * data( const Int i ) const
+        force_inline ptr<Scalar> data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -184,12 +184,10 @@ namespace Tensors {
         Scalar Total() const
         {
             Scalar sum = static_cast<Scalar>(0);
-
-            Scalar * restrict const a_ = a;
             
             for( Int i = 0; i < n; ++ i )
             {
-                sum += a_[i];
+                sum += a[i];
             }
 
             return sum;
@@ -213,7 +211,7 @@ namespace Tensors {
         
         void iota()
         {
-            Scalar * restrict const a_ = a;
+            mut<Scalar> a_ = a;
             
             for( Int i = 0; i < n; ++i )
             {
@@ -282,7 +280,7 @@ namespace Tensors {
     }
     
     template<typename Scalar, typename Int, typename S>
-    Tensor1<Scalar,Int> ToTensor1( const S * a_, const Int d0 )
+    Tensor1<Scalar,Int> ToTensor1( mut<S> a_, const Int d0 )
     {
         Tensor1<Scalar,Int> result (d0);
 

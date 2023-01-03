@@ -126,7 +126,7 @@ namespace Tensors
             
             //  Access routines
             
-            Scalar * restrict data( const Int i )
+            mut<Scalar> data( const Int i )
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -134,7 +134,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            const Scalar * restrict data( const Int i ) const
+            ptr<Scalar> data( const Int i ) const
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -221,7 +221,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Read( const S * restrict const a )
+            void Read( ptr<S> a )
             {
                 //Assuming that a is a list of size Dimension(1) x n of vectors in interleaved form.
                 
@@ -235,7 +235,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Write( S * restrict const a )
+            void Write( mut<S> a )
             {
                 //Assuming that a is a list of size Dimension(1) x n of vectors in interleaved form.
                 
@@ -290,7 +290,7 @@ namespace Tensors
         {
             const mint m = A.Dimension(1);
             
-            const Scalar * restrict p [n];
+            ptr<Scalar> p [n];
             
             for( mint j = 0; j < n; ++j )
             {
@@ -299,7 +299,7 @@ namespace Tensors
             
             auto B = mma::makeMatrix<mreal>( m, n );
             
-            mreal * restrict const b = B.data();
+            mut<mreal>t b = B.data();
             
             for( mint i = 0; i < m; ++i )
             {
@@ -326,7 +326,7 @@ namespace Tensors
             
             auto B = mma::makeMatrix<mint>( m, n );
             
-            mint * restrict const b = B.data();
+            mut<mint> b = B.data();
             
             for( mint i = 0; i < m; ++i )
             {

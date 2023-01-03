@@ -68,6 +68,9 @@
 
 namespace Tensors
 {
+ 
+
+    
     namespace Sparse
     {   
         template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_ = Scalar_>
@@ -182,11 +185,11 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                const ExtLInt * restrict const outer_,
-                const  ExtInt * restrict const inner_,
-                const     Int                  n_,
-                const     Int                  thread_count_,
-                const    UpLo                  uplo_ = UpLo::Upper
+                ptr<ExtLInt> outer_,
+                ptr<ExtInt > inner_,
+                Int n_,
+                Int thread_count_,
+                UpLo uplo_ = UpLo::Upper
             )
             :   n ( n_ )
             ,   thread_count( std::max(Int(1), thread_count_) )
@@ -240,8 +243,8 @@ namespace Tensors
                     // A vector for path compression.
                     Tensor1<Int,Int> a ( n, no_element );
                     
-                    const LInt * restrict const A_outer = A_lo.Outer().data();
-                    const  Int * restrict const A_inner = A_lo.Inner().data();
+                    ptr<LInt> A_outer = A_lo.Outer().data();
+                    ptr< Int> A_inner = A_lo.Inner().data();
 
                     for( Int k = 1; k < n; ++k )
                     {
@@ -326,11 +329,11 @@ namespace Tensors
                 
                 ptic(ClassName()+"::FactorizeSymbolically");
                 
-                const LInt * restrict const A_rp      = A_up.Outer().data();
-                const  Int * restrict const A_ci      = A_up.Inner().data();
+                ptr< LInt> A_rp      = A_up.Outer().data();
+                ptr<  Int> A_ci      = A_up.Inner().data();
                 
-                const  Int * restrict const child_ptr = EliminationTree().ChildPointers().data();
-                const  Int * restrict const child_idx = EliminationTree().ChildIndices().data();
+                ptr<  Int> child_ptr = EliminationTree().ChildPointers().data();
+                ptr<  Int> child_idx = EliminationTree().ChildIndices().data();
                 
                 Tensor1<Int,Int> U_i    ( n );  // An array to aggregate the rows of U.
                 Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
@@ -388,10 +391,7 @@ namespace Tensors
             }
             
             template< Int RHS_COUNT, bool unitDiag = false>
-            void U_Solve_Sequential_0(
-                const Scalar * restrict const b,
-                      Scalar * restrict const x
-            )
+            void U_Solve_Sequential_0( ptr<Scalar> b,  mut<Scalar> x )
             {
                 U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
             }
@@ -418,11 +418,11 @@ namespace Tensors
                         eprint(ClassName()+"::SN_FactorizeSymbolically requires postordering!");
                     }
                     
-                    const LInt * restrict const A_rp      = A_up.Outer().data();
-                    const  Int * restrict const A_ci      = A_up.Inner().data();
+                    ptr< LInt> A_rp      = A_up.Outer().data();
+                    ptr<  Int> A_ci      = A_up.Inner().data();
                     
-                    const  Int * restrict const child_ptr = EliminationTree().ChildPointers().data();
-                    const  Int * restrict const child_idx = EliminationTree().ChildIndices().data();
+                    ptr<  Int> child_ptr = EliminationTree().ChildPointers().data();
+                    ptr<  Int> child_idx = EliminationTree().ChildIndices().data();
         
                     // temporary arrays
                     Tensor1<Int,Int> row        (n);// An array to aggregate the columnn indices of a row of U.
@@ -637,8 +637,8 @@ namespace Tensors
             
             template<typename ExtScalar>
             void SN_FactorizeNumerically_Parallel(
-                const ExtScalar * restrict const A_val,
-                const       Int                  max_depth
+                ptr<ExtScalar> A_val,
+                const Int      max_depth
             )
             {
                 ptic(ClassName()+"::SN_FactorizeNumerically_Parallel");
@@ -652,9 +652,9 @@ namespace Tensors
                 ptic("Postorder traversal of assembly tree");
                 const Int root = AssemblyTree().Root();
 
-                const Int * restrict const child_ptr   = AssemblyTree().ChildPointers().data();
-                const Int * restrict const child_idx   = AssemblyTree().ChildIndices().data();
-                const Int * restrict const desc_counts = AssemblyTree().DescendantCounts().data();
+                ptr< Int> child_ptr   = AssemblyTree().ChildPointers().data();
+                ptr< Int> child_idx   = AssemblyTree().ChildIndices().data();
+                ptr< Int> desc_counts = AssemblyTree().DescendantCounts().data();
                 
                 std::vector<std::vector<Int>> levels (max_depth+1);
                 
@@ -662,21 +662,21 @@ namespace Tensors
                 Tensor1<Int, Int> depth   ( 2*max_depth+1 );
                 Tensor1<bool,Int> visited ( 2*max_depth+1, false );
                 
-                Int ptr    = 0;
+                Int i      = 0; // stack pointer
                 stack  [0] = root;
                 depth  [0] = 0;
                 visited[0] = false;
                 
                 // post order traversal of the tree
-                while( ptr >= 0 )
+                while( i >= 0 )
                 {
-                    const Int node = stack[ptr];
-                    const Int d    = depth[ptr];
+                    const Int node = stack[i];
+                    const Int d    = depth[i];
                     
-                    if( !visited[ptr] && d < max_depth )
+                    if( !visited[i] && d < max_depth )
                     {
                         // The first time we visit this node we mark it as visited
-                        visited[ptr] = true;
+                        visited[i] = true;
                         
                         const Int k_begin = child_ptr[node  ];
                         const Int k_end   = child_ptr[node+1];
@@ -684,8 +684,8 @@ namespace Tensors
                         // Pushing the children in reverse order onto the stack.
                         for( Int k = k_end; k --> k_begin; )
                         {
-                            stack[++ptr] = child_idx[k];
-                            depth[ptr]   = d+1;
+                            stack[++i] = child_idx[k];
+                            depth[i]   = d+1;
                         }
                     }
                     else
@@ -695,7 +695,7 @@ namespace Tensors
                         // Hence all children have already been visited.
                         
                         // Popping current node from the stack.
-                        visited[ptr--] = false;
+                        visited[i--] = false;
                         
                         levels[d].push_back(node);
                     }
@@ -764,7 +764,7 @@ namespace Tensors
                 
             }
             
-            void SN_FactorizeNumerically_Sequential( const Scalar * restrict const A_val )
+            void SN_FactorizeNumerically_Sequential( ptr<Scalar> A_val )
             {
                 ptic(ClassName()+"::SN_FactorizeNumerically_Sequential");
 
@@ -793,7 +793,7 @@ namespace Tensors
 //####          Supernodal back substitution
 //###########################################################################################
 
-            void SN_UpperSolve_Sequential( Scalar * restrict const B, const Int nrhs )
+            void SN_UpperSolve_Sequential( mut<Scalar> B, const Int nrhs )
             {
                 ptic("SN_UpperSolve_Sequential");
                 // Solves U * X = B and stores the result back into B.
@@ -819,16 +819,16 @@ namespace Tensors
                     const Int n_1 = static_cast<Int>(l_end - l_begin);
                     
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
                     
                     // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    ptr<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[k]];
                     
                     // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
-                          Scalar * restrict const X_0 = &B[nrhs * SN_rp[k]];
+                    mut<Scalar> X_0 = &B[nrhs * SN_rp[k]];
                     
                     // X_1 is the part of X that interacts with U_1, size = n_1 x rhs_count.
-                          Scalar * restrict const X_1 = X_buffer.data();
+                    mut<Scalar> X_1 = X_buffer.data();
                     
                     // Load the already computed values into X_1.
                     for( Int j = 0; j < n_1; ++j )
@@ -885,7 +885,7 @@ namespace Tensors
                 ptoc("SN_UpperSolve_Sequential");
             }
             
-            void SN_UpperSolve_Sequential( Scalar * restrict const b )
+            void SN_UpperSolve_Sequential( mut<Scalar> b )
             {
                 // Solves U * x = b and stores the result back into b.
                 // Assumes that b has size n.
@@ -903,13 +903,13 @@ namespace Tensors
                     const Int n_1 = static_cast<Int>(l_end - l_begin);
 
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
 
                     // U_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    ptr<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[k]];
 
                     // x_0 is the part of x that interacts with U_0, size = n_0.
-                          Scalar * restrict const x_0 = &b[SN_rp[k]];
+                    mut<Scalar> x_0 = &b[SN_rp[k]];
 
 
                     if( n_0 == 1 )
@@ -940,7 +940,7 @@ namespace Tensors
                         if( n_1 > 0 )
                         {
                             // x_1 is the part of x that interacts with U_1, size = n_1.
-                            Scalar * restrict const x_1 = x_buffer.data();
+                            mut<Scalar> x_1 = x_buffer.data();
 
                             // Load the already computed values into X_1.
                             for( Int j = 0; j < n_1; ++j )
@@ -966,7 +966,7 @@ namespace Tensors
                 }
             }
             
-            void SN_LowerSolve_Sequential( Scalar * restrict const B, const Int nrhs )
+            void SN_LowerSolve_Sequential( mut<Scalar> B, const Int nrhs )
             {
                 ptic("SN_LowerSolve_Sequential");
                 // Solves L * X = B and stores the result back into B.
@@ -992,16 +992,16 @@ namespace Tensors
                     const Int n_1 = static_cast<Int>(l_end - l_begin);
                     
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
                     
                     // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    ptr<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[k]];
                     
                     // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
-                          Scalar * restrict const X_0 = &B[nrhs * SN_rp[k]];
+                    mut<Scalar> X_0 = &B[nrhs * SN_rp[k]];
                     
                     // X_1 is the part of X that interacts with U_1, size = n_1 x rhs_count.
-                          Scalar * restrict const X_1 = X_buffer.data();
+                    mut<Scalar> X_1 = X_buffer.data();
 
 
                     if( n_0 == 1 )
@@ -1066,7 +1066,7 @@ namespace Tensors
             }
             
             
-            void SN_LowerSolve_Sequential( Scalar * restrict const b )
+            void SN_LowerSolve_Sequential( mut<Scalar> b )
             {
                 // Solves L * x = b and stores the result back into b.
                 // Assumes that b has size n.
@@ -1084,13 +1084,13 @@ namespace Tensors
                     const Int n_1 = static_cast<Int>(l_end - l_begin);
 
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    const Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
 
                     // U_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    const Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    ptr<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[k]];
 
                     // x_0 is the part of x that interacts with U_0, size = n_0.
-                          Scalar * restrict const x_0 = &b[SN_rp[k]];
+                    mut<Scalar> x_0 = &b[SN_rp[k]];
                     
                     if( n_0 == 1 )
                     {
@@ -1122,7 +1122,7 @@ namespace Tensors
                         if( n_1 > 0 )
                         {
                             // x_1 is the part of x that interacts with U_1, size = n_1.
-                            Scalar * restrict const x_1 = x_buffer.data();
+                            mut<Scalar> x_1 = x_buffer.data();
                             
                             // Compute x_1 = - U_1^H * x_0
                             BLAS_Wrappers::gemv<
@@ -1147,13 +1147,13 @@ namespace Tensors
             
             // TODO: Make this work also for arrays B of other types. -> Copy?
             // TODO: We can merge this with the pre- and post- permutations!
-            void SN_Solve_Sequential( Scalar * restrict const B, const Int nrhs )
+            void SN_Solve_Sequential( mut<Scalar> B, const Int nrhs )
             {
                 SN_LowerSolve_Sequential( B, nrhs );
                 SN_UpperSolve_Sequential( B, nrhs );
             }
             
-            void SN_Solve_Sequential( Scalar * restrict const b )
+            void SN_Solve_Sequential( mut<Scalar> b )
             {
                 SN_LowerSolve_Sequential( b );
                 SN_UpperSolve_Sequential( b );
@@ -1319,7 +1319,7 @@ namespace Tensors
             
             std::string ClassName()
             {
-                return "Sparse::CholeskyDecomposition<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::CholeskyDecomposition<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+","+TypeName<ExtScalar>::Get()+">";
             }
             
             

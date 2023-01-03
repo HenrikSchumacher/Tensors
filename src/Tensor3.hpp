@@ -30,7 +30,7 @@ namespace Tensors {
         }
         
         template<typename S>
-        TENSOR_T( const S * a_, const Int d0, const Int d1, const Int d2 )
+        TENSOR_T( ptr<S> a_, const Int d0, const Int d1, const Int d2 )
         :   TENSOR_T( d0, d1, d2 )
         {
             Read(a_);
@@ -82,7 +82,7 @@ namespace Tensors {
     public:
         
 
-        force_inline Scalar * data( const Int i )
+        force_inline mut<Scalar> data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -90,7 +90,7 @@ namespace Tensors {
             return &a[i * dims[1] * dims[2]];
         }
         
-        force_inline const Scalar * data( const Int i ) const
+        force_inline ptr<Scalar> data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -98,7 +98,7 @@ namespace Tensors {
             return &a[i * dims[1] * dims[2]];
         }
 
-        force_inline Scalar * data( const Int i, const Int j )
+        force_inline mut<Scalar> data( const Int i, const Int j )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -106,7 +106,7 @@ namespace Tensors {
             return &a[( i * dims[1] + j ) * dims[2]];
         }
         
-        force_inline const Scalar * data( const Int i, const Int j ) const
+        force_inline ptr<Scalar> data( const Int i, const Int j ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -115,7 +115,7 @@ namespace Tensors {
         }
 
         
-        force_inline Scalar * data( const Int i, const Int j, const Int k)
+        force_inline mut<Scalar> data( const Int i, const Int j, const Int k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
@@ -124,7 +124,7 @@ namespace Tensors {
         }
         
         
-        force_inline const Scalar * data( const Int i, const Int j, const Int k) const
+        force_inline ptr<Scalar> data( const Int i, const Int j, const Int k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
@@ -149,25 +149,25 @@ namespace Tensors {
         }
         
         template< typename S>
-        void Write( const Int i, S * const b ) const
+        void Write( const Int i, mut<S> b ) const
         {
             copy_buffer( data(i), b, dims[1] * dims[2] );
         }
         
         template< typename S>
-        void Write( const Int i, const Int j, Scalar * const b ) const
+        void Write( const Int i, const Int j, mut<Scalar> b ) const
         {
             copy_buffer( data(i,j), b, dims[2] );
         }
         
         template< typename S>
-        void Read( const Int i, const S * const b )
+        void Read( const Int i, ptr<S> b )
         {
             copy_buffer( b, data(i), dims[1] * dims[2] );
         }
         
         template< typename S>
-        void Read( const Int i, const Int j, const S * const b )
+        void Read( const Int i, const Int j, ptr<S> b )
         {
             copy_buffer( b, data(i,j), dims[2] );
         }
@@ -183,7 +183,7 @@ namespace Tensors {
     
     
     template<typename Scalar, typename Int, typename S>
-    Tensor3<Scalar,Int> ToTensor3( const S * a_, const Int d0, const Int d1, const Int d2 )
+    Tensor3<Scalar,Int> ToTensor3( ptr<S> a_, const Int d0, const Int d1, const Int d2 )
     {
         Tensor3<Scalar,Int> result ( d0, d1, d2 );
 

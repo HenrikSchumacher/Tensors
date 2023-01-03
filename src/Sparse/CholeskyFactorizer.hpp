@@ -37,23 +37,23 @@ namespace Tensors
             
             
             // shared data
-            const      LInt * restrict const A_rp;  // row pointers of upper triangle of A
-            const       Int * restrict const A_ci;  // column indices of upper triangle of A
-            const ExtScalar * restrict const A_val; // nonzero values upper triangle of A
+            ptr<LInt>       A_rp;  // row pointers of upper triangle of A
+            ptr<Int>        A_ci;  // column indices of upper triangle of A
+            ptr<ExtScalar>  A_val; // nonzero values upper triangle of A
             
-            const       Int * restrict const child_ptr;
-            const       Int * restrict const child_idx;
+            ptr<Int>        child_ptr;
+            ptr<Int>        child_idx;
             
-            const       Int * restrict const SN_rp;
-            const      LInt * restrict const SN_outer;
-            const       Int * restrict const SN_inner;
+            ptr<Int>        SN_rp;
+            ptr<LInt>       SN_outer;
+            ptr<Int>        SN_inner;
             
-            const      LInt * restrict const SN_tri_ptr;
-                     Scalar * restrict const SN_tri_val;
-            const      LInt * restrict const SN_rec_ptr;
-                     Scalar * restrict const SN_rec_val;
+            ptr<LInt>       SN_tri_ptr;
+            mut<Scalar>     SN_tri_val;
+            ptr<LInt>       SN_rec_ptr;
+            mut<Scalar>     SN_rec_val;
             
-            const       Int * restrict const desc_counts;
+            ptr<Int>         desc_counts;
             
             
             // local data
@@ -64,10 +64,10 @@ namespace Tensors
             Tensor1<Int,Int> JJ_pos_buffer;
             Tensor1<Int,Int> JL_pos_buffer;
             
-            Int * restrict const II_pos = nullptr;
-            Int * restrict const IL_pos = nullptr;
-            Int * restrict const JJ_pos = nullptr;
-            Int * restrict const JL_pos = nullptr;
+            mut<Int> II_pos = nullptr;
+            mut<Int> IL_pos = nullptr;
+            mut<Int> JJ_pos = nullptr;
+            mut<Int> JL_pos = nullptr;
             
             
             Int IL_len = 0;
@@ -78,11 +78,11 @@ namespace Tensors
             Tensor1<Scalar,Int> B_1_buffer; // part that updates U_1
             Tensor1<Scalar,Int> C_0_buffer; // scattered subblock of U_0
             Tensor1<Scalar,Int> C_1_buffer; // scattered subblock of U_1
-
-            Scalar * restrict B_0 = nullptr;
-            Scalar * restrict B_1 = nullptr;
-            Scalar * restrict C_0 = nullptr;
-            Scalar * restrict C_1 = nullptr;
+            
+            mut<Scalar> B_0 = nullptr;
+            mut<Scalar> B_1 = nullptr;
+            mut<Scalar> C_0 = nullptr;
+            mut<Scalar> C_1 = nullptr;
 
             
             // Monitors.
@@ -128,7 +128,7 @@ namespace Tensors
             
             CholeskyFactorizer(
                 CholeskyDecomposition<Scalar,Int,LInt,ExtScalar> & chol,
-                const ExtScalar * restrict A_val_
+                ptr<ExtScalar> A_val_
             )
             // shared data
             :   n               ( chol.n                                        )
@@ -220,8 +220,8 @@ namespace Tensors
                 
                 // U_0 is interpreted as an upper triangular matrix of size n_0 x n_0.
                 // U_1 is interpreted as a  rectangular      matrix of size n_0 x n_1.
-                Scalar * restrict const U_0 = &SN_tri_val[SN_tri_ptr[s]];
-                Scalar * restrict const U_1 = &SN_rec_val[SN_rec_ptr[s]];
+                mut<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                mut<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                 
                 // Read the values of A into U_0 and U_1.
                 // ======================================
@@ -295,7 +295,7 @@ namespace Tensors
                     const Int m_0 = SN_rp   [t+1] - SN_rp   [t];
                     const Int m_1 = SN_outer[t+1] - SN_outer[t];
 
-                    const Scalar * restrict const t_rec = &SN_rec_val[SN_rec_ptr[t]];
+                    ptr<Scalar> t_rec = &SN_rec_val[SN_rec_ptr[t]];
                     // t_rec is interpreted as a rectangular matrix of size m_0 x m_1.
 
                     // TODO: Maybe transpose U_0 and U_1 etc to reduce amount of scattered-reads and adds...
@@ -352,9 +352,7 @@ namespace Tensors
                         // where C_0 is an upper triangular matrix of size IL_len x IL_len.
                         
                         _tic();
-                        BLAS_Wrappers::herk<
-                            Layout::RowMajor,UpLo::Upper,Op::ConjTrans
-                        >(
+                        BLAS_Wrappers::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
                             IL_len, m_0,
                             Real(-1), B_0, IL_len,
                             Real( 0), C_0, IL_len
@@ -429,7 +427,7 @@ namespace Tensors
                         // where U_1 is a matrix of size n_0 x n_1.
                         for( Int i = 0; i < IL_len; ++i )
                         {
-//                            Scalar * restrict const U_1_row = U_1[n_1 * II_pos[i]]
+//                            mut<Scalar> U_1_row = U_1[n_1 * II_pos[i]]
                             for( Int j = 0; j < JL_len; ++j )
                             {
                                 U_1[n_1 * II_pos[i] + JJ_pos[j]] += C_1[JL_len * i + j]; // XXX
@@ -666,9 +664,9 @@ namespace Tensors
             
             
             force_inline void scatter_read(
-                const Scalar * restrict const x,
-                      Scalar * restrict const y,
-                const Int    * restrict const idx,
+                ptr<Scalar> x,
+                mut<Scalar> y,
+                ptr<Int>    idx,
                 const Int N
             )
             {
@@ -679,9 +677,10 @@ namespace Tensors
             }
             
             force_inline void scatter_add(
-                const Scalar * restrict const x,
-                      Scalar * restrict const y,
-                const Int    * restrict const idx, const Int i_len
+                ptr<Scalar> x,
+                mut<Scalar> y,
+                ptr<Int>    idx,
+                const Int i_len
             )
             {
                 for( Int i = 0; i < i_len; ++i )
@@ -694,7 +693,7 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return "Sparse::CholeskyFactorizer<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::CholeskyFactorizer<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+","+TypeName<ExtScalar>::Get()+">";
             }
             
         }; // class CholeskyFactorizer

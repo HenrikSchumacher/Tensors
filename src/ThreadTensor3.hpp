@@ -200,7 +200,7 @@ namespace Tensors {
             }
         }
         
-        force_inline Scalar * data( const Int i )
+        force_inline mut<Scalar> data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -208,7 +208,7 @@ namespace Tensors {
             return tensors[i].data();
         }
         
-        force_inline const Scalar * data( const Int i ) const
+        force_inline ptr<Scalar> data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -216,7 +216,7 @@ namespace Tensors {
             return tensors[i].data();
         }
 
-        force_inline Scalar * data( const Int i, const Int j)
+        force_inline mut<Scalar> data( const Int i, const Int j)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -224,7 +224,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        force_inline const Scalar * data( const Int i, const Int j) const
+        force_inline ptr<Scalar> data( const Int i, const Int j) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -232,7 +232,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        force_inline Scalar * data( const Int i, const Int j, const Int k)
+        force_inline mut<Scalar> data( const Int i, const Int j, const Int k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -240,7 +240,7 @@ namespace Tensors {
             return tensors[i].data(j,k);
         }
         
-        force_inline const Scalar * data( const Int i, const Int j, const Int k) const
+        force_inline ptr<Scalar> data( const Int i, const Int j, const Int k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -286,7 +286,7 @@ namespace Tensors {
             }
         }
 
-        void Write( Scalar * const b ) const
+        void Write( mut<Scalar> b ) const
         {
             const Int thread_count = dims[0];
             
@@ -298,25 +298,25 @@ namespace Tensors {
         }
         
         template<typename S>
-        void Write( const Int i, S * const b ) const
+        void Write( const Int i, mut<S> b ) const
         {
             tensors[i].Write( b );
         }
         
         template<typename S>
-        void Write( const Int i, const Int j, S * const b ) const
+        void Write( const Int i, const Int j, mut<S> b ) const
         {
             tensors[i].Write( j, b );
         }
         
         template<typename S>
-        void Read( const Int i, const S * const b )
+        void Read( const Int i, ptr<S> b )
         {
             tensors[i].Read( b );
         }
         
         template<typename S>
-        void Read( const Int i, const Int j, const S * const b )
+        void Read( const Int i, const Int j, ptr<S> b )
         {
             tensors[i].Read( j, b );
         }

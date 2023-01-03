@@ -71,24 +71,25 @@ namespace Tensors
             Tensor1<Int, Int> stack   ( n+1 );
             Tensor1<bool,Int> visited ( n+1, false );
             
-            const Int * restrict const child_ptr = A.Outer().data();
-            const Int * restrict const child_idx = A.Inner().data();
             
-            Int ptr    = 0;
+            ptr<Int> child_ptr = A.Outer().data();
+            ptr<Int> child_idx = A.Inner().data();
+            
+            Int i      = 0; // stack pointer
             stack  [0] = root;
             visited[0] = false;
             
             Int counter = 0;
             
             // post order traversal of the tree
-            while( ptr >= 0 )
+            while( i >= 0 )
             {
-                const Int node = stack[ptr];
+                const Int node = stack[i];
                 
-                if( !visited[ptr] )
+                if( !visited[i] )
                 {
                     // The first time we visit this node we mark it as visited
-                    visited[ptr] = true;
+                    visited[i] = true;
                     
                     const Int k_begin = child_ptr[node  ];
                     const Int k_end   = child_ptr[node+1];
@@ -96,7 +97,7 @@ namespace Tensors
                     // Pushing the children in reverse order onto the stack.
                     for( Int k = k_end; k --> k_begin; )
                     {
-                        stack[++ptr] = child_idx[k];
+                        stack[++i] = child_idx[k];
                     }
                 }
                 else
@@ -106,7 +107,7 @@ namespace Tensors
                     // Hence all children have already been visited.
                     
                     // Popping current node from the stack.
-                    visited[ptr--] = false;
+                    visited[i--] = false;
                     
                     post[counter] = node;
                     postordered   = postordered && (counter == node);
