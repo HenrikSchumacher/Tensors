@@ -68,72 +68,12 @@ namespace Tensors
         
     public:
         
-        //        void FillLowerTriangleFromUpperTriangle( Scalar * restrict const values ) const
-        //        {
-        //            ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
-        //
-        //            if( pattern.WellFormed() && (pattern.RowCount()>= pattern.ColCount()) )
-        //            {
-        //                const Int * restrict const diag   = pattern.Diag().data();
-        //                const Int * restrict const outer  = pattern.Outer().data();
-        //                const Int * restrict const inner  = pattern.Inner().data();
-        //
-        //                const auto & job_ptr = pattern.LowerTriangularJobPtr();
-        //
-        //                const Int thread_count = job_ptr.Size()-1;
-        //
-        //                #pragma omp parallel for num_threads( thread_count )
-        //                for( Int thread = 0; thread < thread_count; ++thread )
-        //                {
-        //                    Kernel_T ker ( values );
-        //
-        //                    const Int i_begin = job_ptr[thread  ];
-        //                    const Int i_end   = job_ptr[thread+1];
-        //
-        //                    for( Int i = i_begin; i < i_end; ++i )
-        //                    {
-        //                        const Int k_begin = outer[i];
-        //                        const Int k_end   =  diag[i];
-        //
-        //                        for( Int k = k_begin; k < k_end; ++k )
-        //                        {
-        //                            const Int j = inner[k];
-        //
-        //                            Int L =  diag[j];
-        //                            Int R = outer[j+1]-1;
-        //
-        //                            while( L < R )
-        //                            {
-        //                                const Int M = R - (R-L)/static_cast<Int>(2);
-        //                                const Int j = inner[M];
-        //
-        //                                if( j > i )
-        //                                {
-        //                                    R = M-1;
-        //                                }
-        //                                else
-        //                                {
-        //                                    L = M;
-        //                                }
-        //                            }
-        //
-        //                            ker.TransposeBlock(L,k);
-        //
-        //                        } // for( Int k = k_begin; k < k_end; ++k )
-        //
-        //                    } // for( Int i = i_begin; i < i_end; ++i )
-        //
-        //                } // #pragma omp parallel
-        //            }
-        //
-        //            ptoc(ClassName()+"::FillLowerTriangleFromUpperTriangle");
-        //        }
         
-        //##############################################################################################
-        //      Matrix multiplication
-        //##############################################################################################
+//##############################################################################################
+//      Matrix multiplication
+//##############################################################################################
         
-        void Scale( Scalar_out * restrict const Y, const Scalar_out beta, const Int rhs_count ) const
+        void Scale( mut<Scalar_out> Y, const Scalar_out beta, const Int rhs_count ) const
         {
             const Int size = RowCount() * rhs_count;
             
@@ -149,12 +89,10 @@ namespace Tensors
         
         
         __attribute__((flatten)) void Dot(
-            const Scalar     * restrict const A,
-            const Scalar_out                  alpha,
-            const Scalar_in  * restrict const X,
-            const Scalar_out                  beta,
-            Scalar_out * restrict const Y,
-            const Int                         rhs_count
+            ptr<Scalar> A,
+            const Scalar_out alpha, ptr<Scalar_in>  X,
+            const Scalar_out beta,  mut<Scalar_out> Y,
+            const Int rhs_count
         ) const
         {
             ptic(ClassName()+"::Dot" );

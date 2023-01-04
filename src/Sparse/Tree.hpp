@@ -193,14 +193,29 @@ namespace Tensors
             return descendant_counts;
         }
         
+        Int DescendantCount( const Int i ) const
+        {
+            return descendant_counts[i];
+        }
+        
         const Tensor1<Int,Int> & ChildPointers() const
         {
             return A.Outer();
         }
         
+        Int ChildPointer( const Int i ) const
+        {
+            return A.Outer()[i];
+        }
+        
         const Tensor1<Int,Int> & ChildIndices() const
         {
             return A.Inner();
+        }
+        
+        Int ChildIndex( const Int k ) const
+        {
+            return A.Inner()[k];
         }
         
         force_inline Int VertexCount() const

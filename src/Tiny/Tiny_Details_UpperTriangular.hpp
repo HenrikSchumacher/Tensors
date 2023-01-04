@@ -84,7 +84,7 @@ protected:
     }
     
     template<Int k>
-    force_inline void read( const Scalar * restrict const B )
+    force_inline void read( ptr<Scalar> const B )
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
@@ -95,7 +95,7 @@ protected:
     }
 
     template<Int k>
-    force_inline void read( const Scalar * restrict const B, const Int ldB )
+    force_inline void read( ptr<Scalar> B, const Int ldB )
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
@@ -106,7 +106,7 @@ protected:
     }
     
     template<Int k>
-    force_inline void write( Scalar * restrict const B ) const
+    force_inline void write( mut<Scalar> B ) const
     {
         copy_buffer<n-k>( &A[k][k], B );
         
@@ -117,7 +117,7 @@ protected:
     }
 
     template<Int k>
-    force_inline void write( Scalar * restrict const B, const Int ldB ) const
+    force_inline void write( mut<Scalar> B, const Int ldB ) const
     {
         copy_buffer<n-k>( &A[k][k], B );
         

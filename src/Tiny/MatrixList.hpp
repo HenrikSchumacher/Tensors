@@ -128,12 +128,12 @@ namespace Tensors
             
             //  Access routines
             
-            Scalar * restrict data( const Int i, const Int j )
+            mut<Scalar> data( const Int i, const Int j )
             {
                 return A[i][j].data();
             }
             
-            const Scalar * restrict data( const Int i, const Int j ) const
+            ptr<Scalar> data( const Int i, const Int j ) const
             {
                 return A[i][j].data();
             }
@@ -289,7 +289,7 @@ namespace Tensors
             
             auto B = mma::makeCube<mreal>( N, m, n );
             
-            mreal * restrict const b = B.data();
+            mut<mreal> b = B.data();
             
             for( mint k = 0; k < N; ++k )
             {
@@ -322,7 +322,7 @@ namespace Tensors
             
             auto B = mma::makeCube<mint>( N, m, n );
             
-            mint * restrict const b = B.data();
+            mut<mint> b = B.data();
             
             for( mint k = 0; k < N; ++k )
             {

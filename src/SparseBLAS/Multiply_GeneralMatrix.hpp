@@ -7,15 +7,9 @@ public:
     
     void Multiply_GeneralMatrix_Vector
     (
-        const Int   * restrict const rp,
-        const Int   * restrict const ci,
-        const T     * restrict const a,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y
+        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
+        const T     alpha, ptr<T_in>  X,
+        const T_out beta,  mut<T_out> Y
     )
     {
         const JobPointers<Int> job_ptr (m,rp,thread_count,false);
@@ -25,15 +19,9 @@ public:
 
     void Multiply_GeneralMatrix_Vector
     (
-        const Int   * restrict const rp,
-        const Int   * restrict const ci,
-        const T     * restrict const a,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y,
+        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
+        const T     alpha, ptr<T_in>  X,
+        const T_out beta,  mut<T_out> Y,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -42,16 +30,10 @@ public:
     
     void Multiply_GeneralMatrix_DenseMatrix
     (
-        const Int   * restrict const rp,
-        const Int   * restrict const ci,
-        const T     * restrict const a,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y,
-        const Int                    cols
+        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
+        const T     alpha, ptr<T_in>  X,
+        const T_out beta,  mut<T_out> Y,
+        const Int   cols
     )
     {
         const JobPointers<Int> job_ptr (m,rp,thread_count,false);
@@ -61,16 +43,10 @@ public:
     
     void Multiply_GeneralMatrix_DenseMatrix
     (
-        const Int   * restrict const rp,
-        const Int   * restrict const ci,
-        const T     * restrict const a,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y,
-        const Int                    cols,
+        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
+        const T     alpha, ptr<T_in>  X,
+        const T_out beta,  mut<T_out> Y,
+        const Int   cols,
         const JobPointers<Int> & job_ptr
     )
     {        

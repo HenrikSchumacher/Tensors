@@ -288,9 +288,9 @@ namespace Tensors
                 inner  = Tensor1   <Int,LInt>( nnz );
                 values = Tensor1<Scalar,LInt>( nnz );
                 
-                LInt * restrict const outer__ = outer.data();
-                Int * restrict const inner__ = inner.data();
-                Scalar * restrict const value__ = values.data();
+                mut<LInt>   outer__ = outer.data();
+                mut<Int>    inner__ = inner.data();
+                mut<Scalar> value__ = values.data();
                 
                 copy_buffer( counters.data(list_count-1), &outer__[1], m );
                 
@@ -308,11 +308,11 @@ namespace Tensors
                 {
                     const LInt entry_count = entry_counts[thread];
                     
-                    const    Int * restrict const thread_idx = idx[thread];
-                    const    Int * restrict const thread_jdx = jdx[thread];
-                    const Scalar * restrict const thread_val = val[thread];
+                    ptr<Int>    thread_idx = idx[thread];
+                    ptr<Int>    thread_jdx = jdx[thread];
+                    ptr<Scalar> thread_val = val[thread];
                     
-                    LInt * restrict const c = counters.data(thread);
+                    mut<LInt> c = counters.data(thread);
                     
                     for( LInt k = entry_count; k --> 0; )
                     {
@@ -425,12 +425,12 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                            LInt * restrict const c = counters.data(thread);
-                             Int * restrict const B_inner  = B.Inner().data();
-                          Scalar * restrict const B_values = B.Value().data();
-                    const   LInt * restrict const A_outer  = Outer().data();
-                    const    Int * restrict const A_inner  = Inner().data();
-                    const Scalar * restrict const A_values = Value().data();
+                    mut<LInt>   c = counters.data(thread);
+                    mut<Int>    B_inner  = B.Inner().data();
+                    mut<Scalar> B_values = B.Value().data();
+                    ptr<LInt>   A_outer  = Outer().data();
+                    ptr<Int>    A_inner  = Inner().data();
+                    ptr<Scalar> A_values = Value().data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -509,9 +509,9 @@ namespace Tensors
                         const Int i_begin = job_ptr[thread  ];
                         const Int i_end   = job_ptr[thread+1];
                         
-                        const    LInt * restrict const outer__  = outer.data();
-                                  Int * restrict const inner__  = inner.data();
-                               Scalar * restrict const values__ = values.data();
+                        ptr<LInt>   outer__  = outer.data();
+                        mut<Int>    inner__  = inner.data();
+                        mut<Scalar> values__ = values.data();
                         
                         for( Int i = i_begin; i < i_end; ++i )
                         {
@@ -545,10 +545,10 @@ namespace Tensors
                     
                     Tensor1<LInt,Int> new_outer (outer.Size(),0);
                     
-                    const   LInt * restrict const outer__     = outer.data();
-                             Int * restrict const inner__     = inner.data();
-                          Scalar * restrict const values__    = values.data();
-                            LInt * restrict const new_outer__ = new_outer.data();
+                    ptr<LInt> outer__     = outer.data();
+                    mut<Int> inner__      = inner.data();
+                    mut<Scalar> values__  = values.data();
+                    mut<LInt> new_outer__ = new_outer.data();
                     
                     #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
@@ -625,8 +625,8 @@ namespace Tensors
                     Tensor1<   Int,LInt> new_inner  (nnz,0);
                     Tensor1<Scalar,LInt> new_values (nnz,0);
                     
-                       Int * restrict const new_inner__  = new_inner.data();
-                    Scalar * restrict const new_values__ = new_values.data();
+                    mut<Int>    new_inner__  = new_inner.data();
+                    mut<Scalar> new_values__ = new_values.data();
                     
                     //TODO: Parallelization might be a bad idea here.
                     #pragma omp parallel for num_threads( thread_count )
@@ -688,11 +688,7 @@ namespace Tensors
             Permute( p.data(), q.data(), sort );
         }
         
-        CLASS Permute(
-            const Int * restrict const p,
-            const Int * restrict const q,
-            bool sort = true
-        )
+        CLASS Permute( ptr<Int> p, ptr<Int> q, bool sort = true )
         {
             if( p == nullptr )
             {
@@ -719,13 +715,13 @@ namespace Tensors
         
     protected:
         
-        CLASS PermuteRows( const Int * restrict const p )
+        CLASS PermuteRows( ptr<Int> p )
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
             
             {
-                const LInt * restrict const A_outer = outer.data();
-                LInt * restrict const B_outer = B.Outer().data();
+                ptr<LInt> A_outer = outer.data();
+                mut<LInt> B_outer = B.Outer().data();
                 
                 B_outer[0] = 0;
                 
@@ -745,13 +741,13 @@ namespace Tensors
                 
                 const Int thread_count = B_job_ptr.ThreadCount();
                 
-                const   LInt * restrict const A_outer  = outer.data();
-                const    Int * restrict const A_inner  = inner.data();
-                const Scalar * restrict const A_values = values.data();
+                ptr<LInt>   A_outer  = outer.data();
+                ptr<Int>    A_inner  = inner.data();
+                mut<Scalar> A_values = values.data();
                 
-                const   LInt * restrict const B_outer  = B.Outer().data();
-                         Int * restrict const B_inner  = B.Inner().data();
-                      Scalar * restrict const B_values = B.Values().data();
+                ptr<LInt>   B_outer  = B.Outer().data();
+                mut<Int>    B_inner  = B.Inner().data();
+                mut<Scalar> B_values = B.Values().data();
                 
                 #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
@@ -779,15 +775,13 @@ namespace Tensors
             return B;
         }
         
-        CLASS PermuteCols(
-            const Int * restrict const q,
-            bool sort = true
-        )
+        CLASS PermuteCols( ptr<Int> q, bool sort = true )
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
             
             Tensor1<Int,Int> q_inv_buffer ( ColCount() );
-            Int * restrict const q_inv = q_inv_buffer.data();
+            
+            mut<Int> q_inv = q_inv_buffer.data();
             
             {
                 #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
@@ -804,13 +798,13 @@ namespace Tensors
                 
                 const Int thread_count = B_job_ptr.ThreadCount();
                 
-                //                const   LInt * restrict const A_outer  = outer.data();
-                const    Int * restrict const A_inner  = inner.data();
-                const Scalar * restrict const A_values = values.data();
+//                ptr<LInt> A_outer  = outer.data();
+                ptr<Int>    A_inner  = inner.data();
+                ptr<Scalar> A_values = values.data();
                 
-                const   LInt * restrict const B_outer  = B.Outer().data();
-                         Int * restrict const B_inner  = B.Inner().data();
-                      Scalar * restrict const B_values = B.Values().data();
+                ptr<LInt>   B_outer  = B.Outer().data();
+                mut<Int>    B_inner  = B.Inner().data();
+                mut<Scalar> B_values = B.Values().data();
                 
                 #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
@@ -846,16 +840,12 @@ namespace Tensors
             return B;
         }
         
-        CLASS PermuteRowsCols(
-            const Int * restrict const p,
-            const Int * restrict const q,
-            bool sort = true
-        )
+        CLASS PermuteRowsCols( ptr<Int> p, ptr<Int> q, bool sort = true )
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
             
             Tensor1<Int,Int> q_inv_buffer ( ColCount() );
-            Int * restrict const q_inv = q_inv_buffer.data();
+            mut<Int> q_inv = q_inv_buffer.data();
             
             {
                 #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
@@ -866,8 +856,8 @@ namespace Tensors
             }
             
             {
-                const LInt * restrict const A_outer = outer.data();
-                      LInt * restrict const B_outer = B.Outer().data();
+                ptr<LInt> A_outer = outer.data();
+                mut<LInt> B_outer = B.Outer().data();
                 
                 B_outer[0] = 0;
                 
@@ -887,13 +877,13 @@ namespace Tensors
                 
                 const Int thread_count = B_job_ptr.ThreadCount();
                 
-                const   LInt * restrict const A_outer  = outer.data();
-                const    Int * restrict const A_inner  = inner.data();
-                const Scalar * restrict const A_values = values.data();
+                ptr<LInt>   A_outer  = outer.data();
+                ptr<Int>    A_inner  = inner.data();
+                ptr<Scalar> A_values = values.data();
                 
-                const   LInt * restrict const B_outer  = B.Outer().data();
-                         Int * restrict const B_inner  = B.Inner().data();
-                      Scalar * restrict const B_values = B.Values().data();
+                ptr<LInt>   B_outer  = B.Outer().data();
+                ptr<Int>    B_inner  = B.Inner().data();
+                mut<Scalar> B_values = B.Values().data();
                 
                 #pragma omp parallel for num_threads( thread_count )
                 for( Int thread = 0; thread < thread_count; ++thread )
@@ -953,12 +943,12 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    LInt * restrict const c = counters.data(thread);
+                    mut<LInt> c = counters.data(thread);
                     
-                    const LInt * restrict const A_outer  = Outer().data();
-                    const  Int * restrict const A_inner  = Inner().data();
+                    ptr<LInt> A_outer  = Outer().data();
+                    ptr<Int>  A_inner  = Inner().data();
                     
-                    const LInt * restrict const B_outer  = B.Outer().data();
+                    ptr<LInt> B_outer  = B.Outer().data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -988,18 +978,18 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                            LInt * restrict const c        = counters.data(thread);
+                    mut<LInt>   c        = counters.data(thread);
                     
-                    const   LInt * restrict const A_outer  = Outer().data();
-                    const    Int * restrict const A_inner  = Inner().data();
-                    const Scalar * restrict const A_values = Value().data();
+                    ptr<LInt>   A_outer  = Outer().data();
+                    ptr<Int>    A_inner  = Inner().data();
+                    ptr<Scalar> A_values = Value().data();
                     
-                    const   LInt * restrict const B_outer  = B.Outer().data();
-                    const    Int * restrict const B_inner  = B.Inner().data();
-                    const Scalar * restrict const B_values = B.Value().data();
+                    ptr<LInt>   B_outer  = B.Outer().data();
+                    ptr<Int>    B_inner  = B.Inner().data();
+                    ptr<Scalar> B_values = B.Value().data();
                     
-                            LInt * restrict const C_inner  = C.Inner().data();
-                          Scalar * restrict const C_values = C.Value().data();
+                    mut<LInt>   C_inner  = C.Inner().data();
+                    ptr<Scalar> C_values = C.Value().data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -1114,12 +1104,12 @@ namespace Tensors
         // Use external list of values.
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-            const T_ext   alpha,
-            const T_ext * ext_values,
-            const T_in  * X,
-            const T_out   beta,
-                  T_out * Y,
-            const Int     cols = static_cast<Int>(1)
+            const T_ext alpha,
+            ptr<T_ext>  ext_values,
+            ptr<T_ext>  X,
+            const T_out beta,
+            mut<T_ext>  Y,
+            const Int   cols = static_cast<Int>(1)
         ) const
         {
             Dot_( ext_values, alpha, X, beta, Y, cols );
@@ -1177,20 +1167,13 @@ namespace Tensors
     public:
 
         template< Int RHS_COUNT, bool unitDiag = false>
-        void SolveUpperTriangular_Sequential_0(
-            const Scalar * restrict const b,
-                  Scalar * restrict const x
-        )
+        void SolveUpperTriangular_Sequential_0( ptr<Scalar> b, mut<Scalar> x )
         {
             this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,Scalar,unitDiag>(values.data(),b,x);
         }
         
         template< Int RHS_COUNT, bool unitDiag = false>
-        void SolveUpperTriangular_Sequential_0(
-            const Scalar * restrict const values,
-            const Scalar * restrict const b,
-                  Scalar * restrict const x
-        )
+        void SolveUpperTriangular_Sequential_0( ptr<Scalar> values, ptr<Scalar> b, mut<Scalar> x )
         {
             this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,Scalar,unitDiag>(values,b,x);
         }

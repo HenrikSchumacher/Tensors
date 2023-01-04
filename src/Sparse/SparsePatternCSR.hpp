@@ -585,6 +585,12 @@ namespace Tensors
             return outer;
         }
         
+        Int RowNonzeroCount( const Int i ) const
+        {
+            return outer[i+1] - outer[i];
+        }
+        
+        
         Tensor1<Int,LInt> & Inner()
         {
             return inner;
@@ -593,6 +599,11 @@ namespace Tensors
         const Tensor1<Int,LInt> & Inner() const
         {
             return inner;
+        }
+        
+        Int FirstColumnInRow( const Int i ) const
+        {
+            return inner[outer[i]];
         }
         
         const Tensor1<LInt,Int> & Diag() const
@@ -653,8 +664,8 @@ namespace Tensors
                     
                     mut<LInt> c = counters.data(thread);
                     
-                    ptr<LInt> A_outer  = Outer().data();
-                    ptr<Int> A_inner  = Inner().data();
+                    ptr<LInt> A_outer = Outer().data();
+                    ptr<Int>  A_inner = Inner().data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -851,12 +862,12 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    mut<LInt> c        = counters.data(thread);
+                    mut<LInt> c       = counters.data(thread);
                     
-                    ptr<LInt> A_outer  = Outer().data();
-                    ptr<Int>  A_inner  = Inner().data();
+                    ptr<LInt> A_outer = Outer().data();
+                    ptr<Int>  A_inner = Inner().data();
                     
-                    ptr<LInt> B_outer  = B.Outer().data();
+                    ptr<LInt> B_outer = B.Outer().data();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -1162,7 +1173,7 @@ namespace Tensors
                 
                 ptr<LInt> diag__  = Diag().data();
                 ptr<LInt> outer__ = Outer().data();
-                ptr<Int> inner__  = Inner().data();
+                ptr<Int>  inner__ = Inner().data();
                 
                 auto & job_ptr__ = LowerTriangularJobPtr();
                 

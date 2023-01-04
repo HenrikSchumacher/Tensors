@@ -1,7 +1,7 @@
 public:
 
     void SpMM_gen (
-        ptr<Int> rp, ptr<Int>  ci, mut<T> a, const Int m, const Int n,
+        ptr<LInt> rp, ptr<Int>  ci, mut<T> a, const Int m, const Int n,
         const T     alpha_, ptr<T_in>  X,
         const T_out beta,   mut<T_out> Y,
         const Int   cols,
@@ -115,7 +115,7 @@ public:
 
     template<bool a_flag, int alpha_flag, int beta_flag >
     void SpMM_gen_implementation(
-        ptr<Int> rp, ptr<Int>  ci, mut<T> a, const Int m, const Int n,
+        ptr<LInt> rp, ptr<Int>  ci, mut<T> a, const Int m, const Int n,
         const T     alpha,  ptr<T_in>  X,
         const T_out beta,   mut<T_out> Y,
         const Int   cols,
@@ -154,8 +154,8 @@ public:
             
             for( Int i = i_begin; i < i_end; ++i )
             {
-                const Int l_begin = rp[i  ];
-                const Int l_end   = rp[i+1];
+                const LInt l_begin = rp[i  ];
+                const LInt l_end   = rp[i+1];
                 
     //            __builtin_prefetch( &ci[l_end] );
     //
@@ -183,7 +183,7 @@ public:
                             axpbz_gen<1,0>( T_one, &X[cols * j], T_zero, &z[0], cols );
                         }
                     }
-                    for( Int l = l_begin+1; l < l_end-1; ++l )
+                    for( LInt l = l_begin+1; l < l_end-1; ++l )
                     {
                         const Int j = ci[l];
                         
@@ -201,7 +201,7 @@ public:
                     
                     if( l_end > l_begin+1 )
                     {
-                        const Int l = l_end-1;
+                        const LInt l = l_end-1;
                         
                         const Int j   = ci[l];
 

@@ -244,7 +244,7 @@ namespace Tensors
                     Tensor1<Int,Int> a ( n, no_element );
                     
                     ptr<LInt> A_outer = A_lo.Outer().data();
-                    ptr< Int> A_inner = A_lo.Inner().data();
+                    ptr<Int>  A_inner = A_lo.Inner().data();
 
                     for( Int k = 1; k < n; ++k )
                     {
@@ -329,11 +329,11 @@ namespace Tensors
                 
                 ptic(ClassName()+"::FactorizeSymbolically");
                 
-                ptr< LInt> A_rp      = A_up.Outer().data();
-                ptr<  Int> A_ci      = A_up.Inner().data();
+                ptr<LInt> A_rp      = A_up.Outer().data();
+                ptr<Int>  A_ci      = A_up.Inner().data();
                 
-                ptr<  Int> child_ptr = EliminationTree().ChildPointers().data();
-                ptr<  Int> child_idx = EliminationTree().ChildIndices().data();
+                ptr<Int>  child_ptr = EliminationTree().ChildPointers().data();
+                ptr<Int>  child_idx = EliminationTree().ChildIndices().data();
                 
                 Tensor1<Int,Int> U_i    ( n );  // An array to aggregate the rows of U.
                 Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
@@ -350,7 +350,7 @@ namespace Tensors
                 for( Int i = 0; i < n; ++i ) // Traverse rows.
                 {
                     // The nonzero pattern of A_up belongs definitely to the pattern of U.
-                    row_counter = A_rp[i+1] - A_rp[i];
+                    row_counter = A_up.RowNonzeroCount(i);
                     copy_buffer( &A_ci[A_rp[i]], U_i.data(), row_counter );
                     
                     const Int l_begin = child_ptr[i  ];
@@ -399,6 +399,8 @@ namespace Tensors
 //###########################################################################################
 //####          Supernodal symbolic factorization
 //###########################################################################################
+        
+        public:
             
             void SN_FactorizeSymbolically()
             {
@@ -418,19 +420,16 @@ namespace Tensors
                         eprint(ClassName()+"::SN_FactorizeSymbolically requires postordering!");
                     }
                     
-                    ptr< LInt> A_rp      = A_up.Outer().data();
-                    ptr<  Int> A_ci      = A_up.Inner().data();
+                    ptr<LInt> A_rp = A_up.Outer().data();
+                    ptr<Int>  A_ci = A_up.Inner().data();
                     
-                    ptr<  Int> child_ptr = EliminationTree().ChildPointers().data();
-                    ptr<  Int> child_idx = EliminationTree().ChildIndices().data();
-        
                     // temporary arrays
                     Tensor1<Int,Int> row        (n);// An array to aggregate the columnn indices of a row of U.
                     Tensor1<Int,Int> row_buffer (n);// Some scratch space for UniteSortedBuffers.
                     Int row_counter;                // Holds the current number of indices in row.
         
+                    // TODO: Fix this to work with singed integers.
                     Tensor1<Int,Int> prev_col_nz(n,-1);
-                    Tensor1<Int,Int> descendant_counts  = EliminationTree().DescendantCounts();
     
                     // i-th row of U belongs to supernode row_to_SN[i].
                     row_to_SN = Tensor1< Int,Int> (n);
@@ -458,36 +457,7 @@ namespace Tensors
                     ptic("Main loop");
                     for( Int i = 1; i < n+1; ++i ) // Traverse rows.
                     {
-                        // Using Theorem 2.3 and Corollary 3.2 in
-                        //
-                        //     Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
-                        //     https://www.osti.gov/servlets/purl/6756314
-                        //
-                        // to determine whether a new fundamental supernode starts at node u.
-                        
-                        bool is_fundamental = ( i == n );
-                        
-                        is_fundamental = is_fundamental || ( child_ptr[i+1] - child_ptr[i] > 1);
-                        
-                        if( !is_fundamental )
-                        {
-                            const Int threshold = i - descendant_counts[i] + 1;
-
-                            const Int k_begin = A_rp[i]+1; // exclude diagonal entry
-                            const Int k_end   = A_rp[i+1];
-                            
-                            for( Int k = k_begin; k < k_end; ++k )
-                            {
-                                const Int j = A_ci[k];
-                                const Int l = prev_col_nz[j];
-                                
-                                prev_col_nz[j] = i;
-                                
-                                is_fundamental = is_fundamental || ( l < threshold );
-                            }
-                        }
-                        
-                        if( is_fundamental )
+                        if( IsFundamental( i, prev_col_nz ) )
                         {
                             // i is going to be the first node of the newly created fundamental supernode.
                             // However, we do not now at the moment how long the supernode is going to be.
@@ -506,23 +476,20 @@ namespace Tensors
                                 
                                 const Int k_end = A_rp[i_0+1];
                                 
-                                while( A_ci[k] < i && k < k_end )
-                                {
-                                    ++k;
-                                }
+                                while( (A_ci[k] < i) && (k < k_end) ) { ++k; }
                                 
                                 row_counter = k_end - k;
                                 copy_buffer( &A_ci[k], row.data(), row_counter );
                             }
                             
                             // Next, we have to merge the column indices of the children of i_0 into row.
-                            const Int l_begin = child_ptr[i_0  ];
-                            const Int l_end   = child_ptr[i_0+1];
+                            const Int l_begin = eTree.ChildPointer(i_0  );
+                            const Int l_end   = eTree.ChildPointer(i_0+1);
         
                             // Traverse all children of i_0 in the eTree. Most of the time it's one or two children. Seldomly it's more.
                             for( Int l = l_begin; l < l_end; ++l )
                             {
-                                const Int j = child_idx[l];
+                                const Int j = eTree.ChildIndex(l);
                                 // We have to merge the column indices of child j that are greater than i into U_row.
                                 // This is the supernode where we find the j-th row of U.
                                 const Int k = row_to_SN[j];
@@ -533,10 +500,7 @@ namespace Tensors
                                 const LInt b = SN_outer[k+1];
                                 
                                 // Only consider column indices of j-th row of U that are greater than last row i-1 in current supernode.
-                                while( (SN_inner_agg[a] < i) && (a < b) )
-                                {
-                                    ++a;
-                                }
+                                while( (SN_inner_agg[a] < i) && (a < b) ) { ++a; }
                                 
                                 if( a < b )
                                 {
@@ -585,40 +549,7 @@ namespace Tensors
                     SN_inner_agg = Aggregator<Int, LInt>(0);
                     ptoc("SN_inner_agg.Get()");
                     
-                    SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
-                    SN_tri_ptr[0] = 0;
-                    
-                    SN_rec_ptr = Tensor1<LInt,Int> (SN_count+1);
-                    SN_rec_ptr[0] = 0;
-                    
-                    max_n_0 = 0;
-                    max_n_1 = 0;
-                    
-                    for( Int k = 0; k < SN_count; ++k )
-                    {
-                        // Warning: Taking differences of potentially signed numbers.
-                        // Should not be of concern because negative numbers appear here only if something went wrong upstream.
-                        const Int n_0 =                  SN_rp   [k+1] - SN_rp   [k];
-                        const Int n_1 = static_cast<Int>(SN_outer[k+1] - SN_outer[k]);
-
-                        max_n_0 = std::max( max_n_0, n_0 );
-                        max_n_1 = std::max( max_n_1, n_1 );
-
-                        SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
-                        SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
-                    }
-
-                    
-                    pdump(max_n_0);
-                    pdump(max_n_1);
-                    
-                    // Allocating memory for the nonzero values of the factorization.
-                    
-                    SN_tri_val = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count]);
-                    SN_rec_val = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count]);
-                    
-                    logvalprint("triangle_nnz ", SN_tri_val.Size());
-                    logvalprint("rectangle_nnz", SN_rec_val.Size());
+                    SN_Allocate();
                     
                     CreateAssemblyTree();
                     
@@ -630,10 +561,87 @@ namespace Tensors
                 }
             }
             
+        protected:
+            
+            void SN_Allocate()
+            {
+                ptic(ClassName()+"::SN_Allocate");
+                SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
+                SN_tri_ptr[0] = 0;
+                
+                SN_rec_ptr = Tensor1<LInt,Int> (SN_count+1);
+                SN_rec_ptr[0] = 0;
+                
+                max_n_0 = 0;
+                max_n_1 = 0;
+                
+                for( Int k = 0; k < SN_count; ++k )
+                {
+                    // Warning: Taking differences of potentially signed numbers.
+                    // Should not be of concern because negative numbers appear here only if something went wrong upstream.
+                    const Int n_0 =                  SN_rp   [k+1] - SN_rp   [k];
+                    const Int n_1 = static_cast<Int>(SN_outer[k+1] - SN_outer[k]);
+
+                    max_n_0 = std::max( max_n_0, n_0 );
+                    max_n_1 = std::max( max_n_1, n_1 );
+
+                    SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
+                    SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
+                }
+                
+                pdump(max_n_0);
+                pdump(max_n_1);
+                
+                // Allocating memory for the nonzero values of the factorization.
+                
+                SN_tri_val = Tensor1<Scalar, LInt> (SN_tri_ptr[SN_count]);
+                SN_rec_val = Tensor1<Scalar, LInt> (SN_rec_ptr[SN_count]);
+                
+                logvalprint("triangle_nnz ", SN_tri_val.Size());
+                logvalprint("rectangle_nnz", SN_rec_val.Size());
+                
+                ptoc(ClassName()+"::SN_Allocate");
+            }
+            
+            bool IsFundamental( const Int i , Tensor1<Int,Int> & prev_col_nz )
+            {
+                // Using Theorem 2.3 and Corollary 3.2 in
+                //
+                //     Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
+                //     https://www.osti.gov/servlets/purl/6756314
+                //
+                // to determine whether a new fundamental supernode starts at node u.
+                
+                bool is_fundamental = ( i == n );
+                
+                is_fundamental = is_fundamental || ( eTree.ChildCount(i) > 1);
+                
+                if( !is_fundamental )
+                {
+                    const Int threshold = i - eTree.DescendantCount(i) + 1;
+
+                    const Int k_begin = A_up.Outer()[i]+1; // exclude diagonal entry
+                    const Int k_end   = A_up.Outer()[i+1];
+                    
+                    for( Int k = k_begin; k < k_end; ++k )
+                    {
+                        const Int j = A_up.Inner()[k];
+                        const Int l = prev_col_nz[j];
+                        
+                        prev_col_nz[j] = i;
+                        
+                        is_fundamental = is_fundamental || ( l < threshold );
+                    }
+                }
+                
+                return is_fundamental;
+            }
             
 //###########################################################################################
 //####          Supernodal numeric factorization
 //###########################################################################################
+            
+        public:
             
             template<typename ExtScalar>
             void SN_FactorizeNumerically_Parallel(

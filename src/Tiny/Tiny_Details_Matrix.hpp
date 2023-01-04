@@ -21,12 +21,12 @@ public:
             
 public:
     
-    Scalar * restrict data()
+    mut<Scalar> data()
     {
         return &A[0][0];
     }
     
-    const Scalar * restrict data() const
+    ptr<Scalar> data() const
     {
         return &A[0][0];
     }
@@ -41,12 +41,12 @@ public:
         return A[i][j];
     }
     
-    Scalar * operator[]( const Int i )
+    mut<Scalar> operator[]( const Int i )
     {
         return &A[i][0];
     }
     
-    const Scalar * operator[]( const Int i ) const
+    ptr<Scalar> operator[]( const Int i ) const
     {
         return &A[i][0];
     }

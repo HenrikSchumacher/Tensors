@@ -6,14 +6,9 @@ public:
 
     void Multiply_BinaryMatrix_Vector
     (
-        const LInt   * restrict const rp,
-        const Int  * restrict const ci,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha,
-        const T_in  * restrict const x,
-        const T_out                  beta,
-              T_out * restrict const y
+        ptr<LInt> rp, ptr<Int> ci, const Int m, const Int n,
+        const T     alpha, ptr<T_in> x,
+        const T_out beta,  mut<T_in> y
     )
     {
         const JobPointers<Int> job_ptr (m,rp,thread_count,false);
@@ -23,14 +18,9 @@ public:
     
     void Multiply_BinaryMatrix_Vector
     (
-        const LInt   * restrict const rp,
-        const Int  * restrict const ci,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha,
-        const T_in  * restrict const x,
-        const T_out                  beta,
-              T_out * restrict const y,
+        ptr<LInt> rp, ptr<Int> ci, const Int m, const Int n,
+        const T     alpha, ptr<T_in> x,
+        const T_out beta,  mut<T_in> y,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -133,15 +123,10 @@ public:
     
     void Multiply_BinaryMatrix_DenseMatrix
     (
-        const LInt   * restrict const rp,
-        const Int  * restrict const ci,
-        const Int                    m,
-        const Int                    n,
-        const T                      alpha,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y,
-        const Int                    cols
+        ptr<LInt> rp, ptr<Int> ci, const Int m, const Int n,
+        const T     alpha, ptr<T_in> X,
+        const T_out beta,  mut<T_in> Y,
+        const Int cols
     )
     {
         Multiply_GeneralMatrix_DenseMatrix(rp,ci,nullptr,m,n,alpha,X,beta,Y,cols);
@@ -149,14 +134,9 @@ public:
     
     void Multiply_BinaryMatrix_DenseMatrix
     (
-        const LInt   * restrict const rp,
-        const Int  * restrict const ci,
-        const Int                    m,
-        const Int                     n,
-        const T                      alpha,
-        const T_in  * restrict const X,
-        const T_out                  beta,
-              T_out * restrict const Y,
+        ptr<LInt> rp, ptr<Int> ci, const Int m, const Int n,
+        const T     alpha, ptr<T_in> X,
+        const T_out beta,  mut<T_in> Y,
         const Int                    cols,
         const JobPointers<Int> & job_ptr
     )

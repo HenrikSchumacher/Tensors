@@ -31,12 +31,12 @@ namespace Tensors
         
     protected:
         
-              Scalar     * restrict const A       = nullptr;
-        const Scalar     * restrict const A_const = nullptr;
-        const Scalar_out                  alpha   = 0;
-        const Scalar_in  * restrict const X       = nullptr;
-        const Scalar_out                  beta    = 0;
-              Scalar_out * restrict const Y       = nullptr;
+        mut<Scalar>      A       = nullptr;
+        ptr<Scalar>      A_const = nullptr;
+        const Scalar_out alpha   = 0;
+        ptr<Scalar_in>   X       = nullptr;
+        const Scalar_out beta    = 0;
+        mut<Scalar_out>  Y       = nullptr;
 
         
         const Scalar_in  * restrict x_from = nullptr;
@@ -55,7 +55,7 @@ namespace Tensors
         
         CLASS() = delete;
         
-        explicit CLASS( Scalar * restrict const A_ )
+        explicit CLASS( mut<Scalar> A_ )
         :   A       ( A_      )
         ,   A_const ( nullptr )
         ,   alpha   ( 0       )
@@ -65,12 +65,10 @@ namespace Tensors
         {}
 
         CLASS(
-            const Scalar     * restrict const A_,
-            const Scalar_out                  alpha_,
-            const Scalar_in  * restrict const X_,
-            const Scalar_out                  beta_,
-                  Scalar_out * restrict const Y_,
-                  Int                         rhs_count_
+            ptr<Scalar> A_,
+            const Scalar_out alpha_, ptr<Scalar_in>  X_,
+            const Scalar_out beta_,  mut<Scalar_out> Y_,
+            const Int rhs_count_
         )
         :   A         ( nullptr          )
         ,   A_const   ( A_               )
@@ -240,7 +238,7 @@ namespace Tensors
         
         force_inline void WriteY( const Int i_global ) const
         {
-            Scalar_out * restrict const y_to = &Y[ RowsSize() * i_global];
+            mut<Scalar_out> y_to = &Y[ RowsSize() * i_global];
             
             if constexpr ( alpha_flag == 1 )
             {
@@ -417,7 +415,7 @@ namespace Tensors
         force_inline void WriteYZero( const Int i_global ) const
         {
             // CAUTION! We cannot use i_global here because BeginRow() has not been called in an empty row!
-            Scalar_out * restrict const y_to = &Y[ RowsSize() * i_global ];
+            mut<Scalar_out> y_to = &Y[ RowsSize() * i_global ];
             
             if constexpr ( beta_flag == 0 )
             {

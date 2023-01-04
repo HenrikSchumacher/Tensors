@@ -56,13 +56,7 @@ public:
     // Row-scattered write-modify method.
     // Useful in supernodal arithmetic for sparse matrices.
     template<ScalarFlag alpha_flag, ScalarFlag beta_flag, typename R, typename S, typename T>
-    void Write(
-        const R                    alpha,
-        const S                    beta,
-              T   * restrict const B,
-        const Int                  ldB,
-        const Int * restrict const idx
-    ) const
+    void Write( const R alpha, const S beta, mut<T> B, const Int ldB, ptr<Int> idx ) const
     {
         // Writing B[idx[i]][j] = alpha * A[i][j] + beta * B[idx[i]][j]
         for( Int i = 0; i < m; ++i )
@@ -91,7 +85,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                const Scalar * restrict const B_j = &B[m*j];
+                ptr<Scalar> B_j = &B[m*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -104,7 +98,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                const Scalar * restrict const B_j = &B[m*j];
+                ptr<Scalar> B_j = &B[m*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -131,7 +125,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                const Scalar * restrict const B_j = &B[ldB*j];
+                ptr<Scalar> B_j = &B[ldB*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -144,7 +138,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                const Scalar * restrict const B_j = &B[ldB*j];
+                ptr<Scalar> B_j = &B[ldB*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -157,7 +151,7 @@ public:
     // Scattered read-modify method.
     // Useful in supernodal arithmetic for sparse matrices.
     template<Op op = Op::Id, typename T>
-    void Read( ptr<T> B, const Int ldB, const Int * restrict const idx )
+    void Read( ptr<T> B, const Int ldB, ptr<Int> idx )
     {
         // Reading A = op(B)
         if constexpr ( op == Op::Id )
@@ -172,7 +166,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                const Scalar * restrict const B_j = &B[ldB*idx[j]];
+                ptr<Scalar> B_j = &B[ldB*idx[j]];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -185,7 +179,7 @@ public:
             // TODO: Not sure whether it would be better to  swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                const Scalar * restrict const B_j = &B[ldB*idx[j]];
+                ptr<Scalar> B_j = &B[ldB*idx[j]];
                 
                 for( Int i = 0; i < m; ++i )
                 {

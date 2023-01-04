@@ -22,8 +22,8 @@ namespace Tensors
         //        {}
         
         explicit SparseKernelMatrixCSR(
-                                 const SparsityPattern_T & pattern_
-                                 )
+            const SparsityPattern_T & pattern_
+        )
         :   pattern ( pattern_ )
         ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
@@ -65,15 +65,15 @@ namespace Tensors
         
     public:
         
-        void FillLowerTriangleFromUpperTriangle( Scalar * restrict const values ) const
+        void FillLowerTriangleFromUpperTriangle( mut<Scalar> values ) const
         {
             ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
             
             if( pattern.WellFormed() && (pattern.RowCount()>= pattern.ColCount()) )
             {
-                const LInt * restrict const diag   = pattern.Diag().data();
-                const LInt * restrict const outer  = pattern.Outer().data();
-                const  Int * restrict const inner  = pattern.Inner().data();
+                ptr<LInt> diag   = pattern.Diag().data();
+                ptr<LInt> outer  = pattern.Outer().data();
+                ptr<Int>  inner  = pattern.Inner().data();
                 
                 const auto & job_ptr = pattern.LowerTriangularJobPtr();
                 
@@ -175,7 +175,7 @@ namespace Tensors
         //      Matrix multiplication
         //##############################################################################################
         
-        void Scale( Scalar_out * restrict const Y, const Scalar_out beta, const Int rhs_count ) const
+        void Scale( mut<Scalar_out> Y, const Scalar_out beta, const Int rhs_count ) const
         {
             const Int size = RowCount() * rhs_count;
             
@@ -190,12 +190,10 @@ namespace Tensors
         }
         
         __attribute__((flatten)) void Dot(
-            const Scalar     * restrict const A,
-            const Scalar_out                  alpha,
-            const Scalar_in  * restrict const X,
-            const Scalar_out                  beta,
-                  Scalar_out * restrict const Y,
-            const Int                         rhs_count
+            ptr<Scalar> A,
+            const Scalar_out alpha, ptr<Scalar_in>  X,
+            const Scalar_out beta,  mut<Scalar_out> Y,
+            const Int rhs_count
         ) const
         {
             ptic(ClassName()+"::Dot" );
@@ -222,8 +220,8 @@ namespace Tensors
                     // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                     Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
                     
-                    const LInt * restrict const rp = pattern.Outer().data();
-                    const  Int * restrict const ci = pattern.Inner().data();
+                    ptr<LInt> rp = pattern.Outer().data();
+                    ptr<Int>  ci = pattern.Inner().data();
                     
                     // Kernel is supposed the following rows of pattern:
                     const Int i_begin = job_ptr[thread  ];
@@ -281,8 +279,8 @@ namespace Tensors
                 // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                 Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
                 
-                const LInt * restrict const rp = pattern.Outer().data();
-                const  Int * restrict const ci = pattern.Inner().data();
+                ptr<LInt> rp = pattern.Outer().data();
+                ptr<Int> ci = pattern.Inner().data();
                 
                 // Kernel is supposed the following rows of pattern:
                 const Int i_begin = job_ptr[0  ];
