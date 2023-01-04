@@ -21,6 +21,8 @@
     #include "src/Tensor3.hpp"
     #include "src/ThreadTensor3.hpp"
 
+    #include "src/Permutation.hpp"
+
     #include "Tiny.hpp"
 
     #include "src/AssemblyCounters.hpp"

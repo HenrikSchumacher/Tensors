@@ -41,6 +41,8 @@ namespace Tensors
             ptr<Int>        A_ci;  // column indices of upper triangle of A
             ptr<ExtScalar>  A_val; // nonzero values upper triangle of A
             
+            ExtScalar       reg;   // Regularization parameter for the diagonal.
+            
             ptr<Int>        child_ptr;
             ptr<Int>        child_idx;
             
@@ -128,13 +130,15 @@ namespace Tensors
             
             CholeskyFactorizer(
                 CholeskyDecomposition<Scalar,Int,LInt,ExtScalar> & chol,
-                ptr<ExtScalar> A_val_
+                ptr<ExtScalar> A_val_,
+                const ExtScalar reg_     // Regularization parameter for the diagonal.
             )
             // shared data
             :   n               ( chol.n                                        )
             ,   A_rp            ( chol.A_up.Outer().data()                      )
             ,   A_ci            ( chol.A_up.Inner().data()                      )
             ,   A_val           ( A_val_                                        )
+            ,   reg             ( reg_                                          )
             ,   child_ptr       ( chol.AssemblyTree().ChildPointers().data()    )
             ,   child_idx       ( chol.AssemblyTree().ChildIndices().data()     )
             ,   SN_rp           ( chol.SN_rp.data()                             )
@@ -232,14 +236,23 @@ namespace Tensors
                     
                     LInt k;
                     
-                    for( k = k_begin; k < k_end; ++k )
+                    {
+                        k = k_begin;
+                        
+                        const Int j = A_ci [k];
+                        
+                        U_0[n_0 * (i-i_begin) + (j-i_begin)] = static_cast<Scalar>(A_val[k]+reg);
+                        
+                        ++k;
+                    }
+                    for( ; k < k_end; ++k )
                     {
                         const Int j = A_ci [k];
                         
                         if( j < i_end )
                         {
                             // j belongs to the triangular part
-                            U_0[ n_0 * (i - i_begin) + (j - i_begin) ] = static_cast<Scalar>(A_val[k]);
+                            U_0[n_0 * (i-i_begin) + (j-i_begin)] = static_cast<Scalar>(A_val[k]);
                         }
                         else
                         {
@@ -346,6 +359,7 @@ namespace Tensors
 //                        {
 //                            copy_buffer( &t_rec[m_0 * IL_pos[i]], &B_0[m_0 * i], m_0 );
 //                        }
+                        
                         scatter_time += _toc();
                         
                         // Do C_0 = - upper(B_0^H * B_0),
@@ -391,13 +405,13 @@ namespace Tensors
                         // Col-scatter-read t_rec[:,JL_pos] from B_1,
                         // where B_1 is a matrix of size m_0 x JL_len.
                         
-//                        for( Int i = 0; i < m_0; ++i )
-//                        {
-//                            for( Int j = 0; j < JL_len; ++j )
-//                            {
-//                                B_1[JL_len * i + j] = t_rec[m_1 * i + JL_pos[j]];
-//                            }
-//                        }
+                        for( Int i = 0; i < m_0; ++i )
+                        {
+                            for( Int j = 0; j < JL_len; ++j )
+                            {
+                                B_1[JL_len * i + j] = t_rec[m_1 * i + JL_pos[j]];
+                            }
+                        }
                         
                         for( Int i = 0; i < m_0; ++i )
                         {
@@ -408,6 +422,7 @@ namespace Tensors
 //                        {
 //                            copy_buffer( &t_rec[m_0 * JL_pos[j]], &B_1[m_0 * j], m_0 );
 //                        }
+                        
                         scatter_time += _toc();
                         
                         // Do C_1 = - B_0^H * B_1,
@@ -417,7 +432,7 @@ namespace Tensors
                         BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                             IL_len, JL_len, m_0,
                             Scalar(-1), B_0, IL_len,
-                                  B_1, JL_len,
+                                        B_1, JL_len,
                             Scalar( 0), C_1, JL_len
                         );
                         gemm_time += _toc();
@@ -427,7 +442,6 @@ namespace Tensors
                         // where U_1 is a matrix of size n_0 x n_1.
                         for( Int i = 0; i < IL_len; ++i )
                         {
-//                            mut<Scalar> U_1_row = U_1[n_1 * II_pos[i]]
                             for( Int j = 0; j < JL_len; ++j )
                             {
                                 U_1[n_1 * II_pos[i] + JJ_pos[j]] += C_1[JL_len * i + j]; // XXX
@@ -464,6 +478,16 @@ namespace Tensors
             
             
         protected:
+            
+            force_inline void scatter_read( ptr<Scalar> x, mut<Scalar> y, ptr<Int> idx, Int N )
+            {
+                for( ; N --> 0; ) { y[N] = x[idx[N]]; }
+            }
+            
+            force_inline void scatter_add( ptr<Scalar> x, mut<Scalar> y, ptr<Int> idx, Int N )
+            {
+                for( ; N --> 0; ) { y[idx[N]] += x[N]; }
+            }
             
             void ComputeIntersection( const Int s, const Int t )
             {
@@ -584,15 +608,6 @@ namespace Tensors
                 {
                     ++empty_intersec_undetected;
                 }
-                    
-//                if( IL_len == 0 && JL_len == 0)
-//                {
-//                    wprint("Empty intersection detected for supernodes s = "+ToString(s)+" and t = "+ToString(t)+".");
-//
-//                    valprint("node s",ToString( &SN_inner[j_begin], j_end - j_begin, 16 ) );
-//                    valprint("node t",ToString( &SN_inner[l_begin], l_end - l_begin, 16 ) );
-//                }
-                
             }
             
             
@@ -615,7 +630,6 @@ namespace Tensors
                 const Int n_1 = j_end - j_begin;
                 
                 const Int m_1 = l_end - l_begin;
-                
                 
                 for( Int i = 0; i < IL_len; ++i )
                 {
@@ -644,7 +658,7 @@ namespace Tensors
                 
                 for( Int j = 0; j < JL_len; ++j )
                 {
-                    okay = okay && ( SN_inner[j_begin + JJ_pos[j]] == SN_inner[ l_begin + JL_pos[j] ] );
+                    okay = okay && ( SN_inner[j_begin + JJ_pos[j]] == SN_inner[l_begin + JL_pos[j]] );
                 }
                 
                 if( !okay )
@@ -659,33 +673,6 @@ namespace Tensors
                     
                     valprint( "JJ_pos", ToString(JJ_pos,JL_len,16) );
                     valprint( "JL_pos", ToString(JL_pos,JL_len,16) );
-                }
-            }
-            
-            
-            force_inline void scatter_read(
-                ptr<Scalar> x,
-                mut<Scalar> y,
-                ptr<Int>    idx,
-                const Int N
-            )
-            {
-                for( Int i = 0; i < N; ++i )
-                {
-                    y[i] = x[idx[i]];
-                }
-            }
-            
-            force_inline void scatter_add(
-                ptr<Scalar> x,
-                mut<Scalar> y,
-                ptr<Int>    idx,
-                const Int i_len
-            )
-            {
-                for( Int i = 0; i < i_len; ++i )
-                {
-                    y[idx[i]] += x[i];
                 }
             }
             

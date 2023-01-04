@@ -276,230 +276,112 @@ namespace Tensors
     public:
         
         CLASS Permute(
-            const Tensor1<Int,Int> & p, // Vector of row    permutation.
-            const Tensor1<Int,Int> & q, // Vector of column permutation.
-            bool sort = true   // Whether to restore row-wise ordering (as in demanded by CSR).
+            const Permutation<Int> & p,  // row    permutation
+            const Permutation<Int> & q,  // column permutation
+        bool sort = true        // Whether to restore row-wise ordering (as in demanded by CSR).
         )
         {
-            if( p.Dimension(0) != m )
+            if( (!p.IsTrivial()) && (p.Size() != m) )
             {
-                eprint(ClassName()+"::Permute: Length of first argument does not coincide with RowCount().");
+                eprint(ClassName()+"::Permute: Length of first permutation does not coincide with RowCount().");
                 return CLASS();
             }
             
-            if( q.Dimension(0) != n )
+            if( (!q.IsTrivial()) && (q.Size() != n) )
             {
-                eprint(ClassName()+"::Permute: Length of second argument does not coincide with ColCount().");
+                eprint(ClassName()+"::Permute: Length of second permutation does not coincide with ColCount().");
                 return CLASS();
             }
             
-            Permute( p.data(), q.data(), sort );
-        }
-        
-        CLASS Permute( ptr<Int> p, ptr<Int> q, bool sort = true )
-        {
-            if( p == nullptr )
+            CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
+            
+            if( !p.IsTrivial() )
             {
-                if( q == nullptr )
+                if( !q.IsTrivial() )
                 {
-                    // Just make a copy.
-                    return CLASS(*this);
+                    return permute<true,true>(p,q);
                 }
                 else
                 {
-                    return PermuteCols(q,sort);
+                    return permute<true,false>(p,q);
                 }
             }
-            else if( q == nullptr )
+            else // if( p.IsTrivial() )
             {
-                return PermuteRows(p);
-            }
-            else
-            {
-                return PermuteRowsCols(p,q,sort);
+                if( !q.IsTrivial() )
+                {
+                    return permute<false,true>(p,q);
+                }
+                else
+                {
+                    return B.inner = inner;
+                }
             }
         }
         
     protected:
         
-        CLASS PermuteRows( ptr<Int> p )
+        template<bool PermuteRows, bool PermuteCols>
+        CLASS permute( Permutation<Int> & P, Permutation<Int> & Q, bool sort = true )
         {
             CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
             
+            ptr<Int> p     =  COND( PermuteRows, Q.GetPermutation().data(),        nullptr );
+            ptr<Int> q_inv =  COND( PermuteCols, Q.GetInversePermutation().data(), nullptr );
+            
+            if constexpr ( PermuteRows )
             {
-                ptr<LInt> A_outer = outer.data();
-                mut<LInt> B_outer = B.Outer().data();
-                
-                B_outer[0] = 0;
+                B.outer[0] = 0;
                 
                 #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
                 for( Int i = 0; i < m; ++i )
                 {
                     const Int p_i = p[i];
                     
-                    B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
+                    B.outer[i+1] = outer[p_i+1] - outer[p_i];
                 }
+                
+                B.outer.Accumulate();
+            }
+            else
+            {
+                B.outer = outer;
             }
             
-            B.Outer().Accumulate();
+            auto & B_job_ptr = B.JobPtr();
             
+            const Int thread_count = B_job_ptr.ThreadCount();
+            
+            #pragma omp parallel for num_threads( thread_count )
+            for( Int thread = 0; thread < thread_count; ++thread )
             {
-                auto & B_job_ptr = B.JobPtr();
+                const Int i_begin = B_job_ptr[thread  ];
+                const Int i_end   = B_job_ptr[thread+1];
                 
-                const Int thread_count = B_job_ptr.ThreadCount();
-                
-                ptr<LInt> A_outer = outer.data();
-                ptr<Int>  A_inner = inner.data();
-                
-                ptr<LInt> B_outer = B.Outer().data();
-                mut<Int>  B_inner = B.Inner().data();
-                
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
+                for( Int i = i_begin; i < i_end; ++i )
                 {
-                    const Int i_begin = B_job_ptr[thread  ];
-                    const Int i_end   = B_job_ptr[thread+1];
+                    const LInt A_begin = outer[COND( PermuteRows, p[i], i)];
                     
-                    for( Int i = i_begin; i < i_end; ++i )
-                    {
-                        const Int p_i = p[i];
-                        const LInt A_begin = A_outer[p_i  ];
-//                        const LInt A_end   = A_outer[p_i+1];
-                        
-                        const LInt B_begin = B_outer[i  ];
-                        const LInt B_end   = B_outer[i+1];
-                        
-                        copy_buffer( &A_inner[A_begin], &B_inner[B_begin], B_end - B_begin);
-                    }
-                }
-            }
-            
-            return B;
-        }
-        
-        CLASS PermuteCols( ptr<Int> q, const bool sort = true )
-        {
-            CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
-            
-            Tensor1<Int,Int> q_inv_buffer ( ColCount() );
-            mut<Int> q_inv = q_inv_buffer.data();
-            
-            {
-                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
-                for( Int j = 0; j < n; ++j )
-                {
-                    q_inv[q[j]] = j;
-                }
-            }
-            
-            copy_buffer( outer.data(), B.Outer().data(), m+1 );
-            
-            {
-                auto & B_job_ptr = B.JobPtr();
-                
-                const Int thread_count = B_job_ptr.ThreadCount();
-                
-                ptr<Int>  A_inner = inner.data();
-                
-                ptr<LInt> B_outer = B.Outer().data();
-                mut<Int>  B_inner = B.Inner().data();
-                
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
-                {
-                    const Int i_begin = B_job_ptr[thread  ];
-                    const Int i_end   = B_job_ptr[thread+1];
+                    const LInt B_begin = B.outer[i  ];
+                    const LInt B_end   = B.outer[i+1];
                     
-                    for( Int i = i_begin; i < i_end; ++i )
+                    const LInt k_max = B_end - B_begin;
+                    
+                    for( LInt k = 0; k < k_max; ++k )
                     {
-                        const LInt B_begin = B_outer[i  ];
-                        const LInt B_end   = B_outer[i+1];
-                        
-                        for( LInt k = B_begin; k < B_end; ++k )
+                        if constexpr ( PermuteCols )
                         {
-                            B_inner[k] = q_inv[A_inner[k]];
+                            B.inner[B_begin+k] = q_inv[inner[A_begin+k]];
                         }
-                        
-                        if( sort )
+                        else
                         {
-                            std::sort( &B_inner[B_begin], &B_inner[B_end] );
+                            B.inner[B_begin+k] = inner[A_begin+k];
                         }
                     }
-                }
-            }
-            
-            return B;
-        }
-        
-        CLASS PermuteRowsCols( ptr<Int> p, ptr<Int> q, bool sort = true )
-        {
-            CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
-            
-            Tensor1<Int,Int> q_inv_buffer ( ColCount() );
-            mut<Int> q_inv = q_inv_buffer.data();
-            
-            {
-                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
-                for( Int j = 0; j < n; ++j )
-                {
-                    q_inv[q[j]] = j;
-                }
-            }
-            
-            {
-                ptr<LInt> A_outer = outer.data();
-                mut<LInt> B_outer = B.Outer().data();
-                
-                B_outer[0] = 0;
-                
-                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
-                for( Int i = 0; i < m; ++i )
-                {
-                    const Int p_i = p[i];
                     
-                    B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
-                }
-            }
-            
-            B.Outer().Accumulate();
-            
-            {
-                auto & B_job_ptr = B.JobPtr();
-                
-                const Int thread_count = B_job_ptr.ThreadCount();
-                
-                ptr<LInt> A_outer = outer.data();
-                ptr<Int>  A_inner = inner.data();
-                
-                ptr<Int> B_outer = B.Outer().data();
-                mut<Int> B_inner = B.Inner().data();
-                
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
-                {
-                    const Int i_begin = B_job_ptr[thread  ];
-                    const Int i_end   = B_job_ptr[thread+1];
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+                    if( sort )
                     {
-                        const Int p_i = p[i];
-                        const LInt A_begin = A_outer[p_i  ];
-                        //                        const LInt A_end   = A_outer[p_i+1];
-                        
-                        const LInt B_begin = B_outer[i  ];
-                        const LInt B_end   = B_outer[i+1];
-                        
-                        const LInt k_max = B_end - B_begin;
-                        
-                        for( LInt k = 0; k < k_max; ++k )
-                        {
-                            B_inner[B_begin+k] = q_inv[A_inner[A_begin+k]];
-                        }
-                        
-                        if( sort )
-                        {
-                            std::sort( &B_inner[B_begin], &B_inner[B_end] );
-                        }
+                        std::sort( &B.inner[B_begin], &B.inner[B_end] );
                     }
                 }
             }
@@ -543,11 +425,9 @@ namespace Tensors
         // Assume all nonzeros are equal to 1.
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-            const T_ext   alpha,
-            const T_in  * X,
-            const T_out   beta,
-                  T_out * Y,
-            const Int     cols = static_cast<Int>(1)
+            const T_ext alpha, ptr<T_in>  X,
+            const T_out beta,  mut<T_out> Y,
+            const Int cols = 1
         ) const
         {
             Dot_( alpha, X, beta, Y, cols );
@@ -555,10 +435,8 @@ namespace Tensors
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-            const T_ext                alpha,
-            const Tensor1<T_in, Int> & X,
-            const T_out                beta,
-                  Tensor1<T_out,Int> & Y
+            const T_ext alpha, const Tensor1<T_in, Int> & X,
+            const T_out beta,        Tensor1<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )
@@ -573,10 +451,8 @@ namespace Tensors
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-             const T_ext                alpha,
-             const Tensor2<T_in, Int> & X,
-             const T_out                beta,
-                   Tensor2<T_out,Int> & Y
+             const T_ext alpha, const Tensor2<T_in, Int> & X,
+             const T_out beta,        Tensor2<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -594,12 +470,10 @@ namespace Tensors
         // Supply an external list of values.
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-            const T_ext * ext_values,
-            const T_ext   alpha,
-            const T_in  * X,
-            const T_out   beta,
-                  T_out * Y,
-            const Int     cols = static_cast<Int>(1)
+            ptr<T_ext>  ext_values,
+            const T_ext alpha, ptr<T_in>  X,
+            const T_out beta,  mut<T_out> Y,
+            const Int cols = 1
         ) const
         {
             Dot_( ext_values, alpha, X, beta, Y, cols );
@@ -608,11 +482,9 @@ namespace Tensors
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
              const Tensor1<T_ext,LInt> & ext_values,
-             const T_ext                 alpha,
-             const Tensor1<T_in, Int > & X,
-             const T_out                 beta,
-                   Tensor1<T_out, Int> & Y
-         ) const
+             const T_ext alpha, const Tensor1<T_in, Int> & X,
+             const T_out beta,        Tensor1<T_out,Int> & Y
+        ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m )
             {
@@ -626,11 +498,9 @@ namespace Tensors
         
         template<typename T_ext, typename T_in, typename T_out>
         void Dot(
-            const Tensor1<T_ext, LInt> & ext_values,
-            const                        T_ext alpha,
-            const Tensor2< T_in, Int > & X,
-            const T_out                  beta,
-                  Tensor2<T_out, Int > & Y
+            const Tensor1<T_ext,LInt> & ext_values,
+            const T_ext alpha, const Tensor2< T_in,Int> & X,
+            const T_out beta,        Tensor2<T_out,Int> & Y
         ) const
         {
             if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )

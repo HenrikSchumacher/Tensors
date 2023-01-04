@@ -585,9 +585,9 @@ namespace Tensors
             return outer;
         }
         
-        Int RowNonzeroCount( const Int i ) const
+        LInt & Outer( const Int i ) const
         {
-            return outer[i+1] - outer[i];
+            return outer[i];
         }
         
         
@@ -600,10 +600,10 @@ namespace Tensors
         {
             return inner;
         }
-        
-        Int FirstColumnInRow( const Int i ) const
+
+        Int & Inner( const LInt k ) const
         {
-            return inner[outer[i]];
+            return inner[k];
         }
         
         const Tensor1<LInt,Int> & Diag() const
