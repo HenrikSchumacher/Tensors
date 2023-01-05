@@ -72,9 +72,6 @@ namespace Tensors
             Tensor1<bool,Int> visited ( n+1, false );
             
             
-            ptr<Int> child_ptr = A.Outer().data();
-            ptr<Int> child_idx = A.Inner().data();
-            
             Int i      = 0; // stack pointer
             stack  [0] = root;
             visited[0] = false;
@@ -86,18 +83,18 @@ namespace Tensors
             {
                 const Int node = stack[i];
                 
+                const Int k_begin = ChildPointer(node  );
+                const Int k_end   = ChildPointer(node+1);
+                
                 if( !visited[i] )
                 {
                     // The first time we visit this node we mark it as visited
                     visited[i] = true;
                     
-                    const Int k_begin = child_ptr[node  ];
-                    const Int k_end   = child_ptr[node+1];
-                    
                     // Pushing the children in reverse order onto the stack.
                     for( Int k = k_end; k --> k_begin; )
                     {
-                        stack[++i] = child_idx[k];
+                        stack[++i] = ChildIndex(k);
                     }
                 }
                 else
@@ -113,14 +110,11 @@ namespace Tensors
                     postordered   = postordered && (counter == node);
                     ++counter;
                     
-                    const Int k_begin = child_ptr[node  ];
-                    const Int k_end   = child_ptr[node+1];
-                    
                     Int sum = 1; // The node itself is also counted as its own descendant.
                     
                     for( Int k = k_begin; k < k_end; ++k )
                     {
-                        sum += descendant_counts[child_idx[k]];
+                        sum += descendant_counts[ChildIndex(k)];
                     }
 
                     descendant_counts[node] = sum;
@@ -205,7 +199,7 @@ namespace Tensors
         
         Int ChildPointer( const Int i ) const
         {
-            return A.Outer()[i];
+            return A.Outer(i);
         }
         
         const Tensor1<Int,Int> & ChildIndices() const
@@ -215,7 +209,7 @@ namespace Tensors
         
         Int ChildIndex( const Int k ) const
         {
-            return A.Inner()[k];
+            return A.Inner(k);
         }
         
         force_inline Int VertexCount() const
@@ -226,13 +220,14 @@ namespace Tensors
         force_inline Int ChildCount( const Int i ) const
         {
             // Returns number of children of child i.
-            return A.Outer()[i+1]-A.Outer()[i];
+            return ChildPointer(i+1)-ChildPointer(i+1);
         }
+        
         
         force_inline Int Child( const Int i, const Int k ) const
         {
             // Returns k-th child of node i.
-            return A.Inner()[A.Outer()[i]+k];
+            return A.ChildIndex(ChildPointer(i)+k);
         }
 
         
