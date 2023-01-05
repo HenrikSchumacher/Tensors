@@ -14,8 +14,8 @@
 #include "CholeskyFactorizer.hpp"
 
 // Priority I:
-// TODO: Allow the user to supply a permutation.
 // TODO: Automatically determine postordering and apply it!
+// TODO: Allow the user to supply a permutation.
 
 // TODO: Parallelize solve phases.
 
@@ -33,13 +33,19 @@
 //           --> employ Tiny::BLAS kernels.
 //           --> is there a way to skip unrelevant descendants?
 
+// TODO: Return permutation and factors (as sparse matrices) so that they can be checked.
+
+// TODO: incomplete factorization?
+
 // Priority III:
+// TODO: hierarchical low-rank factorization of supernodes?
+
 // TODO: Improve scheduling for parallel factorization.
 // TODO: - What to do if top of the tree is not a binary tree?
 // TODO: - What to do in case of a forest?
 // TODO: - Estimate work to do in subtrees.
 
-// TODO: Deactivate OpenMP if thread_count == 1 of OpenMP is not found.
+// TODO: Deactivate OpenMP if thread_count == 1 or if OpenMP is not found.
 
 // Priority IV:
 // TODO: Maybe load linear combination of matrices A (with sub-pattern, of course) during factorization?
@@ -68,9 +74,6 @@
 // DONE: // TODO: Load A + eps * Id during factorization.
 namespace Tensors
 {
- 
-
-    
     namespace Sparse
     {   
         template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_ = Scalar_>
@@ -323,6 +326,10 @@ namespace Tensors
                 
                 WriteSolution(x);
             }
+        
+//###########################################################################################
+//####          Elimination tree
+//###########################################################################################
             
         public:
             
@@ -388,6 +395,9 @@ namespace Tensors
                 return eTree;
             }
 
+//###########################################################################################
+//####          Assembly tree
+//###########################################################################################
             
         protected:
             
@@ -425,76 +435,7 @@ namespace Tensors
                 return aTree;
             }
             
-            
-            void FactorizeSymbolically()
-            {
-                // Non-supernodal way to perform symbolic analysis.
-                // Only meant as reference! In practice rather use the supernodal version SN_FactorizeSymbolically.
-                
-                // This is Algorithm 4.2 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
-                
-                ptic(ClassName()+"::FactorizeSymbolically");
-                
-                SN_FactorizeSymbolically();
-                
-                Tensor1<Int,Int> row ( n );  // An array to aggregate the rows of U.
-                
-                Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
-                Int row_counter;                // Holds the current number of indices in row.
-
-                // To be filled with the row pointers of U.
-                Tensor1<LInt,Int> U_rp (n+1);
-                U_rp[0] = 0;
-                
-                // To be filled with the column indices of U.
-                Aggregator<Int,LInt> U_ci ( 2 * A_up.NonzeroCount() );
-                
-                for( Int i = 0; i < n; ++i ) // Traverse rows.
-                {
-                    // The nonzero pattern of A_up belongs definitely to the pattern of U.
-                    row_counter = A_up.Outer(i+1) - A_up.Outer(i);
-                    copy_buffer( &A_up.Inner(A_up.Outer(i)), row.data(), row_counter );
-                    
-                    const Int l_begin = eTree.ChildPointer(i  );
-                    const Int l_end   = eTree.ChildPointer(i+1);
-                    
-                    // Traverse all children of i in the eTree. Most of the time it's a single child or no one at all. Sometimes it's two or more.
-                    for( Int l = l_begin; l < l_end; ++l )
-                    {
-                        const Int j = eTree.ChildIndex(l);
-                        
-                        // Merge row pointers of child j into row
-                        const LInt _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
-                        const LInt _end   = U_rp[j+1];
-                        
-                        if( _end > _begin )
-                        {
-                            row_counter = UniteSortedBuffers(
-                                row.data(),    row_counter,
-                                &U_ci[_begin], static_cast<Int>(_end - _begin),
-                                buffer.data()
-                            );
-                            swap( row, buffer );
-                        }
-                        
-                    }
-                    
-                    // Copy row to i-th row of U.
-                    U_ci.Push( row.data(), row_counter );
-                    U_rp[i+1] = U_ci.Size();
-
-                } // for( Int i = 0; i < n; ++i )
-                
-                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), n, n, thread_count );
-
-                ptoc(ClassName()+"::FactorizeSymbolically");
-            }
-            
-            template< Int RHS_COUNT, bool unitDiag = false>
-            void U_Solve_Sequential_0( ptr<Scalar> b,  mut<Scalar> x )
-            {
-                U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
-            }
+        
             
 //###########################################################################################
 //####          Supernodal symbolic factorization
@@ -515,7 +456,9 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::SN_FactorizeSymbolically");
                     
-                    if( !EliminationTree().PostOrdered() )
+                    (void)EliminationTree();
+                    
+                    if( !eTree.PostOrdered() )
                     {
                         eprint(ClassName()+"::SN_FactorizeSymbolically requires postordering!");
                     }
@@ -747,7 +690,9 @@ namespace Tensors
             {
                 ptic(ClassName()+"::SN_FactorizeNumerically_Parallel");
 
-                if( !AssemblyTree().PostOrdered() )
+                SN_FactorizeSymbolically();
+                
+                if( !aTree.PostOrdered() )
                 {
                     eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
                     SN_factorized = false;
@@ -755,7 +700,7 @@ namespace Tensors
                 }
                 
                 ptic("Postorder traversal of assembly tree");
-                const Int root = AssemblyTree().Root();
+                const Int root = aTree.Root();
                 
                 std::vector<std::vector<Int>> levels (max_depth+1);
                 
@@ -872,7 +817,9 @@ namespace Tensors
             {
                 ptic(ClassName()+"::SN_FactorizeNumerically_Sequential");
 
-                if( !AssemblyTree().PostOrdered() )
+                SN_FactorizeSymbolically();
+                
+                if( !aTree.PostOrdered() )
                 {
                     eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
                     
@@ -1339,6 +1286,80 @@ namespace Tensors
             }
             
 //###########################################################################################
+//####          "Naive" symbolic factorization (for checking correctness)
+//###########################################################################################
+        public:
+            
+            void FactorizeSymbolically()
+            {
+                // Non-supernodal way to perform symbolic analysis.
+                // Only meant as reference! In practice rather use the supernodal version SN_FactorizeSymbolically.
+                
+                // This is Algorithm 4.2 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
+                
+                ptic(ClassName()+"::FactorizeSymbolically");
+                
+                SN_FactorizeSymbolically();
+                
+                Tensor1<Int,Int> row ( n );  // An array to aggregate the rows of U.
+                
+                Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
+                Int row_counter;                // Holds the current number of indices in row.
+
+                // To be filled with the row pointers of U.
+                Tensor1<LInt,Int> U_rp (n+1);
+                U_rp[0] = 0;
+                
+                // To be filled with the column indices of U.
+                Aggregator<Int,LInt> U_ci ( 2 * A_up.NonzeroCount() );
+                
+                for( Int i = 0; i < n; ++i ) // Traverse rows.
+                {
+                    // The nonzero pattern of A_up belongs definitely to the pattern of U.
+                    row_counter = A_up.Outer(i+1) - A_up.Outer(i);
+                    copy_buffer( &A_up.Inner(A_up.Outer(i)), row.data(), row_counter );
+                    
+                    const Int l_begin = eTree.ChildPointer(i  );
+                    const Int l_end   = eTree.ChildPointer(i+1);
+                    
+                    // Traverse all children of i in the eTree. Most of the time it's a single child or no one at all. Sometimes it's two or more.
+                    for( Int l = l_begin; l < l_end; ++l )
+                    {
+                        const Int j = eTree.ChildIndex(l);
+                        
+                        // Merge row pointers of child j into row
+                        const LInt _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
+                        const LInt _end   = U_rp[j+1];
+                        
+                        if( _end > _begin )
+                        {
+                            row_counter = UniteSortedBuffers(
+                                row.data(),    row_counter,
+                                &U_ci[_begin], static_cast<Int>(_end - _begin),
+                                buffer.data()
+                            );
+                            swap( row, buffer );
+                        }
+                        
+                    }
+                    
+                    // Copy row to i-th row of U.
+                    U_ci.Push( row.data(), row_counter );
+                    U_rp[i+1] = U_ci.Size();
+
+                } // for( Int i = 0; i < n; ++i )
+                
+                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), n, n, thread_count );
+
+                ptoc(ClassName()+"::FactorizeSymbolically");
+            }
+            
+            template< Int RHS_COUNT, bool unitDiag = false>
+            void U_Solve_Sequential_0( ptr<Scalar> b,  mut<Scalar> x )
+            {
+                U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
+            }
+//###########################################################################################
 //####          Get routines
 //###########################################################################################
 
@@ -1397,7 +1418,6 @@ namespace Tensors
             {
                 return SN_tri_ptr;
             }
-            
             
             Tensor1<Scalar,LInt> & SN_TriangleValues()
             {

@@ -218,17 +218,39 @@ namespace Tensors
                 
                 const  Int n_0     = i_end - i_begin;
                 const  Int n_1     = static_cast<Int>(l_end - l_begin);
-                                
-//                dump(n_0);
-//                dump(n_1);
                 
                 // U_0 is interpreted as an upper triangular matrix of size n_0 x n_0.
                 // U_1 is interpreted as a  rectangular      matrix of size n_0 x n_1.
                 mut<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[s]];
                 mut<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                 
+                FetchFromA( i_begin, i_end, l_begin, l_end, U_0, U_1);
+                
+                // We have to fetch the row updates of all descendants of s.
+                // We assume that the descendants of s are already factorized.
+                // Since aTree is postordered, we can exploit that all descendants of s lie
+                // contiguously in memory directly before s.
+                const Int t_begin = (s + 1) - desc_counts[s] ;
+                const Int t_end   = s;
+                
+                // TODO: This can be parallelized by adding into local buffers V_0 and V_1 and reducing them into U_0 and U_1.
+                FetchFromDescendants( s, t_begin, t_end, n_0, n_1, U_0, U_1 );
+                
+                FactorizeSupernode( n_0, n_1, U_0, U_1 );
+            }
+            
+        protected:
+            
+            void FetchFromA(
+                Int i_begin, Int i_end, Int l_begin, Int l_end,
+                mut<Scalar> U_0, mut<Scalar> U_1
+            )
+            {
                 // Read the values of A into U_0 and U_1.
-                // ======================================
+
+                const  Int n_0 = i_end - i_begin;
+                const  Int n_1 = static_cast<Int>(l_end - l_begin);
+                
                 for( Int i = i_begin; i < i_end; ++i )
                 {
                     const LInt k_begin = A_rp[i  ];
@@ -275,23 +297,20 @@ namespace Tensors
                         {
                             col_l = SN_inner[++l];
                         }
-                        U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scalar>(A_val[k]); // XXX conj-transpose here.
+                        U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scalar>(A_val[k]);
+                        // XXX conj-transpose here.
                     }
                 }
+            }
+            
+            void FetchFromDescendants(
+                Int s,                      // the supernode into which to fetch
+                Int t_begin, Int t_end,     // the range of descendants
+                Int n_0, Int n_1, mut<Scalar> U_0, mut<Scalar> U_1
+            )
+            {
+                // Incorporate the row updates from descendants [ t_begin,...,t_end [ into U_0 and U_1.
                 
-                /*============================================*/
-                /* Fetch row updates of all descendants of s. */
-                /*============================================*/
-
-                // Using a postordering guarantees, that the descendants of s are already computed.
-                // Moreover we can exploit that all children of s lie contiguously directly before s.
-                const Int t_begin = (s + 1) - desc_counts[s] ;
-                const Int t_end   = s;
-
-//                dump(s);
-//                dump(desc_counts[s]);
-                
-                // TODO: This can be parallelized by adding into local buffers V_0 and V_1 and reducing them into U_0 and U_1.
                 for( Int t = t_begin; t < t_end; ++t )
                 {
                     // Compute the intersection of supernode s with t.
@@ -450,12 +469,10 @@ namespace Tensors
                         scatter_time += _toc();
                     }
                 }
-                
-                
-                /*============================================*/
-                /* Intra-supernode factorization              */
-                /*============================================*/
-                
+            }
+            
+            void FactorizeSupernode( Int n_0, Int n_1, mut<Scalar> U_0, mut<Scalar> U_1 )
+            {
                 _tic();
                 
                 // Cholesky factorization of U_0
@@ -476,7 +493,6 @@ namespace Tensors
                 chol_time += _toc();
             }
             
-            
         protected:
             
             force_inline void scatter_read( ptr<Scalar> x, mut<Scalar> y, ptr<Int> idx, Int N )
@@ -494,13 +510,7 @@ namespace Tensors
                 _tic();
                 
                 // Compute the intersecting column indices of s-th and t-th supernode.
-                
                 // We assume that t < s.
-//                if( t >= s )
-//                {
-//                    eprint(ClassName()+"::ComputeIntersection: t >= s, but t < s is required.");
-//                }
-
                 
                 // s-th supernode has triangular part I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
                 // and rectangular part J = [SN_inner[SN_outer[s]],[SN_inner[SN_outer[s]+1],...,[
