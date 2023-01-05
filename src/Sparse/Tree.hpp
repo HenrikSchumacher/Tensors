@@ -220,7 +220,7 @@ namespace Tensors
         force_inline Int ChildCount( const Int i ) const
         {
             // Returns number of children of child i.
-            return ChildPointer(i+1)-ChildPointer(i+1);
+            return ChildPointer(i+1)-ChildPointer(i);
         }
         
         
