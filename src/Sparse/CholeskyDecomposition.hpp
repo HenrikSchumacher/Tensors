@@ -14,19 +14,22 @@
 #include "CholeskyFactorizer.hpp"
 
 // Priority I:
-// TODO: Automatically determine postordering and apply it!
-// TODO: Allow the user to supply a permutation.
-
-// TODO: Parallelize solve phases.
-
-// TODO: Call SN_FactorizeSymbolically, SN_FactorizeNumerically,... when dependent routines are called.
-
-// TODO: Compute nested dissection --> Metis, Scotch. Parallel versions? MT-Metis?
-
-// Priority II:
 // TODO: Currently, EliminationTree breaks down if the matrix is reducible.
 //           --> What we need is an EliminationForest!
 //           --> Maybe it just suffices to append a virtual root (that is not to be factorized).
+
+// TODO: Automatically determine postordering and apply it!
+
+// TODO: Allow the user to supply a permutation.
+
+// TODO: Parallelize symbolic factorization.
+// TODO:     --> Build aTree first and traverse it in parallel to determine SN_inner.
+
+// TODO: Parallelize solve phases.
+
+// Priority II:
+
+// TODO: Compute nested dissection --> Metis, Scotch. Parallel versions? MT-Metis?
 
 // TODO: Speed up supernode update in factorization phase.
 //           --> transpose U_0 and U_1 to reduce scatter_reads/scatter_adds.
@@ -36,6 +39,7 @@
 // TODO: Return permutation and factors (as sparse matrices) so that they can be checked.
 
 // TODO: incomplete factorization?
+
 
 // Priority III:
 // TODO: hierarchical low-rank factorization of supernodes?
@@ -71,7 +75,9 @@
 //          --> Copy-cast during pre- and post-permutation.
 //          --> ReadRightHandSide, WriteSolution
 
-// DONE: // TODO: Load A + eps * Id during factorization.
+// DONE: Load A + eps * Id during factorization.
+
+// DONE:Call SN_FactorizeSymbolically, SN_FactorizeNumerically,... when dependent routines are called.
 namespace Tensors
 {
     namespace Sparse
@@ -493,6 +499,8 @@ namespace Tensors
                     SN_count     = 0;
                     
                     // TODO: Should be parallelizable by processing subtrees of elimination tree in parallel.
+                    // TODO: Even better: Build aTree first (we need only to knoe the fundamental rows for that). Then collect SN_inner by tranversing aTree in parellel.
+                    // TODO: --> Can we precompute somehow the size of SN_inner_agg? That would greatly help to reduce copy ops and to schedule its generation.
                     ptic("Main loop");
                     for( Int i = 1; i < n+1; ++i ) // Traverse rows.
                     {
@@ -852,10 +860,18 @@ namespace Tensors
                 ptic("SN_UpperSolve_Sequential");
                 // Solves U * X = B and stores the result back into B.
                 // Assumes that B has size n x rhs_count.
-             
+                
                 if( nrhs == 1 )
                 {
                     SN_UpperSolve_Sequential();
+                    ptoc("SN_UpperSolve_Sequential");
+                    return;
+                }
+                
+                if( !SN_factorized )
+                {
+                    eprint(ClassName()+"::SN_UpperSolve_Sequential: Nonzero values of matrix have not been passed, yet. Aborting.");
+                    
                     ptoc("SN_UpperSolve_Sequential");
                     return;
                 }
@@ -941,6 +957,12 @@ namespace Tensors
                 // Solves U * X = X and stores the result back into X.
                 // Assumes that X has size n.
                 
+                if( !SN_factorized )
+                {
+                    eprint(ClassName()+"::SN_UpperSolve_Sequential: Nonzero values of matrix have not been passed, yet. Aborting.");
+                    return;
+                }
+                
                 for( Int k = SN_count; k --> 0; )
                 {
                     const Int n_0 = SN_rp[k+1] - SN_rp[k];
@@ -1023,6 +1045,14 @@ namespace Tensors
                 if( nrhs == 1 )
                 {
                     SN_LowerSolve_Sequential();
+                    ptoc("SN_LowerSolve_Sequential");
+                    return;
+                }
+                
+                if( !SN_factorized )
+                {
+                    eprint(ClassName()+"::SN_LowerSolve_Sequential: Nonzero values of matrix have not been passed, yet. Aborting.");
+                    
                     ptoc("SN_LowerSolve_Sequential");
                     return;
                 }
@@ -1113,6 +1143,12 @@ namespace Tensors
             {
                 // Solves L * x = X and stores the result back into X.
                 // Assumes that X has size n.
+                
+                if( !SN_factorized )
+                {
+                    eprint(ClassName()+"::SN_LowerSolve_Sequential: Nonzero values of matrix have not been passed, yet. Aborting.");
+                    return;
+                }
                 
                 for( Int k = 0; k < SN_count; ++k )
                 {
