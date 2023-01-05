@@ -8,7 +8,7 @@ namespace Tensors
         template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_> class CholeskyDecomposition;
         
         template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_>
-        class CholeskyFactorizer
+        class alignas(OBJECT_ALIGNMENT) CholeskyFactorizer
         {
             // Performs a left-looking factorization.
             
@@ -34,7 +34,6 @@ namespace Tensors
             static constexpr Real one  = 1;
 
             const Int n;
-            
             
             // shared data
             ptr<LInt>       A_rp;  // row pointers of upper triangle of A
@@ -70,7 +69,6 @@ namespace Tensors
             mut<Int> IL_pos = nullptr;
             mut<Int> JJ_pos = nullptr;
             mut<Int> JL_pos = nullptr;
-            
             
             Int IL_len = 0;
             Int JL_len = 0;
@@ -536,7 +534,7 @@ namespace Tensors
                 // quick check whether the convex hulls of index ranges overlap.
                 if(
                     (
-                       (SN_inner[l_end-1] < i_begin) // l_end > l_begin, bc. s were not a child of t otherwise.
+                       (SN_inner[l_end-1] < i_begin) // l_end > l_begin, bc. s would not be a child of t otherwise.
                     )
 //                    ||
 //                    (
@@ -546,6 +544,7 @@ namespace Tensors
 //                    )
                 )
                 {
+                    // Debugging
                     ++empty_intersec_detected;
                     return;
                 }
@@ -558,7 +557,6 @@ namespace Tensors
                 const LInt j_end   = SN_outer[s+1];
                 
                 const LInt l_begin = SN_outer[t  ];
-                
                 
                  Int i = i_begin;
                 LInt l = l_begin;
@@ -614,6 +612,7 @@ namespace Tensors
                 }
                 intersec_time += _toc();
                 
+                // Debugging
                 if( (IL_len == 0) && (JL_len == 0) )
                 {
                     ++empty_intersec_undetected;
@@ -623,7 +622,7 @@ namespace Tensors
             
             void CheckIntersection( const Int s, const Int t ) const
             {
-                // Beware: This test only checks whether all found pairs match.
+                // Beware: This test only checks whether all _found_ pairs match!
                 // Beware: It does not check, whether _all_ pairs are found!
                 bool okay = true;
 
