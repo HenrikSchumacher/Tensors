@@ -14,9 +14,6 @@
 #include "CholeskyFactorizer.hpp"
 
 // Priority I:
-// TODO: Currently, EliminationTree breaks down if the matrix is reducible.
-//           --> What we need is an EliminationForest!
-//           --> Maybe it just suffices to append a virtual root (that is not to be factorized).
 
 // TODO: Automatically determine postordering and apply it!
 
@@ -70,14 +67,6 @@
 
 // TODO: Liu - The Multifrontal Method for Sparse Matrix Solution: Theory and Practice. https://www.jstor.org/stable/2132786 !!
 
-// =========================================================
-// DONE: Reordering in the solve phase.
-//          --> Copy-cast during pre- and post-permutation.
-//          --> ReadRightHandSide, WriteSolution
-
-// DONE: Load A + eps * Id during factorization.
-
-// DONE:Call SN_FactorizeSymbolically, SN_FactorizeNumerically,... when dependent routines are called.
 namespace Tensors
 {
     namespace Sparse
@@ -391,7 +380,7 @@ namespace Tensors
                         }
                     }
 
-                    eTree = Tree<Int> ( std::move(parents), n-1, thread_count );
+                    eTree = Tree<Int> ( std::move(parents), thread_count );
 
                     eTree_initialized = true;
                     
@@ -427,7 +416,7 @@ namespace Tensors
                 
                 SN_parents[SN_count-1] = SN_count;
                 
-                aTree = Tree<Int> ( std::move(SN_parents), SN_count-1, thread_count );
+                aTree = Tree<Int> ( std::move(SN_parents), thread_count );
                 
                 ptoc(ClassName()+"::CreateAssemblyTree");
             }
@@ -509,7 +498,7 @@ namespace Tensors
                             // i is going to be the first node of the newly created fundamental supernode.
                             // However, we do not now at the moment how long the supernode is going to be.
                             
-                            // Instead building the new supernode, we first have to finish current supernode.
+                            // Instead building the new supernode, we first have to finish the current supernode.
                             // Get first row in current supernode.
                             const Int i_0 = SN_rp[SN_count];
 
@@ -781,7 +770,7 @@ namespace Tensors
                 }
                 ptoc("Initialize factorizers");
                 
-                for( Int d = max_depth+1; d -->0 ; )
+                for( Int d = max_depth+1; d -->1 ; ) // Don't factorize the root node.
                 {
                     ptic("Parallel treatment of subtrees (depth = "+ToString(d)+")");
 //                    valprint("level["+ToString(d)+"]",levels[d]);
@@ -1496,3 +1485,20 @@ namespace Tensors
     } // namespace Sparse
     
 } // namespace Tensors
+
+
+
+
+
+// =========================================================
+// DONE: Reordering in the solve phase.
+//          --> Copy-cast during pre- and post-permutation.
+//          --> ReadRightHandSide, WriteSolution
+
+// DONE: Load A + eps * Id during factorization.
+
+// DONE:Call SN_FactorizeSymbolically, SN_FactorizeNumerically,... when dependent routines are called.
+
+// DONE: Currently, EliminationTree breaks down if the matrix is reducible.
+//           --> What we need is an EliminationForest!
+//           --> Maybe it just suffices to append a virtual root (that is not to be factorized).

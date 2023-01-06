@@ -7,17 +7,24 @@ namespace Tensors
     {
     public:
         
+        // TODO: Parallel post-order traverals with templated parameters for
+        // -- Previsit routine
+        // -- Postvisit routine
+        // (-- Revisit)
+        // -- Leafvisit routine
+        
         Tree() = default;
         
         ~Tree() = default;
         
-        explicit Tree( Tensor1<Int,Int> && parents_, const Int root_, const Int thread_count_ = 1 )
-        :   n                 ( parents_.Size() )
-        ,   root              ( root_           )
-        ,   thread_count      ( thread_count_   )
-        ,   post              ( n               )
-        ,   descendant_counts ( n               )
-        ,   postordered       ( true            )
+        explicit Tree( Tensor1<Int,Int> && parents_, const Int thread_count_ = 1 )
+        :   n                 ( parents_.Size()+1 )
+        // We use and additional virtual vertex as root.
+        ,   root              ( n-1               )
+        ,   thread_count      ( thread_count_     )
+        ,   post              ( n                 )
+        ,   descendant_counts ( n                 )
+        ,   postordered       ( true              )
         {
             ptic(ClassName());
             
@@ -27,34 +34,35 @@ namespace Tensors
             
             // Next we build the adjacency matrix A of the tree.
             
-            // There should be exactly one entry in the array parents that is not valid,
-            // i.e., not in the range [0,n[. This one is the root.
-            
-            // idx and jdx are to be filled by the nonzero positions of the adjacency matrix.
-            Tensor1<Int,Int> idx (n-1);
-            Tensor1<Int,Int> jdx (n-1);
-            
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int k = 0; k < n; ++k )
-            {
-                if( k < root )
-                {
-                    idx[k] = parents[k];
-                    jdx[k] = k;
-                }
-                else if( k > root )
-                {
-                    idx[k-1] = parents[k];
-                    jdx[k-1] = k-1;
-                }
-            }
+//            There should be exactly one entry in the array parents that is not valid,
+//            i.e., not in the range [0,n[. This one is the root.
+//
+//            // idx and jdx are to be filled by the nonzero positions of the adjacency matrix.
+//            Tensor1<Int,Int> idx (n-1);
+//            Tensor1<Int,Int> jdx (n-1);
+//
+//            #pragma omp parallel for num_threads( thread_count )
+//            for( Int k = 0; k < n; ++k )
+//            {
+//                if( k < root )
+//                {
+//                    idx[k] = parents[k];
+//                    jdx[k] = k;
+//                }
+//                else if( k > root )
+//                {
+//                    idx[k-1] = parents[k];
+//                    jdx[k-1] = k-1;
+//                }
+//            }
 
             Int list_count       = 1;
             Int entry_counts [1] = {n-1};
             
-            Int * idx_data = idx.data();
-            Int * jdx_data = jdx.data();
+            Tensor1<Int,Int> id  = iota<Int,Int>(n-1);
             
+            Int * idx_data = parents.data();
+            Int * jdx_data = id.data();
 
             A = SparseBinaryMatrixCSR<Int,Int> (
                 &idx_data,
@@ -63,26 +71,25 @@ namespace Tensors
                 list_count, n, n, thread_count, false, 0
             );
             ptoc("Adjacency matrix");
-            
+
             // Compute postordering and descendant counts. Also check whether tree is already postordered.
             
-            // TODO: Can be parallelized.
+            // TODO: Can be parallelized via a bit of limited depth DFS, and then several parallel DFS.
             ptic("Postorder traversal");
-            Tensor1<Int, Int> stack   ( n+1 );
-            Tensor1<bool,Int> visited ( n+1, false );
-            
+            Tensor1<Int, Int> stack   (2*n+1 );
+            Tensor1<bool,Int> visited (2*n+1, false );
             
             Int i      = 0; // stack pointer
             stack  [0] = root;
             visited[0] = false;
             
             Int counter = 0;
-            
+
             // post order traversal of the tree
             while( i >= 0 )
             {
                 const Int node = stack[i];
-                
+
                 const Int k_begin = ChildPointer(node  );
                 const Int k_end   = ChildPointer(node+1);
                 
@@ -120,6 +127,7 @@ namespace Tensors
                     descendant_counts[node] = sum;
                 }
             }
+
             ptoc("Postorder traversal");
             
             ptoc(ClassName());
