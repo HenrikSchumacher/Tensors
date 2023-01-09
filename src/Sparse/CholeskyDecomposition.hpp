@@ -19,6 +19,8 @@
 
 // TODO: Allow the user to supply a permutation.
 
+// TODO: Parallelized, abstract postorder traversal of Tree
+
 // TODO: Parallelize symbolic factorization.
 // TODO:     --> Build aTree first and traverse it in parallel to determine SN_inner.
 
@@ -71,7 +73,7 @@ namespace Tensors
 {
     namespace Sparse
     {   
-        template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_ = Scalar_>
+        template<typename Scalar_, typename Int_, typename LInt_>
         class CholeskyDecomposition
         {
         public:
@@ -81,13 +83,11 @@ namespace Tensors
             using Int       = Int_;
             using LInt      = LInt_;
             
-            using ExtScalar = ExtScalar_;
-            
             using SparseMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
 
-            friend class CholeskyFactorizer<Scalar,Int,LInt,ExtScalar>;
+            friend class CholeskyFactorizer<Scalar,Int,LInt>;
             
-            using Factorizer = CholeskyFactorizer<Scalar,Int,LInt,ExtScalar>;
+            using Factorizer = CholeskyFactorizer<Scalar,Int,LInt>;
             
         protected:
             
@@ -96,16 +96,17 @@ namespace Tensors
             
             const Int n = 0;
             const Int thread_count = 1;
-            const Int max_depth = 1;
-            const UpLo uplo = UpLo::Upper;
+            const Int max_depth = 0;
             
-            SparseMatrix_T A_lo;
-            SparseMatrix_T A_up;
-            
+            SparseMatrix_T A;
             SparseMatrix_T L;
             SparseMatrix_T U;
             
-            Permutation<Int> perm;     // permutation
+            Tensor1<Scalar,LInt> A_val;
+            Scalar reg = 0;
+            
+            Permutation<Int>  perm;              // row and column permutation
+            Permutation<LInt> A_inner_perm;   // permutation of the nonzero values. Needed for reading in the nonzeros of the matrix.
             
             // elimination tree
             bool eTree_initialized = false;
@@ -194,39 +195,129 @@ namespace Tensors
                 ptr<ExtInt > inner_,
                 Int n_,
                 Int thread_count_,
-                Int max_depth_,
-                UpLo uplo_ = UpLo::Upper
+                Int max_depth_
             )
-            :   n ( n_ )
-            ,   thread_count( std::max(Int(1), thread_count_) )
-            ,   max_depth ( max_depth_ )
-            ,   uplo( uplo_ )
-            ,   perm ( n_, thread_count_ )
+            :   n               ( n_                                )
+            ,   thread_count    ( std::max(Int(1), thread_count_)   )
+            ,   max_depth       ( max_depth_                        )
+            ,   A_val           ( outer_[n]                         )
+            ,   perm            ( n_,         thread_count          )
             {
                 if( n <= 0 )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
                 }
-                if( uplo == UpLo::Upper)
-                {
-                    // TODO: Is there a way to avoid this copy?
-                    A_up = SparseMatrix_T( outer_, inner_, n, n, thread_count );
-                    
-                    // TODO: Is there a way to avoid this copy?
-                    A_lo = A_up.Transpose();
-                }
-                else
-                {
-                    // TODO: Is there a way to avoid this copy?
-                    A_lo = SparseMatrix_T( outer_, inner_, n, n, thread_count );
-                    
-                    // TODO: Is there a way to avoid this copy?
-                    A_up = A_lo.Transpose();
-                }
+                
+                Tensor1<LInt,Int> A_rp;
+                Tensor1<Int,LInt> A_ci;
+
+                std::tie(A_rp,A_ci,A_inner_perm) = SparseMatrixPermutation<Int,LInt>(
+                    outer_, inner_, perm, perm, outer_[n]
+                );
+                
+                A = SparseMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
+                
+                A.RequireDiag();
+                
+                CheckDiagonal();
                 
                 // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
             }
             
+            template<typename ExtLInt, typename ExtInt, typename ExtInt2>
+            CholeskyDecomposition(
+                ptr<ExtLInt> outer_,
+                ptr<ExtInt > inner_,
+                ptr<ExtInt2> p_,
+                Int n_,
+                Int thread_count_,
+                Int max_depth_
+            )
+            :   n               ( n_                                    )
+            ,   thread_count    ( std::max(Int(1), thread_count_)       )
+            ,   max_depth       ( max_depth_                            )
+            ,   A_val           ( outer_[n]                             )
+            ,   perm            ( p_, n, Inverse::False, thread_count   )
+            {
+                if( n <= 0 )
+                {
+                    eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
+                }
+                
+                Tensor1<LInt,Int> A_rp;
+                Tensor1<Int,LInt> A_ci;
+
+                std::tie(A_rp,A_ci,A_inner_perm) = SparseMatrixPermutation<Int,LInt>(
+                    outer_, inner_, perm, perm, outer_[n]
+                );
+                
+                A = SparseMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
+                
+                A.RequireDiag();
+                
+                CheckDiagonal();
+                
+                // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
+            }
+            
+            
+            
+        public:
+            
+            void CheckDiagonal() const
+            {
+                A.RequireDiag();
+                
+                bool okay = true;
+                
+                for( Int i = 0; i < n; ++i )
+                {
+                    okay = okay && (A.Inner(A.Diag(i)) == i);
+                }
+                
+                if( !okay )
+                {
+                    eprint(ClassName()+"::PostOrder: Diagonal of input matrix is not marked as nonzero.");
+                }
+            }
+            
+            void PostOrder()
+            {
+                auto & post = EliminationTree().PostOrdering();
+                
+                if( !EliminationTree().PostOrdered() )
+                {
+                    ptic(ClassName()+"::PostOrder");
+                    
+                    ptic("Compose post");
+                    perm.Compose( post );
+                    ptoc("Compose post");
+                    
+                    ptic("Permute A");
+                    Permutation<LInt> A_perm = A.Permute( post, post );
+                    ptoc("Permute A");
+                    
+                    ptic("A.RequireDiag()");
+                    A.RequireDiag();
+                    ptoc("A.RequireDiag()");
+                    
+                    ptic("CheckDiagonal()");
+                    CheckDiagonal();
+                    ptoc("CheckDiagonal()");
+                    
+                    ptic("Compose A_perm");
+                    A_inner_perm.Compose( A_perm );
+                    ptoc("Compose A_perm");
+                    
+                    eTree_initialized = false;
+                    SN_initialized    = false;
+                    SN_factorized     = false;
+                    
+                    (void)EliminationTree();
+                    
+                    ptoc(ClassName()+"::PostOrder");
+                }
+            }
             
 //###########################################################################################
 //####          Public interface for solve routines
@@ -234,7 +325,7 @@ namespace Tensors
             
         public:
             
-            template<Op op = Op::Id>
+            template<Op op = Op::Id, typename ExtScalar>
             void Solve( ptr<Scalar> b, mut<ExtScalar> x )
             {
                 static_assert(
@@ -261,7 +352,7 @@ namespace Tensors
                 ptoc(ClassName()+"::Solve");
             }
             
-            template<Op op = Op::Id>
+            template<Op op = Op::Id, typename ExtScalar>
             void Solve( ptr<ExtScalar> B, mut<ExtScalar> X_, const Int nrhs )
             {
                 static_assert(
@@ -290,7 +381,7 @@ namespace Tensors
             }
             
 
-
+            template<typename ExtScalar>
             void UpperSolve( ptr<ExtScalar> b, mut<ExtScalar> x )
             {
                 // No problem if x and b overlap, since we load b into X anyways.
@@ -301,6 +392,7 @@ namespace Tensors
                 WriteSolution(x);
             }
             
+            template<typename ExtScalar>
             void UpperSolve( ptr<ExtScalar> B, mut<ExtScalar> X_, const Int nrhs )
             {
                 // No problem if X_ and B overlap, since we load B into X anyways.
@@ -311,7 +403,7 @@ namespace Tensors
                 WriteSolution( X_, nrhs );
             }
             
-            
+            template<typename ExtScalar>
             void LowerSolve( ptr<ExtScalar> b, mut<ExtScalar> x )
             {
                 // No problem if x and b overlap, since we load b into X anyways.
@@ -352,14 +444,17 @@ namespace Tensors
                     // A vector for path compression.
                     Tensor1<Int,Int> a ( n, no_element );
                     
-                    ptr<LInt> A_outer = A_lo.Outer().data();
-                    ptr<Int>  A_inner = A_lo.Inner().data();
+                    ptr<LInt> A_diag  = A.Diag().data();
+                    ptr<LInt> A_outer = A.Outer().data();
+                    ptr<Int>  A_inner = A.Inner().data();
 
+                    
                     for( Int k = 1; k < n; ++k )
                     {
                         // We need visit all i < k with A_ik != 0.
-                        const LInt l_begin = A_outer[k  ];
-                        const LInt l_end   = A_outer[k+1]-1;
+                        const LInt l_begin = A_outer[k];
+                        const LInt l_end   = A_diag [k];
+//                        const LInt l_end   = A_diag[k+1]-1;
                         
                         for( LInt l = l_begin; l < l_end; ++l )
                         {
@@ -380,7 +475,9 @@ namespace Tensors
                         }
                     }
 
-                    eTree = Tree<Int> ( std::move(parents), thread_count );
+//                    eTree = Tree<Int> ( std::move(parents), thread_count );
+                    
+                    eTree = Tree<Int> ( parents, thread_count );
 
                     eTree_initialized = true;
                     
@@ -399,11 +496,11 @@ namespace Tensors
             void CreateAssemblyTree()
             {
                 ptic(ClassName()+"::CreateAssemblyTree");
-                
+
                 const Tensor1<Int,Int> & parents = EliminationTree().Parents();
-                
+
                 Tensor1<Int,Int> SN_parents ( SN_count );
-                
+
                 for( Int k = 0; k < SN_count-1; ++k )
                 {
                     // Thus subtraction is safe as each supernode has at least one row.
@@ -416,8 +513,10 @@ namespace Tensors
                 
                 SN_parents[SN_count-1] = SN_count;
                 
-                aTree = Tree<Int> ( std::move(SN_parents), thread_count );
-                
+
+//                aTree = Tree<Int> ( std::move(SN_parents), thread_count );
+                aTree = Tree<Int> ( SN_parents, thread_count );
+
                 ptoc(ClassName()+"::CreateAssemblyTree");
             }
             
@@ -444,20 +543,14 @@ namespace Tensors
                 // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
                 // https://www.osti.gov/servlets/purl/6756314
                 
-                
                 // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
 
                 if( !SN_initialized )
                 {
                     ptic(ClassName()+"::SN_FactorizeSymbolically");
-                    
-                    (void)EliminationTree();
-                    
-                    if( !eTree.PostOrdered() )
-                    {
-                        eprint(ClassName()+"::SN_FactorizeSymbolically requires postordering!");
-                    }
-                    
+
+                    PostOrder();
+
                     // temporary arrays
                     Tensor1<Int,Int> row (n);// An array to aggregate columnn indices of row of U.
                     Tensor1<Int,Int> row_scratch (n); // Some scratch space for UniteSortedBuffers.
@@ -472,15 +565,15 @@ namespace Tensors
                     // Holds the current number of supernodes.
                     SN_count    = 0;
                     // Pointers from supernodes to their starting rows.
-                    SN_rp       = Tensor1< Int,Int> (n+1);
+                    SN_rp       = Tensor1< Int,Int> (n+2);
                     
                     // Pointers from supernodes to their starting position in SN_inner.
-                    SN_outer    = Tensor1<LInt,Int> (n+1);
+                    SN_outer    = Tensor1<LInt,Int> (n+2);
                     SN_outer[0] = 0;
                     
                     // To be filled with the column indices of super nodes.
                     // Will later be moved to SN_inner.
-                    Aggregator<Int,LInt> SN_inner_agg ( 4 * A_up.NonzeroCount(), thread_count );
+                    Aggregator<Int,LInt> SN_inner_agg ( 2 * A.NonzeroCount(), thread_count );
                     
                     // Start first supernode.
                     SN_rp[0]     = 0;
@@ -490,6 +583,7 @@ namespace Tensors
                     // TODO: Should be parallelizable by processing subtrees of elimination tree in parallel.
                     // TODO: Even better: Build aTree first (we need only to knoe the fundamental rows for that). Then collect SN_inner by tranversing aTree in parellel.
                     // TODO: --> Can we precompute somehow the size of SN_inner_agg? That would greatly help to reduce copy ops and to schedule its generation.
+                    
                     ptic("Main loop");
                     for( Int i = 1; i < n+1; ++i ) // Traverse rows.
                     {
@@ -502,20 +596,20 @@ namespace Tensors
                             // Get first row in current supernode.
                             const Int i_0 = SN_rp[SN_count];
 
-                            // The nonzero pattern of A_up belongs definitely to the pattern of U.
+                            // The nonzero pattern of upper(A) belongs definitely to the pattern of U.
                             // We have to find all nonzero columns j of row i_0 of A such that j > i-1,
                             // because that will be the ones belonging to the rectangular part.
 
-                            // We know that A_up.Inner(A_up.Outer(i_0)) == i_0 < i. Hence we can start the search here:
+                            // We know that A.Inner(A.Diag(i_0)) == i_0 < i. Hence we can start the search here:
                             {
-                                Int k = A_up.Outer(i_0) + 1;
+                                LInt k = A.Diag(i_0) + 1;
                                 
-                                const Int k_end = A_up.Outer(i_0+1);
+                                const LInt k_end = A.Outer(i_0+1);
                                 
-                                while( (A_up.Inner(k) < i) && (k < k_end) ) { ++k; }
+                                while( (A.Inner(k) < i) && (k < k_end) ) { ++k; }
                                 
-                                row_counter = k_end - k;
-                                copy_buffer( &A_up.Inner(k), row.data(), row_counter );
+                                row_counter = int_cast<Int>(k_end - k);
+                                copy_buffer( &A.Inner(k), row.data(), row_counter );
                             }
                             
                             // Next, we have to merge the column indices of the children of i_0 into row.
@@ -542,7 +636,7 @@ namespace Tensors
                                 {
                                     row_counter = UniteSortedBuffers(
                                         row.data(),       row_counter,
-                                        &SN_inner_agg[a], static_cast<Int>(b - a),
+                                        &SN_inner_agg[a], int_cast<Int>(b - a),
                                         row_scratch.data()
                                     );
                                     swap( row, row_scratch );
@@ -571,9 +665,11 @@ namespace Tensors
                         
                     } // for( Int i = 0; i < n+1; ++i )
                     ptoc("Main loop");
-                    
+
                     ptic("Finalization");
                     
+//                    dump(n);
+//                    dump(SN_count);
                     pdump(SN_count);
                     
                     SN_rp.Resize( SN_count+1 );
@@ -581,19 +677,19 @@ namespace Tensors
                     
                     ptic("SN_inner_agg.Get()");
                     SN_inner = std::move(SN_inner_agg.Get());
-                    
+
                     SN_inner_agg = Aggregator<Int, LInt>(0);
                     ptoc("SN_inner_agg.Get()");
-                    
+
                     SN_Allocate();
-                    
+
                     CreateAssemblyTree();
                     
                     ptoc("Finalization");
                     
-                    ptoc(ClassName()+"::SN_FactorizeSymbolically");
-                    
                     SN_initialized = true;
+                    
+                    ptoc(ClassName()+"::SN_FactorizeSymbolically");
                 }
             }
             
@@ -616,7 +712,7 @@ namespace Tensors
                     // Warning: Taking differences of potentially signed numbers.
                     // Should not be of concern because negative numbers appear here only if something went wrong upstream.
                     const Int n_0 =                  SN_rp   [k+1] - SN_rp   [k];
-                    const Int n_1 = static_cast<Int>(SN_outer[k+1] - SN_outer[k]);
+                    const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
 
                     max_n_0 = std::max( max_n_0, n_0 );
                     max_n_1 = std::max( max_n_1, n_1 );
@@ -656,12 +752,12 @@ namespace Tensors
                 {
                     const Int threshold = i - eTree.DescendantCount(i) + 1;
 
-                    const Int k_begin = A_up.Outer(i)+1; // exclude diagonal entry
-                    const Int k_end   = A_up.Outer(i+1);
+                    const LInt k_begin = A.Diag(i)+1; // exclude diagonal entry
+                    const LInt k_end   = A.Outer(i+1);
                     
-                    for( Int k = k_begin; k < k_end; ++k )
+                    for( LInt k = k_begin; k < k_end; ++k )
                     {
-                        const Int j = A_up.Inner(k);
+                        const Int j = A.Inner(k);
                         const Int l = prev_col_nz[j];
                         
                         prev_col_nz[j] = i;
@@ -681,21 +777,24 @@ namespace Tensors
             
             template<typename ExtScalar>
             void SN_FactorizeNumerically_Parallel(
-                ptr<ExtScalar> A_val,
-                const ExtScalar reg  = 0 // Regularization parameter for the diagonal.
+                ptr<ExtScalar> A_val_,
+                const ExtScalar reg_  = 0 // Regularization parameter for the diagonal.
             )
             {
                 ptic(ClassName()+"::SN_FactorizeNumerically_Parallel");
-
+                
                 SN_FactorizeSymbolically();
                 
                 if( !aTree.PostOrdered() )
                 {
                     eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
-                    SN_factorized = false;
-                    return;
+//                    SN_factorized = false;
+//                    return;
                 }
-                
+
+                reg = reg_;
+                A_inner_perm.Permute( A_val_, A_val.data() );
+
                 ptic("Postorder traversal of assembly tree");
                 const Int root = aTree.Root();
                 
@@ -705,24 +804,30 @@ namespace Tensors
                 Tensor1<Int, Int> depth   ( 2*max_depth+1 );
                 Tensor1<bool,Int> visited ( 2*max_depth+1, false );
                 
-                Int i      = 0; // stack pointer
-                stack  [0] = root;
-                depth  [0] = 0;
-                visited[0] = false;
-                
+                Int i = -1; // stack pointer
+
+                // Push the children of root onto stack. root itself is not to be processed.
+                for( Int k = aTree.ChildPointer(root+1); k --> aTree.ChildPointer(root); )
+                {
+                    ++i;
+                    stack[i]   = aTree.ChildIndex(k);
+                    depth[i]   = 0;
+//                    visited[i] = false
+                }
+
                 // post order traversal of the tree
                 while( i >= 0 )
                 {
                     const Int node = stack[i];
                     const Int d    = depth[i];
                     
-                    if( !visited[i] && d < max_depth )
+                    const Int k_begin = aTree.ChildPointer(node  );
+                    const Int k_end   = aTree.ChildPointer(node+1);
+                    
+                    if( !visited[i] && (d < max_depth) && (k_begin < k_end) )
                     {
                         // The first time we visit this node we mark it as visited
                         visited[i] = true;
-                        
-                        const Int k_begin = aTree.ChildPointer(node  );
-                        const Int k_end   = aTree.ChildPointer(node+1);
                         
                         // Pushing the children in reverse order onto the stack.
                         for( Int k = k_end; k --> k_begin; )
@@ -743,9 +848,8 @@ namespace Tensors
                         levels[d].push_back(node);
                     }
                 }
-                
+
                 ptoc("Postorder traversal of assembly tree");
-                
 //                for( Int s : levels[max_depth] )
 //                {
 //                    valprint("|T("+ToString(s)+")|",desc_counts[s]);
@@ -766,14 +870,15 @@ namespace Tensors
                 {
 //                    dump(thread);
 //                    dump(omp_get_thread_num());
-                    SN_list[thread] = std::make_unique<Factorizer>(*this, A_val, reg);
+                    SN_list[thread] = std::make_unique<Factorizer>(*this);
                 }
                 ptoc("Initialize factorizers");
                 
-                for( Int d = max_depth+1; d -->1 ; ) // Don't factorize the root node.
+                for( Int d = max_depth+1; d --> 0 ; ) // Don't factorize the root node.
                 {
                     ptic("Parallel treatment of subtrees (depth = "+ToString(d)+")");
 //                    valprint("level["+ToString(d)+"]",levels[d]);
+                    
                     #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
                     for( size_t r = 0; r < levels[d].size(); ++r )
                     {
@@ -783,10 +888,12 @@ namespace Tensors
 
                         const Int s = levels[d][r];
 
+                        const Int desc = aTree.DescendantCount(s);
+                        
                         if( d == max_depth )
                         {
                             // Utilize that descendants are consecutive in postordering.
-                            const Int t_begin = (s+1) - aTree.DescendantCount(s);
+                            const Int t_begin = (s+1) - desc;
                             const Int t_end   = (s+1);  // Factorize also yourself.
                             
                             for( Int t = t_begin; t < t_end; ++t )
@@ -810,35 +917,35 @@ namespace Tensors
                 
             }
             
-            void SN_FactorizeNumerically_Sequential( ptr<Scalar> A_val, const ExtScalar reg = 0)
-            {
-                ptic(ClassName()+"::SN_FactorizeNumerically_Sequential");
-
-                SN_FactorizeSymbolically();
-                
-                if( !aTree.PostOrdered() )
-                {
-                    eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
-                    
-                    SN_factorized = false;
-                    
-                    return;
-                }
-                
-                ptic("SetZero");
-                SN_tri_val.SetZero(thread_count);
-                SN_rec_val.SetZero(thread_count);
-                ptoc("SetZero");
-                
-                Factorizer SN ( *this, A_val, reg );
-
-                for( Int s = 0; s < SN_count; ++s )
-                {
-                    SN.Factorize(s);
-                }
-
-                ptoc(ClassName()+"::SN_FactorizeNumerically_Sequential");
-            }
+//            void SN_FactorizeNumerically_Sequential( ptr<ExtScalar> A_val_, const ExtScalar reg = 0)
+//            {
+//                ptic(ClassName()+"::SN_FactorizeNumerically_Sequential");
+//
+//                SN_FactorizeSymbolically();
+//
+//                if( !aTree.PostOrdered() )
+//                {
+//                    eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
+//
+//                    SN_factorized = false;
+//
+//                    return;
+//                }
+//
+//                ptic("SetZero");
+//                SN_tri_val.SetZero(thread_count);
+//                SN_rec_val.SetZero(thread_count);
+//                ptoc("SetZero");
+//
+//                Factorizer SN (*this);
+//
+//                for( Int s = 0; s < SN_count; ++s )
+//                {
+//                    SN.Factorize(s);
+//                }
+//
+//                ptoc(ClassName()+"::SN_FactorizeNumerically_Sequential");
+//            }
             
 //###########################################################################################
 //####          Supernodal back substitution
@@ -868,11 +975,13 @@ namespace Tensors
                 for( Int k = SN_count; k --> 0; )
                 {
                     const Int n_0 = SN_rp[k+1] - SN_rp[k];
+                
+                    assert_positive(n_0);
                     
                     const LInt l_begin = SN_outer[k  ];
                     const LInt l_end   = SN_outer[k+1];
                     
-                    const Int n_1 = static_cast<Int>(l_end - l_begin);
+                    const Int n_1 = int_cast<Int>(l_end - l_begin);
                     
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
@@ -959,7 +1068,7 @@ namespace Tensors
                     const LInt l_begin = SN_outer[k  ];
                     const LInt l_end   = SN_outer[k+1];
 
-                    const Int n_1 = static_cast<Int>(l_end - l_begin);
+                    const Int n_1 = int_cast<Int>(l_end - l_begin);
 
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
@@ -1025,7 +1134,7 @@ namespace Tensors
                 }
             }
             
-            void SN_LowerSolve_Sequential( const size_t nrhs )
+            void SN_LowerSolve_Sequential( const Int nrhs )
             {
                 ptic("SN_LowerSolve_Sequential");
                 // Solves L * X = X and stores the result back into X.
@@ -1046,14 +1155,16 @@ namespace Tensors
                     return;
                 }
                 
-                for( Int k = 0; k< SN_count; ++k )
+                for( Int k = 0; k < SN_count; ++k )
                 {
                     const Int n_0 = SN_rp[k+1] - SN_rp[k];
+                    
+                    assert_positive(n_0);
                     
                     const LInt l_begin = SN_outer[k  ];
                     const LInt l_end   = SN_outer[k+1];
                     
-                    const Int n_1 = static_cast<Int>(l_end - l_begin);
+                    const Int n_1 = int_cast<Int>(l_end - l_begin);
                     
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
@@ -1067,13 +1178,11 @@ namespace Tensors
                     // X_1 is the part of X that interacts with U_1, size = n_1 x rhs_count.
                     mut<Scalar> X_1 = X_scratch.data();
 
-
                     if( n_0 == 1 )
                     {
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
                         scale_buffer( one / U_0[0], X_0, nrhs );
-                        
                         if( n_1 > 0 )
                         {
                             // Compute X_1 = - U_1^H * X_0
@@ -1082,10 +1191,10 @@ namespace Tensors
                             //  X_1 is a matrix of size n_1 x nrhs.
                             //  X_0 is a matrix of size 1   x nrhs.
 
-                            for( Int i = 0; i < n_1; ++i )
+                            for( LInt i = 0; i < int_cast<LInt>(n_1); ++i )
                             {
                                 const Scalar factor = - conj(U_1[i]); // XXX conj(U_1[i])-> U_1[i]
-                                for( size_t j = 0; j < nrhs; ++j )
+                                for( LInt j = 0; j < int_cast<LInt>(nrhs); ++j )
                                 {
                                     X_1[nrhs*i+j] = factor * X_0[j];
                                 }
@@ -1094,7 +1203,6 @@ namespace Tensors
                     }
                     else // using BLAS3 routines.
                     {
-
                         // Triangle solve U_0^H * X_0 = B_0 while overwriting X_0.
                         BLAS_Wrappers::trsm<
                             Layout::RowMajor, Side::Left,
@@ -1117,7 +1225,7 @@ namespace Tensors
                             );
                         }
                     }
-                    
+
                     // Add X_1 into B_1
                     for( Int j = 0; j < n_1; ++j )
                     {
@@ -1146,7 +1254,7 @@ namespace Tensors
                     const LInt l_begin = SN_outer[k  ];
                     const LInt l_end   = SN_outer[k+1];
 
-                    const Int n_1 = static_cast<Int>(l_end - l_begin);
+                    const Int n_1 = int_cast<Int>(l_end - l_begin);
 
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
                     ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
@@ -1230,7 +1338,7 @@ namespace Tensors
                     const LInt l_end   = SN_outer[k+1];
                     
 //                    const Int n_0 = i_end - i_begin;
-                    const Int n_1 = static_cast<Int>(l_end - l_begin);
+                    const Int n_1 = int_cast<Int>(l_end - l_begin);
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -1251,7 +1359,7 @@ namespace Tensors
                     const LInt l_end   = SN_outer[k+1];
                     
                     const Int n_0 = i_end - i_begin;
-                    const Int n_1 = static_cast<Int>(l_end - l_begin);
+                    const Int n_1 = int_cast<Int>(l_end - l_begin);
 
                     const Int start = U_rp[i_begin];
                     
@@ -1280,34 +1388,46 @@ namespace Tensors
 //####          IO routines
 //###########################################################################################
 
+            template<typename ExtScalar>
             void ReadRightHandSide( ptr<ExtScalar> b )
             {
+                ptic(ClassName()+"::ReadRightHandSide");
                 if( X.Size() < n )
                 {
                     X         = Tensor1<Scalar,LInt>(n);
                     X_scratch = Tensor1<Scalar,LInt>(max_n_1);
                 }
                 perm.Permute( b, X.data(), Inverse::False );
+                ptoc(ClassName()+"::ReadRightHandSide");
             }
             
-            void ReadRightHandSide( ptr<ExtScalar> B, const size_t nrhs )
+            template<typename ExtScalar>
+            void ReadRightHandSide( ptr<ExtScalar> B, const LInt nrhs )
             {
+                ptic(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
                 if( X.Size() < n * nrhs )
                 {
                     X         = Tensor1<Scalar,LInt>(n*nrhs);
                     X_scratch = Tensor1<Scalar,LInt>(max_n_1*nrhs);
                 }
                 perm.Permute( B, X.data(), nrhs, Inverse::False );
+                ptoc(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
             }
 
+            template<typename ExtScalar>
             void WriteSolution( mut<ExtScalar> x )
             {
+                ptic(ClassName()+"::WriteSolution");
                 perm.Permute( X.data(), x, Inverse::True );
+                ptoc(ClassName()+"::WriteSolution");
             }
             
-            void WriteSolution( mut<ExtScalar> X_, const size_t nrhs )
+            template<typename ExtScalar>
+            void WriteSolution( mut<ExtScalar> X_, const LInt nrhs )
             {
+                ptic(ClassName()+"::WriteSolution ("+ToString(nrhs)+")");
                 perm.Permute( X.data(), X_, nrhs, Inverse::True );
+                ptoc(ClassName()+"::WriteSolution ("+ToString(nrhs)+")");
             }
             
 //###########################################################################################
@@ -1324,8 +1444,6 @@ namespace Tensors
                 
                 ptic(ClassName()+"::FactorizeSymbolically");
                 
-                SN_FactorizeSymbolically();
-                
                 Tensor1<Int,Int> row ( n );  // An array to aggregate the rows of U.
                 
                 Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
@@ -1336,13 +1454,12 @@ namespace Tensors
                 U_rp[0] = 0;
                 
                 // To be filled with the column indices of U.
-                Aggregator<Int,LInt> U_ci ( 2 * A_up.NonzeroCount() );
-                
+                Aggregator<Int,LInt> U_ci ( 2 * A.NonzeroCount() );
                 for( Int i = 0; i < n; ++i ) // Traverse rows.
                 {
-                    // The nonzero pattern of A_up belongs definitely to the pattern of U.
-                    row_counter = A_up.Outer(i+1) - A_up.Outer(i);
-                    copy_buffer( &A_up.Inner(A_up.Outer(i)), row.data(), row_counter );
+                    // The nonzero pattern of upper(A) belongs definitely to the pattern of U.
+                    row_counter = A.Outer(i+1) - A.Diag(i);
+                    copy_buffer( &A.Inner(A.Diag(i)), row.data(), row_counter );
                     
                     const Int l_begin = eTree.ChildPointer(i  );
                     const Int l_end   = eTree.ChildPointer(i+1);
@@ -1360,7 +1477,7 @@ namespace Tensors
                         {
                             row_counter = UniteSortedBuffers(
                                 row.data(),    row_counter,
-                                &U_ci[_begin], static_cast<Int>(_end - _begin),
+                                &U_ci[_begin], int_cast<Int>(_end - _begin),
                                 buffer.data()
                             );
                             swap( row, buffer );
@@ -1373,7 +1490,7 @@ namespace Tensors
                     U_rp[i+1] = U_ci.Size();
 
                 } // for( Int i = 0; i < n; ++i )
-                
+
                 U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), n, n, thread_count );
 
                 ptoc(ClassName()+"::FactorizeSymbolically");
@@ -1408,14 +1525,9 @@ namespace Tensors
                 return U;
             }
             
-            const SparseMatrix_T & GetLowerTriangleOfA() const
+            const SparseMatrix_T & GetA() const
             {
-                return A_lo;
-            }
-            
-            const SparseMatrix_T & GetUpperTriangleOfA() const
-            {
-                return A_up;
+                return U;
             }
             
             
@@ -1474,9 +1586,9 @@ namespace Tensors
                 return row_to_SN;
             }
             
-            std::string ClassName()
+            std::string ClassName() const
             {
-                return "Sparse::CholeskyDecomposition<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+","+TypeName<ExtScalar>::Get()+">";
+                return "Sparse::CholeskyDecomposition<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
             }
             
             

@@ -1,7 +1,7 @@
 public:
 
     void SpMM_gen (
-        ptr<LInt> rp, ptr<Int>  ci, mut<T> a, const Int m, const Int n,
+        ptr<LInt> rp, ptr<Int>  ci, ptr<T> a, const Int m, const Int n,
         const T     alpha_, ptr<T_in>  X,
         const T_out beta,   mut<T_out> Y,
         const Int   cols,
@@ -115,7 +115,7 @@ public:
 
     template<bool a_flag, int alpha_flag, int beta_flag >
     void SpMM_gen_implementation(
-        ptr<LInt> rp, ptr<Int>  ci, mut<T> a, const Int m, const Int n,
+        ptr<LInt> rp, ptr<Int>  ci, ptr<T> a, const Int m, const Int n,
         const T     alpha,  ptr<T_in>  X,
         const T_out beta,   mut<T_out> Y,
         const Int   cols,
@@ -169,7 +169,7 @@ public:
                     // create a local buffer for accumulating the result
                     
                     {
-                        const Int l = l_begin;
+                        const LInt l = l_begin;
                         const Int j = ci[l];
                         
                         __builtin_prefetch( &X[cols * ci[l+1]] );

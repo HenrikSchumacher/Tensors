@@ -124,7 +124,7 @@ public:
         const T     alpha,
         ptr<T_in>   X,
         const T_out beta,
-        ptr<T_out>  Y,
+        mut<T_out>  Y,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -137,7 +137,7 @@ public:
     //    {
     //        zerofy_buffer(Y, m * cols);
     //    }
-    //    
+    //
         if constexpr ( alpha_flag == 0 )
         {
             if constexpr ( beta_flag == 0 )

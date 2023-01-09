@@ -653,7 +653,7 @@ namespace Tensors
                 T.QRAlgorithm( Q, eigs, tol, max_iter );
 
                 //TODO: We might exploit here that V has zeroes in first row and column.
-                Dot(V,Q,U);
+                Dot<false>(V,Q,U);
             }
             
             std::string ToString( const int p = 16) const

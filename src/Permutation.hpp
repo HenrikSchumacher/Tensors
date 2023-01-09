@@ -26,16 +26,16 @@ namespace Tensors
     template<typename Int>
     class Permutation
     {
-        Tensor1<Int,Int> p;
-        Tensor1<Int,Int> p_inv;
+        mutable Tensor1<Int,Int> p;
+        mutable Tensor1<Int,Int> p_inv;
         
         mutable Tensor1<Int,Int> scratch;
         
         Int thread_count = 1;
         
-        bool is_trivial     = true;
-        bool p_computed     = true;
-        bool p_inv_computed = true;
+        mutable bool is_trivial     = true;
+        mutable bool p_computed     = true;
+        mutable bool p_inv_computed = true;
         
     public:
         
@@ -59,10 +59,12 @@ namespace Tensors
         ,   p_inv_computed ( true             )
         {}
         
-        Permutation( ptr<Int> p_, const Int n, const Inverse inverse, const Int thread_count_ = 1 )
+        template<typename J, IS_INT(J)>
+        Permutation( ptr<J> p_, const Int n, const Inverse inverse, const Int thread_count_ = 1 )
         :   p              ( n                )
         ,   p_inv          ( n                )
         ,   scratch        ( n                )
+        ,   thread_count   ( thread_count_    )
         {
             if( inverse == Inverse::True )
             {
@@ -77,9 +79,57 @@ namespace Tensors
         ~Permutation() = default;
         
         
+        // Copy constructor
+        Permutation( const Permutation & other )
+        :   p                 ( other.p                 )
+        ,   p_inv             ( other.p_inv             )
+        ,   scratch           ( other.scratch           )
+        ,   thread_count      ( other.thread_count      )
+        ,   is_trivial        ( other.is_trivial        )
+        ,   p_computed        ( other.p_computed        )
+        ,   p_inv_computed    ( other.p_inv_computed    )
+        {}
+        
+        // We could also simply use the implicitly created copy constructor.
+        
+        friend void swap (Permutation &A, Permutation &B ) noexcept
+        {
+            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+            using std::swap;
+
+            swap( A.p,                 B.p                 );
+            swap( A.p_inv,             B.p_inv             );
+            swap( A.scratch,           B.scratch           );
+            swap( A.thread_count,      B.thread_count      );
+            swap( A.is_trivial,        B.is_trivial        );
+            swap( A.p_computed,        B.p_computed        );
+            swap( A.p_inv_computed,    B.p_inv_computed    );
+        }
+        
+        // Copy assignment operator
+        Permutation & operator=(Permutation other)
+        {
+            // copy-and-swap idiom
+            // see https://stackoverflow.com/a/3279550/8248900 for details
+
+            swap(*this, other);
+
+            return *this;
+        }
+
+        // Move constructor
+        Permutation( Permutation && other ) noexcept : Permutation()
+        {
+            swap(*this, other);
+        }
+        
+        
+        
+    public:
+        
         bool IsTrivial() const
         {
-            is_trivial;
+            return is_trivial;
         }
 
         void SetTrivial()
@@ -96,38 +146,104 @@ namespace Tensors
             return p.Size();
         }
         
+        Int ThreadCount() const
+        {
+            return thread_count;
+        }
+        
         const Int & operator()( Int i )
         {
             p[i];
         }
         
-        void SetPermutation( ptr<Int> p_ )
+        template<typename J>
+        void SetPermutation( ptr<J> p_ )
         {
             // TODO: check p_ for triviality during copy.
-            p.Read(p_);
-            is_trivial     = false;
+            is_trivial = true;
+            
+            const Int n = Size();
+
+            if( thread_count > 1 )
+            {
+                #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial )
+                for( Int i = 0; i < n; ++i )
+                {
+                    const Int p_i = static_cast<Int>(p_[i]);
+                    
+                    is_trivial = is_trivial && (p_i == i );
+                    
+                    p[i] = p_i;
+                    p_inv[p_i] = i;
+                }
+            }
+            else
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    const Int p_i = static_cast<Int>(p_[i]);
+
+                    is_trivial = is_trivial && (p_i == i );
+                    
+                    p[i] = p_i;
+                    p_inv[p_i] = i;
+                }
+            }
+            
             p_computed     = true;
-            p_inv_computed = false;
-        }
-        
-        const Tensor1<Int,Int> & GetPermutation()
-        {
-            RequirePermutation();
-            return p;
-        }
-        
-        void SetInversePermutation( ptr<Int> p_inv_ )
-        {
-            // TODO: check p_inv_ for triviality during copy.
-            p_inv.Read(p_inv);
-            is_trivial     = false;
-            p_computed     = false;
             p_inv_computed = true;
         }
         
-        const Tensor1<Int,Int> & GetInversePermutation()
+        const Tensor1<Int,Int> & GetPermutation() const
         {
-            RequireInversePermutation();
+//            RequirePermutation();
+            return p;
+        }
+        
+        template<typename J>
+        void SetInversePermutation( ptr<J> p_inv_ )
+        {
+            print("SetInversePermutation");
+            // TODO: check p_inv_ for triviality during copy.
+//            p_inv.Read(p_inv_);
+
+            is_trivial = true;
+            
+            const Int n = Size();
+            
+            if( thread_count > 1 )
+            {
+                #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial)
+                for( Int i = 0; i < n; ++i )
+                {
+                    const Int p_inv_i = static_cast<Int>(p_inv_[i]);
+                    
+                    is_trivial = is_trivial && (p_inv_i == i );
+                    
+                    p_inv[i] = p_inv_i;
+                    p[p_inv_i] = i;
+                }
+            }
+            else
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    const Int p_inv_i = static_cast<Int>(p_inv_[i]);
+                    
+                    is_trivial = is_trivial && (p_inv_i == i );
+                    
+                    p_inv[i] = p_inv_i;
+                    p[p_inv_i] = i;
+                }
+            }
+            
+            p_computed     = true;
+            p_inv_computed = true;
+        }
+        
+        const Tensor1<Int,Int> & GetInversePermutation() const
+        {
+//            RequireInversePermutation();
             return p_inv;
         }
         
@@ -204,8 +320,8 @@ namespace Tensors
                     p_computed     = true;
                     p_inv_computed = true;
                     
-                    ptr<Int> q_    = q.GetPermutation().data();
-                    ptr<Int> q_inv = q.GetInversePermutation().data();
+//                    ptr<Int> q_    = q.GetPermutation().data();
+//                    ptr<Int> q_inv = q.GetInversePermutation().data();
                     
                     const Int * restrict a     = nullptr;
                     const Int * restrict b     = nullptr;
@@ -281,7 +397,35 @@ namespace Tensors
 //        }
         
         template<typename T>
-        void Permute( ptr<T> a, mut<T> b, const Inverse inverse )
+        void Permute( ptr<T> a, mut<T> b, const Inverse inverse = Inverse::False )
+        {
+            // Permute a into b, i.e., b[i] <- a[p[i]];
+            ptic(ClassName()+"::Permute");
+            
+            if( !is_trivial )
+            {
+                Invert( inverse );
+                
+                ptr<Int> r = GetPermutation().data();
+                
+                #pragma omp parallel for num_threads( thread_count )
+                for( Int i = 0; i < Size(); ++i )
+                {
+                    b[i] = a[r[i]];
+                }
+                
+                Invert( inverse );
+            }
+            else
+            {
+                copy_buffer(a, b, Size(), thread_count );
+            }
+            
+            ptoc(ClassName()+"::Permute");
+        }
+        
+        template<typename T>
+        void PermuteRowPointers( ptr<T> a, mut<T> b, const Inverse inverse = Inverse::False )
         {
             // Permute a into b, i.e., b[i] <- a[p[i]];
             ptic(ClassName()+"::Permute");
@@ -347,43 +491,68 @@ namespace Tensors
         // Somewhat dangerrous. Use this only if you know what you are doing!
         void SwapScratch( const Inverse inverse = Inverse::False )
         {
+            const Int n = p.Size();
+            
+            is_trivial = true;
+            
             if( inverse == Inverse::False )
             {
                 swap( p, scratch );
+                
+                #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial )
+                for( Int i = 0; i < n; ++i )
+                {
+                    const Int p_i = p[i];
+                    
+                    is_trivial = is_trivial && (p_i == i );
+                    
+                    p_inv[p_i] = i;
+                }
             }
             else
             {
                 swap( p_inv, scratch );
+                
+                #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial )
+                for( Int i = 0; i < n; ++i )
+                {
+                    const Int p_inv_i = p_inv[i];
+                    
+                    is_trivial = is_trivial && (p_inv_i == i );
+                    
+                    p[p_inv_i] = i;
+                }
             }
-            
-            p_computed     = false;
-            p_inv_computed = false;
-            is_trivial     = false;
+
+            p_computed     = true;
+            p_inv_computed = true;
         }
         
-        bool IsValidPermutation()
+        bool IsValidPermutation() const
         {
             const Int n = Size();
             
-            if( (n == 0) || is_trivial )
+            if( (n == 0) )
             {
                 return true;
             }
             
             mut<Int> s = scratch.data();
-            
+
             {
                 scratch.SetZero();
                 
                 ptr<Int> r = GetPermutation().data();
                 
+                const Int n = Size();
+                
                 #pragma omp parallel for num_threads( thread_count )
-                for( Int i = 0; i < Size(); ++i )
+                for( Int i = 0; i < n; ++i )
                 {
                     s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
                 }
                 
-                std::pair<Int,Int> m = std::minmax( scratch.begin(), scratch.end() );
+                auto m = minmax_buffer( scratch.data(), n );
                 
                 if( !( (m.first == Int(1)) && (m.second == Int(1)) ) )
                 {
@@ -391,19 +560,21 @@ namespace Tensors
                     return false;
                 }
             }
-            
+
             {
                 scratch.SetZero();
                 
                 ptr<Int> r = GetInversePermutation().data();
                 
+                const Int n = Size();
+                
                 #pragma omp parallel for num_threads( thread_count )
-                for( Int i = 0; i < Size(); ++i )
+                for( Int i = 0; i < n; ++i )
                 {
                     s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
                 }
                 
-                std::pair<Int,Int> m = std::minmax( scratch.begin(), scratch.end() );
+                std::pair<Int,Int> m = minmax_buffer( scratch.data(), n );
                 
                 if( !( (m.first == Int(1)) && (m.second == Int(1)) ) )
                 {
@@ -411,7 +582,7 @@ namespace Tensors
                     return false;
                 }
             }
-            
+
             // We may run this final test only if the other two are passed because they guarantee
             // that we won't get a segfault.
             {
@@ -428,10 +599,14 @@ namespace Tensors
                 if( fails > 0 )
                 {
                     eprint(ClassName()+"::Check: field p_inv is not the inverse of p!");
+                    
+                    return false;
                 }
             }
+
+            return true;
         }
-                
+    
         
                        
     public:
@@ -442,5 +617,186 @@ namespace Tensors
         }
 
     }; // class Permutation
+    
+    
+    
+    template<bool P_Trivial, bool Q_Trivial, bool Sort, typename LInt, typename Int, typename ExtLInt, typename ExtInt>
+    std::tuple<Tensor1<LInt,Int>,Tensor1<Int,LInt>,Permutation<LInt>>
+    sparseMatrixPermutation(
+        ptr<ExtLInt>     & outer,
+        ptr<ExtInt>      & inner,
+        const Permutation<Int> & P,  // row    permutation
+        const Permutation<Int> & Q,  // column permutation
+        const LInt nnz,
+        bool sort = true
+    )
+    {
+        const Int m = P.Size();
+        
+        const Int thread_count = P.ThreadCount();
+        
+        ptr<Int> p     = P.GetPermutation().data();
+        ptr<Int> q_inv = Q.GetInversePermutation().data();
+
+        Tensor1<LInt, Int> new_outer ( m+1 );
+        Tensor1< Int,LInt> new_inner ( nnz );
+        Permutation<LInt>  perm      ( nnz );
+        
+        if constexpr ( P_Trivial )
+        {
+            copy_buffer( outer, new_outer.data(), m+1, thread_count );
+            
+            if constexpr ( Q_Trivial )
+            {
+                copy_buffer( inner, new_inner.data(), nnz, thread_count );
+            }
+        }
+        else
+        {
+            new_outer[0] = 0;
+            
+            #pragma omp parallel for num_threads( thread_count ) schedule( static )
+            for( Int i = 0; i < m; ++i )
+            {
+                const Int p_i = p[i];
+                
+                new_outer[i+1] = static_cast<LInt>(outer[p_i+1] - outer[p_i]);
+            }
+            
+            parallel_accumulate( new_outer.data(), m+1, thread_count );
+        }
+
+        
+//        if constexpr ( !P_Trivial || !Q_Trivial )
+//        {
+            JobPointers<Int> job_ptr ( m, new_outer.data(),  thread_count );
+            
+            
+            mut<LInt> scratch = perm.Scratch().data();
+            
+            #pragma omp parallel for num_threads( thread_count )
+            for( Int thread = 0; thread < thread_count; ++thread )
+            {
+                TwoArrayQuickSort<Int,LInt,Int> quick_sort;
+                
+                const Int i_begin = job_ptr[thread  ];
+                const Int i_end   = job_ptr[thread+1];
+                
+                for( Int i = i_begin; i < i_end; ++i )
+                {
+                    const LInt begin = outer[ COND( P_Trivial, i, p[i] ) ];
+                    
+                    const LInt new_begin = new_outer[i  ];
+                    const LInt new_end   = new_outer[i+1];
+                    
+                    const LInt k_max = new_end - new_begin;
+                    
+                    if constexpr ( Q_Trivial )
+                    {
+                        copy_buffer( &inner[begin], &new_inner[new_begin], k_max );
+                        
+                        for( LInt k = 0; k < k_max; ++k )
+                        {
+                            scratch[new_begin+k] = begin+k;
+                        }
+                    }
+                    else
+                    {
+                        for( LInt k = 0; k < k_max; ++k )
+                        {
+                            new_inner[new_begin+k] = q_inv[inner[begin+k]];
+                            scratch  [new_begin+k] = begin+k;
+                        }
+                        
+                        if constexpr ( Sort )
+                        {
+                            quick_sort( &new_inner[new_begin], &scratch [new_begin], static_cast<Int>(k_max) );
+                        }
+                    }
+                }
+            }
+            
+            perm.SwapScratch();
+
+        return std::make_tuple( new_outer, new_inner, perm );
+    }
+    
+    template<typename Int, typename LInt, typename ExtLInt, typename ExtLInt2, typename ExtInt>
+    std::tuple<Tensor1<LInt,Int>,Tensor1<Int,LInt>,Permutation<LInt>>
+    SparseMatrixPermutation(
+        ptr<ExtLInt>     & outer,
+        ptr<ExtInt>      & inner,
+        const Permutation<Int> & P,  // row    permutation
+        const Permutation<Int> & Q,  // column permutation
+        const ExtLInt2 nnz,
+        bool sort = true        // Whether to restore row-wise ordering (as in demanded by CSR).
+    )
+    {
+        // returns
+        // i  ) The permuted array "outer".
+        // ii ) The permuted array "inner".
+        // iii) The permutation that has to be applied to the nonzero values.
+        
+//        if( P.IsTrivial() )
+//        {
+//            if( Q.IsTrivial() )
+//            {
+//                if( sort )
+//                {
+//                    return sparseMatrixPermutation<true,true,true,LInt,Int>(outer,inner,P,Q,nnz);
+//                }
+//                else
+//                {
+//                    return sparseMatrixPermutation<true,true,false,LInt,Int>(outer,inner,P,Q,nnz);
+//                }
+//            }
+//            else
+//            {
+//                if( sort )
+//                {
+//                    return sparseMatrixPermutation<true,false,true,LInt,Int>(outer,inner,P,Q,nnz);
+//                }
+//                else
+//                {
+//                    return sparseMatrixPermutation<true,false,false,LInt,Int>(outer,inner,P,Q,nnz);
+//                }
+//            }
+//        }
+//        else // if( !p.IsTrivial() )
+//        {
+//            if( Q.IsTrivial() )
+//            {
+//                if( sort )
+//                {
+//                    return sparseMatrixPermutation<false,true,true,LInt,Int>(outer,inner,P,Q,nnz);
+//                }
+//                else
+//                {
+//                    return sparseMatrixPermutation<false,true,false,LInt,Int>(outer,inner,P,Q,nnz);
+//                }
+//            }
+//            else
+//            {
+//                if( sort )
+//                {
+//                    return sparseMatrixPermutation<false,false,true,LInt,Int>(outer,inner,P,Q,nnz);
+//                }
+//                else
+//                {
+//                    return sparseMatrixPermutation<false,false,false,LInt,Int>(outer,inner,P,Q,nnz);
+//                }
+//            }
+//        }
+        
+        if( sort )
+        {
+            return sparseMatrixPermutation<false,false,true,LInt,Int>(outer,inner,P,Q,nnz);
+        }
+        else
+        {
+            return sparseMatrixPermutation<false,false,false,LInt,Int>(outer,inner,P,Q,nnz);
+        }
+    }
+    
     
 }

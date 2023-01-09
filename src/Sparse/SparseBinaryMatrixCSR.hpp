@@ -275,118 +275,25 @@ namespace Tensors
         
     public:
         
-        CLASS Permute(
+        Permutation<LInt> Permute(
             const Permutation<Int> & p,  // row    permutation
-            const Permutation<Int> & q,  // column permutation
-        bool sort = true        // Whether to restore row-wise ordering (as in demanded by CSR).
+            const Permutation<Int> & q   // column permutation
         )
         {
-            if( (!p.IsTrivial()) && (p.Size() != m) )
-            {
-                eprint(ClassName()+"::Permute: Length of first permutation does not coincide with RowCount().");
-                return CLASS();
-            }
+            // Modifies inner and outer  accordingly; returns the permutation to be applied to the nonzero values.
             
-            if( (!q.IsTrivial()) && (q.Size() != n) )
-            {
-                eprint(ClassName()+"::Permute: Length of second permutation does not coincide with ColCount().");
-                return CLASS();
-            }
+            Permutation<LInt> perm;
             
-            CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
+            std::tie( outer, inner, perm ) = SparseMatrixPermutation<Int,LInt>(
+                outer.data(), inner.data(), p, q, inner.Size(), true );
             
-            if( !p.IsTrivial() )
-            {
-                if( !q.IsTrivial() )
-                {
-                    return permute<true,true>(p,q);
-                }
-                else
-                {
-                    return permute<true,false>(p,q);
-                }
-            }
-            else // if( p.IsTrivial() )
-            {
-                if( !q.IsTrivial() )
-                {
-                    return permute<false,true>(p,q);
-                }
-                else
-                {
-                    return B.inner = inner;
-                }
-            }
-        }
-        
-    protected:
-        
-        template<bool PermuteRows, bool PermuteCols>
-        CLASS permute( Permutation<Int> & P, Permutation<Int> & Q, bool sort = true )
-        {
-            CLASS B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
-            
-            ptr<Int> p     =  COND( PermuteRows, Q.GetPermutation().data(),        nullptr );
-            ptr<Int> q_inv =  COND( PermuteCols, Q.GetInversePermutation().data(), nullptr );
-            
-            if constexpr ( PermuteRows )
-            {
-                B.outer[0] = 0;
-                
-                #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
-                for( Int i = 0; i < m; ++i )
-                {
-                    const Int p_i = p[i];
-                    
-                    B.outer[i+1] = outer[p_i+1] - outer[p_i];
-                }
-                
-                B.outer.Accumulate();
-            }
-            else
-            {
-                B.outer = outer;
-            }
-            
-            auto & B_job_ptr = B.JobPtr();
-            
-            const Int thread_count = B_job_ptr.ThreadCount();
-            
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                const Int i_begin = B_job_ptr[thread  ];
-                const Int i_end   = B_job_ptr[thread+1];
-                
-                for( Int i = i_begin; i < i_end; ++i )
-                {
-                    const LInt A_begin = outer[COND( PermuteRows, p[i], i)];
-                    
-                    const LInt B_begin = B.outer[i  ];
-                    const LInt B_end   = B.outer[i+1];
-                    
-                    const LInt k_max = B_end - B_begin;
-                    
-                    for( LInt k = 0; k < k_max; ++k )
-                    {
-                        if constexpr ( PermuteCols )
-                        {
-                            B.inner[B_begin+k] = q_inv[inner[A_begin+k]];
-                        }
-                        else
-                        {
-                            B.inner[B_begin+k] = inner[A_begin+k];
-                        }
-                    }
-                    
-                    if( sort )
-                    {
-                        std::sort( &B.inner[B_begin], &B.inner[B_end] );
-                    }
-                }
-            }
-            
-            return B;
+            this->inner_sorted = true;
+            this->diag_ptr_initialized = false;
+            this->job_ptr_initialized  = false;
+            this->upper_triangular_job_ptr_initialized = false;
+            this->lower_triangular_job_ptr_initialized = false;
+
+            return perm;
         }
         
 //#########################################################################################

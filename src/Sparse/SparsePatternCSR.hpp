@@ -33,9 +33,16 @@ namespace Tensors
         
         Int thread_count = 1;
         
-        mutable bool inner_sorted    = false;
-        mutable bool duplicate_free  = false;
-        bool symmetric       = false;
+        mutable bool inner_sorted         = false;
+        mutable bool duplicate_free       = false;
+        
+        mutable bool diag_ptr_initialized = false;
+        mutable bool job_ptr_initialized  = false;
+        mutable bool upper_triangular_job_ptr_initialized  = false;
+        mutable bool lower_triangular_job_ptr_initialized  = false;
+        
+        bool symmetric                    = false;
+        
         
         // diag_ptr[i] is the first nonzero element in row i such that inner[diag_ptr[i]] >= i
         mutable Tensor1<LInt,Int> diag_ptr;
@@ -49,7 +56,7 @@ namespace Tensors
         
         CLASS() {}
         
-        template<typename I_0, typename I_1, typename I_3, IsInt(I_0), IsInt(I_1), IsInt(I_3)>
+        template<typename I_0, typename I_1, typename I_3, IS_INT(I_0), IS_INT(I_1), IS_INT(I_3)>
         CLASS(
               const I_0 m_,
               const I_1 n_,
@@ -412,7 +419,7 @@ namespace Tensors
         
         void RequireJobPtr() const
         {
-            if( job_ptr.Size() != thread_count+1 )
+            if( !job_ptr_initialized )
             {
                 ptic(ClassName()+"::RequireJobPtr");
                 
@@ -428,6 +435,8 @@ namespace Tensors
                 
                 job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
                 
+                job_ptr_initialized = true;
+                
                 ptoc(ClassName()+"::RequireJobPtr");
             }
         }
@@ -442,7 +451,7 @@ namespace Tensors
         
         void RequireDiag() const
         {
-            if( diag_ptr.Size() != m )
+            if( !diag_ptr_initialized )
             {
                 ptic(ClassName()+"::RequireDiag");
                 
@@ -484,13 +493,15 @@ namespace Tensors
                     }
                 }
                 
+                diag_ptr_initialized = true;
+                
                 ptoc(ClassName()+"::RequireDiag");
             }
         }
         
         void RequireUpperTriangularJobPtr() const
         {
-            if( (m > 0) && (upper_triangular_job_ptr.Size()-1 != thread_count) )
+            if( (m > 0) && !upper_triangular_job_ptr_initialized )
             {
                 ptic(ClassName()+"::RequireUpperTriangularJobPtr");
                 
@@ -519,13 +530,15 @@ namespace Tensors
                 
                 upper_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
                 
+                upper_triangular_job_ptr_initialized = true;
+                
                 ptoc(ClassName()+"::RequireUpperTriangularJobPtr");
             }
         }
         
         void RequireLowerTriangularJobPtr() const
         {
-            if( (m > 0) && (lower_triangular_job_ptr.Size()-1 != thread_count) )
+            if( (m > 0) && !lower_triangular_job_ptr_initialized )
             {
                 ptic(ClassName()+"::RequireLowerTriangularJobPtr");
                 
@@ -553,6 +566,8 @@ namespace Tensors
                 costs.Accumulate( thread_count );
                 
                 lower_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
+                
+                lower_triangular_job_ptr_initialized = true;
                 
                 ptoc(ClassName()+"::RequireLowerTriangularJobPtr");
             }
@@ -585,8 +600,14 @@ namespace Tensors
             return outer;
         }
         
-        LInt & Outer( const Int i ) const
+        const LInt & Outer( const Int i ) const
         {
+#ifdef TENSORS_BOUND_CHECKS
+            if( i < 0 || i >= outer.Size() )
+            {
+                eprint(ClassName()+"::Outer(): Out of bound access.");
+            }
+#endif
             return outer[i];
         }
         
@@ -601,8 +622,14 @@ namespace Tensors
             return inner;
         }
 
-        Int & Inner( const LInt k ) const
+        const Int & Inner( const LInt k ) const
         {
+#ifdef TENSORS_BOUND_CHECKS
+            if( k < 0 || k >= inner.Size() )
+            {
+                eprint(ClassName()+"::Inner(): Out of bound access.");
+            }
+#endif
             return inner[k];
         }
         
@@ -613,6 +640,17 @@ namespace Tensors
             return diag_ptr;
         }
         
+        
+        const LInt & Diag( const Int i ) const
+        {
+#ifdef TENSORS_BOUND_CHECKS
+            if( i < 0 || i >= diag_ptr.Size() )
+            {
+                eprint(ClassName()+"::Diag(): Out of bound access.");
+            }
+#endif
+            return diag_ptr[i];
+        }
         
         const JobPointers<Int> & JobPtr() const
         {
@@ -987,7 +1025,7 @@ namespace Tensors
             if( WellFormed() )
             {
                 auto sblas = SparseBLAS<T_ext,Int,LInt,T_in,T_out>( thread_count );
-                
+
                 sblas.Multiply_GeneralMatrix_DenseMatrix(
                     outer.data(),inner.data(),values,m,n,alpha,X,beta,Y,cols,JobPtr()
                 );

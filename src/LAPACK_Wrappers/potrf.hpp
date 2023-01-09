@@ -5,12 +5,21 @@ namespace Tensors
 
     namespace LAPACK_Wrappers
     {
-        template<Layout layout, UpLo uplo, typename Scalar>
+        template<Layout layout, UpLo uplo, typename Scalar, typename I0, typename I1>
         force_inline int potrf(
-            const int n,
-            Scalar * A, const int ldA
+            const I0 n_,
+            Scalar * A, const I1 ldA_
         )
         {
+            ASSERT_INT(I0);
+            ASSERT_INT(I1);
+            
+            int n    = int_cast<int>(n_);
+            int ldA  = int_cast<int>(ldA_);
+            
+            assert_positive(n);
+            assert_positive(ldA);
+            
             if constexpr ( std::is_same_v<Scalar,double> )
             {
                 return LAPACKE_dpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );

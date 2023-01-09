@@ -149,7 +149,7 @@ namespace Tensors
             Dot(
                 const Tiny::Matrix<m,K,R,Int> & A,
                 const Tiny::Matrix<K,n,S,Int> & B,
-                      CLASS & C
+                CLASS & C
             )
             {
                 // First pass to overwrite (if desired).

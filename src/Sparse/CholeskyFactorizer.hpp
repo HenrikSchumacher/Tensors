@@ -5,9 +5,9 @@ namespace Tensors
     namespace Sparse
     {
         
-        template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_> class CholeskyDecomposition;
+        template<typename Scalar_, typename Int_, typename LInt_> class CholeskyDecomposition;
         
-        template<typename Scalar_, typename Int_, typename LInt_, typename ExtScalar_>
+        template<typename Scalar_, typename Int_, typename LInt_>
         class alignas(OBJECT_ALIGNMENT) CholeskyFactorizer
         {
             // Performs a left-looking factorization.
@@ -24,8 +24,6 @@ namespace Tensors
             using Int       = Int_;
             using LInt      = LInt_;
             
-            using ExtScalar = ExtScalar_;
-            
             using SparseMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
             
         protected:
@@ -36,11 +34,12 @@ namespace Tensors
             const Int n;
             
             // shared data
-            ptr<LInt>       A_rp;  // row pointers of upper triangle of A
-            ptr<Int>        A_ci;  // column indices of upper triangle of A
-            ptr<ExtScalar>  A_val; // nonzero values upper triangle of A
+            ptr<LInt>       A_diag; // position to the diagonal element of A in each row.
+            ptr<LInt>       A_rp;   // row pointers of upper triangle of A
+            ptr<Int>        A_ci;   // column indices of upper triangle of A
+            ptr<Scalar>     A_val;  // values of upper triangle of A
             
-            ExtScalar       reg;   // Regularization parameter for the diagonal.
+            Scalar          reg;     // Regularization parameter for the diagonal.
             
             ptr<Int>        child_ptr;
             ptr<Int>        child_idx;
@@ -127,16 +126,15 @@ namespace Tensors
             }
             
             CholeskyFactorizer(
-                CholeskyDecomposition<Scalar,Int,LInt,ExtScalar> & chol,
-                ptr<ExtScalar> A_val_,
-                const ExtScalar reg_     // Regularization parameter for the diagonal.
+                CholeskyDecomposition<Scalar,Int,LInt> & chol
             )
             // shared data
             :   n               ( chol.n                                        )
-            ,   A_rp            ( chol.A_up.Outer().data()                      )
-            ,   A_ci            ( chol.A_up.Inner().data()                      )
-            ,   A_val           ( A_val_                                        )
-            ,   reg             ( reg_                                          )
+            ,   A_diag          ( chol.A.Diag().data()                          )
+            ,   A_rp            ( chol.A.Outer().data()                         )
+            ,   A_ci            ( chol.A.Inner().data()                         )
+            ,   A_val           ( chol.A_val.data()                             )
+            ,   reg             ( chol.reg                                      )
             ,   child_ptr       ( chol.AssemblyTree().ChildPointers().data()    )
             ,   child_idx       ( chol.AssemblyTree().ChildIndices().data()     )
             ,   SN_rp           ( chol.SN_rp.data()                             )
@@ -215,7 +213,16 @@ namespace Tensors
                 const LInt l_end   = SN_outer[s+1];
                 
                 const  Int n_0     = i_end - i_begin;
-                const  Int n_1     = static_cast<Int>(l_end - l_begin);
+                const  Int n_1     = int_cast<Int>(l_end - l_begin);
+                
+                assert_positive(n_0);
+                if( n_0 <= 0 )
+                {
+                    eprint("n_0<=0");
+                    dump(s);
+                    dump(SN_rp[s  ]);
+                    dump(SN_rp[s+1]);
+                }
                 
                 // U_0 is interpreted as an upper triangular matrix of size n_0 x n_0.
                 // U_1 is interpreted as a  rectangular      matrix of size n_0 x n_1.
@@ -240,19 +247,19 @@ namespace Tensors
         protected:
             
             void FetchFromA(
-                Int i_begin, Int i_end, Int l_begin, Int l_end,
+                Int i_begin, Int i_end, LInt l_begin, LInt l_end,
                 mut<Scalar> U_0, mut<Scalar> U_1
             )
             {
                 // Read the values of A into U_0 and U_1.
 
                 const  Int n_0 = i_end - i_begin;
-                const  Int n_1 = static_cast<Int>(l_end - l_begin);
+                const  Int n_1 = int_cast<Int>(l_end - l_begin);
                 
                 for( Int i = i_begin; i < i_end; ++i )
                 {
-                    const LInt k_begin = A_rp[i  ];
-                    const LInt k_end   = A_rp[i+1];
+                    const LInt k_begin = A_diag[i  ];
+                    const LInt k_end   = A_rp  [i+1];
                     
                     LInt k;
                     
@@ -281,7 +288,7 @@ namespace Tensors
                     }
                     
                     // From now on the insertion position must be in the rectangular part.
-                    Int l     = l_begin;
+                    LInt l     = l_begin;
                     Int col_l = SN_inner[l];
                     
                     // Continue the loop where the previous one was aborted.
@@ -323,7 +330,7 @@ namespace Tensors
                     }
 
                     const Int m_0 = SN_rp   [t+1] - SN_rp   [t];
-                    const Int m_1 = SN_outer[t+1] - SN_outer[t];
+                    const Int m_1 = int_cast<Int>(SN_outer[t+1] - SN_outer[t]);
 
                     ptr<Scalar> t_rec = &SN_rec_val[SN_rec_ptr[t]];
                     // t_rec is interpreted as a rectangular matrix of size m_0 x m_1.
@@ -575,8 +582,8 @@ namespace Tensors
                     }
                     else // i == L_l
                     {
-                        II_pos[IL_len] = static_cast<Int>(i-i_begin);
-                        IL_pos[IL_len] = static_cast<Int>(l-l_begin);
+                        II_pos[IL_len] = int_cast<Int>(i-i_begin);
+                        IL_pos[IL_len] = int_cast<Int>(l-l_begin);
                         ++IL_len;
                         ++i;
                         L_l = SN_inner[++l];
@@ -603,8 +610,8 @@ namespace Tensors
                     }
                     else // J_j == L_l
                     {
-                        JJ_pos[JL_len] = static_cast<Int>(j-j_begin);
-                        JL_pos[JL_len] = static_cast<Int>(l-l_begin);
+                        JJ_pos[JL_len] = int_cast<Int>(j-j_begin);
+                        JL_pos[JL_len] = int_cast<Int>(l-l_begin);
                         ++JL_len;
                         J_j = SN_inner[++j];
                         L_l = SN_inner[++l];
@@ -658,11 +665,11 @@ namespace Tensors
                         a[i-i_begin] = i;
                     }
                     
-                    valprint( "I", ToString( &a[0], n_0 , 16 ) );
-                    valprint( "L", ToString( &SN_inner[l_begin], m_1 , 16 ) );
-                    
-                    valprint( "II_pos", ToString(II_pos,IL_len,16) );
-                    valprint( "IL_pos", ToString(IL_pos,IL_len,16) );
+//                    valprint( "I", ToString( &a[0], n_0 , 16 ) );
+//                    valprint( "L", ToString( &SN_inner[l_begin], m_1 , 16 ) );
+//                    
+//                    valprint( "II_pos", ToString(II_pos,IL_len,16) );
+//                    valprint( "IL_pos", ToString(IL_pos,IL_len,16) );
                 }
                 
                 for( Int j = 0; j < JL_len; ++j )
@@ -677,11 +684,11 @@ namespace Tensors
                     dump(n_1);
                     dump(m_1);
                     
-                    valprint( "J", ToString( &SN_inner[j_begin], n_1 , 16 ) );
-                    valprint( "L", ToString( &SN_inner[l_begin], m_1 , 16 ) );
-                    
-                    valprint( "JJ_pos", ToString(JJ_pos,JL_len,16) );
-                    valprint( "JL_pos", ToString(JL_pos,JL_len,16) );
+//                    valprint( "J", ToString( &SN_inner[j_begin], n_1 , 16 ) );
+//                    valprint( "L", ToString( &SN_inner[l_begin], m_1 , 16 ) );
+//                    
+//                    valprint( "JJ_pos", ToString(JJ_pos,JL_len,16) );
+//                    valprint( "JL_pos", ToString(JL_pos,JL_len,16) );
                 }
             }
             
@@ -689,7 +696,7 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return "Sparse::CholeskyFactorizer<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+","+TypeName<ExtScalar>::Get()+">";
+                return "Sparse::CholeskyFactorizer<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
             }
             
         }; // class CholeskyFactorizer

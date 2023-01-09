@@ -209,16 +209,11 @@ namespace Tensors {
             return dot( x.data(), y.data(), x.Size() );
         }
         
-        void iota()
+        void iota( const Int thread_count = 1 )
         {
-            mut<Scalar> a_ = a;
-            
-            for( Int i = 0; i < n; ++i )
-            {
-                a_[i] = static_cast<Scalar>(i);
-            }
+            iota_buffer( a, n, thread_count );
         }
-
+        
     public:
         
         inline friend std::ostream & operator<<( std::ostream & s, const TENSOR_T & tensor )

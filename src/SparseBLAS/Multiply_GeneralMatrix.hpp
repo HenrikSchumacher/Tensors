@@ -49,7 +49,7 @@ public:
         const Int   cols,
         const JobPointers<Int> & job_ptr
     )
-    {        
+    {
         switch( cols )
         {
             case 1:

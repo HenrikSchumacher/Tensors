@@ -12,14 +12,19 @@
     namespace Tensors
     {
         using namespace Tools;
+        
     }
 
+    #include "src/Debugging.hpp"
     #include "src/Enums.hpp"
 
     #include "src/Tensor1.hpp"
     #include "src/Tensor2.hpp"
     #include "src/Tensor3.hpp"
     #include "src/ThreadTensor3.hpp"
+
+    #include "src/Sorting/TwoArrayQuickSort.hpp"
+//    #include "src/Sorting/TimSort.hpp"
 
     #include "src/Permutation.hpp"
 
@@ -30,8 +35,7 @@
     #include "src/PairAggregator.hpp"
     #include "src/TripleAggregator.hpp"
 
-    #include "src/Sorting/TwoArrayQuickSort.hpp"
-//    #include "src/Sorting/TimSort.hpp"
+
 
     #include "src/SparseBLAS.hpp"
     #include "src/Sparse/SparsePatternCSR.hpp"

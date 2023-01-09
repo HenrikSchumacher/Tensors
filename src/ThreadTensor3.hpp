@@ -78,7 +78,7 @@ namespace Tensors {
         }
         
         // Copy constructor
-        template<typename S, typename J, IsInt(J)>
+        template<typename S, typename J, IS_INT(J)>
         explicit ThreadTensor3( const ThreadTensor3<S,J> & other )
         :   ThreadTensor3(other.dims)
         {

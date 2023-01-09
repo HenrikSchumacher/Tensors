@@ -36,7 +36,7 @@ TENSOR_T( const TENSOR_T & other )
 }
 
 // Copy-cast constructor
-template<typename S, typename J, IsInt(J)>
+template<typename S, typename J, IS_INT(J)>
 explicit TENSOR_T( const TENSOR_T<S,J> & other )
 :   n    ( other.n    )
 ,   dims ( other.dims )
@@ -83,14 +83,14 @@ TENSOR_T & operator=( const TENSOR_T & other )
 {
     if( this != &other )
     {
-        logprint(other.ClassName()+": Copy-assignment of size "+Tools::ToString( other.n ));
+//        logprint(other.ClassName()+": Copy-assignment of size "+Tools::ToString( other.n ));
         
         if( dims != other.dims )
         {
             n    = other.n;
             dims = other.dims;
 
-            logprint(other.ClassName()+": Reallocation of size "+Tools::ToString( n ) );
+//            logprint(other.ClassName()+": Reallocation of size "+Tools::ToString( n ) );
             
             safe_free(a);
             allocate();
@@ -234,17 +234,17 @@ void AddTo( mut<Scalar> b ) const
     add_to_buffer( a, b, n);
 }
 
-//Int CountNan() const
-//{
-//    Int counter = 0;
-//     
-//    for( Int i = 0 ; i < n; ++i )
-//    {
-//        counter += std::isnan(a[i]);
-//    }
-//    
-//    return counter;
-//}
+Int CountNan() const
+{
+    Int counter = 0;
+     
+    for( Int i = 0 ; i < n; ++i )
+    {
+        counter += std::isnan(a[i]);
+    }
+    
+    return counter;
+}
 
 Real MaxNorm() const
 {

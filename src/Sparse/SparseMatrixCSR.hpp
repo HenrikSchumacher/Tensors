@@ -1055,7 +1055,7 @@ namespace Tensors
             const T_in  * X,
             const T_out   beta,
                   T_out * Y,
-            const Int     cols = static_cast<Int>(1)
+            const Int     cols = Int(1)
         ) const
         {
             Dot_( values.data(), alpha, X, beta, Y, cols );

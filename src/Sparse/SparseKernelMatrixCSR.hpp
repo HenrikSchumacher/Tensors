@@ -336,6 +336,52 @@ namespace Tensors
             ptoc(ClassName()+"::Dot" );
         }
         
+//###########################################################################################
+//####          Permute
+//###########################################################################################
+        
+    public:
+        
+        Permutation<LInt> Permute(
+            const Permutation<Int> & p,  // row    permutation
+            const Permutation<Int> & q  // column permutation
+        )
+        {
+            // Modifies inner, outer, and values accordingly; returns the permutation to be applied to the nonzero values.
+            
+            const LInt nnz = this->inner.Size();
+            
+            Permutation<LInt> perm;
+            
+            std::tie( this->outer, this->inner, perm ) = SparseMatrixPermutation(
+                this->outer.data(), this->inner.data(), p, q, nnz, true
+            );
+
+            if( !p.IsTrivial() || !q.IsTrivial() )
+            {
+                ptr<Scalar> u = this->new_values.data();
+                mut<Scalar> v = this->values.data();
+                Tensor1<Scalar,LInt> new_values ( nnz );
+                
+                #pragma omp parallel for num_threads( this->ThreadCount() ) schedule(static)
+                for( Int i = 0; i < nnz; ++i )
+                {
+                    v[i] = u[perm[i]];
+                }
+                
+                swap( this->values, new_values);
+            }
+            
+            this->inner_sorted = true;
+            
+            this->diag_ptr_initialized = false;
+            this->job_ptr_initialized  = false;
+            this->upper_triangular_job_ptr_initialized = false;
+            this->lower_triangular_job_ptr_initialized = false;
+            
+            return perm;
+        }
+        
     public:
         
         std::string ClassName() const

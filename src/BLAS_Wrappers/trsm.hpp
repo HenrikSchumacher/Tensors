@@ -4,12 +4,29 @@ namespace Tensors
 {
     namespace BLAS_Wrappers
     {
-        template<Layout layout, Side side, UpLo uplo, Op opA, Diag diag, typename Scalar>
+        template<Layout layout, Side side, UpLo uplo, Op opA, Diag diag, typename Scalar, typename I0, typename I1, typename I2, typename I3>
         force_inline void trsm(
-            const int n, const int nrhs,
-            const Scalar alpha, const Scalar * A, const int ldA, Scalar * B, const int ldB
+            const I0 n_, const I1 nrhs_,
+            const Scalar alpha, const Scalar * A, const I2 ldA_,
+                                      Scalar * B, const I3 ldB_
         )
         {
+            ASSERT_INT(I0);
+            ASSERT_INT(I1);
+            ASSERT_INT(I2);
+            ASSERT_INT(I3);
+
+            int n    = int_cast<int>(n_);
+            int nrhs = int_cast<int>(nrhs_);
+            int ldA  = int_cast<int>(ldA_);
+            int ldB  = int_cast<int>(ldB_);
+            
+            assert_positive(n);
+            assert_positive(nrhs);
+            assert_positive(ldA);
+            assert_positive(ldB);
+            
+            
             if constexpr ( std::is_same_v<Scalar,double> )
             {
                 return cblas_dtrsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, alpha, const_cast<Scalar*>(A), ldA, B, ldB );

@@ -34,7 +34,7 @@ protected:
             }
             else
             {
-                scale_buffer<cols>(y,beta);
+                scale_buffer<cols>(beta,y);
             }
         }
         else

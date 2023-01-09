@@ -5,13 +5,28 @@ namespace Tensors
     namespace BLAS_Wrappers
     {
         
-        template<Layout layout, UpLo uplo, Op op, typename Scalar>
+        template<Layout layout, UpLo uplo, Op op, typename Scalar, typename I0, typename I1, typename I2, typename I3>
         force_inline void herk(
-            const int n, const int k,
-            const typename ScalarTraits<Scalar>::Real & alpha, const Scalar * A, const int ldA,
-            const typename ScalarTraits<Scalar>::Real & beta ,       Scalar * C, const int ldC
+            const I0 n_, const I1 k_,
+            const typename ScalarTraits<Scalar>::Real & alpha, const Scalar * A, const I2 ldA_,
+            const typename ScalarTraits<Scalar>::Real & beta ,       Scalar * C, const I3 ldC_
         )
         {
+            ASSERT_INT(I0);
+            ASSERT_INT(I1);
+            ASSERT_INT(I2);
+            ASSERT_INT(I3);
+            
+            int n    = int_cast<int>(n_);
+            int k    = int_cast<int>(k_);
+            int ldA  = int_cast<int>(ldA_);
+            int ldC  = int_cast<int>(ldC_);
+                        
+            assert_positive(n);
+            assert_positive(k);
+            assert_positive(ldA);
+            assert_positive(ldC);
+            
             // If trans == Cblas_NoTrans, then
             // this computes the upper or lower triangle part (depending on uplo) of
             //
