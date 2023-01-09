@@ -203,6 +203,7 @@ namespace Tensors
             ,   A_val           ( outer_[n]                         )
             ,   perm            ( n_,         thread_count          )
             {
+                ptic("ClassName()");
                 if( n <= 0 )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
@@ -222,6 +223,7 @@ namespace Tensors
                 CheckDiagonal();
                 
                 // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
+                ptoc("ClassName()");
             }
             
             template<typename ExtLInt, typename ExtInt, typename ExtInt2>
@@ -239,6 +241,7 @@ namespace Tensors
             ,   A_val           ( outer_[n]                             )
             ,   perm            ( p_, n, Inverse::False, thread_count   )
             {
+                ptic("ClassName()");
                 if( n <= 0 )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
@@ -258,6 +261,7 @@ namespace Tensors
                 CheckDiagonal();
                 
                 // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
+                ptoc("ClassName()");
             }
             
             
