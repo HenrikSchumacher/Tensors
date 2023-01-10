@@ -202,7 +202,8 @@ namespace Tensors
             
         public:
                 
-            void Factorize( const Int s )
+            // Factorization routine.
+            void operator()( const Int s )
             {
 //                valprint("factorizing supernode",s);
                 

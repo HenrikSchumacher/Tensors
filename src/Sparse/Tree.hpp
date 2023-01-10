@@ -5,13 +5,23 @@ namespace Tensors
     template<typename Int>
     class Tree
     {
-    public:
+    protected:
         
-        // TODO: Parallel post-order traverals with templated parameters for
-        // -- Previsit routine
-        // -- Postvisit routine
-        // (-- Revisit)
-        // -- Leafvisit routine
+        Int n; // The number of vertices, _including_ the virtual root vertex.
+        
+        Int thread_count;
+
+        Tensor1<Int,Int> parents;
+        
+        SparseBinaryMatrixCSR<Int,Int> A;       // The adjacency matrix of the directed graph.
+        
+        Tensor1<Int,Int> descendant_counts;
+        
+        Permutation<Int> post;                  // To store the postordering.
+        
+        SparseBinaryMatrixCSR<Int,Int> levels;       // The adjacency matrix of the directed graph.
+
+    public:
         
         Tree() = default;
         
@@ -20,117 +30,98 @@ namespace Tensors
         explicit Tree( Tensor1<Int,Int> & parents_, const Int thread_count_ = 1 )
         :   n                 ( parents_.Size()+1 )
         // We use and additional virtual vertex as root.
-        ,   root              ( n-1               )
         ,   thread_count      ( thread_count_     )
+        ,   parents           ( parents_          )
         ,   descendant_counts ( n                 )
         {
             ptic(ClassName());
-            
-//            std::swap( parents, parents_ );
-            
-            parents = parents_;
-            
-//            ptic("Adjacency matrix");
-            
+
             // Next we build the adjacency matrix A of the tree.
 
-            Int list_count       = 1;
-            Int entry_counts [1] = {n-1};
-            
             post = Permutation<Int> ( n-1, thread_count );
 
             mut<Int> p = post.Scratch().data();
             
-            const Int * idx_data = parents.data();
-            const Int * jdx_data = post.GetPermutation().data(); // This is a iota.
-            
-            A = SparseBinaryMatrixCSR<Int,Int> (
-                &idx_data,
-                &jdx_data,
-                &entry_counts[0],
-                list_count, n, n, thread_count, false, 0
-            );
-//            ptoc("Adjacency matrix");
-            
-            // Compute postordering and descendant counts. Also check whether tree is already postordered.
-            
-            // TODO: Can be parallelized via a bit of limited depth DFS, and then several parallel DFS.
-//            ptic("Postorder traversal");
-            Tensor1<Int, Int> stack   (2*n+2 );
-            Tensor1<bool,Int> visited (2*n+2, false );
-            
-//            Int i      = 0; // stack pointer
-//            stack  [0] = root;
-//            visited[0] = false;
-            
-            Int i = -1; // stack pointer
-
-            // Push the children of root onto stack. root itself is not to be processed.
-            for( Int k = ChildPointer(root+1); k --> ChildPointer(root); )
             {
-                ++i;
-                stack[i] = ChildIndex(k);
+                Int list_count       = 1;
+                Int entry_counts [1] = {n-1};
+                
+                const Int * idx_data = parents.data();
+                const Int * jdx_data = post.GetPermutation().data(); // This is a iota.
+                
+                A = SparseBinaryMatrixCSR<Int,Int> (
+                    &idx_data,
+                    &jdx_data,
+                    &entry_counts[0],
+                    list_count, n, n, thread_count, false, 0
+                );
             }
             
+            // Compute postordering and descendant counts.
             Int counter = 0;
+            Int max_depth = 0;
             
-            // post order traversal of the tree
-            while( i >= 0 )
-            {
-                const Int node = stack[i];
-                
-                const Int k_begin = ChildPointer(node  );
-                const Int k_end   = ChildPointer(node+1);
-                
-                if( !visited[i] )
+            Tensor1<Int, Int> node_to_depth (n, 1);
+            
+            node_to_depth[Root()] = 0;
+
+            
+            Traversal_DFS_Sequential(
+                [this, &node_to_depth, &max_depth](Int node)
                 {
-                    // The first time we visit this node we mark it as visited
-                    visited[i] = true;
+                    const Int depth = node_to_depth[node]+1;
                     
-                    // Pushing the children in reverse order onto the stack.
-                    for( Int k = k_end; k --> k_begin; )
+                    max_depth = std::max(max_depth, depth);
+
+                    for( Int k = ChildPointer(node); k < ChildPointer(node+1); ++k )
                     {
-                        stack[++i] = ChildIndex(k);
+                        node_to_depth[ChildIndex(k)] = depth;
                     }
                 }
-                else
+                ,
+                [this, &counter, p](Int node)
                 {
-                    // Visiting the node for the second time.
-                    // We are moving in direction towards the root.
-                    // Hence all children have already been visited.
-                    
-                    // Popping current node from the stack.
-                    visited[i--] = false;
-                    
-                    p[counter] = node;
-//                    postordered   = postordered && (counter == node);
-                    ++counter;
-                    
+                    p[counter++] = node;
+
                     Int sum = 1; // The node itself is also counted as its own descendant.
-                    
-                    for( Int k = k_begin; k < k_end; ++k )
+                    for( Int k = ChildPointer(node); k < ChildPointer(node+1); ++k )
                     {
                         sum += descendant_counts[ChildIndex(k)];
                     }
-
                     descendant_counts[node] = sum;
                 }
+                ,
+                [](Int node) {}
+            );
+            
+            descendant_counts[Root()] = 1;
+            
+            
+            {
+                Int list_count       = 1;
+                Int entry_counts [1] = {n-1};
+                
+                const Int * idx_data = node_to_depth.data();
+                const Int * jdx_data = post.GetPermutation().data(); // This is still a iota.
+                
+                levels = SparseBinaryMatrixCSR<Int,Int> (
+                    &idx_data,
+                    &jdx_data,
+                    &entry_counts[0],
+                    list_count, max_depth+1, n, thread_count, true, 0
+                );
             }
             
-            descendant_counts[root] = 1;
-            for( Int k = ChildPointer(root+1); k --> ChildPointer(root); )
+            for( Int k = ChildPointer(Root()+1); k --> ChildPointer(Root()); )
             {
-                descendant_counts[root] += descendant_counts[ChildIndex(k)];
+                descendant_counts[Root()] += descendant_counts[ChildIndex(k)];
             }
 
-            
             // Now post.Scratch() contains the post ordering.
             
             post.SwapScratch();
             
             // Now post.GetPermutation() contains the post ordering.
-
-//            ptoc("Postorder traversal");
 
             ptoc(ClassName());
         }
@@ -140,12 +131,12 @@ namespace Tensors
         // Copy constructor
         Tree( const Tree & other )
         :   n                 ( other.n                 )
-        ,   root              ( other.root              )
         ,   thread_count      ( other.thread_count      )
-        ,   post              ( other.post              )
-        ,   descendant_counts ( other.descendant_counts )
-        ,   parents           ( other.parents           )
         ,   A                 ( other.A                 )
+        ,   parents           ( other.parents           )
+        ,   descendant_counts ( other.descendant_counts )
+        ,   post              ( other.post              )
+        ,   levels            ( other.levels            )
         {}
         
         // We could also simply use the implicitly created copy constructor.
@@ -156,12 +147,12 @@ namespace Tensors
             using std::swap;
 
             swap( A.n,                 B.n                 );
-            swap( A.root,              B.root              );
             swap( A.thread_count,      B.thread_count      );
-            swap( A.post,              B.post              );
-            swap( A.descendant_counts, B.descendant_counts );
             swap( A.parents,           B.parents           );
             swap( A.A,                 B.A                 );
+            swap( A.descendant_counts, B.descendant_counts );
+            swap( A.post,              B.post              );
+            swap( A.levels,            B.levels            );
         }
         
         // Copy assignment operator
@@ -222,6 +213,26 @@ namespace Tensors
             return A.Inner(k);
         }
         
+        const Tensor1<Int,Int> & LevelPointers() const
+        {
+            return levels.Outer();
+        }
+        
+        Int LevelPointer( const Int i ) const
+        {
+            return levels.Outer(i);
+        }
+        
+        const Tensor1<Int,Int> & LevelIndices() const
+        {
+            return levels.Inner();
+        }
+        
+        Int LevelIndex( const Int k ) const
+        {
+            return levels.Inner(k);
+        }
+        
         force_inline Int VertexCount() const
         {
             return n;
@@ -256,30 +267,157 @@ namespace Tensors
             return postordered;
         }
         
+        
         Int Root() const
         {
-            return root;
+            return n-1;
         }
         
-    protected:
+        template<class Lambda_PerVisit, class Lambda_PostVisit, class Lambda_LeafVisit>
+        void Traversal_DFS_Sequential(
+            Lambda_PerVisit  pre_visit,
+            Lambda_PostVisit post_visit,
+            Lambda_LeafVisit leaf_visit,
+            const Int max_depth = std::numeric_limits<Int>::max()
+        )
+        {
+            ptic(ClassName()+"::Traversal_DFS_Sequential");
+            
+            Tensor1<Int, Int> stack   ( n );
+            Tensor1<Int, Int> depth   ( n );
+            Tensor1<bool,Int> visited ( n, false );
+            
+            Int i = -1; // stack pointer
+
+            // Push the children of the root onto stack. The root itself is not to be processed.
+            for( Int k = ChildPointer(Root()+1); k --> ChildPointer(Root()); )
+            {
+                ++i;
+                stack[i]   = ChildIndex(k);
+                depth[i]   = 0;
+            }
+            
+            // post order traversal of the tree
+            while( i >= 0 )
+            {
+                const Int node    = stack[i];
+                const Int d       = depth[i];
+                const Int k_begin = ChildPointer(node  );
+                const Int k_end   = ChildPointer(node+1);
+                
+                if( !visited[i] && (d < max_depth) && (k_begin < k_end) )
+                {
+                    // We visit this node for the first time.
+                    pre_visit(node);
+                    
+                    visited[i] = true;
+                    
+                    // Pushing the children in reverse order onto the stack.
+                    for( Int k = k_end; k --> k_begin; )
+                    {
+                        stack[++i] = ChildIndex(k);
+                        depth[i]   = d+1;
+                    }
+                }
+                else
+                {
+                    // Visiting the node for the second time.
+                    // We are moving in direction towards the root.
+                    // Hence all children have already been visited.
+                    
+                    // Popping current node from the stack.
+                    visited[i--] = false;
+  
+                    // things to be done when node is a leaf.
+                    if (k_begin == k_end)
+                    {
+                        leaf_visit(node);
+                    }
+                    
+                    post_visit(node);
+                }
+            }
+            
+            ptoc(ClassName()+"::Traversal_DFS_Sequential");
+        }
         
-        Int n;
         
-        Int root;
         
-        Int thread_count;
         
-        Permutation<Int> post;
         
-        Tensor1<Int,Int> descendant_counts;
-    
-        Tensor1<Int,Int> parents;
+        template<class Worker_T>
+        void Traverse_DFS_Postordered( Worker_T & worker, Int node )
+        {
+            // Applies ker to node and its descendants in postorder.
+            // Worker can be a class that has operator( Int node ) defined or simply a lambda.
+            
+            // This routine assumes that PostOrdered() evaluates to true so that the decents lie contiguously directly before node.
+            
+            const Int desc_begin = (node+1) - DescendantCount(node);
+            const Int desc_end   = (node+1);  // Apply worker also to yourself.
+            
+            for( Int desc = desc_begin; desc < desc_end; ++desc )
+            {
+                worker(desc);
+            }
+        }
         
-        SparseBinaryMatrixCSR<Int,Int> A;
-      
+        template<class Worker_T>
+        void Traverse_DFS_Parallel(
+            std::vector<std::unique_ptr<Worker_T>> & workers,
+            Int max_depth_
+        )
+        {
+            if( !PostOrdered() )
+            {
+                eprint(ClassName()+"::Traverse_DFS_Parallel requires postordered tree! Doing nothing.");
+                return;
+            }
+            
+            const Int max_depth = std::min( max_depth_, levels.RowCount() );
+            ptic(ClassName()+"::Traverse_DFS_Parallel");
+                 
+            std::string tag = "Apply "+workers[0]->ClassName()+" to level";
+            
+            ptic(tag+" <= "+ToString(max_depth)+")");
+
+//            print("level["+ToString(max_depth)+"] = "+ToString(&LevelIndices()[LevelPointer(max_depth)], LevelPointer(max_depth+1)-LevelPointer(max_depth), 16 ) );
+            
+            #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
+            for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
+            {
+                const Int thread = omp_get_thread_num();
+                
+                Worker_T & worker = *workers[thread];
+                                
+                Traverse_DFS_Postordered( worker, LevelIndex(k) );
+            }
+            
+            ptoc(tag+" <= "+ToString(max_depth)+")");
+
+            
+            for( Int d = max_depth; d --> 1 ; ) // Don't process the root node!
+            {
+                ptic(tag+" = "+ToString(d)+")");
 //
-//        bool postordered = true;
-        
+//                print("level["+ToString(d)+"] = "+ToString(&LevelIndices()[LevelPointer(d)], LevelPointer(d+1)-LevelPointer(d), 16 ) );
+                
+                #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
+                for( Int k = LevelPointer(d); k < LevelPointer(d+1); ++k )
+                {
+                    const Int thread = omp_get_thread_num();
+                    
+                    Worker_T & worker = *workers[thread];
+                    
+                    worker(LevelIndex(k));
+                }
+                
+                ptoc(tag+" = "+ToString(d)+")");
+            }
+            
+            ptoc(ClassName()+"::Traverse_DFS_Parallel");
+        }
+                 
     public:
         
         std::string ClassName() const

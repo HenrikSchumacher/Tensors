@@ -15,12 +15,6 @@
 
 // Priority I:
 
-// TODO: Automatically determine postordering and apply it!
-
-// TODO: Allow the user to supply a permutation.
-
-// TODO: Parallelized, abstract postorder traversal of Tree
-
 // TODO: Parallelize symbolic factorization.
 // TODO:     --> Build aTree first and traverse it in parallel to determine SN_inner.
 
@@ -177,11 +171,14 @@ namespace Tensors
             // Maximal size of rectangular part of supernodes.
             Int max_n_1 = 0;
             
+            
+            // Stores right hand side / solution during the solve phase.
             Tensor1<Scalar,LInt> X;
             
+            // Stores right hand side / solution during the solve phase.
             // Some scratch space to read parts of X that belong to a supernode's rectangular part.
             Tensor1<Scalar,LInt> X_scratch;
-            // TODO: If I want to parallelize, I have to provide each thread with its own X_scratch.
+            // TODO: If I want to parallelize the solve phase, I have to provide each thread with its own X_scratch.
             
         public:
             
@@ -191,11 +188,8 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                ptr<ExtLInt> outer_,
-                ptr<ExtInt > inner_,
-                Int n_,
-                Int thread_count_,
-                Int max_depth_
+                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, Int n_,
+                Int thread_count_, Int max_depth_
             )
             :   n               ( n_                                )
             ,   thread_count    ( std::max(Int(1), thread_count_)   )
@@ -203,7 +197,7 @@ namespace Tensors
             ,   A_val           ( outer_[n]                         )
             ,   perm            ( n_,         thread_count          )
             {
-                ptic("ClassName()");
+                ptic(ClassName());
                 if( n <= 0 )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
@@ -223,17 +217,13 @@ namespace Tensors
                 CheckDiagonal();
                 
                 // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
-                ptoc("ClassName()");
+                ptoc(ClassName());
             }
             
             template<typename ExtLInt, typename ExtInt, typename ExtInt2>
             CholeskyDecomposition(
-                ptr<ExtLInt> outer_,
-                ptr<ExtInt > inner_,
-                ptr<ExtInt2> p_,
-                Int n_,
-                Int thread_count_,
-                Int max_depth_
+                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, ptr<ExtInt2> p_, Int n_,
+                Int thread_count_, Int max_depth_
             )
             :   n               ( n_                                    )
             ,   thread_count    ( std::max(Int(1), thread_count_)       )
@@ -284,6 +274,8 @@ namespace Tensors
                     eprint(ClassName()+"::PostOrder: Diagonal of input matrix is not marked as nonzero.");
                 }
             }
+            
+        protected:
             
             void PostOrder()
             {
@@ -672,8 +664,7 @@ namespace Tensors
 
                     ptic("Finalization");
                     
-//                    dump(n);
-//                    dump(SN_count);
+
                     pdump(SN_count);
                     
                     SN_rp.Resize( SN_count+1 );
@@ -748,7 +739,7 @@ namespace Tensors
                 //
                 // to determine whether a new fundamental supernode starts at node u.
                 
-                bool is_fundamental = ( i == n );
+                bool is_fundamental = ( i == n ); // We make virtual root vertes fundamental, so that the main loop finishes off the last nonvirtual supernode correctly.
                 
                 is_fundamental = is_fundamental || ( eTree.ChildCount(i) > 1);
                 
@@ -780,86 +771,17 @@ namespace Tensors
         public:
             
             template<typename ExtScalar>
-            void SN_FactorizeNumerically_Parallel(
+            void SN_FactorizeNumerically(
                 ptr<ExtScalar> A_val_,
                 const ExtScalar reg_  = 0 // Regularization parameter for the diagonal.
             )
             {
-                ptic(ClassName()+"::SN_FactorizeNumerically_Parallel");
+                ptic(ClassName()+"::SN_FactorizeNumerically");
                 
                 SN_FactorizeSymbolically();
-                
-                if( !aTree.PostOrdered() )
-                {
-                    eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
-//                    SN_factorized = false;
-//                    return;
-                }
 
                 reg = reg_;
                 A_inner_perm.Permute( A_val_, A_val.data() );
-
-                ptic("Postorder traversal of assembly tree");
-                const Int root = aTree.Root();
-                
-                std::vector<std::vector<Int>> levels (max_depth+1);
-                
-                Tensor1<Int, Int> stack   ( 2*max_depth+1 );
-                Tensor1<Int, Int> depth   ( 2*max_depth+1 );
-                Tensor1<bool,Int> visited ( 2*max_depth+1, false );
-                
-                Int i = -1; // stack pointer
-
-                // Push the children of root onto stack. root itself is not to be processed.
-                for( Int k = aTree.ChildPointer(root+1); k --> aTree.ChildPointer(root); )
-                {
-                    ++i;
-                    stack[i]   = aTree.ChildIndex(k);
-                    depth[i]   = 0;
-//                    visited[i] = false
-                }
-
-                // post order traversal of the tree
-                while( i >= 0 )
-                {
-                    const Int node = stack[i];
-                    const Int d    = depth[i];
-                    
-                    const Int k_begin = aTree.ChildPointer(node  );
-                    const Int k_end   = aTree.ChildPointer(node+1);
-                    
-                    if( !visited[i] && (d < max_depth) && (k_begin < k_end) )
-                    {
-                        // The first time we visit this node we mark it as visited
-                        visited[i] = true;
-                        
-                        // Pushing the children in reverse order onto the stack.
-                        for( Int k = k_end; k --> k_begin; )
-                        {
-                            stack[++i] = aTree.ChildIndex(k);
-                            depth[i]   = d+1;
-                        }
-                    }
-                    else
-                    {
-                        // Visiting the node for the second time.
-                        // We are moving in direction towards the root.
-                        // Hence all children have already been visited.
-                        
-                        // Popping current node from the stack.
-                        visited[i--] = false;
-                        
-                        levels[d].push_back(node);
-                    }
-                }
-
-                ptoc("Postorder traversal of assembly tree");
-//                for( Int s : levels[max_depth] )
-//                {
-//                    valprint("|T("+ToString(s)+")|",desc_counts[s]);
-//                }
-                
-                ptic("Parallel treatment of subtrees");
                 
                 ptic("Zerofy buffers.");
                 SN_tri_val.SetZero( thread_count );
@@ -867,89 +789,24 @@ namespace Tensors
                 ptoc("Zerofy buffers.");
                 
                 ptic("Initialize factorizers");
-                std::vector<std::unique_ptr<Factorizer>> SN_list ( thread_count);
+                std::vector<std::unique_ptr<Factorizer>> SN_list (thread_count);
                 
                 #pragma omp parallel for num_threads( thread_count ) schedule(static)
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
-//                    dump(thread);
-//                    dump(omp_get_thread_num());
                     SN_list[thread] = std::make_unique<Factorizer>(*this);
                 }
                 ptoc("Initialize factorizers");
                 
-                for( Int d = max_depth+1; d --> 0 ; ) // Don't factorize the root node.
-                {
-                    ptic("Parallel treatment of subtrees (depth = "+ToString(d)+")");
-//                    valprint("level["+ToString(d)+"]",levels[d]);
-                    
-                    #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
-                    for( size_t r = 0; r < levels[d].size(); ++r )
-                    {
-                        const Int thread = omp_get_thread_num();
 
-                        Factorizer & SN = *SN_list[thread];
-
-                        const Int s = levels[d][r];
-
-                        const Int desc = aTree.DescendantCount(s);
-                        
-                        if( d == max_depth )
-                        {
-                            // Utilize that descendants are consecutive in postordering.
-                            const Int t_begin = (s+1) - desc;
-                            const Int t_end   = (s+1);  // Factorize also yourself.
-                            
-                            for( Int t = t_begin; t < t_end; ++t )
-                            {
-                                SN.Factorize(t);
-                            }
-                        }
-                        else
-                        {
-                            SN.Factorize(s);
-                        }
-                    }
-                    ptoc("Parallel treatment of subtrees (depth = "+ToString(d)+")");
-                }
+                // Parallel traversal in postorder
+                aTree.Traverse_DFS_Parallel( SN_list, max_depth );
                 
                 SN_factorized = true;
                 
-                ptoc("Parallel treatment of subtrees");
-                
-                ptoc(ClassName()+"::SN_FactorizeNumerically_Parallel");
+                ptoc(ClassName()+"::SN_FactorizeNumerically");
                 
             }
-            
-//            void SN_FactorizeNumerically_Sequential( ptr<ExtScalar> A_val_, const ExtScalar reg = 0)
-//            {
-//                ptic(ClassName()+"::SN_FactorizeNumerically_Sequential");
-//
-//                SN_FactorizeSymbolically();
-//
-//                if( !aTree.PostOrdered() )
-//                {
-//                    eprint(ClassName()+"::SN_FactorizeNumerically_Sequential requires postordered assembly tree!");
-//
-//                    SN_factorized = false;
-//
-//                    return;
-//                }
-//
-//                ptic("SetZero");
-//                SN_tri_val.SetZero(thread_count);
-//                SN_rec_val.SetZero(thread_count);
-//                ptoc("SetZero");
-//
-//                Factorizer SN (*this);
-//
-//                for( Int s = 0; s < SN_count; ++s )
-//                {
-//                    SN.Factorize(s);
-//                }
-//
-//                ptoc(ClassName()+"::SN_FactorizeNumerically_Sequential");
-//            }
             
 //###########################################################################################
 //####          Supernodal back substitution
@@ -1505,6 +1362,7 @@ namespace Tensors
             {
                 U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
             }
+            
 //###########################################################################################
 //####          Get routines
 //###########################################################################################
@@ -1618,3 +1476,12 @@ namespace Tensors
 // DONE: Currently, EliminationTree breaks down if the matrix is reducible.
 //           --> What we need is an EliminationForest!
 //           --> Maybe it just suffices to append a virtual root (that is not to be factorized).
+
+
+
+// DONE: Automatically determine postordering and apply it!
+
+// DONE: Allow the user to supply a permutation.
+
+// DONE: Parallelized, abstract postorder traversal of Tree
+

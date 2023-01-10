@@ -700,7 +700,6 @@ namespace Tensors
         
         if( thread_count <= 1 )
         {
-//            #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
                 TwoArrayQuickSort<Int,LInt,Int> quick_sort;
