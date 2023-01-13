@@ -299,7 +299,7 @@ namespace Tensors
             
             auto B = mma::makeMatrix<mreal>( m, n );
             
-            mut<mreal>t b = B.data();
+            mut<mreal> b = B.data();
             
             for( mint i = 0; i < m; ++i )
             {
