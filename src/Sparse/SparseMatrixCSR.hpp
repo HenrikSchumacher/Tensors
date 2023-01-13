@@ -400,17 +400,17 @@ namespace Tensors
         template< bool conjugate>
         CLASS transpose() const
         {
-            if constexpr ( conjugate )
-            {
-                ptic(ClassName()+"::ConjugateTranspose");
-            }
-            else
-            {
-                ptoc(ClassName()+"::Transpose");
-            }
-            
             if( WellFormed() )
             {
+                if constexpr ( conjugate )
+                {
+                    ptic(ClassName()+"::ConjugateTranspose");
+                }
+                else
+                {
+                    ptic(ClassName()+"::Transpose");
+                }
+                
                 RequireJobPtr();
                 
                 Tensor2<Int,Int> counters = CreateTransposeCounters();
