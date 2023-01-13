@@ -124,8 +124,8 @@ public:
     void Multiply_BinaryMatrix_DenseMatrix
     (
         ptr<LInt> rp, ptr<Int> ci, const Int m, const Int n,
-        const T     alpha, ptr<T_in> X,
-        const T_out beta,  mut<T_in> Y,
+        const T     alpha, ptr<T_in>  X,
+        const T_out beta,  mut<T_out> Y,
         const Int cols
     )
     {
@@ -135,8 +135,8 @@ public:
     void Multiply_BinaryMatrix_DenseMatrix
     (
         ptr<LInt> rp, ptr<Int> ci, const Int m, const Int n,
-        const T     alpha, ptr<T_in> X,
-        const T_out beta,  mut<T_in> Y,
+        const T     alpha, ptr<T_in>  X,
+        const T_out beta,  mut<T_out> Y,
         const Int                    cols,
         const JobPointers<Int> & job_ptr
     )

@@ -71,7 +71,7 @@ namespace Tensors
 
         CLASS(
             ptr<Scalar> A_,
-            const Scalar_out alpha_, mut<Scalar_in>  X_,
+            const Scalar_out alpha_, ptr<Scalar_in>  X_,
             const Scalar_out beta_,  mut<Scalar_out> Y_,
             Int rhs_count_
         )

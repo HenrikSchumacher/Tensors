@@ -1,9 +1,11 @@
 public:
 
+//azpby_gen<alpha_flag,beta_flag>( alpha, &z[0], beta, &Y[cols * i], cols );
+
     void SpMM_gen (
-        ptr<LInt> rp, ptr<Int>  ci, ptr<T> a, const Int m, const Int n,
-        const T     alpha_, ptr<T_in>  X,
-        const T_out beta,   mut<T_out> Y,
+        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
+        const T     alpha_,  ptr<T>     X,
+        const T_out beta,    mut<T_out> Y,
         const Int   cols,
         const JobPointers<Int> & job_ptr
     )
@@ -115,7 +117,7 @@ public:
 
     template<bool a_flag, int alpha_flag, int beta_flag >
     void SpMM_gen_implementation(
-        ptr<LInt> rp, ptr<Int>  ci, ptr<T> a, const Int m, const Int n,
+        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
         const T     alpha,  ptr<T_in>  X,
         const T_out beta,   mut<T_out> Y,
         const Int   cols,

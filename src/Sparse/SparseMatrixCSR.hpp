@@ -474,6 +474,7 @@ namespace Tensors
             else
             {
                 CLASS B ( n, m, 0, thread_count );
+                ptic(ClassName()+"::Transpose");
                 return B;
             }
         }
