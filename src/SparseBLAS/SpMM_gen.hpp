@@ -1,7 +1,5 @@
 public:
 
-//azpby_gen<alpha_flag,beta_flag>( alpha, &z[0], beta, &Y[cols * i], cols );
-
     void SpMM_gen (
         ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
         const T     alpha_,  ptr<T>     X,

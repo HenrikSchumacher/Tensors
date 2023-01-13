@@ -1,7 +1,9 @@
 protected:
 
     template<int alpha_flag, int beta_flag>
-    force_inline void axpbz_gen( const T alpha, ptr<T_in> x, const T beta, mut<T> z, Int N
+    force_inline void axpbz_gen(
+        const T alpha, ptr<T_in> x,
+        const T beta,  mut<T>    z, Int N
     ) const
     {
         if constexpr ( alpha_flag == 1 )

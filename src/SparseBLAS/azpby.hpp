@@ -1,7 +1,10 @@
 protected:
 
     template<Int cols, int alpha_flag, int beta_flag>
-    force_inline void azpby( const T alpha, ptr<T> z, const T_out beta, mut<T_out> y ) const
+    force_inline void azpby(
+        const T     alpha, ptr<T>     z,
+        const T_out beta,  mut<T_out> y
+    ) const
     {
         if constexpr ( alpha_flag == 1 )
         {
