@@ -1,7 +1,7 @@
 #ifdef LTEMPLATE_H
 
     
-    template<typename Scalar, typename Int, IsFloat(Scalar)>
+    template<typename Scalar, typename Int, IS_FLOAT(Scalar)>
     inline mma::TensorRef<mreal> to_MTensorRef( const TENSOR_T<Scalar,Int> & A )
     {
         const mint r = A.Rank();

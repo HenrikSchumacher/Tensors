@@ -359,7 +359,7 @@ namespace Tensors {
     }
     
 
-    template<typename Scalar, typename Int, IsFloat(Scalar)>
+    template<typename Scalar, typename Int, IS_FLOAT(Scalar)>
     mma::MatrixRef<mreal> to_transposed_MTensorRef( const Tensor2<Scalar,Int> & B )
     {
         Int rows = B.Dimension(0);

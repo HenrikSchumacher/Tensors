@@ -285,7 +285,7 @@ namespace Tensors
 #ifdef LTEMPLATE_H
         
         
-        template<int n, typename Scalar, typename Int, IsFloat(Scalar)>
+        template<int n, typename Scalar, typename Int, IS_FLOAT(Scalar)>
         inline mma::TensorRef<mreal> to_MTensorRef( const VectorList<n,Scalar,Int> & A )
         {
             const mint m = A.Dimension(1);
