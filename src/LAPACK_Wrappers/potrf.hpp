@@ -6,10 +6,7 @@ namespace Tensors
     namespace LAPACK_Wrappers
     {
         template<Layout layout, UpLo uplo, typename Scalar, typename I0, typename I1>
-        force_inline int potrf(
-            const I0 n_,
-            Scalar * A, const I1 ldA_
-        )
+        force_inline int potrf( const I0 n_, Scalar * A, const I1 ldA_ )
         {
             ASSERT_INT(I0);
             ASSERT_INT(I1);

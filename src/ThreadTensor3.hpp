@@ -429,7 +429,7 @@ namespace Tensors {
         return B;
     }
     
-    template<typename J, typename Int, IsInt(J)>
+    template<typename J, typename Int, IS_INT(J)>
     inline mma::TensorRef<mint> to_MTensorRef( const ThreadTensor3<J,Int> & A )
     {
         const mint r = A.Rank();

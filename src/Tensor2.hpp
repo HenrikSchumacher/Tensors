@@ -380,7 +380,7 @@ namespace Tensors {
         return A;
     }
     
-    template<typename J, typename Int, IsInt(J)>
+    template<typename J, typename Int, IS_INT(J)>
     mma::MatrixRef<mint> to_transposed_MTensorRef( const Tensor2<J,Int> & B )
     {
         Int rows = B.Dimension(0);

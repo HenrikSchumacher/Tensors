@@ -4,7 +4,10 @@ namespace Tensors
 {
     namespace BLAS_Wrappers
     {
-        template<Layout layout, Side side, UpLo uplo, Op opA, Diag diag, typename Scalar, typename I0, typename I1, typename I2, typename I3>
+        template<
+            Layout layout, Side side, UpLo uplo, Op opA, Diag diag, typename Scalar,
+            typename I0, typename I1, typename I2, typename I3
+        >
         force_inline void trsm(
             const I0 n_, const I1 nrhs_,
             const Scalar alpha, const Scalar * A, const I2 ldA_,

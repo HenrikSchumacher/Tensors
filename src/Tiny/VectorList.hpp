@@ -312,7 +312,7 @@ namespace Tensors
             return B;
         }
         
-        template<int n, typename J, typename Int, IsInt(J)>
+        template<int n, typename J, typename Int, IS_INT(J)>
         inline mma::TensorRef<mint> to_MTensorRef( const VectorList<n,J,Int> & A )
         {
             const mint m = A.Dimension(1);

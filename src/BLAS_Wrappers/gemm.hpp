@@ -4,7 +4,10 @@ namespace Tensors
 {
     namespace BLAS_Wrappers
     {
-        template<Layout layout, Op opA, Op opB, typename Scalar, typename I0, typename I1, typename I2, typename I3, typename I4, typename I5>
+        template<
+            Layout layout, Op opA, Op opB, typename Scalar,
+            typename I0, typename I1, typename I2, typename I3, typename I4, typename I5
+        >
         force_inline void gemm(
             const I0 m_, const I1 n_, const I2 k_,
             const Scalar & alpha, const Scalar * A, const I3 ldA_,

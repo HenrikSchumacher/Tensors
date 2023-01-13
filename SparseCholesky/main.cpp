@@ -107,9 +107,9 @@ int main(int argc, const char * argv[])
     {
         Sparse::CholeskyDecomposition<Scalar, Int, LInt> chol ( &rp[0], &ci[0], &perm[0], n, thread_count, max_depth );
         
-        chol.SN_FactorizeSymbolically();
+        chol.SN_SymbolicFactorization();
         
-        chol.SN_FactorizeNumerically_Parallel(&a[0], reg);
+        chol.SN_NumericFactorization(&a[0], reg);
         
         chol.Solve(B.data(), X.data(), nrhs);
         

@@ -5,7 +5,10 @@ namespace Tensors
     namespace BLAS_Wrappers
     {
         
-        template<Layout layout, UpLo uplo, Op op, typename Scalar, typename I0, typename I1, typename I2, typename I3>
+        template<
+            Layout layout, UpLo uplo, Op op, typename Scalar,
+            typename I0, typename I1, typename I2, typename I3
+        >
         force_inline void herk(
             const I0 n_, const I1 k_,
             const typename ScalarTraits<Scalar>::Real & alpha, const Scalar * A, const I2 ldA_,

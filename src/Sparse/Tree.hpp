@@ -383,14 +383,28 @@ namespace Tensors
 
 //            print("level["+ToString(max_depth)+"] = "+ToString(&LevelIndices()[LevelPointer(max_depth)], LevelPointer(max_depth+1)-LevelPointer(max_depth), 16 ) );
             
-            #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
-            for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
+            if( thread_count > 1 )
             {
-                const Int thread = omp_get_thread_num();
-                
-                Worker_T & worker = *workers[thread];
-                                
-                Traverse_DFS_Postordered( worker, LevelIndex(k) );
+                #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
+                for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
+                {
+                    const Int thread = omp_get_thread_num();
+                    
+                    Worker_T & worker = *workers[thread];
+                    
+                    Traverse_DFS_Postordered( worker, LevelIndex(k) );
+                }
+            }
+            else
+            {
+                for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
+                {
+                    const Int thread = omp_get_thread_num();
+                    
+                    Worker_T & worker = *workers[thread];
+                    
+                    Traverse_DFS_Postordered( worker, LevelIndex(k) );
+                }
             }
             
             ptoc(tag+" <= "+ToString(max_depth)+")");
@@ -402,14 +416,28 @@ namespace Tensors
 //
 //                print("level["+ToString(d)+"] = "+ToString(&LevelIndices()[LevelPointer(d)], LevelPointer(d+1)-LevelPointer(d), 16 ) );
                 
-                #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
-                for( Int k = LevelPointer(d); k < LevelPointer(d+1); ++k )
+                if( thread_count > 1 )
                 {
-                    const Int thread = omp_get_thread_num();
-                    
-                    Worker_T & worker = *workers[thread];
-                    
-                    worker(LevelIndex(k));
+                    #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
+                    for( Int k = LevelPointer(d); k < LevelPointer(d+1); ++k )
+                    {
+                        const Int thread = omp_get_thread_num();
+                        
+                        Worker_T & worker = *workers[thread];
+                        
+                        worker(LevelIndex(k));
+                    }
+                }
+                else
+                {
+                    for( Int k = LevelPointer(d); k < LevelPointer(d+1); ++k )
+                    {
+                        const Int thread = omp_get_thread_num();
+                        
+                        Worker_T & worker = *workers[thread];
+                        
+                        worker(LevelIndex(k));
+                    }
                 }
                 
                 ptoc(tag+" = "+ToString(d)+")");

@@ -305,7 +305,7 @@ namespace Tensors
             return B;
         }
         
-        template<int m, int n, typename J, typename I, IsInt(J)>
+        template<int m, int n, typename J, typename I, IS_INT(J)>
         inline mma::TensorRef<mint> to_MTensorRef( const Tiny::MatrixList<m,n,J,I> & A )
         {
             const mint N = A.Dimension(2);

@@ -77,7 +77,8 @@ namespace Tensors
             using Int       = Int_;
             using LInt      = LInt_;
             
-            using SparseMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
+            using SparseBinaryMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
+            using SparseMatrix_T       = SparseMatrixCSR<Scalar,Int,LInt>;
 
             friend class CholeskyFactorizer<Scalar,Int,LInt>;
             
@@ -92,7 +93,7 @@ namespace Tensors
             const Int thread_count = 1;
             const Int max_depth = 0;
             
-            SparseMatrix_T A;
+            SparseBinaryMatrix_T A;
             SparseMatrix_T L;
             SparseMatrix_T U;
             
@@ -210,7 +211,7 @@ namespace Tensors
                     outer_, inner_, perm, perm, outer_[n]
                 );
                 
-                A = SparseMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
+                A = SparseBinaryMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
                 
                 A.RequireDiag();
                 
@@ -244,7 +245,7 @@ namespace Tensors
                     outer_, inner_, perm, perm, outer_[n]
                 );
                 
-                A = SparseMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
+                A = SparseBinaryMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
                 
                 A.RequireDiag();
                 
@@ -520,7 +521,7 @@ namespace Tensors
             
             const Tree<Int> & AssemblyTree()
             {
-                SN_FactorizeSymbolically();
+                SN_SymbolicFactorization();
                 
                 return aTree;
             }
@@ -533,7 +534,7 @@ namespace Tensors
         
         public:
             
-            void SN_FactorizeSymbolically()
+            void SN_SymbolicFactorization()
             {
                 // Compute supernodal symbolic factorization with so-called _fundamental supernodes_.
                 // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
@@ -543,14 +544,14 @@ namespace Tensors
 
                 if( !SN_initialized )
                 {
-                    ptic(ClassName()+"::SN_FactorizeSymbolically");
+                    ptic(ClassName()+"::SN_SymbolicFactorization");
 
                     PostOrder();
 
                     // temporary arrays
                     Tensor1<Int,Int> row (n);// An array to aggregate columnn indices of row of U.
                     Tensor1<Int,Int> row_scratch (n); // Some scratch space for UniteSortedBuffers.
-                    Int row_counter;                 // Holds the current number of indices in row.
+                    Int n_1;  // Holds the current number of indices in row.
         
                     // TODO: Fix this to work with singed integers.
                     Tensor1<Int,Int> prev_col_nz(n,-1);
@@ -604,8 +605,8 @@ namespace Tensors
                                 
                                 while( (A.Inner(k) < i) && (k < k_end) ) { ++k; }
                                 
-                                row_counter = int_cast<Int>(k_end - k);
-                                copy_buffer( &A.Inner(k), row.data(), row_counter );
+                                n_1 = int_cast<Int>(k_end - k);
+                                copy_buffer( &A.Inner(k), row.data(), n_1 );
                             }
                             
                             // Next, we have to merge the column indices of the children of i_0 into row.
@@ -630,8 +631,8 @@ namespace Tensors
                                 
                                 if( a < b )
                                 {
-                                    row_counter = UniteSortedBuffers(
-                                        row.data(),       row_counter,
+                                    n_1 = UniteSortedBuffers(
+                                        row.data(),       n_1,
                                         &SN_inner_agg[a], int_cast<Int>(b - a),
                                         row_scratch.data()
                                     );
@@ -640,7 +641,7 @@ namespace Tensors
                             }
                             
                             // Now row is ready to be pushed into SN_inner.
-                            SN_inner_agg.Push( row.data(), row_counter );
+                            SN_inner_agg.Push( row.data(), n_1 );
                             
                             // Start new supernode.
                             ++SN_count;
@@ -684,7 +685,7 @@ namespace Tensors
                     
                     SN_initialized = true;
                     
-                    ptoc(ClassName()+"::SN_FactorizeSymbolically");
+                    ptoc(ClassName()+"::SN_SymbolicFactorization");
                 }
             }
             
@@ -771,14 +772,14 @@ namespace Tensors
         public:
             
             template<typename ExtScalar>
-            void SN_FactorizeNumerically(
+            void SN_NumericFactorization(
                 ptr<ExtScalar> A_val_,
                 const ExtScalar reg_  = 0 // Regularization parameter for the diagonal.
             )
             {
-                ptic(ClassName()+"::SN_FactorizeNumerically");
+                ptic(ClassName()+"::SN_NumericFactorization");
                 
-                SN_FactorizeSymbolically();
+                SN_SymbolicFactorization();
 
                 reg = reg_;
                 A_inner_perm.Permute( A_val_, A_val.data() );
@@ -804,7 +805,7 @@ namespace Tensors
                 
                 SN_factorized = true;
                 
-                ptoc(ClassName()+"::SN_FactorizeNumerically");
+                ptoc(ClassName()+"::SN_NumericFactorization");
                 
             }
             
@@ -1185,15 +1186,15 @@ namespace Tensors
             
             void SN_ReconstructU()
             {
-                // TODO: Fill also the nonzero values.
+                // TODO: Debug this.
                 
                 Tensor1<LInt,Int> U_rp (n+1);
                 U_rp[0] = 0;
                 
                 for( Int k = 0; k < SN_count; ++k )
                 {
-                    const Int i_begin = SN_rp[k  ];
-                    const Int i_end   = SN_rp[k+1];
+                    const Int i_begin  = SN_rp[k  ];
+                    const Int i_end    = SN_rp[k+1];
                     
                     const LInt l_begin = SN_outer[k  ];
                     const LInt l_end   = SN_outer[k+1];
@@ -1209,40 +1210,61 @@ namespace Tensors
                 
                 valprint("nnz",U_rp.Last());
                 
-                Tensor1<Int,LInt> U_ci (U_rp.Last());
+                Tensor1<Int,LInt>    U_ci  (U_rp.Last());
+                Tensor1<Scalar,LInt> U_val (U_rp.Last());
                 
-                for( Int k = 0; k < SN_count; ++k )
+                JobPointers<LInt> job_ptr ( SN_count, U_rp.data(), thread_count, false );
+                
+                #pragma omp parallel for num_threads( thread_count )
+                for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const Int i_begin = SN_rp[k  ];
-                    const Int i_end   = SN_rp[k+1];
+                    const Int k_begin = job_ptr[thread  ];
+                    const Int k_end   = job_ptr[thread+1];
                     
-                    const LInt l_begin = SN_outer[k  ];
-                    const LInt l_end   = SN_outer[k+1];
-                    
-                    const Int n_0 = i_end - i_begin;
-                    const Int n_1 = int_cast<Int>(l_end - l_begin);
-
-                    const Int start = U_rp[i_begin];
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+                    for( Int k = k_begin; k < k_end; ++k )
                     {
-                        const Int delta = i-i_begin;
+                        const Int i_begin  = SN_rp[k  ];
+                        const Int i_end    = SN_rp[k+1];
+                        
+                        const LInt l_begin = SN_outer[k  ];
+                        const LInt l_end   = SN_outer[k+1];
+                        
+                        const Int n_0 = i_end - i_begin;
+                        const Int n_1 = int_cast<Int>(l_end - l_begin);
 
-                        U_ci[start + delta] = i;
-                    }
-                    
-                    copy_buffer( &SN_inner[l_begin], &U_ci[U_rp[i_begin]+n_0], n_1 );
-                    
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int i = i_begin+1; i < i_end; ++i )
-                    {
-                        const Int delta = i-i_begin;
+                        const Int start = U_rp[i_begin];
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            const Int delta = i-i_begin;
 
-                        copy_buffer( &U_ci[start+delta], &U_ci[U_rp[i]], (i_end-i) + n_1 );
+                            U_ci[start + delta] = i;
+                        }
+                        
+                        copy_buffer( &SN_inner[l_begin], &U_ci[U_rp[i_begin]+n_0], n_1 );
+                        
+                        for( Int i = i_begin+1; i < i_end; ++i )
+                        {
+                            const Int delta = i-i_begin;
+
+                            copy_buffer( &U_ci[start+delta], &U_ci[U_rp[i]], (i_end-i) + n_1 );
+                                                    
+                            copy_buffer(
+                                &SN_tri_val[SN_tri_ptr[k] + n_0 * i + i]
+                                &U_val[U_rp[i]],
+                                i_end-i
+                            );
+
+                            copy_buffer(
+                                &SN_rec_val[SN_rec_ptr[k] + n_1 * i],
+                                &U_val[U_rp[i]+i_end-i],
+                                n_1
+                            );
+                        }
                     }
                 }
                 
-                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci), n, n, thread_count );
+                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci), std::move(U_val), n, n, thread_count );
             }
 
 //###########################################################################################
@@ -1296,14 +1318,14 @@ namespace Tensors
 //###########################################################################################
         public:
             
-            void FactorizeSymbolically()
+            void SymbolicFactorization()
             {
                 // Non-supernodal way to perform symbolic analysis.
-                // Only meant as reference! In practice rather use the supernodal version SN_FactorizeSymbolically.
+                // Only meant as reference! In practice rather use the supernodal version SN_SymbolicFactorization.
                 
                 // This is Algorithm 4.2 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
                 
-                ptic(ClassName()+"::FactorizeSymbolically");
+                ptic(ClassName()+"::SymbolicFactorization");
                 
                 Tensor1<Int,Int> row ( n );  // An array to aggregate the rows of U.
                 
@@ -1351,10 +1373,12 @@ namespace Tensors
                     U_rp[i+1] = U_ci.Size();
 
                 } // for( Int i = 0; i < n; ++i )
+                
+                Tensor1<Scalar,LInt> U_val ( U_ci.Size() );
 
-                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), n, n, thread_count );
+                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), std::move(U_val), n, n, thread_count );
 
-                ptoc(ClassName()+"::FactorizeSymbolically");
+                ptoc(ClassName()+"::SymbolicFactorization");
             }
             
             template< Int RHS_COUNT, bool unitDiag = false>
@@ -1377,10 +1401,10 @@ namespace Tensors
                 return n;
             }
             
-            const SparseMatrix_T & GetL() const
-            {
-                return L;
-            }
+//            const SparseMatrix_T & GetL() const
+//            {
+//                return L;
+//            }
             
             const SparseMatrix_T & GetU() const
             {
@@ -1389,9 +1413,18 @@ namespace Tensors
             
             const SparseMatrix_T & GetA() const
             {
-                return U;
+                return A;
             }
             
+            const Permutation<Int> & GetPermutation() const
+            {
+                return perm;
+            }
+            
+            const Permutation<LInt> & GetValuePermutation() const
+            {
+                return A_inner_perm;
+            }
             
             Int SN_Count() const
             {
@@ -1471,7 +1504,7 @@ namespace Tensors
 
 // DONE: Load A + eps * Id during factorization.
 
-// DONE:Call SN_FactorizeSymbolically, SN_FactorizeNumerically,... when dependent routines are called.
+// DONE:Call SN_SymbolicFactorization, SN_NumericFactorization,... when dependent routines are called.
 
 // DONE: Currently, EliminationTree breaks down if the matrix is reducible.
 //           --> What we need is an EliminationForest!
