@@ -158,9 +158,9 @@ namespace Tensors
             return thread_count;
         }
         
-        const Int & operator()( Int i )
+        const Int & operator()( const Int i )
         {
-            p[i];
+            return p[i];
         }
         
         template<typename J>
