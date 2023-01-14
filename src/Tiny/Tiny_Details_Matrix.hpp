@@ -6,12 +6,12 @@ public:
         Read( &other.A[0][0] );
     }
 
-    friend void swap( CLASS & A, CLASS & B ) noexcept
+    friend void swap( CLASS & X, CLASS & Y ) noexcept
     {
         // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
         using std::swap;
         
-        swap( A.A, B.A );
+        swap( X.A, Y.A );
     }
 
 

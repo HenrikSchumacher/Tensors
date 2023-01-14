@@ -1173,9 +1173,9 @@ namespace Tensors
         }
         
         template< Int RHS_COUNT, bool unitDiag = false>
-        void SolveUpperTriangular_Sequential_0( ptr<Scalar> values, ptr<Scalar> b, mut<Scalar> x )
+        void SolveUpperTriangular_Sequential_0( ptr<Scalar> values_, ptr<Scalar> b, mut<Scalar> x )
         {
-            this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,Scalar,unitDiag>(values,b,x);
+            this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,Scalar,unitDiag>(values_,b,x);
         }
         
     public:

@@ -147,9 +147,9 @@ namespace Tensors
                 void
             >
             Dot(
-                const Tiny::Matrix<m,K,R,Int> & A,
-                const Tiny::Matrix<K,n,S,Int> & B,
-                CLASS & C
+                const Tiny::Matrix<m,K,R,Int> & X,
+                const Tiny::Matrix<K,n,S,Int> & Y,
+                CLASS & Z
             )
             {
                 // First pass to overwrite (if desired).
@@ -161,11 +161,11 @@ namespace Tensors
                     {
                         if constexpr ( add_to )
                         {
-                            C[i][j] += A[i][0] * B[0][j];
+                            Z[i][j] += X[i][0] * Y[0][j];
                         }
                         else
                         {
-                            C[i][j] = A[i][0] * B[0][j];
+                            Z[i][j] = X[i][0] * Y[0][j];
                         }
                     }
                 }
@@ -180,7 +180,7 @@ namespace Tensors
 //                        LOOP_UNROLL_FULL
                         for( Int j = 0; j < n; ++j )
                         {
-                            C[i][j] += A[i][k] * B[k][j];
+                            Z[i][j] += X[i][k] * Y[k][j];
                         }
                     }
                 }
@@ -209,7 +209,7 @@ namespace Tensors
                 void
             >
             Dot(
-                const CLASS & A,
+                const CLASS & M,
                 const Tiny::Vector<n,S,Int> & x,
                       Tiny::Vector<m,T,Int> & y
             )
@@ -222,7 +222,7 @@ namespace Tensors
 //                    LOOP_UNROLL_FULL
                     for( Int j = 0; j < n; ++j )
                     {
-                        y_i += A[i][j] * x[j];
+                        y_i += M[i][j] * x[j];
                     }
                     
                     if constexpr ( add_to )
@@ -314,15 +314,13 @@ namespace Tensors
         public:
             
             template<class T>
-            force_inline
-            std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
-                void
-            >
-            GivensLeft( const T c, const T s, const Int i, const Int j )
+            force_inline void GivensLeft( const T c_, const T s_, const Int i, const Int j )
             {
                 if constexpr ( n >= 2 )
                 {
+                    const Scalar c = scalar_cast<Scalar>(c_);
+                    const Scalar s = scalar_cast<Scalar>(s_);
+                    
                     // Assumes that squared_abs(c) + squared_abs(s) == one.
                     // Assumes that i != j.
                     // Multiplies matrix with the rotation
@@ -346,15 +344,13 @@ namespace Tensors
             }
 
             template<class T>
-            force_inline
-            std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
-                void
-            >
-            GivensRight( const T c, const T s, const Int i, const Int j )
+            force_inline void GivensRight( const T c_, const T s_, const Int i, const Int j )
             {
                 if constexpr ( n >= 2 )
                 {
+                    const Scalar c = scalar_cast<Scalar>(c_);
+                    const Scalar s = scalar_cast<Scalar>(s_);
+                    
                     // Assumes that squared_abs(c) + squared_abs(s) == one.
                     // Assumes that i != j.
                     // Multiplies matrix with rotation
@@ -457,19 +453,19 @@ namespace Tensors
                         //Pivot - row swap needed
                         if( M[k][k] == zero )
                         {
-                            Int m = 0;
-                            for( m = k + 1; m < n; ++m )
+                            Int l = 0;
+                            for( l = k + 1; l < n; ++l )
                             {
-                                if( M[m][k] != zero )
+                                if( M[l][k] != zero )
                                 {
-                                    std::swap_ranges( &M[m][0], &M[m][n], &M[k][0] );
+                                    std::swap_ranges( &M[l][0], &M[l][n], &M[k][0] );
                                     sign = -sign;
                                     break;
                                 }
                             }
                             
                             //No entries != 0 found in column k -> det = 0
-                            if(m == n)
+                            if(l == n)
                             {
                                 return zero;
                             }

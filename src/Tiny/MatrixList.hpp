@@ -67,18 +67,18 @@ namespace Tensors
                 }
             }
             
-            friend void swap(MatrixList &A, MatrixList &B)
+            friend void swap(MatrixList &X, MatrixList &Y)
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
                 
-                std::swap( A.length, B.length );
+                std::swap( X.length, Y.length );
                 
                 for( Int i = 0; i < m; ++i )
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        swap( A.A[i][j], B.A[i][j] );
+                        swap( X.A[i][j], Y.A[i][j] );
                     }
                 }
             }

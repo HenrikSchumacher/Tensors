@@ -103,7 +103,7 @@ namespace Tensors
                 }
             }
             
-            UpperTriangularMatrix<n, Scalar, Int> & CholeskyDecomposition() const
+            UpperTriangularMatrix<n, Scalar, Int> CholeskyDecomposition() const
             {
                 // Computes and returns the upper factor U = L ^H such that A = U^H * U.
                 

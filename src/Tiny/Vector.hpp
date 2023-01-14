@@ -248,9 +248,9 @@ namespace Tensors
                 return std::sqrt( r );
             }
             
-            force_inline friend Real Norm( const CLASS & v )
+            force_inline friend Real Norm( const CLASS & u )
             {
-                return v.Norm();
+                return u.Norm();
             }
             
             force_inline void Normalize()

@@ -141,18 +141,18 @@ namespace Tensors
         
         // We could also simply use the implicitly created copy constructor.
         
-        friend void swap (Tree &A, Tree &B ) noexcept
+        friend void swap (Tree &X, Tree &Y ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
 
-            swap( A.n,                 B.n                 );
-            swap( A.thread_count,      B.thread_count      );
-            swap( A.parents,           B.parents           );
-            swap( A.A,                 B.A                 );
-            swap( A.descendant_counts, B.descendant_counts );
-            swap( A.post,              B.post              );
-            swap( A.levels,            B.levels            );
+            swap( X.n,                 Y.n                 );
+            swap( X.thread_count,      Y.thread_count      );
+            swap( X.parents,           Y.parents           );
+            swap( X.A,                 Y.A                 );
+            swap( X.descendant_counts, Y.descendant_counts );
+            swap( X.post,              Y.post              );
+            swap( X.levels,            Y.levels            );
         }
         
         // Copy assignment operator

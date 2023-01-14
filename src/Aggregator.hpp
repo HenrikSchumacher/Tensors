@@ -52,7 +52,7 @@ namespace Tensors
         :   current_size ( other.current_size               )
         ,   capacity     ( other.capacity                   )
         ,   container_0  ( other.container_0                )
-        ,   thread_count ( thread_count                     )
+        ,   thread_count ( other.thread_count               )
         {}
 
         friend void swap ( Aggregator & A, Aggregator & B ) noexcept
