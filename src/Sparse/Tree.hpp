@@ -13,13 +13,13 @@ namespace Tensors
 
         Tensor1<Int,Int> parents;
         
-        SparseBinaryMatrixCSR<Int,Int> A;       // The adjacency matrix of the directed graph.
+        Sparse::BinaryMatrixCSR<Int,Int> A;       // The adjacency matrix of the directed graph.
         
         Tensor1<Int,Int> descendant_counts;
         
         Permutation<Int> post;                  // To store the postordering.
         
-        SparseBinaryMatrixCSR<Int,Int> levels;       // The adjacency matrix of the directed graph.
+        Sparse::BinaryMatrixCSR<Int,Int> levels;       // The adjacency matrix of the directed graph.
 
     public:
         
@@ -49,7 +49,7 @@ namespace Tensors
                 const Int * idx_data = parents.data();
                 const Int * jdx_data = post.GetPermutation().data(); // This is a iota.
                 
-                A = SparseBinaryMatrixCSR<Int,Int> (
+                A = Sparse::BinaryMatrixCSR<Int,Int> (
                     &idx_data,
                     &jdx_data,
                     &entry_counts[0],
@@ -104,7 +104,7 @@ namespace Tensors
                 const Int * idx_data = node_to_depth.data();
                 const Int * jdx_data = post.GetPermutation().data(); // This is still a iota.
                 
-                levels = SparseBinaryMatrixCSR<Int,Int> (
+                levels = Sparse::BinaryMatrixCSR<Int,Int> (
                     &idx_data,
                     &jdx_data,
                     &entry_counts[0],
@@ -119,7 +119,7 @@ namespace Tensors
 
             // Now post.Scratch() contains the post ordering.
             
-            post.SwapScratch();
+            post.SwapScratch( Inverse::False );
             
             // Now post.GetPermutation() contains the post ordering.
 

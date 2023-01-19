@@ -38,13 +38,13 @@
 
 
     #include "src/SparseBLAS.hpp"
-    #include "src/Sparse/SparsePatternCSR.hpp"
-    #include "src/Sparse/SparseBinaryMatrixCSR.hpp"
+    #include "src/Sparse/PatternCSR.hpp"
+    #include "src/Sparse/BinaryMatrixCSR.hpp"
 //    #include "src/Sparse/BinaryMatrixVBSR.hpp"
-    #include "src/Sparse/SparseMatrixCSR.hpp"
+    #include "src/Sparse/MatrixCSR.hpp"
 
 
-    #include "src/Sparse/SparseKernelMatrixCSR.hpp"
+    #include "src/Sparse/KernelMatrixCSR.hpp"
     #include "src/Sparse/DiagonalKernelMatrix.hpp"
 
     #include "src/BlockKernels/BlockKernel_fixed.hpp"

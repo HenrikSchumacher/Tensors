@@ -77,8 +77,8 @@ namespace Tensors
             using Int       = Int_;
             using LInt      = LInt_;
             
-            using SparseBinaryMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
-            using SparseMatrix_T       = SparseMatrixCSR<Scalar,Int,LInt>;
+            using BinaryMatrix_T = Sparse::BinaryMatrixCSR<Int,LInt>;
+            using Matrix_T       = Sparse::MatrixCSR<Scalar,Int,LInt>;
 
             friend class CholeskyFactorizer<Scalar,Int,LInt>;
             
@@ -93,14 +93,14 @@ namespace Tensors
             const Int thread_count = 1;
             const Int max_depth = 0;
             
-            SparseBinaryMatrix_T A;
-            SparseMatrix_T L;
-            SparseMatrix_T U;
+            BinaryMatrix_T A;
+            Matrix_T L;
+            Matrix_T U;
             
             Tensor1<Scalar,LInt> A_val;
             Scalar reg = 0;
             
-            Permutation<Int>  perm;              // row and column permutation
+            Permutation<Int>  perm;           // row and column permutation
             Permutation<LInt> A_inner_perm;   // permutation of the nonzero values. Needed for reading in the nonzeros of the matrix.
             
             // elimination tree
@@ -204,14 +204,12 @@ namespace Tensors
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
                 }
                 
-                Tensor1<LInt,Int> A_rp;
-                Tensor1<Int,LInt> A_ci;
+                Tensor1<LInt,Int> A_rp (outer_, n+1);
+                Tensor1<Int,LInt> A_ci (inner_, A_rp.Last() );
 
-                std::tie(A_rp,A_ci,A_inner_perm) = SparseMatrixPermutation<Int,LInt>(
-                    outer_, inner_, perm, perm, outer_[n]
-                );
+                A_inner_perm = SparseMatrixPermutation<Int,LInt>( A_rp, A_ci, perm, perm, A_rp.Last() );
                 
-                A = SparseBinaryMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
+                A = BinaryMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
                 
                 A.RequireDiag();
                 
@@ -232,27 +230,28 @@ namespace Tensors
             ,   A_val           ( outer_[n]                             )
             ,   perm            ( p_, n, Inverse::False, thread_count   )
             {
-                ptic("ClassName()");
+                ptic(ClassName());
                 if( n <= 0 )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
                 }
                 
-                Tensor1<LInt,Int> A_rp;
-                Tensor1<Int,LInt> A_ci;
-
-                std::tie(A_rp,A_ci,A_inner_perm) = SparseMatrixPermutation<Int,LInt>(
-                    outer_, inner_, perm, perm, outer_[n]
-                );
+                valprint("CholeskyDecomposition thread_count",thread_count);
+                valprint("perm.ThreadCount()",perm.ThreadCount());
                 
-                A = SparseBinaryMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
+                Tensor1<LInt,Int> A_rp (outer_, n+1 );
+                Tensor1<Int,LInt> A_ci (inner_, A_rp.Last() );
+
+                A_inner_perm = PermuteSparseMatrix( A_rp, A_ci, perm, perm, A_rp.Last() );
+                
+                A = BinaryMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
                 
                 A.RequireDiag();
                 
                 CheckDiagonal();
                 
                 // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
-                ptoc("ClassName()");
+                ptoc(ClassName());
             }
             
             
@@ -286,13 +285,18 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::PostOrder");
                     
+                    dump(post.ThreadCount());
+                    dump(perm.ThreadCount());
+                    
                     ptic("Compose post");
                     perm.Compose( post );
                     ptoc("Compose post");
                     
                     ptic("Permute A");
-                    Permutation<LInt> A_perm = A.Permute( post, post );
+                    A_inner_perm.Compose( A.Permute( post, post ) );
                     ptoc("Permute A");
+                    
+                    dump(A_inner_perm.ThreadCount());
                     
                     ptic("A.RequireDiag()");
                     A.RequireDiag();
@@ -301,10 +305,6 @@ namespace Tensors
                     ptic("CheckDiagonal()");
                     CheckDiagonal();
                     ptoc("CheckDiagonal()");
-                    
-                    ptic("Compose A_perm");
-                    A_inner_perm.Compose( A_perm );
-                    ptoc("Compose A_perm");
                     
                     eTree_initialized = false;
                     SN_initialized    = false;
@@ -782,7 +782,7 @@ namespace Tensors
                 SN_SymbolicFactorization();
 
                 reg = reg_;
-                A_inner_perm.Permute( A_val_, A_val.data() );
+                A_inner_perm.Permute( A_val_, A_val.data(), Inverse::False );
                 
                 ptic("Zerofy buffers.");
                 SN_tri_val.SetZero( thread_count );
@@ -1264,7 +1264,7 @@ namespace Tensors
                     }
                 }
                 
-                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci), std::move(U_val), n, n, thread_count );
+                U = Matrix_T( std::move(U_rp), std::move(U_ci), std::move(U_val), n, n, thread_count );
             }
 
 //###########################################################################################
@@ -1293,7 +1293,7 @@ namespace Tensors
                     X         = Tensor1<Scalar,LInt>(n*nrhs);
                     X_scratch = Tensor1<Scalar,LInt>(max_n_1*nrhs);
                 }
-                perm.Permute( B, X.data(), nrhs, Inverse::False );
+                perm.Permute( B, X.data(), Inverse::False, nrhs );
                 ptoc(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
             }
 
@@ -1309,7 +1309,7 @@ namespace Tensors
             void WriteSolution( mut<ExtScalar> X_, const LInt nrhs )
             {
                 ptic(ClassName()+"::WriteSolution ("+ToString(nrhs)+")");
-                perm.Permute( X.data(), X_, nrhs, Inverse::True );
+                perm.Permute( X.data(), X_, Inverse::True, nrhs );
                 ptoc(ClassName()+"::WriteSolution ("+ToString(nrhs)+")");
             }
             
@@ -1376,7 +1376,7 @@ namespace Tensors
                 
                 Tensor1<Scalar,LInt> U_val ( U_ci.Size() );
 
-                U = SparseMatrix_T( std::move(U_rp), std::move(U_ci.Get()), std::move(U_val), n, n, thread_count );
+                U = Matrix_T( std::move(U_rp), std::move(U_ci.Get()), std::move(U_val), n, n, thread_count );
 
                 ptoc(ClassName()+"::SymbolicFactorization");
             }
@@ -1401,17 +1401,17 @@ namespace Tensors
                 return n;
             }
             
-//            const SparseMatrix_T & GetL() const
+//            const Matrix_T & GetL() const
 //            {
 //                return L;
 //            }
             
-            const SparseMatrix_T & GetU() const
+            const Matrix_T & GetU() const
             {
                 return U;
             }
             
-            const SparseMatrix_T & GetA() const
+            const Matrix_T & GetA() const
             {
                 return A;
             }

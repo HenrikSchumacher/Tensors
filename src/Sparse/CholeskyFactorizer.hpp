@@ -24,7 +24,7 @@ namespace Tensors
             using Int       = Int_;
             using LInt      = LInt_;
             
-            using SparseMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
+            using SparseMatrix_T = Sparse::BinaryMatrixCSR<Int,LInt>;
             
         protected:
             

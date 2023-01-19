@@ -99,7 +99,7 @@ int main(int argc, const char * argv[])
     
     Tensor2<Scalar,Int> Y;
     
-    SparseMatrixCSR<Scalar, Int, LInt> A ( &rp[0], &ci[0], &a[0], n, n, thread_count );
+    Sparse::MatrixCSR<Scalar, Int, LInt> A ( &rp[0], &ci[0], &a[0], n, n, thread_count );
     
     Scalar reg = 0;
     
