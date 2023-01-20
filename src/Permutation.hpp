@@ -350,8 +350,9 @@ namespace Tensors
                     
                     is_trivial = true;
                     
-                    if( thread_count <= 1 )
+                    if( thread_count > 1 )
                     {
+                        #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial ) schedule( static )
                         for( Int i = 0; i < n; ++i )
                         {
                             scratch[i] = a[b[i]];
@@ -360,7 +361,6 @@ namespace Tensors
                     }
                     else
                     {
-                        #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial ) schedule( static )
                         for( Int i = 0; i < n; ++i )
                         {
                             scratch[i] = a[b[i]];
@@ -371,8 +371,9 @@ namespace Tensors
                     swap(p,scratch);
                     
                     //post
-                    if( thread_count <= 1 )
+                    if( thread_count > 1 )
                     {
+                        #pragma omp parallel for num_threads( thread_count ) schedule( static )
                         for( Int i = 0; i < n; ++i )
                         {
                             scratch[i] = b_inv[a_inv[i]];
@@ -380,7 +381,6 @@ namespace Tensors
                     }
                     else
                     {
-                        #pragma omp parallel for num_threads( thread_count ) schedule( static )
                         for( Int i = 0; i < n; ++i )
                         {
                             scratch[i] = b_inv[a_inv[i]];
@@ -405,8 +405,9 @@ namespace Tensors
                 
                 ptr<Int> r = GetPermutation().data();
                 
-                if( thread_count <= 1 )
+                if( thread_count > 1 )
                 {
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         b[i] = static_cast<T>(a[r[i]]);
@@ -414,7 +415,6 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         b[i] = static_cast<T>(a[r[i]]);
@@ -460,8 +460,9 @@ namespace Tensors
                 
                 ptr<Int> r = GetPermutation().data();
 
-                if( thread_count <= 1 )
+                if( thread_count > 1 )
                 {
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         // a[r[i]] -> b[i].
@@ -470,7 +471,6 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         // a[r[i]] -> b[i].
@@ -528,7 +528,7 @@ namespace Tensors
             {
                 swap( p, scratch );
                 
-                if( thread_count <= 1 )
+                if( thread_count > 1 )
                 {
                     for( Int i = 0; i < n; ++i )
                     {
@@ -556,8 +556,9 @@ namespace Tensors
             {
                 swap( p_inv, scratch );
                 
-                if( thread_count <= 1 )
+                if( thread_count > 1 )
                 {
+                    #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         const Int p_inv_i = p_inv[i];
@@ -569,7 +570,6 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         const Int p_inv_i = p_inv[i];
@@ -599,8 +599,9 @@ namespace Tensors
                 
                 ptr<Int> r = GetPermutation().data();
                 
-                if( thread_count <= 1 )
+                if( thread_count > 1 )
                 {
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
@@ -608,7 +609,6 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
@@ -629,8 +629,9 @@ namespace Tensors
                 
                 ptr<Int> r = GetInversePermutation().data();
                 
-                if( thread_count <= 1 )
+                if( thread_count > 1 )
                 {
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
@@ -638,7 +639,6 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
@@ -661,8 +661,9 @@ namespace Tensors
                 ptr<Int> p_     = GetPermutation().data();
                 ptr<Int> p_inv_ = GetInversePermutation().data();
                 
-                if( thread_count <= 1 )
+                if( thread_count > 1 )
                 {
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         fails += static_cast<Int>(i != p_inv_[p_[i]]);
@@ -670,7 +671,6 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         fails += static_cast<Int>(i != p_inv_[p_[i]]);
@@ -717,6 +717,8 @@ namespace Tensors
 
         const Int thread_count = P.ThreadCount();
 
+        dump(thread_count);
+        
         ptr<Int> p     = P.GetPermutation().data();
         ptr<Int> q_inv = Q.GetInversePermutation().data();
 
@@ -738,8 +740,9 @@ namespace Tensors
         {
             new_outer[0] = 0;
 
-            if( thread_count <= 1 )
+            if( thread_count > 1 )
             {
+                #pragma omp parallel for num_threads( thread_count ) schedule( static )
                 for( Int i = 0; i < m; ++i )
                 {
                     const Int p_i = p[i];
@@ -749,7 +752,6 @@ namespace Tensors
             }
             else
             {
-                #pragma omp parallel for num_threads( thread_count ) schedule( static )
                 for( Int i = 0; i < m; ++i )
                 {
                     const Int p_i = p[i];
@@ -764,44 +766,7 @@ namespace Tensors
 
         mut<LInt> scratch = perm.Scratch().data();
 
-        if( thread_count <= 1 )
-        {
-            TwoArrayQuickSort<Int,LInt,Int> quick_sort;
-
-            for( Int i = 0; i < m; ++i )
-            {
-                const LInt begin = outer[ COND( P_Trivial, i, p[i] ) ];
-
-                const LInt new_begin = new_outer[i  ];
-                const LInt new_end   = new_outer[i+1];
-
-                const LInt k_max = new_end - new_begin;
-
-                if constexpr ( Q_Trivial )
-                {
-                    copy_buffer( &inner[begin], &new_inner[new_begin], k_max );
-
-                    for( LInt k = 0; k < k_max; ++k )
-                    {
-                        scratch[new_begin+k] = begin+k;
-                    }
-                }
-                else
-                {
-                    for( LInt k = 0; k < k_max; ++k )
-                    {
-                        new_inner[new_begin+k] = q_inv[inner[begin+k]];
-                        scratch  [new_begin+k] = begin+k;
-                    }
-
-                    if constexpr ( Sort )
-                    {
-                        quick_sort( &new_inner[new_begin], &scratch [new_begin], static_cast<Int>(k_max) );
-                    }
-                }
-            }
-        }
-        else
+        if( thread_count > 1 )
         {
             JobPointers<Int> job_ptr ( m, new_outer.data(),  thread_count );
             
@@ -809,23 +774,23 @@ namespace Tensors
             for( Int thread = 0; thread < thread_count; ++thread )
             {
                 TwoArrayQuickSort<Int,LInt,Int> quick_sort;
-
+                
                 const Int i_begin = job_ptr[thread  ];
                 const Int i_end   = job_ptr[thread+1];
-
+                
                 for( Int i = i_begin; i < i_end; ++i )
                 {
                     const LInt begin = outer[ COND( P_Trivial, i, p[i] ) ];
-
+                    
                     const LInt new_begin = new_outer[i  ];
                     const LInt new_end   = new_outer[i+1];
-
+                    
                     const LInt k_max = new_end - new_begin;
-
+                    
                     if constexpr ( Q_Trivial )
                     {
                         copy_buffer( &inner[begin], &new_inner[new_begin], k_max );
-
+                        
                         for( LInt k = 0; k < k_max; ++k )
                         {
                             scratch[new_begin+k] = begin+k;
@@ -838,11 +803,48 @@ namespace Tensors
                             new_inner[new_begin+k] = q_inv[inner[begin+k]];
                             scratch  [new_begin+k] = begin+k;
                         }
-
+                        
                         if constexpr ( Sort )
                         {
                             quick_sort( &new_inner[new_begin], &scratch [new_begin], static_cast<Int>(k_max) );
                         }
+                    }
+                }
+            }
+        }
+        else
+        {
+            TwoArrayQuickSort<Int,LInt,Int> quick_sort;
+            
+            for( Int i = 0; i < m; ++i )
+            {
+                const LInt begin = outer[ COND( P_Trivial, i, p[i] ) ];
+                
+                const LInt new_begin = new_outer[i  ];
+                const LInt new_end   = new_outer[i+1];
+                
+                const LInt k_max = new_end - new_begin;
+                
+                if constexpr ( Q_Trivial )
+                {
+                    copy_buffer( &inner[begin], &new_inner[new_begin], k_max );
+                    
+                    for( LInt k = 0; k < k_max; ++k )
+                    {
+                        scratch[new_begin+k] = begin+k;
+                    }
+                }
+                else
+                {
+                    for( LInt k = 0; k < k_max; ++k )
+                    {
+                        new_inner[new_begin+k] = q_inv[inner[begin+k]];
+                        scratch  [new_begin+k] = begin+k;
+                    }
+                    
+                    if constexpr ( Sort )
+                    {
+                        quick_sort( &new_inner[new_begin], &scratch [new_begin], static_cast<Int>(k_max) );
                     }
                 }
             }
