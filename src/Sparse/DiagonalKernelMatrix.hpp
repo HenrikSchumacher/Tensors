@@ -1,11 +1,9 @@
 #pragma once
 
-#define CLASS DiagonalKernelMatrix
-
 namespace Tensors
 {
     template<typename Kernel_T>
-    class CLASS
+    class DiagonalKernelMatrix
     {
     public:
         
@@ -15,11 +13,11 @@ namespace Tensors
         using Scalar_in  = typename Kernel_T::Scalar_in;
         using Scalar_out = typename Kernel_T::Scalar_out;
         
-        CLASS()
+        DiagonalKernelMatrix()
         :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
         
-        CLASS(
+        DiagonalKernelMatrix(
               const Int n_,
               const Int thread_count_
               )
@@ -29,13 +27,13 @@ namespace Tensors
         {}
         
         // Copy constructor
-        CLASS( const CLASS & other )
+        DiagonalKernelMatrix( const DiagonalKernelMatrix & other )
         :   n ( other.n )
         ,   thread_count( other.thread_count )
         ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
         {}
         
-        ~CLASS() = default;
+        ~DiagonalKernelMatrix() = default;
         
     protected:
         
@@ -151,11 +149,9 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return TO_STD_STRING(CLASS)+"<"+kernel.ClassName()+">";
+            return "Sparse::DiagonalKernelMatrix<"+kernel.ClassName()+">";
         }
         
     };
     
 } // namespace Tensors
-
-#undef CLASS

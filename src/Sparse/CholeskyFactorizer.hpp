@@ -237,7 +237,7 @@ namespace Tensors
                 const Int t_begin = (s + 1) - desc_counts[s] ;
                 const Int t_end   = s;
                 
-                // TODO: This can be parallelized by adding into local buffers V_0 and V_1 and reducing them into U_0 and U_1.
+                // TODO: This could be parallelized by adding into local buffers V_0 and V_1 and reducing them into U_0 and U_1.
                 FetchFromDescendants( s, t_begin, t_end, n_0, n_1, U_0, U_1 );
                 
                 FactorizeSupernode( n_0, n_1, U_0, U_1 );
@@ -286,7 +286,7 @@ namespace Tensors
                     }
                     
                     // From now on the insertion position must be in the rectangular part.
-                    LInt l     = l_begin;
+                    LInt l    = l_begin;
                     Int col_l = SN_inner[l];
                     
                     // Continue the loop where the previous one was aborted.
@@ -397,6 +397,14 @@ namespace Tensors
                                 {
                                     U_0[ n_0 * II_pos[i] + II_pos[j] ] += C_0[ IL_len * i + j ];
                                 }
+                                
+//                                mut<Scalar> U_0_i = &U_0[n_0 * II_pos[i]];
+//                                ptr<Scalar> C_0_i = &C_0[IL_len * i];
+//
+//                                for( Int j = i; j < IL_len; ++j )
+//                                {
+//                                    U_0_i[II_pos[j]] += C_0_i[j]; // XXX
+//                                }
                             }
                             
                             scatter_time += _toc();
@@ -406,7 +414,6 @@ namespace Tensors
                         if( (IL_len > 0) && (JL_len > 0) )
                         {
                             // TODO: Add specialization for IL_len == 1.
-                            // TODO: Add specialization for JL_len == 1! ->  gemv or even scalar update.
 
                             _tic();
                             // Col-scatter-read t_rec[:,JL_pos] from B_1,
@@ -431,21 +438,46 @@ namespace Tensors
                             _tic();
                             if( JL_len > 1)
                             {
-                                BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
-                                    IL_len, JL_len, m_0,
-                                    Scalar(-1), B_0, IL_len,
-                                                B_1, JL_len,
-                                    Scalar( 0), C_1, JL_len
-                                );
+                                if( IL_len > 1 )
+                                {
+                                    BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
+                                        IL_len, JL_len, m_0,
+                                        Scalar(-1), B_0, IL_len,
+                                                    B_1, JL_len,
+                                        Scalar( 0), C_1, JL_len
+                                    );
+                                }
+                                else // IL_len == 1
+                                {
+                                    BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans  >(// XXX
+                                        m_0, JL_len,
+                                        Scalar(-1), B_1, JL_len,
+                                                    B_0, 1,         // TODO: B_0 must be conjugated!
+                                        Scalar( 0), C_1, 1
+                                    );
+                                }
+                                
+
                             }
-                            else // JL_len > 1 -- But this specialization does not seem to make a big difference.
+                            else // JL_len == 1 -- But this specialization does not seem to make a big difference.
                             {
-                                BLAS_Wrappers::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
-                                    m_0, IL_len,
-                                    Scalar(-1), B_0, IL_len,
-                                                B_1, 1,
-                                    Scalar( 0), C_1, 1
-                                );
+                                if( IL_len > 1 )
+                                {
+                                    BLAS_Wrappers::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
+                                        m_0, IL_len,
+                                        Scalar(-1), B_0, IL_len,
+                                                    B_1, 1,
+                                        Scalar( 0), C_1, 1
+                                    );
+                                }
+                                else // IL_len == 1
+                                {
+                                    C_1[0] = 0;
+                                    for( Int i = 0; i < m_0; ++i )
+                                    {
+                                        C_1[0] -= conj(B_0[i]) * B_1[i];
+                                    }
+                                }
                             }
                             gemm_time += _toc();
 
@@ -454,9 +486,12 @@ namespace Tensors
                             // where U_1 is a matrix of size n_0 x n_1.
                             for( Int i = 0; i < IL_len; ++i )
                             {
+                                mut<Scalar> U_1_i = &U_1[n_1 * II_pos[i]];
+                                ptr<Scalar> C_1_i = &C_1[JL_len * i];
+                                
                                 for( Int j = 0; j < JL_len; ++j )
                                 {
-                                    U_1[n_1 * II_pos[i] + JJ_pos[j]] += C_1[JL_len * i + j]; // XXX
+                                    U_1_i[JJ_pos[j]] += C_1_i[j]; // XXX
                                 }
                             }
                             scatter_time += _toc();
@@ -470,30 +505,30 @@ namespace Tensors
                         {
                             B_0[j] = t_rec[IL_pos[j]];
                         }
-
-                        for( Int j = 0; j < JL_len; ++j )
-                        {
-                            B_1[j] = t_rec[JL_pos[j]];
-                        }
                         
                         if( JL_len > 0 )
                         {
+                            for( Int j = 0; j < JL_len; ++j )
+                            {
+                                B_1[j] = t_rec[JL_pos[j]];
+                            }
+                            
                             for( Int i = 0; i < IL_len; ++i )
                             {
                                 const Scalar factor = - conj(t_rec[IL_pos[i]]);
 
                                 const Int i_ = II_pos[i];
-                                mut<Scalar> U_0_ = &U_0[n_0 * i_];
-                                mut<Scalar> U_1_ = &U_1[n_1 * i_];
+                                mut<Scalar> U_0_i = &U_0[n_0 * i_];
+                                mut<Scalar> U_1_i = &U_1[n_1 * i_];
                                 
                                 for( Int j = i; j < IL_len; ++j )
                                 {
-                                    U_0_[II_pos[j]] += factor * B_0[j];
+                                    U_0_i[II_pos[j]] += factor * B_0[j];
                                 }
 
                                 for( Int j = 0; j < JL_len; ++j )
                                 {
-                                    U_1_[JJ_pos[j]] += factor * B_1[j];
+                                    U_1_i[JJ_pos[j]] += factor * B_1[j];
                                 }
                             }
                         }
@@ -504,11 +539,11 @@ namespace Tensors
                                 const Scalar factor = - conj(t_rec[IL_pos[i]]);
 
                                 const Int i_ = II_pos[i];
-                                mut<Scalar> U_0_ = &U_0[n_0 * i_];
-                                
+                                mut<Scalar> U_0_i = &U_0[n_0 * i_];
+
                                 for( Int j = i; j < IL_len; ++j )
                                 {
-                                    U_0_[II_pos[j]] += factor * B_0[j];
+                                    U_0_i[II_pos[j]] += factor * B_0[j];
                                 }
                             }
                         }

@@ -13,8 +13,8 @@ namespace Tensors
             
         public:
             
-            using Int    = Int_;
-            using LInt   = LInt_;
+            using Int  = Int_;
+            using LInt = LInt_;
             
         protected:
             
@@ -437,7 +437,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "BinaryMatrixCSR<"+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::BinaryMatrixCSR<"+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
             }
             
         }; // BinaryMatrixCSR

@@ -171,7 +171,7 @@ namespace Tensors
             
             if( thread_count > 1 )
             {
-                #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial )
+                #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial ) schedule( static )
                 for( Int i = 0; i < n; ++i )
                 {
                     const Int p_i = static_cast<Int>(p_[i]);
@@ -215,7 +215,7 @@ namespace Tensors
             
             if( thread_count > 1 )
             {
-                #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial)
+                #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial) schedule( static )
                 for( Int i = 0; i < n; ++i )
                 {
                     const Int p_inv_i = static_cast<Int>(p_inv_[i]);
@@ -265,7 +265,7 @@ namespace Tensors
         {
             if( !p_computed )
             {
-                #pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count ) schedule( static )
                 for( Int i = 0; i < n; ++i )
                 {
                     p[p_inv[i]] = i;
@@ -277,7 +277,7 @@ namespace Tensors
         {
             if( !p_inv_computed )
             {
-                #pragma omp parallel for num_threads( thread_count )
+                #pragma omp parallel for num_threads( thread_count ) schedule( static )
                 for( Int i = 0; i < n; ++i )
                 {
                     p_inv[p[i]] = i;
@@ -360,7 +360,7 @@ namespace Tensors
                     }
                     else
                     {
-                        #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial )
+                        #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial ) schedule( static )
                         for( Int i = 0; i < n; ++i )
                         {
                             scratch[i] = a[b[i]];
@@ -380,7 +380,7 @@ namespace Tensors
                     }
                     else
                     {
-                        #pragma omp parallel for num_threads( thread_count )
+                        #pragma omp parallel for num_threads( thread_count ) schedule( static )
                         for( Int i = 0; i < n; ++i )
                         {
                             scratch[i] = b_inv[a_inv[i]];
@@ -414,7 +414,7 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         b[i] = static_cast<T>(a[r[i]]);
@@ -470,7 +470,7 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         // a[r[i]] -> b[i].
@@ -541,7 +541,7 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial )
+                    #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         const Int p_i = p[i];
@@ -569,7 +569,7 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial )
+                    #pragma omp parallel for num_threads( thread_count ) reduction( && : is_trivial ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         const Int p_inv_i = p_inv[i];
@@ -608,7 +608,7 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
@@ -638,7 +638,7 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
@@ -670,7 +670,7 @@ namespace Tensors
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count ) schedule( static )
                     for( Int i = 0; i < n; ++i )
                     {
                         fails += static_cast<Int>(i != p_inv_[p_[i]]);
@@ -761,56 +761,51 @@ namespace Tensors
             parallel_accumulate( new_outer.data(), m+1, thread_count );
         }
 
-        JobPointers<Int> job_ptr ( m, new_outer.data(),  thread_count );
 
         mut<LInt> scratch = perm.Scratch().data();
 
         if( thread_count <= 1 )
         {
-            for( Int thread = 0; thread < thread_count; ++thread )
+            TwoArrayQuickSort<Int,LInt,Int> quick_sort;
+
+            for( Int i = 0; i < m; ++i )
             {
-                TwoArrayQuickSort<Int,LInt,Int> quick_sort;
+                const LInt begin = outer[ COND( P_Trivial, i, p[i] ) ];
 
-                const Int i_begin = job_ptr[thread  ];
-                const Int i_end   = job_ptr[thread+1];
+                const LInt new_begin = new_outer[i  ];
+                const LInt new_end   = new_outer[i+1];
 
-                for( Int i = i_begin; i < i_end; ++i )
+                const LInt k_max = new_end - new_begin;
+
+                if constexpr ( Q_Trivial )
                 {
-                    const LInt begin = outer[ COND( P_Trivial, i, p[i] ) ];
+                    copy_buffer( &inner[begin], &new_inner[new_begin], k_max );
 
-                    const LInt new_begin = new_outer[i  ];
-                    const LInt new_end   = new_outer[i+1];
-
-                    const LInt k_max = new_end - new_begin;
-
-                    if constexpr ( Q_Trivial )
+                    for( LInt k = 0; k < k_max; ++k )
                     {
-                        copy_buffer( &inner[begin], &new_inner[new_begin], k_max );
-
-                        for( LInt k = 0; k < k_max; ++k )
-                        {
-                            scratch[new_begin+k] = begin+k;
-                        }
+                        scratch[new_begin+k] = begin+k;
                     }
-                    else
+                }
+                else
+                {
+                    for( LInt k = 0; k < k_max; ++k )
                     {
-                        for( LInt k = 0; k < k_max; ++k )
-                        {
-                            new_inner[new_begin+k] = q_inv[inner[begin+k]];
-                            scratch  [new_begin+k] = begin+k;
-                        }
+                        new_inner[new_begin+k] = q_inv[inner[begin+k]];
+                        scratch  [new_begin+k] = begin+k;
+                    }
 
-                        if constexpr ( Sort )
-                        {
-                            quick_sort( &new_inner[new_begin], &scratch [new_begin], static_cast<Int>(k_max) );
-                        }
+                    if constexpr ( Sort )
+                    {
+                        quick_sort( &new_inner[new_begin], &scratch [new_begin], static_cast<Int>(k_max) );
                     }
                 }
             }
         }
         else
         {
-            #pragma omp parallel for num_threads( thread_count )
+            JobPointers<Int> job_ptr ( m, new_outer.data(),  thread_count );
+            
+            #pragma omp parallel for num_threads( thread_count ) schedule( static )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
                 TwoArrayQuickSort<Int,LInt,Int> quick_sort;

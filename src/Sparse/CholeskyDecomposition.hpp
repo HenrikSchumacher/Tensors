@@ -278,13 +278,9 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::PostOrder");
                     
-                    ptic("Compose post");
                     perm.Compose( post, Compose::Post );
-                    ptoc("Compose post");
                     
-                    ptic("Permute A");
                     A_inner_perm.Compose( std::move(A.Permute( post, post )), Compose::Post );
-                    ptoc("Permute A");
                     
                     A.RequireDiag();
                     

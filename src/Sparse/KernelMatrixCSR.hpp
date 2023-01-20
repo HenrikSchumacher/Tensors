@@ -386,7 +386,7 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return "KernelMatrixCSR<"+kernel.ClassName()+">";
+                return "Sparse::KernelMatrixCSR<"+kernel.ClassName()+">";
             }
             
         }; // class KernelMatrixCSR

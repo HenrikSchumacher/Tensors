@@ -1200,7 +1200,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "MatrixCSR<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::MatrixCSR<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
             }
             
         }; // MatrixCSR
