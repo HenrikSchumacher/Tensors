@@ -93,15 +93,17 @@ namespace Tensors
             const Int thread_count = 1;
             const Int max_depth = 0;
             
+            Permutation<Int>  perm;           // row and column permutation the nonzeros of the matrix.
+            
             BinaryMatrix_T A;
-            Matrix_T L;
-            Matrix_T U;
+            
+            Permutation<LInt> A_inner_perm;   // permutation of the nonzero values. Needed for reading in
             
             Tensor1<Scalar,LInt> A_val;
             Scalar reg = 0;
-            
-            Permutation<Int>  perm;           // row and column permutation
-            Permutation<LInt> A_inner_perm;   // permutation of the nonzero values. Needed for reading in the nonzeros of the matrix.
+
+            Matrix_T L;
+            Matrix_T U;
             
             // elimination tree
             bool eTree_initialized = false;
@@ -192,25 +194,20 @@ namespace Tensors
                 ptr<ExtLInt> outer_, ptr<ExtInt> inner_, Int n_,
                 Int thread_count_, Int max_depth_
             )
-            :   n               ( n_                                )
-            ,   thread_count    ( std::max(Int(1), thread_count_)   )
-            ,   max_depth       ( max_depth_                        )
-            ,   A_val           ( outer_[n]                         )
-            ,   perm            ( n_,         thread_count          )
+            :   n               ( std::max(static_cast<Int>(0), n_)  )
+            ,   thread_count    ( std::max(Int(1), thread_count_)    )
+            ,   max_depth       ( max_depth_                         )
+            ,   perm            ( n_, thread_count                   ) // use identity permutation
+            ,   A               ( outer_, inner_, n, n, thread_count )
+            ,   A_inner_perm    ( A.Permute( perm, perm )            )
+            ,   A_val           ( outer_[n]                          )
             {
                 ptic(ClassName());
                 if( n <= 0 )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
                 }
-                
-                Tensor1<LInt,Int> A_rp (outer_, n+1);
-                Tensor1<Int,LInt> A_ci (inner_, A_rp.Last() );
-
-                A_inner_perm = SparseMatrixPermutation<Int,LInt>( A_rp, A_ci, perm, perm, A_rp.Last() );
-                
-                A = BinaryMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
-                
+                                
                 A.RequireDiag();
                 
                 CheckDiagonal();
@@ -224,27 +221,19 @@ namespace Tensors
                 ptr<ExtLInt> outer_, ptr<ExtInt> inner_, ptr<ExtInt2> p_, Int n_,
                 Int thread_count_, Int max_depth_
             )
-            :   n               ( n_                                    )
+            :   n               ( std::max(static_cast<Int>(0), n_)     )
             ,   thread_count    ( std::max(Int(1), thread_count_)       )
             ,   max_depth       ( max_depth_                            )
-            ,   A_val           ( outer_[n]                             )
             ,   perm            ( p_, n, Inverse::False, thread_count   )
+            ,   A               ( outer_, inner_, n, n, thread_count    )
+            ,   A_inner_perm    ( A.Permute( perm, perm )               )
+            ,   A_val           ( outer_[n]                             )
             {
                 ptic(ClassName());
                 if( n <= 0 )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
                 }
-                
-                valprint("CholeskyDecomposition thread_count",thread_count);
-                valprint("perm.ThreadCount()",perm.ThreadCount());
-                
-                Tensor1<LInt,Int> A_rp (outer_, n+1 );
-                Tensor1<Int,LInt> A_ci (inner_, A_rp.Last() );
-
-                A_inner_perm = PermuteSparseMatrix( A_rp, A_ci, perm, perm, A_rp.Last() );
-                
-                A = BinaryMatrix_T( std::move(A_rp), std::move(A_ci), n, n, thread_count );
                 
                 A.RequireDiag();
                 
@@ -260,6 +249,8 @@ namespace Tensors
             
             void CheckDiagonal() const
             {
+                ptic(ClassName()+"CheckDiagonal()");
+                
                 A.RequireDiag();
                 
                 bool okay = true;
@@ -273,6 +264,8 @@ namespace Tensors
                 {
                     eprint(ClassName()+"::PostOrder: Diagonal of input matrix is not marked as nonzero.");
                 }
+                
+                ptoc(ClassName()+"CheckDiagonal()");
             }
             
         protected:
@@ -285,31 +278,24 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::PostOrder");
                     
-                    dump(post.ThreadCount());
-                    dump(perm.ThreadCount());
-                    
                     ptic("Compose post");
-                    perm.Compose( post );
+                    perm.Compose( post, Compose::Post );
                     ptoc("Compose post");
                     
                     ptic("Permute A");
-                    A_inner_perm.Compose( A.Permute( post, post ) );
+                    A_inner_perm.Compose( std::move(A.Permute( post, post )), Compose::Post );
                     ptoc("Permute A");
                     
-                    dump(A_inner_perm.ThreadCount());
-                    
-                    ptic("A.RequireDiag()");
                     A.RequireDiag();
-                    ptoc("A.RequireDiag()");
                     
-                    ptic("CheckDiagonal()");
                     CheckDiagonal();
-                    ptoc("CheckDiagonal()");
                     
                     eTree_initialized = false;
                     SN_initialized    = false;
                     SN_factorized     = false;
                     
+                    // TODO:  Is there a cheaper way to generate the correct tree,
+                    // TODO:  e.g., by permuting the old tree?
                     (void)EliminationTree();
                     
                     ptoc(ClassName()+"::PostOrder");
@@ -422,8 +408,6 @@ namespace Tensors
                 // TODO: How can this be parallelized?
                 
                 // TODO: read Kumar, Kumar, Basu - A parallel algorithm for elimination tree computation and symbolic factorization
-
-                // TODO: Does not work if matrix is reducible. What we need is an EliminationForest!
                 
                 if( ! eTree_initialized )
                 {
@@ -445,7 +429,6 @@ namespace Tensors
                     ptr<LInt> A_outer = A.Outer().data();
                     ptr<Int>  A_inner = A.Inner().data();
 
-                    
                     for( Int k = 1; k < n; ++k )
                     {
                         // We need visit all i < k with A_ik != 0.
@@ -472,9 +455,9 @@ namespace Tensors
                         }
                     }
 
-//                    eTree = Tree<Int> ( std::move(parents), thread_count );
+                    eTree = Tree<Int> ( std::move(parents), thread_count );
                     
-                    eTree = Tree<Int> ( parents, thread_count );
+//                    eTree = Tree<Int> ( parents, thread_count );
 
                     eTree_initialized = true;
                     
@@ -511,8 +494,8 @@ namespace Tensors
                 SN_parents[SN_count-1] = SN_count;
                 
 
-//                aTree = Tree<Int> ( std::move(SN_parents), thread_count );
-                aTree = Tree<Int> ( SN_parents, thread_count );
+                aTree = Tree<Int> ( std::move(SN_parents), thread_count );
+//                aTree = Tree<Int> ( SN_parents, thread_count );
 
                 ptoc(ClassName()+"::CreateAssemblyTree");
             }
@@ -1518,3 +1501,4 @@ namespace Tensors
 
 // DONE: Parallelized, abstract postorder traversal of Tree
 
+// DONE: Specialization of the cases m_0 = 1 and n_0 = 1.

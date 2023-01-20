@@ -78,4 +78,5 @@ namespace Tensors
 #include "BLAS_Wrappers/trsv.hpp"
 #include "BLAS_Wrappers/trsm.hpp"
 
+#include "BLAS_Wrappers/her.hpp"
 #include "BLAS_Wrappers/herk.hpp"

@@ -232,7 +232,7 @@ namespace Tensors
                 
                 if( WellFormed() )
                 {
-#pragma omp parallel for num_threads( thread_count )
+                    #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
                     {
                         const Int i_begin = job_ptr[thread  ];
@@ -276,8 +276,8 @@ namespace Tensors
         public:
             
             Permutation<LInt> Permute(
-                                      const Permutation<Int> & p,  // row    permutation
-                                      const Permutation<Int> & q   // column permutation
+                const Permutation<Int> & p,  // row    permutation
+                const Permutation<Int> & q   // column permutation
             )
             {
                 ptic(ClassName()+"::Permute");
@@ -290,16 +290,16 @@ namespace Tensors
                 this->upper_triangular_job_ptr_initialized = false;
                 this->lower_triangular_job_ptr_initialized = false;
                 
-                Permutation<LInt> perm = PermuteSparseMatrix( outer, inner, p, q, inner.Size(), true );
+                Permutation<LInt> perm = PermutePatternCSR( outer, inner, p, q, inner.Size(), true );
                 
                 ptoc(ClassName()+"::Permute");
                 
                 return perm;
             }
             
-            //#########################################################################################
-            //####          Matrix Multiplication
-            //#########################################################################################
+//#########################################################################################
+//####          Matrix Multiplication
+//#########################################################################################
             
         public:
             
@@ -325,9 +325,9 @@ namespace Tensors
                 return result;
             }
             
-            //###########################################################################################
-            //####          Matrix Multiplication
-            //###########################################################################################
+//###########################################################################################
+//####          Matrix Multiplication
+//###########################################################################################
             
             
             // Assume all nonzeros are equal to 1.
@@ -421,9 +421,9 @@ namespace Tensors
                 }
             }
             
-            //###########################################################################################
-            //####          Triangular solve
-            //###########################################################################################
+//###########################################################################################
+//####          Triangular solve
+//###########################################################################################
             
         public:
             

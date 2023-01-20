@@ -30,7 +30,7 @@ namespace Tensors
             assert_positive(ldA);
             assert_positive(ldC);
             
-            // If trans == Cblas_NoTrans, then
+            // If op == Op::Id, then
             // this computes the upper or lower triangle part (depending on uplo) of
             //
             //      C := alpha* A * A^H + beta * C,
@@ -38,17 +38,17 @@ namespace Tensors
             // where A is a matrix of size n x k and where C is a self-adjoint matrix of size n x n
             // (of which we assume only that the uplo part is defined).
 
-            // If trans == CblasConjTrans, then
+            // If op == Op::ConjTrans, then
             // this computes the upper or lower triangle part of
             //
             //      C := alpha* A^H * A + beta * C,
             //
             // where A is now a matrix of size k x n and C is again a self-adjoint matrix of size n x n.
             
-            // We also overload this routine to work with reals scalars (float and double)
+            // We also overload this routine to work with real scalars (float and double)
             // and redirect the work to ssyrk and dsyrk, respectively.
             
-            // Moreover, we graciously interpret CblasTrans as CblasConjTrans.
+            // Moreover, we graciously interpret Op::Trans as Op::ConjTrans.
             
             if constexpr ( std::is_same_v<Scalar,double> )
             {

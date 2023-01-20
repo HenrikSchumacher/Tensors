@@ -15,8 +15,6 @@ namespace Tensors
             ASSERT_INT(Int_);
             ASSERT_INT(LInt_)
             
-            using steady_clock = std::chrono::steady_clock;
-            
         public:
             
             using Scalar    = Scalar_;
@@ -94,8 +92,8 @@ namespace Tensors
             Int IL_len_and_JL_len_small = 0;
 
             
-            std::chrono::time_point<steady_clock> stop_time;
-            std::chrono::time_point<steady_clock> start_time;
+            Time start_time;
+//            Time stop_time;
             float intersec_time = 0;
             float scatter_time  = 0;
             float gemm_time     = 0;
@@ -116,7 +114,7 @@ namespace Tensors
 //                dump(IL_len_small);
 //                dump(JL_len_small);
 //                dump(IL_len_and_JL_len_small);
-//                
+                
 //                dump(intersec_time);
 //                dump(scatter_time);
 //                dump(herk_time);
@@ -180,13 +178,12 @@ namespace Tensors
             
 //            void _tic()
 //            {
-//                start_time = steady_clock::now();
+//                start_time = Clock::now();
 //            }
 //
 //            float _toc()
 //            {
-//                stop_time = steady_clock::now();
-//                return std::chrono::duration<float>(stop_time - start_time).count();
+//                return Duration( start_time, Clock::now() );
 //            }
             
             void _tic()
@@ -217,6 +214,7 @@ namespace Tensors
                 const  Int n_1     = int_cast<Int>(l_end - l_begin);
                 
                 assert_positive(n_0);
+                
                 if( n_0 <= 0 )
                 {
                     eprint("n_0<=0");
@@ -248,8 +246,7 @@ namespace Tensors
         protected:
             
             void FetchFromA(
-                Int i_begin, Int i_end, LInt l_begin, LInt l_end,
-                mut<Scalar> U_0, mut<Scalar> U_1
+                Int i_begin, Int i_end, LInt l_begin, LInt l_end, mut<Scalar> U_0, mut<Scalar> U_1
             )
             {
                 // Read the values of A into U_0 and U_1.
@@ -310,9 +307,9 @@ namespace Tensors
             }
             
             void FetchFromDescendants(
-                Int s,                      // the supernode into which to fetch
-                Int t_begin, Int t_end,     // the range of descendants
-                Int n_0, Int n_1, mut<Scalar> U_0, mut<Scalar> U_1
+                const Int s,                             // the supernode into which to fetch
+                const Int t_begin, const Int t_end,     // the range of descendants
+                const Int n_0, const Int n_1, mut<Scalar> U_0, mut<Scalar> U_1
             )
             {
                 // Incorporate the row updates from descendants [ t_begin,...,t_end [ into U_0 and U_1.
@@ -330,13 +327,13 @@ namespace Tensors
                         continue;
                     }
 
-                    const Int m_0 = SN_rp   [t+1] - SN_rp   [t];
+                    const Int m_0 = SN_rp[t+1] - SN_rp[t];
                     const Int m_1 = int_cast<Int>(SN_outer[t+1] - SN_outer[t]);
 
                     ptr<Scalar> t_rec = &SN_rec_val[SN_rec_ptr[t]];
                     // t_rec is interpreted as a rectangular matrix of size m_0 x m_1.
 
-                    // TODO: Maybe transpose U_0 and U_1 etc to reduce amount of scattered-reads and adds...
+                    // TODO: Maybe we should transpose U_0 and U_1 etc. to reduce amount of scattered-reads and adds...
                     // TODO: Then U_0 and U_1 would be ColMajor and we could use BLAS and LAPACK without the C-layers CBLAS or LAPACKE.
                     // TODO: This is attractive because Apple Accelerate does not ship LAPACKE!
                     
@@ -357,143 +354,203 @@ namespace Tensors
 //                        ++IL_len_and_JL_len_small;
 //                    }
                     
-                    // Update triangular block U_0.
-                    if( IL_len > 0 )
+                    
+                    if( m_0 > 1 )
                     {
-                        // TODO: Add specializations for m_0 == 1!
-                        // TODO: Add specializations for IL_len == 1! --> her
-
-                        _tic();
-                        // Col-scatter-read t_rec[:,IL_pos] into B_0,
-                        // where B_0 is a matrix of size m_0 x IL_len;
-                        
-//                        for( Int i = 0; i < m_0; ++i )
-//                        {
-//                            for( Int j = 0; j < IL_len; ++j )
-//                            {
-//                                B_0[IL_len * i +j] = t_rec[m_1 * i + IL_pos[j]];
-//                            }
-//                        }
-                        
-                        for( Int i = 0; i < m_0; ++i )
+                        // Update triangular block U_0.
+                        if( IL_len > 0 )
                         {
-                            scatter_read( &t_rec[m_1 * i], &B_0[IL_len * i], IL_pos, IL_len );
-                        }
-                        
-//                        for( Int i = 0; i < IL_len; ++i )
-//                        {
-//                            copy_buffer( &t_rec[m_0 * IL_pos[i]], &B_0[m_0 * i], m_0 );
-//                        }
-                        
-                        scatter_time += _toc();
-                        
-                        // Do C_0 = - upper(B_0^H * B_0),
-                        // where C_0 is an upper triangular matrix of size IL_len x IL_len.
-                        
-                        _tic();
-                        BLAS_Wrappers::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
-                            IL_len, m_0,
-                            Real(-1), B_0, IL_len,
-                            Real( 0), C_0, IL_len
-                        );
-                        herk_time += _toc();
-                        
-                        _tic();
-
-                        // Row-col-scatter-add C_0 into U_0,
-                        // where U_0 is an upper triangular matrix of size n_0 x n_0.
-                        
-                        for( Int i = 0; i < IL_len; ++i )
-                        {
-                            for( Int j = i; j < IL_len; ++j )
+                            _tic();
+                            // Col-scatter-read t_rec[:,IL_pos] into B_0,
+                            // where B_0 is a matrix of size m_0 x IL_len;
+                            
+                            for( Int i = 0; i < m_0; ++i )
                             {
-                                U_0[ n_0 * II_pos[i] + II_pos[j] ] += C_0[ IL_len * i + j];
+                                scatter_read( &t_rec[m_1 * i], &B_0[IL_len * i], IL_pos, IL_len );
                             }
-                        }
-                        
-//                        for( Int i = 0; i < IL_len; ++i )
-//                        {
-//                            scatter_add( &C_0[IL_len * i], &U_0[n_0 * II_pos[i]], II_pos, IL_len);
-//                        }
-                        
-                        scatter_time += _toc();
-                    }
+                            
+    //                        for( Int i = 0; i < IL_len; ++i )
+    //                        {
+    //                            copy_buffer( &t_rec[m_0 * IL_pos[i]], &B_0[m_0 * i], m_0 );
+    //                        }
+                            
+                            scatter_time += _toc();
+                            
+                            // Do C_0 = - upper(B_0^H * B_0),
+                            // where C_0 is an upper triangular matrix of size IL_len x IL_len.
+                            
+                            _tic();
+                            BLAS_Wrappers::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
+                                IL_len, m_0,
+                                Real(-1), B_0, IL_len,
+                                Real( 0), C_0, IL_len
+                            );
+                            herk_time += _toc();
+                            _tic();
 
-                    // Update rectangular block U_1.
-                    if( (IL_len > 0) && (JL_len > 0) )
+                            // Row-col-scatter-add C_0 into U_0,
+                            // where U_0 is an upper triangular matrix of size n_0 x n_0.
+                            
+                            for( Int i = 0; i < IL_len; ++i )
+                            {
+                                for( Int j = i; j < IL_len; ++j )
+                                {
+                                    U_0[ n_0 * II_pos[i] + II_pos[j] ] += C_0[ IL_len * i + j ];
+                                }
+                            }
+                            
+                            scatter_time += _toc();
+                        }
+
+                        // Update rectangular block U_1.
+                        if( (IL_len > 0) && (JL_len > 0) )
+                        {
+                            // TODO: Add specialization for IL_len == 1.
+                            // TODO: Add specialization for JL_len == 1! ->  gemv or even scalar update.
+
+                            _tic();
+                            // Col-scatter-read t_rec[:,JL_pos] from B_1,
+                            // where B_1 is a matrix of size m_0 x JL_len.
+                            
+                            for( Int i = 0; i < m_0; ++i )
+                            {
+                                scatter_read( &t_rec[m_1 * i], &B_1[JL_len * i], JL_pos, JL_len ); // XXX
+                            }
+                            
+                            // This is how the "transposed" version would look like.
+    //                        for( Int j = 0; j < JL_len; ++j )
+    //                        {
+    //                            copy_buffer( &t_rec[m_0 * JL_pos[j]], &B_1[m_0 * j], m_0 );
+    //                        }
+                            
+                            scatter_time += _toc();
+                            
+                            // Do C_1 = - B_0^H * B_1,
+                            // where C_1 is a matrix of size IL_len x JL_len.
+
+                            _tic();
+                            if( JL_len > 1)
+                            {
+                                BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
+                                    IL_len, JL_len, m_0,
+                                    Scalar(-1), B_0, IL_len,
+                                                B_1, JL_len,
+                                    Scalar( 0), C_1, JL_len
+                                );
+                            }
+                            else // JL_len > 1 -- But this specialization does not seem to make a big difference.
+                            {
+                                BLAS_Wrappers::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
+                                    m_0, IL_len,
+                                    Scalar(-1), B_0, IL_len,
+                                                B_1, 1,
+                                    Scalar( 0), C_1, 1
+                                );
+                            }
+                            gemm_time += _toc();
+
+                            _tic();
+                            // Row-col-scatter-add C_1 into U_1,
+                            // where U_1 is a matrix of size n_0 x n_1.
+                            for( Int i = 0; i < IL_len; ++i )
+                            {
+                                for( Int j = 0; j < JL_len; ++j )
+                                {
+                                    U_1[n_1 * II_pos[i] + JJ_pos[j]] += C_1[JL_len * i + j]; // XXX
+                                }
+                            }
+                            scatter_time += _toc();
+                        }
+                    }
+                    else // m_0 == 1
                     {
-                        // TODO: Add specialization for m_0 == 1.
-                        // TODO: Add specialization for IL_len == 1.
-                        // TODO: Add specialization for JL_len == 1! ->  gemv or even scalar update.
-
-                        _tic();
-                        // Col-scatter-read t_rec[:,JL_pos] from B_1,
-                        // where B_1 is a matrix of size m_0 x JL_len.
+                        // In this case we have to form only (scattered) outer products of vectors, which are basically BLAS2 routines. Unfortunately, ?ger, ?syr, ?her, etc. add into the target matrix without the option to zero it out first. Hence we simply write these double loops ourselves. Since this is BLAS2 and not BLAS3, and since IL_len and JL_len are often not particularly long, there isn't that much room for optimization anyways. And since we cannot use ?ger / ?her, we fuse the scattered read/write operations directly into these loops.
                         
-                        for( Int i = 0; i < m_0; ++i )
+                        for( Int j = 0; j < IL_len; ++j )
                         {
-                            for( Int j = 0; j < JL_len; ++j )
+                            B_0[j] = t_rec[IL_pos[j]];
+                        }
+
+                        for( Int j = 0; j < JL_len; ++j )
+                        {
+                            B_1[j] = t_rec[JL_pos[j]];
+                        }
+                        
+                        if( JL_len > 0 )
+                        {
+                            for( Int i = 0; i < IL_len; ++i )
                             {
-                                B_1[JL_len * i + j] = t_rec[m_1 * i + JL_pos[j]];
+                                const Scalar factor = - conj(t_rec[IL_pos[i]]);
+
+                                const Int i_ = II_pos[i];
+                                mut<Scalar> U_0_ = &U_0[n_0 * i_];
+                                mut<Scalar> U_1_ = &U_1[n_1 * i_];
+                                
+                                for( Int j = i; j < IL_len; ++j )
+                                {
+                                    U_0_[II_pos[j]] += factor * B_0[j];
+                                }
+
+                                for( Int j = 0; j < JL_len; ++j )
+                                {
+                                    U_1_[JJ_pos[j]] += factor * B_1[j];
+                                }
+                            }
+                        }
+                        else
+                        {
+                            for( Int i = 0; i < IL_len; ++i )
+                            {
+                                const Scalar factor = - conj(t_rec[IL_pos[i]]);
+
+                                const Int i_ = II_pos[i];
+                                mut<Scalar> U_0_ = &U_0[n_0 * i_];
+                                
+                                for( Int j = i; j < IL_len; ++j )
+                                {
+                                    U_0_[II_pos[j]] += factor * B_0[j];
+                                }
                             }
                         }
                         
-                        for( Int i = 0; i < m_0; ++i )
-                        {
-                            scatter_read( &t_rec[m_1 * i], &B_1[JL_len * i], JL_pos, JL_len ); // XXX
-                        }
+                    } // if( m_0 > 1 )
                         
-//                        for( Int j = 0; j < JL_len; ++j )
-//                        {
-//                            copy_buffer( &t_rec[m_0 * JL_pos[j]], &B_1[m_0 * j], m_0 );
-//                        }
-                        
-                        scatter_time += _toc();
-                        
-                        // Do C_1 = - B_0^H * B_1,
-                        // where C_1 is a matrix of size IL_len x JL_len.
-                        
-                        _tic();
-                        BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
-                            IL_len, JL_len, m_0,
-                            Scalar(-1), B_0, IL_len,
-                                        B_1, JL_len,
-                            Scalar( 0), C_1, JL_len
-                        );
-                        gemm_time += _toc();
-
-                        _tic();
-                        // Row-col-scatter-add C_1 into U_1,
-                        // where U_1 is a matrix of size n_0 x n_1.
-                        for( Int i = 0; i < IL_len; ++i )
-                        {
-                            for( Int j = 0; j < JL_len; ++j )
-                            {
-                                U_1[n_1 * II_pos[i] + JJ_pos[j]] += C_1[JL_len * i + j]; // XXX
-                            }
-                        }
-                        scatter_time += _toc();
-                    }
-                }
+                } // for( Int t = t_begin; t < t_end; ++t )
             }
             
             void FactorizeSupernode( Int n_0, Int n_1, mut<Scalar> U_0, mut<Scalar> U_1 )
             {
                 _tic();
                 
-                // Cholesky factorization of U_0
-                (void)LAPACK_Wrappers::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
-
-                // Triangular solve U_1 = U_0^{-H} U_1.
-                if( n_1 > 0 )
+                if( n_0 > 1 )
                 {
-                    BLAS_Wrappers::trsm<Layout::RowMajor,
-                        Side::Left, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
-                    >(
-                        n_0, n_1,
-                        Scalar(1), U_0, n_0,
-                                   U_1, n_1
-                    );
+                    // Cholesky factorization of U_0
+                    (void)LAPACK_Wrappers::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
+
+                    // Triangular solve U_1 = U_0^{-H} U_1.
+                    if( n_1 > 1 )
+                    {
+                        BLAS_Wrappers::trsm<Layout::RowMajor,
+                            Side::Left, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
+                        >(
+                            n_0, n_1, Scalar(1), U_0, n_0, U_1, n_1
+                        );
+                    }
+                    else if( n_1 == 1 )
+                    {
+                        BLAS_Wrappers::trsv<Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit>(
+                            n_0, U_0, n_0, U_1, 1
+                        );
+                    }
+                    else // n_1 == 0
+                    {
+                        // Do nothing.
+                    }
+                }
+                else
+                {
+                    U_0[0] = std::sqrt(std::abs(U_0[0]));
+                    scale_buffer(static_cast<Scalar>(1)/U_0[0], U_1, n_1);
                 }
                 
                 chol_time += _toc();
@@ -513,7 +570,7 @@ namespace Tensors
             
             void ComputeIntersection( const Int s, const Int t )
             {
-                _tic();
+//                _tic();
                 
                 // Compute the intersecting column indices of s-th and t-th supernode.
                 // We assume that t < s.
@@ -552,8 +609,8 @@ namespace Tensors
 //                    )
                 )
                 {
-                    // Debugging
-                    ++empty_intersec_detected;
+//                    // Debugging
+//                    ++empty_intersec_detected;
                     return;
                 }
                 
@@ -577,7 +634,7 @@ namespace Tensors
                     {
                         ++i;
                     }
-                    else if( i > L_l )
+                    else if( L_l < i )
                     {
                         L_l = SN_inner[++l];
                     }
@@ -605,7 +662,7 @@ namespace Tensors
                     {
                         J_j = SN_inner[++j];
                     }
-                    else if( J_j > L_l )
+                    else if( L_l < J_j )
                     {
                         L_l = SN_inner[++l];
                     }
@@ -618,13 +675,13 @@ namespace Tensors
                         L_l = SN_inner[++l];
                     }
                 }
-                intersec_time += _toc();
-                
-                // Debugging
-                if( (IL_len == 0) && (JL_len == 0) )
-                {
-                    ++empty_intersec_undetected;
-                }
+//                intersec_time += _toc();
+//
+//                // Debugging
+//                if( (IL_len == 0) && (JL_len == 0) )
+//                {
+//                    ++empty_intersec_undetected;
+//                }
             }
             
             

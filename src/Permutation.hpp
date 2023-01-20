@@ -286,11 +286,9 @@ namespace Tensors
         }
         
         
-        void Compose( const Permutation & q, const Compose prepost = Compose::Post )
+        void Compose( const Permutation & q, const Compose prepost )
         {
             ptic(ClassName()+"::Compose");
-            
-            valprint("Compose thread_count",thread_count);
             
             if( is_trivial )
             {
@@ -403,7 +401,6 @@ namespace Tensors
             
             if( !is_trivial )
             {
-                valprint("Permute thread_count", thread_count );
                 Invert( inverseQ );
                 
                 ptr<Int> r = GetPermutation().data();
@@ -705,7 +702,7 @@ namespace Tensors
     
     
     template<bool P_Trivial, bool Q_Trivial, bool Sort, typename LInt, typename Int>
-    Permutation<LInt> permuteSparseMatrix(
+    Permutation<LInt> permutePatternCSR(
         Tensor1<LInt,Int> & outer,
         Tensor1<Int,LInt> & inner,
         const Permutation<Int> & P,  // row    permutation
@@ -714,13 +711,11 @@ namespace Tensors
         bool sort = true
     )
     {
-        ptic("PermuteSparseMatrix");
+        ptic("PermutePatternCSR");
         
         const Int m = P.Size();
 
         const Int thread_count = P.ThreadCount();
-
-        valprint("PermuteSparseMatrix thread_count",thread_count);
 
         ptr<Int> p     = P.GetPermutation().data();
         ptr<Int> q_inv = Q.GetInversePermutation().data();
@@ -731,7 +726,7 @@ namespace Tensors
 
         if constexpr ( P_Trivial && Q_Trivial )
         {
-            ptoc("PermuteSparseMatrix");
+            ptoc("PermutePatternCSR");
             return perm;
         }
             
@@ -863,13 +858,13 @@ namespace Tensors
         
         perm.SwapScratch( Inverse::False );
         
-        ptoc("PermuteSparseMatrix");
+        ptoc("PermutePatternCSR");
 
         return perm;
     }
     
     template<typename Int, typename LInt>
-    Permutation<LInt> PermuteSparseMatrix(
+    Permutation<LInt> PermutePatternCSR(
         Tensor1<LInt,Int> & outer,
         Tensor1<Int,LInt> & inner,
         const Permutation<Int> & P,  // row    permutation
@@ -885,11 +880,11 @@ namespace Tensors
         
         if( sort )
         {
-            return permuteSparseMatrix<false,false,true,LInt,Int>(outer,inner,P,Q,nnz);
+            return permutePatternCSR<false,false,true,LInt,Int>(outer,inner,P,Q,nnz);
         }
         else
         {
-            return permuteSparseMatrix<false,false,false,LInt,Int>(outer,inner,P,Q,nnz);
+            return permutePatternCSR<false,false,false,LInt,Int>(outer,inner,P,Q,nnz);
         }
     }
     

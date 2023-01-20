@@ -5,7 +5,6 @@ namespace Tensors
     
     namespace MyBLAS
     {
-        
         template<
             Op opA, Op opB,
             int M, int N, int K,
@@ -29,7 +28,7 @@ namespace Tensors
                 const Scalar & alpha, const Scalar * restrict A, const int ldA,
                                       const Scalar * restrict B, const int ldB,
                 const Scalar & beta,        Scalar * restrict C, const int ldC
-                )
+            )
             {
                 if constexpr( (1 <= M) && (M<=MaxM) && (1 <= N) && (N<=MaxN) && (1 <= K) && (K<=MaxK) )
                 {

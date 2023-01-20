@@ -27,12 +27,12 @@ namespace Tensors
         
         ~Tree() = default;
         
-        explicit Tree( Tensor1<Int,Int> & parents_, const Int thread_count_ = 1 )
-        :   n                 ( parents_.Size()+1 )
-        // We use and additional virtual vertex as root.
-        ,   thread_count      ( thread_count_     )
-        ,   parents           ( parents_          )
-        ,   descendant_counts ( n                 )
+        explicit Tree( Tensor1<Int,Int> && parents_, const Int thread_count_ = 1 )
+        :   n                 ( parents_.Size()+1   )
+        // We use an additional virtual vertex as root.
+        ,   thread_count      ( thread_count_       )
+        ,   parents           ( std::move(parents_) )
+        ,   descendant_counts ( n                   )
         {
             ptic(ClassName());
 
@@ -388,9 +388,7 @@ namespace Tensors
                 #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
                 for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
                 {
-                    const Int thread = omp_get_thread_num();
-                    
-                    Worker_T & worker = *workers[thread];
+                    Worker_T & worker = *workers[omp_get_thread_num()];
                     
                     Traverse_DFS_Postordered( worker, LevelIndex(k) );
                 }
@@ -399,9 +397,7 @@ namespace Tensors
             {
                 for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
                 {
-                    const Int thread = omp_get_thread_num();
-                    
-                    Worker_T & worker = *workers[thread];
+                    Worker_T & worker = *workers[0];
                     
                     Traverse_DFS_Postordered( worker, LevelIndex(k) );
                 }
@@ -416,25 +412,26 @@ namespace Tensors
 //
 //                print("level["+ToString(d)+"] = "+ToString(&LevelIndices()[LevelPointer(d)], LevelPointer(d+1)-LevelPointer(d), 16 ) );
                 
-                if( thread_count > 1 )
+                const Int k_begin = LevelPointer(d  );
+                const Int k_end   = LevelPointer(d+1);
+                
+                const Int use_threads = std::min( thread_count, k_end - k_begin );
+                
+                if( use_threads > 1 )
                 {
-                    #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
-                    for( Int k = LevelPointer(d); k < LevelPointer(d+1); ++k )
+                    #pragma omp parallel for num_threads( use_threads ) schedule( dynamic )
+                    for( Int k = k_begin; k < k_end; ++k )
                     {
-                        const Int thread = omp_get_thread_num();
-                        
-                        Worker_T & worker = *workers[thread];
+                        Worker_T & worker = *workers[omp_get_thread_num()];
                         
                         worker(LevelIndex(k));
                     }
                 }
                 else
                 {
-                    for( Int k = LevelPointer(d); k < LevelPointer(d+1); ++k )
+                    for( Int k = k_begin; k < k_end; ++k )
                     {
-                        const Int thread = omp_get_thread_num();
-                        
-                        Worker_T & worker = *workers[thread];
+                        Worker_T & worker = *workers[0];
                         
                         worker(LevelIndex(k));
                     }
