@@ -26,7 +26,7 @@
 
 // TODO: Speed up supernode update in factorization phase.
 //           --> transpose U_0 and U_1 to reduce scatter_reads/scatter_adds.
-//           --> employ Tiny::BLAS kernels.
+//           --> employ Tiny::BLAS kernels. --> Does not seem to be helpful...
 //           --> is there a way to skip unrelevant descendants?
 
 // TODO: Return permutation and factors (as sparse matrices) so that they can be checked.
@@ -41,8 +41,6 @@
 // TODO: - What to do if top of the tree is not a binary tree?
 // TODO: - What to do in case of a forest?
 // TODO: - Estimate work to do in subtrees.
-
-// TODO: Deactivate OpenMP if thread_count == 1 or if OpenMP is not found.
 
 // Priority IV:
 // TODO: Maybe load linear combination of matrices A (with sub-pattern, of course) during factorization?
@@ -212,7 +210,6 @@ namespace Tensors
                 
                 CheckDiagonal();
                 
-                // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
                 ptoc(ClassName());
             }
             
@@ -239,7 +236,6 @@ namespace Tensors
                 
                 CheckDiagonal();
                 
-                // TODO: What if I want to submit a full symmetric matrix pattern, not only a triangular part?
                 ptoc(ClassName());
             }
             
@@ -771,11 +767,19 @@ namespace Tensors
                 ptic("Initialize factorizers");
                 std::vector<std::unique_ptr<Factorizer>> SN_list (thread_count);
                 
-                #pragma omp parallel for num_threads( thread_count ) schedule(static)
-                for( Int thread = 0; thread < thread_count; ++thread )
+                if( thread_count > 1 )
                 {
-                    SN_list[thread] = std::make_unique<Factorizer>(*this);
+                    #pragma omp parallel for num_threads( thread_count ) schedule(static)
+                    for( Int thread = 0; thread < thread_count; ++thread )
+                    {
+                        SN_list[thread] = std::make_unique<Factorizer>(*this);
+                    }
                 }
+                else
+                {
+                    SN_list[0] = std::make_unique<Factorizer>(*this);
+                }
+                
                 ptoc("Initialize factorizers");
                 
 
@@ -1498,3 +1502,5 @@ namespace Tensors
 // DONE: Parallelized, abstract postorder traversal of Tree
 
 // DONE: Specialization of the cases m_0 = 1 and n_0 = 1.
+
+// DONE: Deactivate OpenMP if thread_count == 1 or if OpenMP is not found.

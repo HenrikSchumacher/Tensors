@@ -318,7 +318,7 @@ namespace Tensors
                 {
                     // Compute the intersection of supernode s with t.
                     ComputeIntersection( s, t );
-                    // TODO: I experience quite many empty intersects. Is there a way to avoid them?
+                    // TODO: I experience quite many empty intersections. Is there a way to avoid them?
                     
 //                    CheckIntersection( s, t );
                     
@@ -413,8 +413,6 @@ namespace Tensors
                         // Update rectangular block U_1.
                         if( (IL_len > 0) && (JL_len > 0) )
                         {
-                            // TODO: Add specialization for IL_len == 1.
-
                             _tic();
                             // Col-scatter-read t_rec[:,JL_pos] from B_1,
                             // where B_1 is a matrix of size m_0 x JL_len.
@@ -449,12 +447,24 @@ namespace Tensors
                                 }
                                 else // IL_len == 1
                                 {
-                                    BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans  >(// XXX
-                                        m_0, JL_len,
-                                        Scalar(-1), B_1, JL_len,
-                                                    B_0, 1,         // TODO: B_0 must be conjugated!
-                                        Scalar( 0), C_1, 1
-                                    );
+                                    if constexpr ( !ScalarTraits<Scalar>::IsComplex )
+                                    {
+                                        BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans  >(// XXX
+                                            m_0, JL_len,
+                                            Scalar(-1), B_1, JL_len,
+                                                        B_0, 1,         // TODO: B_0 must be conjugated!
+                                            Scalar( 0), C_1, 1
+                                        );
+                                    }
+                                    else
+                                    {
+                                        BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
+                                            IL_len, JL_len, m_0,
+                                            Scalar(-1), B_0, IL_len,
+                                                        B_1, JL_len,
+                                            Scalar( 0), C_1, JL_len
+                                        );
+                                    }
                                 }
                                 
 

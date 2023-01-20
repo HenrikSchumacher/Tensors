@@ -256,12 +256,24 @@ namespace Tensors
         {
             bool postordered = true;
             
-            #pragma omp parallel for num_threads( thread_count ) reduction( && : postordered )
-            for( Int i = 0; i < n-1; ++i )
+            if( thread_count > 1 )
             {
-                const Int p_i = parents[i];
-                
-                postordered = postordered && (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
+                #pragma omp parallel for num_threads( thread_count ) reduction( && : postordered ) schedule( static )
+                for( Int i = 0; i < n-1; ++i )
+                {
+                    const Int p_i = parents[i];
+                    
+                    postordered = postordered && (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
+                }
+            }
+            else
+            {
+                for( Int i = 0; i < n-1; ++i )
+                {
+                    const Int p_i = parents[i];
+                    
+                    postordered = postordered && (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
+                }
             }
             
             return postordered;
@@ -385,7 +397,7 @@ namespace Tensors
             
             if( thread_count > 1 )
             {
-                #pragma omp parallel for num_threads( thread_count ) schedule(dynamic)
+                #pragma omp parallel for num_threads( thread_count ) schedule( dynamic )
                 for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
                 {
                     Worker_T & worker = *workers[omp_get_thread_num()];
