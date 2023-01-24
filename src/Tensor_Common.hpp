@@ -123,11 +123,9 @@ void Read( ptr<S> a_, const Int thread_count )
     copy_buffer( a_, a, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
 }
 
-template<typename S>
-std::enable_if_t<ScalarTraits<S>::IsComplex(),void> Read(
-    ptr<typename ScalarTraits<S>::Real> re,
-    ptr<typename ScalarTraits<S>::Real> im
-)
+template<typename R>
+std::enable_if_t<ScalarTraits<Scalar>::IsComplex && !ScalarTraits<R>::IsComplex,void>
+Read( ptr<R> re, ptr<R> im )
 {
     for( Int i = 0; i < n; ++i )
     {
@@ -147,16 +145,14 @@ void Write( mut<S> a_, const Int thread_count ) const
     copy_buffer( a, a_, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
 }
 
-template<typename S>
-std::enable_if_t<ScalarTraits<S>::IsComplex(),void> Write(
-    mut<typename ScalarTraits<S>::Real> re,
-    mut<typename ScalarTraits<S>::Real> im
-) const
+template<typename R>
+std::enable_if_t<ScalarTraits<Scalar>::IsComplex && !ScalarTraits<R>::IsComplex,void>
+Write( mut<R> re, mut<R> im ) const
 {
     for( Int i = 0; i < n; ++i )
     {
         re[i] = real(a[i]);
-        im[i] = iamg(a[i]);
+        im[i] = imag(a[i]);
     }
 }
 
