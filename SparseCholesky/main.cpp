@@ -122,5 +122,24 @@ int main(int argc, const char * argv[])
         
         dump(Y.MaxNorm());
     }
+    
+    
+    print(ToString(Y));
+
+    {
+        Tensor2<Real,Int> ZZ  (3,3, 2.);
+        
+        print( ToString( ZZ.data(), {3,3} ) );
+    }
+    
+    
+    {
+        Tensor1<Real,Int> ZZ  (1*2*3*4, 4.);
+        
+        print( ToString( ZZ.data(), {1,2,3,4} ) );
+    
+    }
+    
+    
     return 0;
 }

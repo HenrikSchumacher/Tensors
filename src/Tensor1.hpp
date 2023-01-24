@@ -222,38 +222,19 @@ namespace Tensors {
             return s;
         }
         
-        std::string ToString( const int p = 16) const
+        std::string ToString( const Int i_begin, const Int i_end ) const
         {
-            std::stringstream sout;
-            sout << "{ ";
-            if( Size() > 0 )
+            if( (i_begin >= 0) && ( i_end <= n) )
             {
-                sout << Tools::ToString(a[0],p);
+                return ToString(
+                    &a[i_begin],
+                    {std::max(int_cast<size_t>(0),int_cast<size_t>(i_end-i_begin))}
+                );
             }
-            for( Int i = 1; i < n; ++i )
+            else
             {
-                sout << ", " << Tools::ToString(a[i],p);
+                return ToString(a,0);
             }
-            sout << " }";
-            return sout.str();
-        }
-
-
-        
-        std::string ToString( const Int i_begin, const Int i_end, const int p = 16) const
-        {
-            std::stringstream sout;
-            sout << "{ ";
-            if( Size() >= i_end )
-            {
-                sout << Tools::ToString(a[i_begin],p);
-            }
-            for( Int i = i_begin + 1; i < i_end; ++i )
-            {
-                sout << ", " << Tools::ToString(a[i],p);
-            }
-            sout << " }";
-            return sout.str();
         }
         
         static std::string ClassName()

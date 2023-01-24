@@ -111,27 +111,53 @@ Int Size() const
 }
 
 template<typename S>
-void Read( const S * const a_ )
+void Read( ptr<S> a_ )
 {
     copy_buffer( a_, a, static_cast<size_t>(n) );
 }
 
 // Parallelized version.
 template<typename S>
-void Read( const S * const a_, const Int thread_count )
+void Read( ptr<S> a_, const Int thread_count )
 {
     copy_buffer( a_, a, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
 }
 
 template<typename S>
-void Write( S * a_ ) const
+std::enable_if_t<ScalarTraits<S>::IsComplex(),void> Read(
+    ptr<ScalarTraits<S>::Real> re,
+    ptr<ScalarTraits<S>::Real> im
+)
+{
+    for( Int i = 0; i < n; ++i )
+    {
+        a[i].real( re[i] );
+        a[i].imag( im[i] );
+    }
+}
+
+template<typename S>
+void Write( mut<S> a_ ) const
 {
     copy_buffer( a, a_, static_cast<size_t>(n) );
 }
 template<typename S>
-void Write( S * a_, const Int thread_count ) const
+void Write( mut<S> a_, const Int thread_count ) const
 {
     copy_buffer( a, a_, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
+}
+
+template<typename S>
+std::enable_if_t<ScalarTraits<S>::IsComplex(),void> Write(
+    mut<ScalarTraits<S>::Real> re,
+    mut<ScalarTraits<S>::Real> im
+) const
+{
+    for( Int i = 0; i < n; ++i )
+    {
+        re[i] = real(a[i]);
+        im[i] = iamg(a[i]);
+    }
 }
 
 void Fill( const Scalar init )
@@ -342,4 +368,9 @@ void ReadFromFile( const std::string & s ) const
         file >> a[i];
     }
     file.close();
+}
+
+std::string ToString() const
+{
+    return Tools::ToString( a, dims.data(), Rank() );
 }

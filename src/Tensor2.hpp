@@ -53,7 +53,7 @@ namespace Tensors {
             {
                 for( Int i = 0; i < d_0; ++i )
                 {
-                    b[d_0 * j + i] = static_cast<S>(a[d_1 * i + j ]);
+                    b[d_0 * j + i] = static_cast<S>( a[d_1 * i + j ] );
                 }
             }
         }
@@ -68,7 +68,7 @@ namespace Tensors {
             {
                 for( Int j = 0; j < d_1; ++j )
                 {
-                    a[d_1 * i + j ] = static_cast<Scalar>(b[ d_0 * j + i ]);
+                    a[d_1 * i + j ] = static_cast<Scalar>( b[ d_0 * j + i ] );
                 }
             }
         }
@@ -79,8 +79,6 @@ namespace Tensors {
         {
             copy_buffer( data(i), b, dims[1] );
         }
-        
-
         
         // row-wise Read
         template< typename S>
@@ -167,37 +165,6 @@ namespace Tensors {
         {
             s << tensor.ToString();
             return s;
-        }
-        
-        std::string ToString( const int p = 16) const
-        {
-            std::stringstream sout;
-            sout << "{\n";
-            if( n > 0 )
-            {
-                const Int d_0 = dims[0];
-                const Int d_1 = dims[1];
-                if( d_1 > 0 )
-                {
-                    sout << "\t{ ";
-                    sout << Tools::ToString(this->operator()(0,0),p);
-                }
-                for( Int j = 1; j < d_1; ++j )
-                {
-                    sout << ", " << Tools::ToString(this->operator()(0,j),p);
-                }
-                for( Int i = 1; i < d_0; ++i )
-                {
-                    sout << " },\n\t{ ";
-                    sout << Tools::ToString(this->operator()(i,0),p);
-                    for( Int j = 1; j < d_1; ++j )
-                    {
-                        sout << ", " << Tools::ToString(this->operator()(i,j),p);
-                    }
-                }
-            }
-            sout << " }\n}";
-            return sout.str();
         }
         
         void Resize( const Int d_0_, const Int d_1_ )
