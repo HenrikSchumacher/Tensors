@@ -23,6 +23,12 @@ namespace Tensors
                 Read(v_list, k);
             }
             
+            template<typename S>
+            CLASS( const S * buffer, const Int k )
+            {
+                Read( buffer[n * k], k );
+            }
+            
         protected:
             
             std::array<Scalar,n> v;
@@ -259,7 +265,8 @@ namespace Tensors
             }
             
             
-            force_inline std::enable_if_t<std::is_same_v<Real,Scalar>,Real> Min() const
+            template <typename Dummy = Scalar>
+            force_inline std::enable_if_t<std::is_same_v<Real,Dummy>,Real> Min() const
             {
                 if constexpr ( n > 0 )
                 {

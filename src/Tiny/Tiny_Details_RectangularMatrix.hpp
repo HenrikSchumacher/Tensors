@@ -78,7 +78,7 @@ public:
         // Reading A = op(B)
         if constexpr ( op == Op::Id )
         {
-            copy_buffer<n>( B, &A[0][0] );
+            copy_buffer<m*n>( B, &A[0][0] );
         }
         else if constexpr ( op == Op::Trans )
         {

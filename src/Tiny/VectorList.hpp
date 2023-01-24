@@ -50,6 +50,18 @@ namespace Tensors
                 }
             }
             
+            template< typename ExtScalar, typename ExtInt >
+            explicit VectorList( ptr<ExtScalar> a, const ExtInt length_ )
+            :   length(length_)
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v[i] = Tensor_T( int_cast<Int>(length_) );
+                }
+                
+                Read(a);
+            }
+            
             // Copy constructor
             VectorList( const VectorList & other )
             :   VectorList( other.length )

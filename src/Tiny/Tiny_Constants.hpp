@@ -1,4 +1,3 @@
-ASSERT_ARITHMETIC(Scalar_)
 ASSERT_INT(Int_)
 
 public:

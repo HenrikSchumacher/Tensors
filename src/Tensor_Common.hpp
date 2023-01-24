@@ -292,49 +292,46 @@ force_inline TENSOR_T & operator*=( const T alpha )
 }
 
 
-//friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
-//{
-//    ptr<Scalar> x_a = x.a;
-//    ptr<Scalar> y_a = y.a;
-//    mut<Scalar> z_a = z.a;
-//
-//    const Int last = x.Size();
-//
-//    #pragma omp parallel for simd aligned( x_a, y_a, z_a : ALIGNMENT ) schedule( static )
-//    for( Int k = 0; k < last; ++ k)
-//    {
-//        z_a[k] = x_a[k] - y_a[k];
-//    }
-//}
-//
-//friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
-//{
-//    ptr<Scalar> x_a = x.a;
-//    ptr<Scalar> y_a = y.a;
-//    mut<Scalar> z_a = z.a;
-//
-//    const Int last = x.Size();
-//
-//    #pragma omp parallel for simd aligned( x_a, y_a, z_a : ALIGNMENT ) schedule( static )
-//    for( Int k = 0; k < last; ++ k)
-//    {
-//        z_a[k] = x_a[k] + y_a[k];
-//    }
-//}
-//
-//friend void Times( const Scalar alpha, const TENSOR_T & x, TENSOR_T & y )
-//{
-//    ptr<Scalar> x_a = x.a;
-//    mut<Scalar> y_a = y.a;
-//
-//    const Int last = x.Size();
-//
-//    #pragma omp parallel for simd aligned( x_a, y_a : ALIGNMENT ) schedule( static )
-//    for( Int k = 0; k < last; ++ k)
-//    {
-//        y_a[k] = alpha * x_a[k];
-//    }
-//}
+friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
+{
+    ptr<Scalar> x_a = x.a;
+    ptr<Scalar> y_a = y.a;
+    mut<Scalar> z_a = z.a;
+
+    const Int last = x.Size();
+
+    for( Int k = 0; k < last; ++ k)
+    {
+        z_a[k] = x_a[k] - y_a[k];
+    }
+}
+
+friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
+{
+    ptr<Scalar> x_a = x.a;
+    ptr<Scalar> y_a = y.a;
+    mut<Scalar> z_a = z.a;
+
+    const Int last = x.Size();
+
+    for( Int k = 0; k < last; ++ k)
+    {
+        z_a[k] = x_a[k] + y_a[k];
+    }
+}
+
+friend void Times( const Scalar alpha, const TENSOR_T & x, TENSOR_T & y )
+{
+    ptr<Scalar> x_a = x.a;
+    mut<Scalar> y_a = y.a;
+
+    const Int last = x.Size();
+
+    for( Int k = 0; k < last; ++ k)
+    {
+        y_a[k] = alpha * x_a[k];
+    }
+}
 
 inline friend std::string to_string( const TENSOR_T & A )
 {
