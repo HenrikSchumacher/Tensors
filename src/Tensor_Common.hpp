@@ -125,8 +125,8 @@ void Read( ptr<S> a_, const Int thread_count )
 
 template<typename S>
 std::enable_if_t<ScalarTraits<S>::IsComplex(),void> Read(
-    ptr<ScalarTraits<S>::Real> re,
-    ptr<ScalarTraits<S>::Real> im
+    ptr<typename ScalarTraits<S>::Real> re,
+    ptr<typename ScalarTraits<S>::Real> im
 )
 {
     for( Int i = 0; i < n; ++i )
@@ -149,8 +149,8 @@ void Write( mut<S> a_, const Int thread_count ) const
 
 template<typename S>
 std::enable_if_t<ScalarTraits<S>::IsComplex(),void> Write(
-    mut<ScalarTraits<S>::Real> re,
-    mut<ScalarTraits<S>::Real> im
+    mut<typename ScalarTraits<S>::Real> re,
+    mut<typename ScalarTraits<S>::Real> im
 ) const
 {
     for( Int i = 0; i < n; ++i )
