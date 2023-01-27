@@ -86,6 +86,53 @@ namespace Tensors {
         {
             copy_buffer( b, data(i), dims[1] );
         }
+        
+        
+        template<typename S>
+        void Read( ptr<S> a_, const Int lda, const Int thread_count )
+        {
+            const size_t d_0 = static_cast<size_t>(dims[0]);
+            const size_t d_1 = static_cast<size_t>(dims[1]);
+            
+            if( thread_count > 1 )
+            {
+                #pragma omp parallel for num_threads(thread_count) schedule( static )
+                for( Int i = 0; i < d_0; ++i )
+                {
+                    copy_buffer( &a_[lda * i], &a[d_1 * i], d_1, 1 );
+                }
+            }
+            else
+            {
+                for( Int i = 0; i < d_0; ++i )
+                {
+                    copy_buffer( &a_[lda * i], &a[d_1 * i], d_1, 1 );
+                }
+            }
+        }
+        
+        template<typename S>
+        void Write( mut<S> a_, const Int lda, const Int thread_count )
+        {
+            const size_t d_0 = static_cast<size_t>(dims[0]);
+            const size_t d_1 = static_cast<size_t>(dims[1]);
+            
+            if( thread_count > 1 )
+            {
+                #pragma omp parallel for num_threads(thread_count) schedule( static )
+                for( Int i = 0; i < d_0; ++i )
+                {
+                    copy_buffer( &a[d_1 * i], &a_[lda * i], d_1, 1 );
+                }
+            }
+            else
+            {
+                for( Int i = 0; i < d_0; ++i )
+                {
+                    copy_buffer( &a[d_1 * i], &a_[lda * i], d_1, 1 );
+                }
+            }
+        }
 
     private:
         
