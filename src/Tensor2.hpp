@@ -208,12 +208,6 @@ namespace Tensors {
         
     public:
         
-        inline friend std::ostream & operator<<( std::ostream & s, const TENSOR_T & tensor )
-        {
-            s << tensor.ToString();
-            return s;
-        }
-        
         void Resize( const Int d_0_, const Int d_1_ )
         {
             const Int d_0 = std::max( static_cast<Int>(0),d_0_);

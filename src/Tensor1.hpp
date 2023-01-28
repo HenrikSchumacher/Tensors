@@ -216,12 +216,6 @@ namespace Tensors {
         
     public:
         
-        inline friend std::ostream & operator<<( std::ostream & s, const TENSOR_T & tensor )
-        {
-            s << tensor.ToString();
-            return s;
-        }
-        
         std::string ToString( const Int i_begin, const Int i_end ) const
         {
             if( (i_begin >= 0) && ( i_end <= n) )

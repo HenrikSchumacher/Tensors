@@ -363,7 +363,19 @@ void ReadFromFile( const std::string & s ) const
     file.close();
 }
 
-std::string ToString() const
+std::string ToString( int prec = 16 ) const
 {
-    return Tools::ToString( a, dims.data(), Rank() );
+    return Tools::ArrayToString( a, dims.data(), Rank(), prec );
+}
+
+template<class Stream_T>
+Stream_T & ToStream( Stream_T & s ) const
+{
+    return Tools::ArrayToStream( a, dims.data(), Rank(), s );
+}
+
+inline friend std::ostream & operator<<( std::ostream & s, const TENSOR_T & tensor )
+{
+    tensor.ToStream(s);
+    return s;
 }
