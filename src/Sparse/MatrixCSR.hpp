@@ -1051,14 +1051,23 @@ namespace Tensors
             // Use own nonzero values.
             template<typename T_in, typename T_out>
             void Dot(
-                const Scalar  alpha,
-                const T_in  * X,
-                const T_out   beta,
-                      T_out * Y,
+                     const Scalar  alpha, ptr<T_in>  X, const Int ldX,
+                     const T_out   beta,  mut<T_out> Y, const Int ldY,
+                     const Int     cols = Int(1)
+            ) const
+            {
+                Dot_( values.data(), alpha, X, ldX, beta, Y, ldY, cols );
+            }
+            
+            // Use own nonzero values.
+            template<typename T_in, typename T_out>
+            void Dot(
+                const Scalar  alpha, ptr<T_in>  X,
+                const T_out   beta,  mut<T_out> Y,
                 const Int     cols = Int(1)
             ) const
             {
-                Dot_( values.data(), alpha, X, beta, Y, cols );
+                Dot_( values.data(), alpha, X, cols, beta, Y, cols, cols );
             }
             
             // Use own nonzero values.
@@ -1072,7 +1081,7 @@ namespace Tensors
                 {
                     const Int one = static_cast<Int>(1);
                     
-                    Dot_( values.data(),alpha, X.data(), one, beta, Y.data(), one, one );
+                    Dot_( values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
                 }
                 else
                 {
@@ -1134,11 +1143,9 @@ namespace Tensors
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
                 {
-                    Dot_( ext_values.data(),
-                        alpha, X.data(), static_cast<Int>(1),
-                        beta,  Y.data(), static_cast<Int>(1),
-                        static_cast<Int>(1)
-                    );
+                    const Int one = static_cast<Int>(1);
+                    
+                    Dot_( ext_values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
                 }
                 else
                 {
