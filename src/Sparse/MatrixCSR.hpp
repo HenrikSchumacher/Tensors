@@ -1083,15 +1083,15 @@ namespace Tensors
             // Use own nonzero values.
             template<typename T_in, typename T_out>
             void Dot(
-                 const Scalar               alpha,
-                 const Tensor2<T_in, Int> & X,
-                 const T_out                beta,
-                       Tensor2<T_out,Int> & Y
+                 const Scalar alpha, const Tensor2<T_in, Int> & X,
+                 const T_out  beta,        Tensor2<T_out,Int> & Y
              ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
                 {
-                    Dot_( values.data(), alpha, X.data(), beta, Y.data(), X.Dimension(1) );
+                    const Int cols = X.Dimension(1);
+                    
+                    Dot_( values.data(), alpha, X.data(), cols, beta, Y.data(), cols, cols );
                 }
                 else
                 {
@@ -1104,29 +1104,41 @@ namespace Tensors
             // Use external list of values.
             template<typename T_ext, typename T_in, typename T_out>
             void Dot(
-                const T_ext alpha,
                 ptr<T_ext>  ext_values,
-                ptr<T_ext>  X,
-                const T_out beta,
-                mut<T_ext>  Y,
+                const T_ext alpha, ptr<T_ext>  X, const Int ldX,
+                const T_out beta,  mut<T_ext>  Y, const Int ldY,
                 const Int   cols = static_cast<Int>(1)
             ) const
             {
-                Dot_( ext_values, alpha, X, beta, Y, cols );
+                Dot_( ext_values, alpha, X, ldX, beta, Y, ldY, cols );
+            }
+            
+            // Use external list of values.
+            template<typename T_ext, typename T_in, typename T_out>
+            void Dot(
+                ptr<T_ext>  ext_values,
+                const T_ext alpha, ptr<T_ext>  X,
+                const T_out beta,  mut<T_ext>  Y,
+                const Int   cols = static_cast<Int>(1)
+            ) const
+            {
+                Dot_( ext_values, alpha, X, cols, beta, Y, cols, cols );
             }
             
             template<typename T_ext, typename T_in, typename T_out>
             void Dot(
-                const T_ext                alpha,
                 const Tensor1<T_ext,Int> & ext_values,
-                const Tensor1<T_in, Int> & X,
-                const T_out                beta,
-                      Tensor1<T_out,Int> & Y
+                const T_ext alpha, const Tensor1<T_in, Int> & X,
+                const T_out beta,        Tensor1<T_out,Int> & Y
             ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
                 {
-                    Dot_( ext_values.data(), alpha, X.data(), beta, Y.data(), static_cast<Int>(1) );
+                    Dot_( ext_values.data(),
+                        alpha, X.data(), static_cast<Int>(1),
+                        beta,  Y.data(), static_cast<Int>(1),
+                        static_cast<Int>(1)
+                    );
                 }
                 else
                 {
@@ -1136,16 +1148,16 @@ namespace Tensors
             
             template<typename T_ext, typename T_in, typename T_out>
             void Dot(
-                 const T_ext                alpha,
                  const Tensor1<T_ext,Int> & ext_values,
-                 const Tensor2<T_in, Int> & X,
-                 const T_out                beta,
-                       Tensor2<T_out,Int> & Y
+                 const T_ext alpha, const Tensor2<T_in, Int> & X,
+                 const T_out beta,        Tensor2<T_out,Int> & Y
          ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
                 {
-                    Dot_( ext_values.data(), alpha, X.data(), beta, Y.data(), X.Dimension(1) );
+                    const Int cols = X.Dimension(1);
+                    
+                    Dot_( ext_values.data(), alpha, X.data(), cols, beta, Y.data(), cols, cols );
                 }
                 else
                 {

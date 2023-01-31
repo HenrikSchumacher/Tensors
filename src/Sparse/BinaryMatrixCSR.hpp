@@ -329,6 +329,17 @@ namespace Tensors
 //####          Matrix Multiplication
 //###########################################################################################
             
+
+            // Assume all nonzeros are equal to 1.
+            template<typename T_ext, typename T_in, typename T_out>
+            void Dot(
+                     const T_ext alpha, ptr<T_in>  X, const Int ldX,
+                     const T_out beta,  mut<T_out> Y, const Int ldY,
+                     const Int cols = 1
+                     ) const
+            {
+                Dot_( alpha, X, ldX, beta, Y, ldY, cols );
+            }
             
             // Assume all nonzeros are equal to 1.
             template<typename T_ext, typename T_in, typename T_out>
@@ -338,7 +349,7 @@ namespace Tensors
                      const Int cols = 1
                      ) const
             {
-                Dot_( alpha, X, beta, Y, cols );
+                Dot_( alpha, X, cols, beta, Y, cols, cols );
             }
             
             template<typename T_ext, typename T_in, typename T_out>
@@ -349,7 +360,11 @@ namespace Tensors
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
                 {
-                    Dot_( alpha, X.data(), beta, Y.data(), static_cast<Int>(1) );
+                    Dot_(
+                        alpha, X.data(), static_cast<Int>(1),
+                        beta,  Y.data(), static_cast<Int>(1),
+                        static_cast<Int>(1)
+                    );
                 }
                 else
                 {
@@ -365,7 +380,9 @@ namespace Tensors
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
                 {
-                    Dot_( alpha, X.data(), beta, Y.data(), X.Dimension(1) );
+                    const Int cols = X.Dimension(1);
+                    
+                    Dot_( alpha, X.data(), cols, beta, Y.data(), cols, cols );
                 }
                 else
                 {
@@ -379,12 +396,12 @@ namespace Tensors
             template<typename T_ext, typename T_in, typename T_out>
             void Dot(
                      ptr<T_ext>  ext_values,
-                     const T_ext alpha, ptr<T_in>  X,
-                     const T_out beta,  mut<T_out> Y,
+                     const T_ext alpha, ptr<T_in>  X, const Int ldX,
+                     const T_out beta,  mut<T_out> Y, const Int ldY,
                      const Int cols = 1
                      ) const
             {
-                Dot_( ext_values, alpha, X, beta, Y, cols );
+                Dot_( ext_values, alpha, X, ldX, beta, Y, ldY, cols );
             }
             
             template<typename T_ext, typename T_in, typename T_out>
@@ -396,7 +413,11 @@ namespace Tensors
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
                 {
-                    Dot_( ext_values.data(), alpha, X.data(), beta, Y.data(), static_cast<Int>(1) );
+                    Dot_( ext_values.data(),
+                        alpha, X.data(), static_cast<Int>(1),
+                        beta,  Y.data(), static_cast<Int>(1),
+                        static_cast<Int>(1)
+                    );
                 }
                 else
                 {
@@ -413,7 +434,8 @@ namespace Tensors
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
                 {
-                    Dot_( ext_values.data(), alpha, X.data(), beta, Y.data(), X.Dimension(1) );
+                    const Int cols = X.Dimension(1);
+                    Dot_( ext_values.data(), alpha, X.data(), cols, beta, Y.data(), cols, cols );
                 }
                 else
                 {

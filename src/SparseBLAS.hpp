@@ -54,8 +54,7 @@ namespace Tensors
 //#include "SpMV.hpp"
 #include "SparseBLAS/SpMM.hpp"
 #include "SparseBLAS/SpMM_gen.hpp"
-#include "SparseBLAS/Multiply_BinaryMatrix.hpp"
-#include "SparseBLAS/Multiply_GeneralMatrix.hpp"
+#include "SparseBLAS/Multiply_DenseMatrix.hpp"
         
     public:
         

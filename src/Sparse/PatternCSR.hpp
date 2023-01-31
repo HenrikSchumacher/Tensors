@@ -993,8 +993,8 @@ namespace Tensors
             // Assume all nonzeros are equal to 1.
             template<typename T_ext, typename T_in, typename T_out>
             void Dot_(
-                const T_ext alpha, ptr<T_in>  X,
-                const T_out beta,  mut<T_out> Y,
+                const T_ext alpha, ptr<T_in>  X, const Int ldX,
+                const T_out beta,  mut<T_out> Y, const Int ldY,
                 const Int cols = static_cast<Int>(1)
             ) const
             {
@@ -1002,8 +1002,8 @@ namespace Tensors
                 {
                     SparseBLAS<T_ext,Int,LInt,T_in,T_out> sblas ( thread_count );
                     
-                    sblas.Multiply_BinaryMatrix_DenseMatrix(
-                        outer.data(),inner.data(),m,n,alpha,X,beta,Y,cols,JobPtr()
+                    sblas.Multiply_DenseMatrix(
+                        outer.data(),inner.data(),nullptr,m,n,alpha,X,ldX,beta,Y,ldY,cols,JobPtr()
                     );
                 }
                 else
@@ -1016,8 +1016,8 @@ namespace Tensors
             template<typename T_ext, typename T_in, typename T_out>
             void Dot_(
                       ptr<T_ext>  values,
-                      const T_ext alpha, ptr<T_in>   X,
-                      const T_out beta,  mut<T_out>  Y,
+                      const T_ext alpha, ptr<T_in>  X, const Int ldX,
+                      const T_out beta,  mut<T_out> Y, const Int ldY,
                       const Int   cols = static_cast<Int>(1)
                       ) const
             {
@@ -1025,8 +1025,8 @@ namespace Tensors
                 {
                     auto sblas = SparseBLAS<T_ext,Int,LInt,T_in,T_out>( thread_count );
                     
-                    sblas.Multiply_GeneralMatrix_DenseMatrix(
-                        outer.data(),inner.data(),values,m,n,alpha,X,beta,Y,cols,JobPtr()
+                    sblas.Multiply_DenseMatrix(
+                        outer.data(),inner.data(),values,m,n,alpha,X,ldX,beta,Y,ldY,cols,JobPtr()
                     );
                 }
                 else

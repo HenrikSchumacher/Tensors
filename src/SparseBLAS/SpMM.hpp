@@ -3,10 +3,8 @@ public:
     template<int cols>
     void SpMM(
         ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
-        const T     alpha_,
-        ptr<T_in>   X,
-        const T_out beta,
-        mut<T_out>  Y,
+        const T     alpha_, ptr<T_in>  X, const Int ldX,
+        const T_out beta,   mut<T_out> Y, const Int ldY,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -23,30 +21,30 @@ public:
             {
                 if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,true,1,0>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,1,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,true,1,1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,1,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,true,1,-1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,1,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else if( alpha == static_cast<T>(0) )
             {
                 if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,true,0,1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,0,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,true,0,0>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,0,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,true,0,-1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,0,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else
@@ -54,15 +52,15 @@ public:
                 // general alpha
                 if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,true,-1,1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,-1,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,true,-1,0>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,-1,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,true,-1,-1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,true,-1,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
         }
@@ -72,30 +70,30 @@ public:
             {
                 if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,false,1,0>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,1,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,false,1,1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,1,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,false,1,-1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,1,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else if( alpha == static_cast<T>(0) )
             {
                 if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,false,0,1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,0,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,false,0,0>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,0,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,false,0,-1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,0,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else
@@ -103,15 +101,15 @@ public:
                 // general alpha
                 if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,false,-1,1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,-1,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,false,-1,0>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,-1,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,false,-1,-1>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMM_implementation<cols,false,-1,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
         }
@@ -121,10 +119,8 @@ public:
     template<Int cols, bool a_flag, int alpha_flag, int beta_flag >
     void SpMM_implementation(
         ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
-        const T     alpha,
-        ptr<T_in>   X,
-        const T_out beta,
-        mut<T_out>  Y,
+        const T     alpha, ptr<T_in>  X, const Int ldX,
+        const T_out beta,  mut<T_out> Y, const Int ldY,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -142,7 +138,18 @@ public:
         {
             if constexpr ( beta_flag == 0 )
             {
-                zerofy_buffer(Y, m * cols);
+                if( ldY == cols )
+                {
+                    zerofy_buffer( Y, m * cols, job_ptr.ThreadCount() );
+                }
+                else
+                {
+                    #pragma omp parallel for num_thread(job_ptr.ThreadCount())
+                    for( Int i = 0; i < m; ++ i )
+                    {
+                        zerofy_buffer<cols>( &Y[ldY*i] );
+                    }
+                }
                 return;
             }
             else if constexpr ( beta_flag == 1 )
@@ -151,7 +158,18 @@ public:
             }
             else
             {
-                scale( Y, beta, m, job_ptr.Size()-1);
+                if( ldY == cols )
+                {
+                    scale_buffer( beta, Y, m * cols, job_ptr.ThreadCount() );
+                }
+                else
+                {
+                    #pragma omp parallel for num_thread(job_ptr.ThreadCount())
+                    for( Int i = 0; i < m; ++ i )
+                    {
+                        scale_buffer<cols>( beta, &Y[ldY*i] );
+                    }
+                }
                 return;
             }
         }
@@ -176,15 +194,15 @@ public:
                     {
                         const Int j = ci[k];
                         
-//                        prefetch_range<cols,0,0>( &X[cols * ci[k+1]] );
+//                        prefetch_range<cols,0,0>( &X[ldX * ci[k+1]] );
                         
                         if constexpr ( a_flag )
                         {
-                            axpbz<cols,-1,1>( a[k], &X[cols * j], T_one, &z[0] );
+                            axpbz<cols,-1,1>( a[k], &X[ldX * j], T_one, &z[0] );
                         }
                         else
                         {
-                            axpbz<cols,1,1>( T_one, &X[cols * j], T_one, &z[0] );
+                            axpbz<cols,1,1>( T_one, &X[ldX * j], T_one, &z[0] );
                         }
                     }
                     
@@ -196,21 +214,21 @@ public:
                         
                         if constexpr ( a_flag )
                         {
-                            axpbz<cols,-1,1>( a[k], &X[cols * j], T_one, &z[0] );
+                            axpbz<cols,-1,1>( a[k], &X[ldX * j], T_one, &z[0] );
                         }
                         else
                         {
-                            axpbz<cols,1,1>( T_one, &X[cols * j], T_one, &z[0] );
+                            axpbz<cols,1,1>( T_one, &X[ldX * j], T_one, &z[0] );
                         }
                     }
                     
                     // incorporate the local updates into Y-buffer
-                    azpby<cols,alpha_flag,beta_flag>( alpha, &z[0], beta, &Y[cols * i] );
+                    azpby<cols,alpha_flag,beta_flag>( alpha, &z[0], beta, &Y[ldY * i] );
                 }
                 else
                 {
                     // zerofy the relevant portion of the Y-buffer
-                    azpby<cols,0,0>( alpha, nullptr, beta, &Y[cols * i] );
+                    azpby<cols,0,0>( alpha, nullptr, beta, &Y[ldY * i] );
                 }
             }
         }
