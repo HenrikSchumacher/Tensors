@@ -1064,15 +1064,15 @@ namespace Tensors
             // Use own nonzero values.
             template<typename T_in, typename T_out>
             void Dot(
-                const Scalar               alpha,
-                const Tensor1<T_in, Int> & X,
-                const T_out                beta,
-                      Tensor1<T_out,Int> & Y
+                const Scalar alpha, const Tensor1<T_in, Int> & X,
+                const T_out  beta,        Tensor1<T_out,Int> & Y
             ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
                 {
-                    Dot_( values.data(), alpha, X.data(), beta, Y.data(), static_cast<Int>(1) );
+                    const Int one = static_cast<Int>(1);
+                    
+                    Dot_( values.data(),alpha, X.data(), one, beta, Y.data(), one, one );
                 }
                 else
                 {
