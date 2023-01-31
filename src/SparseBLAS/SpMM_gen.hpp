@@ -137,7 +137,7 @@ public:
                 }
                 else
                 {
-                    #pragma omp parallel for num_thread(job_ptr.ThreadCount())
+                    #pragma omp parallel for num_threads(job_ptr.ThreadCount())
                     for( Int i = 0; i < m; ++ i )
                     {
                         zerofy_buffer( &Y[ldY*i], cols);
@@ -157,7 +157,7 @@ public:
                 }
                 else
                 {
-                    #pragma omp parallel for num_thread(job_ptr.ThreadCount())
+                    #pragma omp parallel for num_threads(job_ptr.ThreadCount())
                     for( Int i = 0; i < m; ++ i )
                     {
                         scale_buffer( beta, &Y[ldY*i], cols);
