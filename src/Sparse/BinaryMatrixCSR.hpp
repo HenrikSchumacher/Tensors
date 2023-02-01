@@ -251,7 +251,7 @@ namespace Tensors
                             for( LInt k = k_end; k --> k_begin; )
                             {
                                 const Int j = A_inner[k];
-                                const LInt pos = --c[ j ];
+                                const LInt pos = --c[j];
                                 B_inner [pos] = i;
                             }
                         }

@@ -351,7 +351,7 @@ namespace Tensors
                             
                             mut<LInt> c = counters.data(thread);
                             
-                            for( LInt k = entry_count; k--> 0; )
+                            for( LInt k = entry_count; k --> 0; )
                             {
                                 const Int i = thread_idx[k];
                                 const Int j = thread_jdx[k];
@@ -934,8 +934,7 @@ namespace Tensors
                     
                     #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        
+                    {   
                         const Int i_begin = job_ptr[thread  ];
                         const Int i_end   = job_ptr[thread+1];
                         
@@ -964,7 +963,7 @@ namespace Tensors
                                 for( LInt kk = kk_end; kk --> kk_begin; )
                                 {
                                     const Int k = B_inner[kk];
-                                    const LInt pos = --c[ i ];
+                                    const LInt pos = --c[i];
                                     
                                     C_inner [pos] = k;
                                     //                            C_values[pos] = A_values[jj] * B_values[kk];

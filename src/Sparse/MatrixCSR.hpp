@@ -440,7 +440,7 @@ namespace Tensors
                             for( LInt k = k_end; k --> k_begin; )
                             {
                                 const Int j = A_inner[k];
-                                const LInt pos = --c[ j ];
+                                const LInt pos = --c[j];
                                 B_inner [pos] = i;
                                 
                                 if constexpr ( conjugate )
@@ -1006,7 +1006,7 @@ namespace Tensors
                                 for( LInt kk = kk_end; kk --> kk_begin; )
                                 {
                                     const Int k = B_inner[kk];
-                                    const LInt pos = --c[ i ];
+                                    const LInt pos = --c[i];
                                     
                                     C_inner [pos] = k;
                                     C_values[pos] = A_values[jj] * B_values[kk];
