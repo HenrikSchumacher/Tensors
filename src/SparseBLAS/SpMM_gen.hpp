@@ -161,12 +161,10 @@ private:
         //  - alpha_flag == ScalarFlag::Minus
         //  - beta_flag  == ScalarFlag::Minus
 
-        
-        // Threats sparse matrix as a binary matrix if a_flag == false.
+        // Treats sparse matrix as a binary matrix if a_flag == false.
         // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
         
         // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
-        
 
         #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
         for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )

@@ -14,9 +14,9 @@ public:
         const T alpha = ( rp[m] > 0 ) ? alpha_ : static_cast<T>(0);
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
-        if ( alpha == static_cast<T>(0) )
+        if( alpha == static_cast<T>(0) )
         {
-            if ( beta == static_cast<T_out>(0) )
+            if( beta == static_cast<T_out>(0) )
             {
                 if( ldY == cols )
                 {
@@ -30,11 +30,10 @@ public:
                         zerofy_buffer<cols>( &Y[ldY*i] );
                     }
                 }
-                return;
             }
-            else if ( beta == static_cast<T_out>(1) )
+            else if( beta == static_cast<T_out>(1) )
             {
-                return;
+                // Do nothing;
             }
             else
             {
@@ -60,8 +59,8 @@ public:
                         }
                     }
                 }
-                return;
             }
+            return;
         }
         
         if( a != nullptr )
@@ -134,6 +133,7 @@ public:
         }
     }
 
+private:
 
     template<Int cols, ScalarFlag a_flag, ScalarFlag alpha_flag, ScalarFlag beta_flag >
     void SpMM_fixed_implementation(
@@ -143,10 +143,17 @@ public:
         const JobPointers<Int> & job_ptr
     )
     {
-        // Threats sparse matrix as a binary matrix if a_flag == false.
-        // (Implicitly assumes that a == nullptr.)
-        // Uses shortcuts if alpha = 0, alpha = 1, beta = 0 or beta = 1.
-        // Uses if constexpr to reuse code without runtime overhead.
+        // Only to be called by SpMM_fixed which guarantees that the following cases _cannot_ occur:
+        //  - a_flag     == ScalarFlag::Minus
+        //  - a_flag     == ScalarFlag::Zero
+        //  - alpha_flag == ScalarFlag::Zero
+        //  - alpha_flag == ScalarFlag::Minus
+        //  - beta_flag  == ScalarFlag::Minus
+        
+        // Treats sparse matrix as a binary matrix if a_flag == false.
+        // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
+        
+        // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
 
         #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
         for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )

@@ -124,14 +124,14 @@ public:
                 SpMM_fixed<19>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 break;
             }
-            case 0:
-            {
-                return;
-            }
             case 20:
             {
                 SpMM_fixed<20>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 break;
+            }
+            case 0:
+            {
+                return;
             }
             default:
             {
