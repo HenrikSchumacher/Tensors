@@ -130,7 +130,7 @@ namespace Tensors
             {
                 if( (i < 0) || (i > n) )
                 {
-                    eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(n-1) +" }.");
+                    eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(n) +" [.");
                 }
             }
             

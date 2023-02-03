@@ -27,7 +27,7 @@ protected:
         }
         else
         {
-            Scale( Y, beta, m * cols, job_ptr.Size()-1);
+            Scale( Y, beta, m * cols, job_ptr.ThreadCount());
         }
 
         if( alpha != static_cast<T>(0) )
@@ -35,8 +35,8 @@ protected:
     //                    logprint("alpha != 0");
             // The target buffer Y may contain nan, so we have to _overwrite_ instead of multiply by 0 and add to it!
             
-            #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-            for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
+            #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
+            for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
             {
                 T_out * restrict const Y_buf = Y_buffer[thread].data();
                 
@@ -98,8 +98,8 @@ protected:
     //                    logprint("alpha != 0");
             // The target buffer Y may contain nan, so we have to _overwrite_ instead of multiply by 0 and add to it!
             
-            #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-            for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
+            #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
+            for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
             {
                 T_out * restrict const Y_buf = Y_buffer.data(thread);
                 
@@ -136,7 +136,7 @@ protected:
             }
         }
         
-        #pragma omp parallel for num_threads( job_ptr.Size()-1 ) schedule( static )
+        #pragma omp parallel for num_threads( job_ptr.ThreadCount() ) schedule( static )
         for( Int i = 0; i < m; ++i )
         {
             const Int pos = cols*i;

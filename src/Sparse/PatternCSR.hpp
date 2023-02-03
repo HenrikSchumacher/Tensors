@@ -4,6 +4,14 @@ namespace Tensors
 {
     namespace Sparse
     {
+        
+        template<typename LInt>
+        struct Position
+        {
+            const LInt index;
+            const bool found;
+        };
+        
         template<typename Int, typename LInt> class BinaryMatrixCSR;
         
         template<typename Int_, typename LInt_>
@@ -1020,6 +1028,7 @@ namespace Tensors
                       const Int   cols = static_cast<Int>(1)
                       ) const
             {
+                print("X");
                 if( WellFormed() )
                 {
                     auto sblas = SparseBLAS<T_ext,Int,LInt,T_in,T_out>( thread_count );
@@ -1120,11 +1129,11 @@ namespace Tensors
             {
                 if( (i < 0) || (i > m) )
                 {
-                    eprint(ClassName()+": Row index " + std::to_string(i) + " is out of bounds { 0, " + std::to_string(m-1) +" }.");
+                    eprint(ClassName()+": Row index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(m) +" [.");
                 }
                 if( (j < 0) || (j > n) )
                 {
-                    eprint(ClassName()+": Column index " + std::to_string(j) + " is out of bounds { 0, " + std::to_string(n-1) +" }.");
+                    eprint(ClassName()+": Column index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(n) +" [.");
                 }
             }
             
@@ -1145,7 +1154,7 @@ namespace Tensors
                 inner_sorted = false;
             }
             
-            LInt FindNonzeroPosition( const Int i, const Int j ) const
+            Sparse::Position<LInt> FindNonzeroPosition( const Int i, const Int j ) const
             {
                 // Looks up the entry {i,j}. If existent, its index within the list of nonzeroes is returned. Otherwise, a negative number is returned (-1 if simply not found and -2 if i is out of bounds).
                 
@@ -1153,7 +1162,7 @@ namespace Tensors
                 BoundCheck(i,j);
 #endif
                 
-                if( (0 <= i) && (i<m) )
+                if( (0 <= i) && (i < m) )
                 {
                     ptr<Int> inner__ = inner.data();
                     
@@ -1185,12 +1194,12 @@ namespace Tensors
                         }
                         
                     }
-                    return (inner__[L]==j) ? L : static_cast<LInt>(-1);
+                    return (inner__[L]==j) ? Sparse::Position<LInt> {L, true} : Sparse::Position<LInt>{0, false};
                 }
                 else
                 {
                     wprint(ClassName()+"::FindNonzeroPosition: Row index i = "+ToString(i)+" is out of bounds {0,"+ToString(m)+"}.");
-                    return static_cast<Int>(-2);
+                    return Sparse::Position<LInt>{0, false};
                 }
             }
             

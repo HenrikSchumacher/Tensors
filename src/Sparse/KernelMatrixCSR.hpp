@@ -77,7 +77,7 @@ namespace Tensors
                     
                     const auto & job_ptr = pattern.LowerTriangularJobPtr();
                     
-                    const Int thread_count = job_ptr.Size()-1;
+                    const Int thread_count = job_ptr.ThreadCount();
                     
                     // OpenMP has a considerable overhead at launching the threads...
                     if( thread_count > 1)
@@ -209,7 +209,7 @@ namespace Tensors
                 
                 const auto & job_ptr = pattern.JobPtr();
                 
-                const Int thread_count = job_ptr.Size()-1;
+                const Int thread_count = job_ptr.ThreadCount();
                 
                 // OpenMP has a considerable overhead at launching the threads...
                 if( thread_count > 1 )

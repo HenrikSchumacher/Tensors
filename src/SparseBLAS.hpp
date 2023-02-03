@@ -9,8 +9,8 @@ namespace Tensors
 
     public:
         
-        static constexpr T T_one  = 1;
         static constexpr T T_zero = 0;
+        static constexpr T T_one  = 1;
         static constexpr T T_two  = 2;
         
         SparseBLAS()
@@ -46,11 +46,6 @@ namespace Tensors
             scale_buffer( beta, y, size, thread_count_ );
         }
 
-
-#include "SparseBLAS/axpbz.hpp"
-#include "SparseBLAS/axpbz_gen.hpp"
-#include "SparseBLAS/azpby.hpp"
-#include "SparseBLAS/azpby_gen.hpp"
 //#include "SpMV.hpp"
 #include "SparseBLAS/SpMM.hpp"
 #include "SparseBLAS/SpMM_gen.hpp"

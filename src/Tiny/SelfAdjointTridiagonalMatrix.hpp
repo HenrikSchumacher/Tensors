@@ -152,6 +152,11 @@ namespace Tensors
             template<typename T = Scalar>
             void ToMatrix( Matrix<n,n,T,Int> & B ) const
             {
+                if( n <= 0 )
+                {
+                    return;
+                }
+                
                 B.SetZero();
                 
                 for( Int i = 0; i < n-1; ++i )
@@ -472,6 +477,10 @@ namespace Tensors
                 const Int max_iter
             )
             {
+                if( m <= 1 )
+                {
+                    return;
+                }
                 // Performs the implicit QR algorithm in the block A[begin..end-1][begin..end-1].
                 // Assumes that m > 2 (otherwise we would have called qr_algorithm_2x2 or stopped.
                 

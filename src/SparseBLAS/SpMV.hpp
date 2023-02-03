@@ -30,7 +30,7 @@ public:
                     wprint(ClassName()+"::SpMV: No nonzeroes found. Just scaling by beta = "+ToString(beta)+".");
                     
                     
-                    scale( y, beta, m, job_ptr.Size()-1);
+                    scale( y, beta, m, job_ptr.ThreadCount());
                 }
             }
             return;
@@ -45,8 +45,8 @@ public:
             else
             {
                 // The target buffer Y may contain nan, so we have to _overwrite_ instead of multiply by 0 and add to it!
-                #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-                for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
+                #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
+                for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
                 {
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
@@ -78,12 +78,12 @@ public:
         {
             if( alpha == static_cast<T>(0) )
             {
-                scale( y, beta, m, job_ptr.Size()-1);
+                scale( y, beta, m, job_ptr.ThreadCount());
             }
             else
             {
-                #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-                for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
+                #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
+                for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
                 {
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];

@@ -206,7 +206,7 @@ namespace Tensors
             
             const auto & b_job_ptr = blk_pat.JobPtr();
             
-            const I thread_count = b_job_ptr.Size()-1;
+            const I thread_count = b_job_ptr.ThreadCount();
             
             #pragma omp parallel for num_threads( thread_count )
             for( I thread = 0; thread < thread_count; ++thread )

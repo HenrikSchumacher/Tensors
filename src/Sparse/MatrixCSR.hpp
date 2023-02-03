@@ -96,7 +96,7 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   Base_T    ( outer_,  inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            :   Base_T  ( outer_,  inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
             ,   values  ( values_, outer_[static_cast<Int>(m_)] )
             {
                 ASSERT_ARITHMETIC(S);
@@ -109,7 +109,7 @@ namespace Tensors
             MatrixCSR(
                 Tensor1<LInt  , Int> && outer_,
                 Tensor1< Int  ,LInt> && inner_,
-                Tensor1<Scalar, Int> && values_,
+                Tensor1<Scalar,LInt> && values_,
                 const I_0 m_,
                 const I_1 n_,
                 const I_3 thread_count_
@@ -124,7 +124,7 @@ namespace Tensors
             
             // Copy constructor
             MatrixCSR( const MatrixCSR & other )
-            :   Base_T    ( other        )
+            :   Base_T  ( other        )
             ,   values  ( other.values )
             {
                 logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
@@ -173,6 +173,39 @@ namespace Tensors
             :   Base_T ( m_, n_, list_count )
             {
                 FromTriples( idx, jdx, val, entry_counts, list_count, final_thread_count, compress, symmetrize );
+            }
+            
+            MatrixCSR(
+                const LInt nonzero_count,
+                const Int    * const i,
+                const Int    * const j,
+                const Scalar * const a,
+                const Int m_,
+                const Int n_,
+                const Int thread_count,
+                const bool compress   = true,
+                const int  symmetrize = 0
+            )
+            :   Base_T ( m_, n_, thread_count )
+            {
+                JobPointers<LInt> distr ( nonzero_count, thread_count );
+                
+                Tensor1<const Int *   ,Int> idx    (thread_count);
+                Tensor1<const Int *   ,Int> jdx    (thread_count);
+                Tensor1<const Scalar *,Int> val    (thread_count);
+                Tensor1<      LInt    ,Int> counts (thread_count);
+                
+                for( Int thread = 0; thread < thread_count; ++thread )
+                {
+                    const LInt pos = distr[thread];
+                    
+                    idx[thread] = &i[pos];
+                    jdx[thread] = &j[pos];
+                    val[thread] = &a[pos];
+                    counts[thread] = distr[thread+1]-pos;
+                }
+                
+                FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compress, symmetrize );
             }
             
             MatrixCSR(
@@ -389,9 +422,9 @@ namespace Tensors
             
             Scalar operator()( const Int i, const Int j ) const
             {
-                const LInt index = this->FindNonzeroPosition(i,j);
+                const Sparse::Position<LInt> pos = this->FindNonzeroPosition(i,j);
                 
-                return ( (index>=static_cast<LInt>(0)) ) ? values[index] : static_cast<Scalar>(0) ;
+                return ( pos.found ) ? values[pos.index] : static_cast<Scalar>(0);
             }
             
             
@@ -413,7 +446,7 @@ namespace Tensors
                     
                     RequireJobPtr();
                     
-                    Tensor2<Int,Int> counters = CreateTransposeCounters();
+                    Tensor2<LInt,Int> counters = CreateTransposeCounters();
                     
                     MatrixCSR B ( n, m, outer[m], thread_count );
                     
@@ -496,7 +529,7 @@ namespace Tensors
                 if( !inner_sorted )
                 {
                     ptic(ClassName()+"::SortInner");
-                    
+
                     if( WellFormed() )
                     {
                         RequireJobPtr();
@@ -517,14 +550,12 @@ namespace Tensors
                             {
                                 const LInt begin = outer__[i  ];
                                 const LInt end   = outer__[i+1];
-                                
                                 quick_sort( inner__ + begin, values__ + begin, end - begin );
                             }
                         }
                         
                         inner_sorted = true;
                     }
-                    
                     ptoc(ClassName()+"::SortInner");
                 }
             }
@@ -1056,6 +1087,7 @@ namespace Tensors
                      const Int     cols = Int(1)
             ) const
             {
+                print("A");
                 Dot_( values.data(), alpha, X, ldX, beta, Y, ldY, cols );
             }
             
@@ -1067,6 +1099,7 @@ namespace Tensors
                 const Int     cols = Int(1)
             ) const
             {
+                print("B");
                 Dot_( values.data(), alpha, X, cols, beta, Y, cols, cols );
             }
             

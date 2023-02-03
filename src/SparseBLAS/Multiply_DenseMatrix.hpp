@@ -135,6 +135,7 @@ public:
             }
             default:
             {
+                print("Z");
                 SpMM_gen(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
             }
         }

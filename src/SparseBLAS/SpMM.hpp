@@ -21,30 +21,30 @@ public:
             {
                 if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,true,1,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Plus,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,true,1,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Plus,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,true,1,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Plus,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else if( alpha == static_cast<T>(0) )
             {
                 if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,true,0,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Zero,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,true,0,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Zero,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,true,0,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Zero,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else
@@ -52,15 +52,15 @@ public:
                 // general alpha
                 if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,true,-1,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Generic,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,true,-1,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Generic,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,true,-1,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,true,ScalarFlag::Generic,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
         }
@@ -70,30 +70,30 @@ public:
             {
                 if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,false,1,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Plus,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,false,1,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Plus,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,false,1,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Plus,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else if( alpha == static_cast<T>(0) )
             {
                 if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,false,0,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Zero,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,false,0,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Zero,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,false,0,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Zero,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else
@@ -101,22 +101,22 @@ public:
                 // general alpha
                 if( beta == static_cast<T_out>(1) )
                 {
-                    SpMM_implementation<cols,false,-1,1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Generic,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<T_out>(0) )
                 {
-                    SpMM_implementation<cols,false,-1,0>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Generic,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_implementation<cols,false,-1,-1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_implementation<cols,false,ScalarFlag::Generic,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
         }
     }
 
 
-    template<Int cols, bool a_flag, int alpha_flag, int beta_flag >
+    template<Int cols, bool a_flag, ScalarFlag alpha_flag, ScalarFlag beta_flag >
     void SpMM_implementation(
         ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
         const T     alpha, ptr<T_in>  X, const Int ldX,
@@ -129,14 +129,9 @@ public:
         // Uses shortcuts if alpha = 0, alpha = 1, beta = 0 or beta = 1.
         // Uses if constexpr to reuse code without runtime overhead.
 
-    //    if constexpr ( beta_flag == 0 )
-    //    {
-    //        zerofy_buffer(Y, m * cols);
-    //    }
-    //
-        if constexpr ( alpha_flag == 0 )
+        if constexpr ( alpha_flag == ScalarFlag::Zero )
         {
-            if constexpr ( beta_flag == 0 )
+            if constexpr ( beta_flag == ScalarFlag::Zero )
             {
                 if( ldY == cols )
                 {
@@ -152,11 +147,26 @@ public:
                 }
                 return;
             }
-            else if constexpr ( beta_flag == 1 )
+            else if constexpr ( beta_flag == ScalarFlag::Plus )
             {
                 return;
             }
-            else
+//            else if constexpr ( beta_flag == ScalarFlag::Minus )
+//            {
+//                if( ldY == cols )
+//                {
+//                    scale_buffer( -T_one, Y, m * cols, job_ptr.ThreadCount() );
+//                }
+//                else
+//                {
+//                    #pragma omp parallel for num_threads(job_ptr.ThreadCount())
+//                    for( Int i = 0; i < m; ++ i )
+//                    {
+//                        scale_buffer<cols>( -T_one, &Y[ldY*i] );
+//                    }
+//                }
+//            }
+            else if constexpr ( beta_flag == ScalarFlag::Generic )
             {
                 if( ldY == cols )
                 {
@@ -174,8 +184,8 @@ public:
             }
         }
 
-        #pragma omp parallel for num_threads( job_ptr.Size()-1 )
-        for( Int thread = 0; thread < job_ptr.Size()-1; ++thread )
+        #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
+        for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
         {
             const Int i_begin = job_ptr[thread  ];
             const Int i_end   = job_ptr[thread+1];
@@ -198,11 +208,15 @@ public:
                         
                         if constexpr ( a_flag )
                         {
-                            axpbz<cols,-1,1>( a[k], &X[ldX * j], T_one, &z[0] );
+                            combine_buffers<cols,ScalarFlag::Generic,ScalarFlag::Plus>(
+                                a[k], &X[ldX * j], T_one, &z[0]
+                            );
                         }
                         else
                         {
-                            axpbz<cols,1,1>( T_one, &X[ldX * j], T_one, &z[0] );
+                            combine_buffers<cols,ScalarFlag::Plus,ScalarFlag::Plus>(
+                                T_one, &X[ldX * j], T_one, &z[0]
+                            );
                         }
                     }
                     
@@ -214,21 +228,27 @@ public:
                         
                         if constexpr ( a_flag )
                         {
-                            axpbz<cols,-1,1>( a[k], &X[ldX * j], T_one, &z[0] );
+                            combine_buffers<cols,ScalarFlag::Generic,ScalarFlag::Plus>(
+                                a[k], &X[ldX * j], T_one, &z[0]
+                            );
                         }
                         else
                         {
-                            axpbz<cols,1,1>( T_one, &X[ldX * j], T_one, &z[0] );
+                            combine_buffers<cols,ScalarFlag::Plus,ScalarFlag::Plus>(
+                                T_one, &X[ldX * j], T_one, &z[0]
+                            );
                         }
                     }
                     
                     // incorporate the local updates into Y-buffer
-                    azpby<cols,alpha_flag,beta_flag>( alpha, &z[0], beta, &Y[ldY * i] );
+                    combine_buffers<cols,alpha_flag,beta_flag>(
+                        alpha, &z[0], beta, &Y[ldY * i]
+                    );
                 }
                 else
                 {
                     // zerofy the relevant portion of the Y-buffer
-                    azpby<cols,0,0>( alpha, nullptr, beta, &Y[ldY * i] );
+                    zerofy_buffer<cols>( &Y[ldY * i] );
                 }
             }
         }

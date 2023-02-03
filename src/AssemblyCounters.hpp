@@ -10,6 +10,11 @@ namespace Tensors {
         const Int thread_count = counters.Dimension(0);
 
         const Int m = counters.Dimension(1);
+        
+        if( (m <= 0) || (thread_count <= 0) )
+        {
+            return;
+        }
 
         for( Int thread = 1; thread < thread_count; ++thread )
         {
@@ -41,6 +46,11 @@ namespace Tensors {
         const Int thread_count = counters.Dimension(0);
         
         const Int            m = counters.Dimension(1);
+        
+        if( (m <= 0) || (thread_count <= 0) )
+        {
+            return;
+        }
         
         const Int line_count = (m * sizeof(LInt) + CACHE_LINE_WIDTH - 1 ) / CACHE_LINE_WIDTH;
         
