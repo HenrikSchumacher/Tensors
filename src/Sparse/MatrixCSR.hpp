@@ -1087,7 +1087,6 @@ namespace Tensors
                      const Int     cols = Int(1)
             ) const
             {
-                print("A");
                 Dot_( values.data(), alpha, X, ldX, beta, Y, ldY, cols );
             }
             
@@ -1099,7 +1098,6 @@ namespace Tensors
                 const Int     cols = Int(1)
             ) const
             {
-                print("B");
                 Dot_( values.data(), alpha, X, cols, beta, Y, cols, cols );
             }
             

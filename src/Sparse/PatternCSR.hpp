@@ -1028,7 +1028,6 @@ namespace Tensors
                       const Int   cols = static_cast<Int>(1)
                       ) const
             {
-                print("X");
                 if( WellFormed() )
                 {
                     auto sblas = SparseBLAS<T_ext,Int,LInt,T_in,T_out>( thread_count );
