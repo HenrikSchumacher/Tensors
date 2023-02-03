@@ -52,9 +52,10 @@ namespace Tensors
             scale_buffer( beta, y, size, thread_count_ );
         }
 
-//#include "SpMV.hpp"
+#include "SparseBLAS/SpMV.hpp"
 #include "SparseBLAS/SpMM_fixed.hpp"
 #include "SparseBLAS/SpMM_gen.hpp"
+#include "SparseBLAS/Multiply_Vector.hpp"
 #include "SparseBLAS/Multiply_DenseMatrix.hpp"
         
     public:

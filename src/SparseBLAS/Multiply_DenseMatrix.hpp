@@ -31,7 +31,14 @@ public:
         {
             case 1:
             {
-                SpMM_fixed<1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                if( ldX == 1 && ldY == 1)
+                {
+                    SpMV(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                }
+                else
+                {
+                    SpMM_fixed<1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                }
                 break;
             }
             case 2:

@@ -8,8 +8,8 @@ public:
         const JobPointers<Int> & job_ptr
     )
     {
-        // This is basically a large switch to determine at runtime, which instantiation of SpMM_implementation is to be invoked.
-        // In particular, this implies that all relevant cases of SpMM_implementation are instantiated.
+        // This is basically a large switch to determine at runtime, which instantiation of SpMM_fixed_implementation is to be invoked.
+        // In particular, this implies that all relevant cases of SpMM_fixed_implementation are instantiated.
         
         const T alpha = ( rp[m] > 0 ) ? alpha_ : static_cast<T>(0);
         
