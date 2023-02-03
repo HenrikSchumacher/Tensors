@@ -2,10 +2,8 @@ public:
 
     void SpMV(
         ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
-        const T     alpha,
-        ptr<T_in>   x,
-        const T_out beta,
-        mut<T_out>  y,
+        const T     alpha, ptr<T_in>   x,
+        const T_out beta,  mut<T_out>  y,
         const JobPointers<Int> & job_ptr
     )
     {

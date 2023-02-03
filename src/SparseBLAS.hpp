@@ -35,6 +35,12 @@ namespace Tensors
         
         ~SparseBLAS() = default;
         
+    private:
+        
+        static constexpr ScalarFlag Generic = ScalarFlag::Generic;
+        static constexpr ScalarFlag One     = ScalarFlag::Plus;
+        static constexpr ScalarFlag Zero    = ScalarFlag::Zero;
+        
     protected:
         
         Int thread_count = 1;
@@ -47,7 +53,7 @@ namespace Tensors
         }
 
 //#include "SpMV.hpp"
-#include "SparseBLAS/SpMM.hpp"
+#include "SparseBLAS/SpMM_fixed.hpp"
 #include "SparseBLAS/SpMM_gen.hpp"
 #include "SparseBLAS/Multiply_DenseMatrix.hpp"
         

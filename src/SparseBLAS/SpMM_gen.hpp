@@ -13,123 +13,10 @@ public:
         
         const T alpha = ( rp[m] > 0 ) ? alpha_ : static_cast<T>(0);
         
-        if( a != nullptr )
+        // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
+        if( alpha == static_cast<T>(0) )
         {
-            if( alpha == static_cast<T>(1) )
-            {
-                if( beta == static_cast<T_out>(0) )
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Plus,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else if( beta == static_cast<T_out>(1) )
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Plus,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Plus,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-            }
-            else if( alpha == static_cast<T>(0) )
-            {
-                if( beta == static_cast<T_out>(1) )
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Zero,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else if( beta == static_cast<T_out>(0) )
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Zero,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Zero,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-            }
-            else
-            {
-                // general alpha
-                if( beta == static_cast<T_out>(1) )
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Generic,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else if( beta == static_cast<T_out>(0) )
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Generic,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else
-                {
-                    SpMM_gen_implementation<true,ScalarFlag::Generic,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-            }
-        }
-        else
-        {
-            if( alpha == static_cast<T>(1) )
-            {
-                if( beta == static_cast<T_out>(0) )
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Plus,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else if( beta == static_cast<T_out>(1) )
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Plus,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Plus,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-            }
-            else if( alpha == static_cast<T>(0) )
-            {
-                if( beta == static_cast<T_out>(1) )
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Zero,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else if( beta == static_cast<T_out>(0) )
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Zero,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Zero,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-            }
-            else
-            {
-                // general alpha
-                if( beta == static_cast<T_out>(1) )
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Generic,ScalarFlag::Plus>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else if( beta == static_cast<T_out>(0) )
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Generic,ScalarFlag::Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-                else
-                {
-                    SpMM_gen_implementation<false,ScalarFlag::Generic,ScalarFlag::Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-                }
-            }
-        }
-    }
-
-    template<bool a_flag, ScalarFlag alpha_flag, ScalarFlag beta_flag >
-    void SpMM_gen_implementation(
-        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
-        const T     alpha,  ptr<T_in>  X, const Int ldX,
-        const T_out beta,   mut<T_out> Y, const Int ldY,
-        const Int   cols,
-        const JobPointers<Int> & job_ptr
-    )
-    {
-        // Threats sparse matrix as a binary matrix if a_flag == false.
-        // (Implicitly assumes that a == nullptr.)
-        // Uses shortcuts if alpha = 0, alpha = 1, beta = 0 or beta = 1.
-        // Uses if constexpr to reuse code without runtime overhead.
-    //    print("SpMM_gen_implementation<"+ToString(a_flag)+","+","+ToString(alpha_flag)+","+ToString(beta_flag)+">("+ToString(cols)+")");
-        if constexpr ( alpha_flag == ScalarFlag::Zero )
-        {
-            if constexpr ( beta_flag == ScalarFlag::Zero )
+            if( beta == static_cast<T_out>(0) )
             {
                 if( ldY == cols )
                 {
@@ -137,33 +24,26 @@ public:
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads(job_ptr.ThreadCount())
-                    for( Int i = 0; i < m; ++ i )
+                    if( job_ptr.ThreadCount() > 1 )
                     {
-                        zerofy_buffer( &Y[ldY*i], cols);
+                        #pragma omp parallel for num_threads(job_ptr.ThreadCount())
+                        for( Int i = 0; i < m; ++ i )
+                        {
+                            zerofy_buffer( &Y[ldY*i], cols );
+                        }
+                    }
+                    else
+                    {
+                        for( Int i = 0; i < m; ++ i )
+                        {
+                            zerofy_buffer( &Y[ldY*i], cols );
+                        }
                     }
                 }
-                return;
             }
-            else if constexpr ( beta_flag == ScalarFlag::Plus )
+            else if( beta == static_cast<T_out>(1) )
             {
-                return;
-            }
-            else if constexpr ( beta_flag == ScalarFlag::Generic )
-            {
-                if( ldY == cols )
-                {
-                    scale_buffer( -T_one, Y, m * cols, job_ptr.ThreadCount() );
-                }
-                else
-                {
-                    #pragma omp parallel for num_threads(job_ptr.ThreadCount())
-                    for( Int i = 0; i < m; ++ i )
-                    {
-                        scale_buffer( -T_one, &Y[ldY*i], cols);
-                    }
-                }
-                return;
+                // Do nothing.
             }
             else
             {
@@ -173,15 +53,120 @@ public:
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads(job_ptr.ThreadCount())
-                    for( Int i = 0; i < m; ++ i )
+                    if( job_ptr.ThreadCount() > 1 )
                     {
-                        scale_buffer( beta, &Y[ldY*i], cols);
+                        #pragma omp parallel for num_threads(job_ptr.ThreadCount())
+                        for( Int i = 0; i < m; ++ i )
+                        {
+                            scale_buffer( beta, &Y[ldY*i], cols );
+                        }
+                    }
+                    else
+                    {
+                        for( Int i = 0; i < m; ++ i )
+                        {
+                            scale_buffer( beta, &Y[ldY*i], cols );
+                        }
                     }
                 }
-                return;
+            }
+            return;
+        }
+        
+        if( a != nullptr )
+        {
+            if( alpha == static_cast<T>(1) )
+            {
+                if( beta == static_cast<T_out>(0) )
+                {
+                    SpMM_gen_implementation<Generic,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+                else if( beta == static_cast<T_out>(1) )
+                {
+                    SpMM_gen_implementation<Generic,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+                else
+                {
+                    SpMM_gen_implementation<Generic,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+            }
+            else
+            {
+                // general alpha
+                if( beta == static_cast<T_out>(1) )
+                {
+                    SpMM_gen_implementation<Generic,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+                else if( beta == static_cast<T_out>(0) )
+                {
+                    SpMM_gen_implementation<Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+                else
+                {
+                    SpMM_gen_implementation<Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
             }
         }
+        else
+        {
+            if( alpha == static_cast<T>(1) )
+            {
+                if( beta == static_cast<T_out>(0) )
+                {
+                    SpMM_gen_implementation<One,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+                else if( beta == static_cast<T_out>(1) )
+                {
+                    SpMM_gen_implementation<One,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+                else
+                {
+                    SpMM_gen_implementation<One,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+            }
+            else
+            {
+                // general alpha
+                if( beta == static_cast<T_out>(1) )
+                {
+                    SpMM_gen_implementation<Generic,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+                else if( beta == static_cast<T_out>(0) )
+                {
+                    SpMM_gen_implementation<Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+                else
+                {
+                    SpMM_gen_implementation<Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                }
+            }
+        }
+    }
+
+private:
+
+    template<ScalarFlag a_flag, ScalarFlag alpha_flag, ScalarFlag beta_flag >
+    void SpMM_gen_implementation(
+        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
+        const T     alpha,  ptr<T_in>  X, const Int ldX,
+        const T_out beta,   mut<T_out> Y, const Int ldY,
+        const Int   cols,
+        const JobPointers<Int> & job_ptr
+    )
+    {
+        // Only to be called by SpMM_gen which guarantees that the following cases _cannot_ occur:
+        //  - a_flag     == ScalarFlag::Minus
+        //  - a_flag     == ScalarFlag::Zero
+        //  - alpha_flag == ScalarFlag::Zero
+        //  - alpha_flag == ScalarFlag::Minus
+        //  - beta_flag  == ScalarFlag::Minus
+
+        
+        // Threats sparse matrix as a binary matrix if a_flag == false.
+        // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
+        
+        // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
+        
 
         #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
         for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
@@ -212,34 +197,37 @@ public:
                         
                         __builtin_prefetch( &X[ldX * ci[l+1]] );
                         
-                        if constexpr ( a_flag )
+                        if constexpr ( a_flag == Generic )
                         {
-                            combine_buffers<ScalarFlag::Generic,ScalarFlag::Zero>(
+                            combine_buffers<Generic,Zero>(
                                 a[l], &X[ldX * j], T_zero, &z[0], cols
                             );
                         }
                         else
                         {
-                            combine_buffers<ScalarFlag::Plus,ScalarFlag::Zero>(
+                            combine_buffers<One,Zero>(
                                 T_one, &X[ldX * j], T_zero, &z[0], cols
                             );
                         }
                     }
+                    // Remark: l_end-1 is unproblematic here because we have l_end > l_begin and
+                    // l_begin and l_end are of the same type LInt .
+                    // So if LInt is unsigned, then l_end == 0 cannot occur.
                     for( LInt l = l_begin+1; l < l_end-1; ++l )
                     {
                         const Int j = ci[l];
                         
                         __builtin_prefetch( &X[ldX * ci[l+1]] );
                         
-                        if constexpr ( a_flag )
+                        if constexpr ( a_flag == Generic )
                         {
-                            combine_buffers<ScalarFlag::Generic,ScalarFlag::Plus>(
+                            combine_buffers<Generic,One>(
                                 a[l], &X[ldX * j], T_one, &z[0], cols
                             );
                         }
                         else
                         {
-                            combine_buffers<ScalarFlag::Plus,ScalarFlag::Plus>(
+                            combine_buffers<One,One>(
                                 T_one, &X[ldX * j], T_one, &z[0], cols
                             );
                         }
@@ -251,15 +239,15 @@ public:
                         
                         const Int j  = ci[l];
 
-                        if constexpr ( a_flag )
+                        if constexpr ( a_flag == Generic)
                         {
-                            combine_buffers<ScalarFlag::Generic,ScalarFlag::Plus>(
+                            combine_buffers<Generic,One>(
                                 a[l], &X[ldX * j], T_one, &z[0], cols
                             );
                         }
                         else
                         {
-                            combine_buffers<ScalarFlag::Plus,ScalarFlag::Plus>(
+                            combine_buffers<One,One>(
                                 T_one, &X[ldX * j], T_one, &z[0], cols
                             );
                         }
