@@ -6,13 +6,13 @@ namespace Tensors
     {
         
         template<
-            Layout layout, UpLo uplo, Op op, typename Scalar,
+            Layout layout, UpLo uplo, Op op, typename Scal,
             typename I0, typename I1, typename I2, typename I3
         >
         force_inline void herk(
             const I0 n_, const I1 k_,
-            const typename ScalarTraits<Scalar>::Real & alpha, const Scalar * A, const I2 ldA_,
-            const typename ScalarTraits<Scalar>::Real & beta ,       Scalar * C, const I3 ldC_
+            const typename Scalar::Real<Scal> & alpha, const Scal * A, const I2 ldA_,
+            const typename Scalar::Real<Scal> & beta ,       Scal * C, const I3 ldC_
         )
         {
             ASSERT_INT(I0);
@@ -50,7 +50,7 @@ namespace Tensors
             
             // Moreover, we graciously interpret Op::Trans as Op::ConjTrans.
             
-            if constexpr ( std::is_same_v<Scalar,double> )
+            if constexpr ( std::is_same_v<Scal,double> )
             {
                 if constexpr ( op == Op::Id )
                 {
@@ -67,7 +67,7 @@ namespace Tensors
                     );
                 }
             }
-            else if constexpr ( std::is_same_v<Scalar,float> )
+            else if constexpr ( std::is_same_v<Scal,float> )
             {
                 if( op == Op::Id )
                 {
@@ -84,7 +84,7 @@ namespace Tensors
                     );
                 }
             }
-            else if constexpr ( std::is_same_v<Scalar,std::complex<double>> )
+            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
             {
                 if( op == Op::Id )
                 {
@@ -101,7 +101,7 @@ namespace Tensors
                     );
                 }
             }
-            else if constexpr ( std::is_same_v<Scalar,std::complex<float>> )
+            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
             {
                 if( op == Op::Id )
                 {
@@ -120,7 +120,7 @@ namespace Tensors
             }
             else
             {
-                eprint("herk not defined for scalar type " + TypeName<Scalar> );
+                eprint("herk not defined for scalar type " + TypeName<Scal> );
             }
             
         }
