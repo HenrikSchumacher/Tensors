@@ -107,7 +107,7 @@
 ////                        MyBLAS::GEMM<
 ////                            Op::Identity, Op::Id,
 ////                            -1, nrhs, -1,
-////                            ScalarFlag::Minus, ScalarFlag::Plus, Scalar
+////                            Scalar::Flag::Minus, Scalar::Flag::Plus, Scalar
 ////                        >()(
 ////                            n_0, nrhs, n_1,
 ////                           -one, A_1, n_1,
@@ -153,7 +153,7 @@
 //                            Diagonal::NonUnit,
 //                            MyBLAS::Dynamic,
 //                            nrhs,
-//                            ScalarFlag::Plus,
+//                            Scalar::Flag::Plus,
 //                            Scalar
 //                        >()(n_0, nrhs, A_0, x_0);
 //                    }

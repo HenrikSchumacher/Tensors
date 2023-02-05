@@ -331,10 +331,10 @@ namespace Tensors
             
 
             // Assume all nonzeros are equal to 1.
-            template<typename T_ext, typename T_in, typename T_out>
+            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                     const T_ext alpha, ptr<T_in>  X, const Int ldX,
-                     const T_out beta,  mut<T_out> Y, const Int ldY,
+                     const R_out alpha, ptr<T_in>  X, const Int ldX,
+                     const S_out beta,  mut<T_out> Y, const Int ldY,
                      const Int cols = 1
                      ) const
             {
@@ -342,20 +342,20 @@ namespace Tensors
             }
             
             // Assume all nonzeros are equal to 1.
-            template<typename T_ext, typename T_in, typename T_out>
+            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                     const T_ext alpha, ptr<T_in>  X,
-                     const T_out beta,  mut<T_out> Y,
+                     const R_out alpha, ptr<T_in>  X,
+                     const S_out beta,  mut<T_out> Y,
                      const Int cols = 1
                      ) const
             {
                 Dot_( alpha, X, cols, beta, Y, cols, cols );
             }
             
-            template<typename T_ext, typename T_in, typename T_out>
+            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                     const T_ext alpha, const Tensor1<T_in, Int> & X,
-                     const T_out beta,        Tensor1<T_out,Int> & Y
+                     const R_out alpha, const Tensor1<T_in, Int> & X,
+                     const S_out beta,        Tensor1<T_out,Int> & Y
                      ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
@@ -372,10 +372,10 @@ namespace Tensors
                 }
             }
             
-            template<typename T_ext, typename T_in, typename T_out>
+            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                     const T_ext alpha, const Tensor2<T_in, Int> & X,
-                     const T_out beta,        Tensor2<T_out,Int> & Y
+                     const R_out alpha, const Tensor2<T_in, Int> & X,
+                     const S_out beta,        Tensor2<T_out,Int> & Y
                      ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -393,22 +393,22 @@ namespace Tensors
             
             
             // Supply an external list of values.
-            template<typename T_ext, typename T_in, typename T_out>
+            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                      ptr<T_ext>  ext_values,
-                     const T_ext alpha, ptr<T_in>  X, const Int ldX,
-                     const T_out beta,  mut<T_out> Y, const Int ldY,
+                     const R_out alpha, ptr<T_in>  X, const Int ldX,
+                     const S_out beta,  mut<T_out> Y, const Int ldY,
                      const Int cols = 1
                      ) const
             {
                 Dot_( ext_values, alpha, X, ldX, beta, Y, ldY, cols );
             }
             
-            template<typename T_ext, typename T_in, typename T_out>
+            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                      const Tensor1<T_ext,LInt> & ext_values,
-                     const T_ext alpha, const Tensor1<T_in, Int> & X,
-                     const T_out beta,        Tensor1<T_out,Int> & Y
+                     const R_out alpha, const Tensor1<T_in, Int> & X,
+                     const S_out beta,        Tensor1<T_out,Int> & Y
                      ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
@@ -425,11 +425,11 @@ namespace Tensors
                 }
             }
             
-            template<typename T_ext, typename T_in, typename T_out>
+            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                      const Tensor1<T_ext,LInt> & ext_values,
-                     const T_ext alpha, const Tensor2< T_in,Int> & X,
-                     const T_out beta,        Tensor2<T_out,Int> & Y
+                     const R_out alpha, const Tensor2< T_in,Int> & X,
+                     const S_out beta,        Tensor2<T_out,Int> & Y
                      ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -459,7 +459,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "Sparse::BinaryMatrixCSR<"+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::BinaryMatrixCSR<"+TypeName<Int>+","+TypeName<LInt>+">";
             }
             
         }; // BinaryMatrixCSR

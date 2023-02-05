@@ -35,7 +35,7 @@ namespace Tensors
             }
             else
             {
-                eprint("hetrf not defined for scalar type " + TypeName<Scalar>::Get() );
+                eprint("hetrf not defined for scalar type " + TypeName<Scalar> );
             }
             
         }

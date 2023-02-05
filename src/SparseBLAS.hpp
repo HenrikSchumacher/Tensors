@@ -2,17 +2,13 @@
 
 namespace Tensors
 {
-    template<typename T, typename Int, typename LInt, typename T_in, typename T_out>
+    template<typename Scal, typename Int, typename LInt>
     class SparseBLAS
     {
         ASSERT_INT(Int);
 
     public:
-        
-        static constexpr T T_zero = 0;
-        static constexpr T T_one  = 1;
-        static constexpr T T_two  = 2;
-        
+
         SparseBLAS()
         {
 //            ptic("SparseBLAS()");
@@ -27,7 +23,7 @@ namespace Tensors
         };
         
         explicit SparseBLAS( const Int thread_count_ )
-        : thread_count(thread_count_)
+        :   thread_count(thread_count_)
         {
 //            ptic("SparseBLAS()");
 //            ptoc("SparseBLAS()");
@@ -37,9 +33,9 @@ namespace Tensors
         
     private:
         
-        static constexpr ScalarFlag Generic = ScalarFlag::Generic;
-        static constexpr ScalarFlag One     = ScalarFlag::Plus;
-        static constexpr ScalarFlag Zero    = ScalarFlag::Zero;
+        static constexpr typename Scalar::Flag Generic = Scalar::Flag::Generic;
+        static constexpr typename Scalar::Flag One     = Scalar::Flag::Plus;
+        static constexpr typename Scalar::Flag Zero    = Scalar::Flag::Zero;
         
     protected:
         
@@ -47,11 +43,36 @@ namespace Tensors
         
     protected:
         
-        void scale( mut<T_out> y, const T_out beta, const Int size, const Int thread_count_ )
+        template<typename R_out, typename T_in, typename S_out, typename T_out>
+        static constexpr void StaticParameterCheck()
         {
-            scale_buffer( beta, y, size, thread_count_ );
+            static_assert(
+                Scalar::IsComplex<T_out> || Scalar::IsReal<Scal>,
+                "Template argument T_out is real, but Scalar is complex."
+            );
+            static_assert(
+                Scalar::IsComplex<T_out> || Scalar::IsReal<R_out>,
+                "Template argument T_out is real, but R_out is complex."
+            );
+            static_assert(
+                Scalar::IsComplex<T_out> || Scalar::IsReal<T_in>,
+                "Template argument T_out is real, but T_in is complex."
+            );
+            static_assert(
+                Scalar::IsComplex<T_out> || Scalar::IsReal<S_out>,
+                "Template argument T_out is real, but S_out is complex."
+            );
+                          
+            static_assert(
+                Scalar::Prec<S_out> == Scalar::Prec<T_out>,
+                "Precision of template parameter S_out does not coincide with T_out's."
+            );
+            static_assert(
+                Scalar::Prec<R_out> == Scalar::Prec<T_out>,
+                "Precision of template parameter R_out does not coincide with T_out's."
+            );
         }
-
+        
 #include "SparseBLAS/SpMV.hpp"
 #include "SparseBLAS/SpMM_fixed.hpp"
 #include "SparseBLAS/SpMM_gen.hpp"
@@ -62,7 +83,7 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return "SparseBLAS<"+TypeName<T>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+","+TypeName<T_in>::Get()+","+TypeName<T_out>::Get()+">";
+            return std::string("SparseBLAS<")+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
         }
         
 

@@ -3,7 +3,7 @@
 #define CLASS ArrowheadBlockKernel_fixed
 #define BASE  BlockKernel_fixed<                            \
     ROWS_,COLS_,RHS_COUNT_,fixed,                           \
-    Scalar_,Scalar_in_,Scalar_out_,                         \
+    Scal_,Scal_in_,Scal_out_,                         \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
     x_RM, x_intRM, x_copy, x_prefetch,                      \
@@ -13,7 +13,7 @@
 
 //template<
 //    int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
-//    typename Scalar_, typename Int_, typename Scalar_in_, typename Scalar_out_,
+//    typename Scal_, typename Int_, typename Scal_in_, typename Scal_out_,
 //    int alpha_flag, int beta_flag,
 //                                              bool a_copy = true,
 //    bool x_RM  = true, bool x_intRM = false,  bool x_copy = true,  bool x_prefetch = true,
@@ -23,7 +23,7 @@ namespace Tensors
 {
     template<
         int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
-        typename Scalar_, typename Scalar_in_, typename Scalar_out_,
+        typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         int alpha_flag, int beta_flag,
                                  bool a_copy,
@@ -37,11 +37,11 @@ namespace Tensors
         
     public:
 
-        using Scalar     = Scalar_;
-        using Scalar_out = Scalar_out_;
-        using Scalar_in  = Scalar_in_;
-        using Int        = Int_;
-        using LInt       = LInt_;
+        using Scal     = Scal_;
+        using Scal_out = Scal_out_;
+        using Scal_in  = Scal_in_;
+        using Int      = Int_;
+        using LInt     = LInt_;
 
         using BASE::ROWS;
         using BASE::COLS;
@@ -67,22 +67,22 @@ namespace Tensors
         using BASE::get_y;
         using BASE::rhs_count;
         
-        const Scalar * restrict a_from = nullptr;
+        const Scal * restrict a_from = nullptr;
         
-        Scalar a [BLOCK_NNZ];
+        Scal a [BLOCK_NNZ];
         
     public:
         
         CLASS() = delete;
         
-        explicit CLASS( mut<Scalar> A_ )
+        explicit CLASS( mut<Scal> A_ )
         :   BASE( A_ )
         {}
         
         CLASS(
-            ptr<Scalar> A_,
-            const Scalar_out alpha_, ptr<Scalar_in>  X_,
-            const Scalar_out beta_,  mut<Scalar_out> Y_,
+            ptr<Scal> A_,
+            const Scal_out alpha_, ptr<Scal_in>  X_,
+            const Scal_out beta_,  mut<Scal_out> Y_,
             const Int rhs_count_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
@@ -102,8 +102,8 @@ namespace Tensors
                 
         force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            ptr<Scalar> a_from_ = &A[BLOCK_NNZ * from];
-            mut<Scalar> a_to_   = &A[BLOCK_NNZ * to  ];
+            ptr<Scal> a_from_ = &A[BLOCK_NNZ * from];
+            mut<Scal> a_to_   = &A[BLOCK_NNZ * to  ];
             
             a_to_[0] = a_from_[0];
             
@@ -130,7 +130,7 @@ namespace Tensors
             }
         }
         
-        force_inline Scalar get_a( const Int l )
+        force_inline Scal get_a( const Int l )
         {
             if constexpr ( a_copy )
             {
@@ -192,11 +192,11 @@ namespace Tensors
             +","+ToString(COLS)
             +","+ToString(RHS_COUNT)
             +","+ToString(fixed)
-            +","+TypeName<Scalar>::Get()
-            +","+TypeName<Scalar_in>::Get()
-            +","+TypeName<Scalar_out>::Get()
-            +","+TypeName<Int>::Get()
-            +","+TypeName<LInt>::Get()
+            +","+TypeName<Scal>
+            +","+TypeName<Scal_in>
+            +","+TypeName<Scal_out>
+            +","+TypeName<Int>
+            +","+TypeName<LInt>
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
                                                      +","+ToString(a_copy)

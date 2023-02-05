@@ -65,22 +65,22 @@ namespace Tensors
 {
     namespace Sparse
     {   
-        template<typename Scalar_, typename Int_, typename LInt_>
+        template<typename Scal_, typename Int_, typename LInt_>
         class CholeskyDecomposition
         {
         public:
             
-            using Scalar    = Scalar_;
-            using Real      = typename ScalarTraits<Scalar_>::Real;
-            using Int       = Int_;
-            using LInt      = LInt_;
+            using Scal = Scal_;
+            using Real = typename Scalar::Real<Scal_>;
+            using Int  = Int_;
+            using LInt = LInt_;
             
             using BinaryMatrix_T = Sparse::BinaryMatrixCSR<Int,LInt>;
-            using Matrix_T       = Sparse::MatrixCSR<Scalar,Int,LInt>;
+            using Matrix_T       = Sparse::MatrixCSR<Scal,Int,LInt>;
 
-            friend class CholeskyFactorizer<Scalar,Int,LInt>;
+            friend class CholeskyFactorizer<Scal,Int,LInt>;
             
-            using Factorizer = CholeskyFactorizer<Scalar,Int,LInt>;
+            using Factorizer = CholeskyFactorizer<Scal,Int,LInt>;
             
         protected:
             
@@ -97,8 +97,8 @@ namespace Tensors
             
             Permutation<LInt> A_inner_perm;   // permutation of the nonzero values. Needed for reading in
             
-            Tensor1<Scalar,LInt> A_val;
-            Scalar reg = 0;
+            Tensor1<Scal,LInt> A_val;
+            Scal reg = 0;
 
             Matrix_T L;
             Matrix_T U;
@@ -159,13 +159,13 @@ namespace Tensors
             
             // Values of triangular part of k-th supernode is stored in
             // [ SN_tri_val[SN_tri_ptr[k]],...,SN_tri_val[SN_tri_ptr[k]+1] [
-            Tensor1<  LInt, Int> SN_tri_ptr;
-            Tensor1<Scalar,LInt> SN_tri_val;
+            Tensor1<LInt, Int> SN_tri_ptr;
+            Tensor1<Scal,LInt> SN_tri_val;
             
             // Values of rectangular part of k-th supernode is stored in
             // [ SN_rec_val[SN_rec_ptr[k]],...,SN_rec_val[SN_rec_ptr[k]+1] [
-            Tensor1<  LInt, Int> SN_rec_ptr;
-            Tensor1<Scalar,LInt> SN_rec_val;
+            Tensor1<LInt, Int> SN_rec_ptr;
+            Tensor1<Scal,LInt> SN_rec_val;
             
             // Maximal size of triangular part of supernodes.
             Int max_n_0 = 0;
@@ -174,11 +174,11 @@ namespace Tensors
             
             
             // Stores right hand side / solution during the solve phase.
-            Tensor1<Scalar,LInt> X;
+            Tensor1<Scal,LInt> X;
             
             // Stores right hand side / solution during the solve phase.
             // Some scratch space to read parts of X that belong to a supernode's rectangular part.
-            Tensor1<Scalar,LInt> X_scratch;
+            Tensor1<Scal,LInt> X_scratch;
             // TODO: If I want to parallelize the solve phase, I have to provide each thread with its own X_scratch.
             
         public:
@@ -300,11 +300,11 @@ namespace Tensors
             
         public:
             
-            template<Op op = Op::Id, typename ExtScalar>
-            void Solve( ptr<Scalar> b, mut<ExtScalar> x )
+            template<Op op = Op::Id, typename ExtScal>
+            void Solve( ptr<Scal> b, mut<ExtScal> x )
             {
                 static_assert(
-                    (!ScalarTraits<Scalar>::IsComplex) || op != Op::Trans,
+                    (!Scalar::IsComplex<Scal>) || op != Op::Trans,
                     "Solve with Op::Trans not implemented for scalar of complex type."
                 );
                 
@@ -327,11 +327,11 @@ namespace Tensors
                 ptoc(ClassName()+"::Solve");
             }
             
-            template<Op op = Op::Id, typename ExtScalar>
-            void Solve( ptr<ExtScalar> B, mut<ExtScalar> X_, const Int nrhs )
+            template<Op op = Op::Id, typename ExtScal>
+            void Solve( ptr<ExtScal> B, mut<ExtScal> X_, const Int nrhs )
             {
                 static_assert(
-                    (!ScalarTraits<Scalar>::IsComplex) || op != Op::Trans,
+                    Scalar::IsReal<Scal> || op != Op::Trans,
                     "Solve with Op::Trans not implemented for scalar of complex type."
                 );
                 ptic(ClassName()+"::Solve ("+ToString(nrhs)+")");
@@ -356,8 +356,8 @@ namespace Tensors
             }
             
 
-            template<typename ExtScalar>
-            void UpperSolve( ptr<ExtScalar> b, mut<ExtScalar> x )
+            template<typename ExtScal>
+            void UpperSolve( ptr<ExtScal> b, mut<ExtScal> x )
             {
                 // No problem if x and b overlap, since we load b into X anyways.
                 ReadRightHandSide(b);
@@ -367,8 +367,8 @@ namespace Tensors
                 WriteSolution(x);
             }
             
-            template<typename ExtScalar>
-            void UpperSolve( ptr<ExtScalar> B, mut<ExtScalar> X_, const Int nrhs )
+            template<typename ExtScal>
+            void UpperSolve( ptr<ExtScal> B, mut<ExtScal> X_, const Int nrhs )
             {
                 // No problem if X_ and B overlap, since we load B into X anyways.
                 ReadRightHandSide( B, nrhs );
@@ -378,8 +378,8 @@ namespace Tensors
                 WriteSolution( X_, nrhs );
             }
             
-            template<typename ExtScalar>
-            void LowerSolve( ptr<ExtScalar> b, mut<ExtScalar> x )
+            template<typename ExtScal>
+            void LowerSolve( ptr<ExtScal> b, mut<ExtScal> x )
             {
                 // No problem if x and b overlap, since we load b into X anyways.
                 ReadRightHandSide(b);
@@ -697,8 +697,8 @@ namespace Tensors
                 
                 // Allocating memory for the nonzero values of the factorization.
                 
-                SN_tri_val = Tensor1<Scalar,LInt> (SN_tri_ptr[SN_count]);
-                SN_rec_val = Tensor1<Scalar,LInt> (SN_rec_ptr[SN_count]);
+                SN_tri_val = Tensor1<Scal,LInt> (SN_tri_ptr[SN_count]);
+                SN_rec_val = Tensor1<Scal,LInt> (SN_rec_ptr[SN_count]);
                 
                 logvalprint("triangle_nnz ", SN_tri_val.Size());
                 logvalprint("rectangle_nnz", SN_rec_val.Size());
@@ -746,10 +746,10 @@ namespace Tensors
             
         public:
             
-            template<typename ExtScalar>
+            template<typename ExtScal>
             void SN_NumericFactorization(
-                ptr<ExtScalar> A_val_,
-                const ExtScalar reg_  = 0 // Regularization parameter for the diagonal.
+                ptr<ExtScal> A_val_,
+                const ExtScal reg_  = 0 // Regularization parameter for the diagonal.
             )
             {
                 ptic(ClassName()+"::SN_NumericFactorization");
@@ -829,16 +829,16 @@ namespace Tensors
                     const Int n_1 = int_cast<Int>(l_end - l_begin);
                     
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    ptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[k]];
                     
                     // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    ptr<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    ptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[k]];
                     
                     // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
-                    mut<Scalar> X_0 = &X[nrhs * SN_rp[k]];
+                    mut<Scal> X_0 = &X[nrhs * SN_rp[k]];
                     
                     // X_1 is the part of X that interacts with U_1, size = n_1 x rhs_count.
-                    mut<Scalar> X_1 = X_scratch.data();
+                    mut<Scal> X_1 = X_scratch.data();
                     
                     // Load the already computed values into X_1.
                     for( Int j = 0; j < n_1; ++j )
@@ -859,9 +859,9 @@ namespace Tensors
                             // Hence we can compute X_0^T -= X_1^T * U_1^T via gemv instead:
                             BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans>(
                                 n_1, nrhs,
-                                Scalar(-1), X_1, nrhs,
+                                Scal(-1), X_1, nrhs,
                                             U_1, 1,        // XXX Problem: We need conj(U_1)!
-                                Scalar( 1), X_0, 1
+                                Scal( 1), X_0, 1
                             );
                         }
 
@@ -877,9 +877,9 @@ namespace Tensors
                             BLAS_Wrappers::gemm<Layout::RowMajor,Op::Id,Op::Id>(
                                 // XX Op::Id -> Op::ConjugateTranspose
                                 n_0, nrhs, n_1,
-                                Scalar(-1), U_1, n_1,      // XXX n_1 -> n_0
+                                Scal(-1), U_1, n_1,      // XXX n_1 -> n_0
                                             X_1, nrhs,
-                                Scalar( 1), X_0, nrhs
+                                Scal( 1), X_0, nrhs
                             );
                         }
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
@@ -887,7 +887,7 @@ namespace Tensors
                             Side::Left, UpLo::Upper, Op::Id, Diag::NonUnit
                         >(
                             n_0, nrhs,
-                            Scalar(1), U_0, n_0,
+                            Scal(1), U_0, n_0,
                                        X_0, nrhs
                         );
                     }
@@ -916,18 +916,18 @@ namespace Tensors
                     const Int n_1 = int_cast<Int>(l_end - l_begin);
 
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    ptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[k]];
 
                     // U_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    ptr<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    ptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[k]];
 
                     // x_0 is the part of x that interacts with U_0, size = n_0.
-                    mut<Scalar> x_0 = &X[SN_rp[k]];
+                    mut<Scal> x_0 = &X[SN_rp[k]];
 
 
                     if( n_0 == 1 )
                     {
-                        Scalar U_1x_1 = 0;
+                        Scal U_1x_1 = 0;
 
                         if( n_1 > 0 )
                         {
@@ -953,7 +953,7 @@ namespace Tensors
                         if( n_1 > 0 )
                         {
                             // x_1 is the part of x that interacts with U_1, size = n_1.
-                            mut<Scalar> x_1 = X_scratch.data();
+                            mut<Scal> x_1 = X_scratch.data();
 
                             // Load the already computed values into x_1.
                             for( Int j = 0; j < n_1; ++j )
@@ -964,9 +964,9 @@ namespace Tensors
                             // Compute x_0 -= U_1 * x_1
                             BLAS_Wrappers::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
                                 n_0, n_1,
-                                Scalar(-1), U_1, n_1, // XXX n_1 -> n_0
+                                Scal(-1), U_1, n_1, // XXX n_1 -> n_0
                                             x_1, 1,
-                                Scalar( 1), x_0, 1
+                                Scal( 1), x_0, 1
                             );
                         }
 
@@ -1012,16 +1012,16 @@ namespace Tensors
                     const Int n_1 = int_cast<Int>(l_end - l_begin);
                     
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    ptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[k]];
                     
                     // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    ptr<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    ptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[k]];
                     
                     // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
-                    mut<Scalar> X_0 = &X[nrhs * SN_rp[k]];
+                    mut<Scal> X_0 = &X[nrhs * SN_rp[k]];
                     
                     // X_1 is the part of X that interacts with U_1, size = n_1 x rhs_count.
-                    mut<Scalar> X_1 = X_scratch.data();
+                    mut<Scal> X_1 = X_scratch.data();
 
                     if( n_0 == 1 )
                     {
@@ -1038,7 +1038,7 @@ namespace Tensors
 
                             for( LInt i = 0; i < int_cast<LInt>(n_1); ++i )
                             {
-                                const Scalar factor = - conj(U_1[i]); // XXX conj(U_1[i])-> U_1[i]
+                                const Scal factor = - conj(U_1[i]); // XXX conj(U_1[i])-> U_1[i]
                                 for( LInt j = 0; j < int_cast<LInt>(nrhs); ++j )
                                 {
                                     X_1[nrhs*i+j] = factor * X_0[j];
@@ -1054,7 +1054,7 @@ namespace Tensors
                             UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                         >(
                             n_0, nrhs,
-                            Scalar(1), U_0, n_0,
+                            Scal(1), U_0, n_0,
                                        X_0, nrhs
                         );
                         
@@ -1064,9 +1064,9 @@ namespace Tensors
                             BLAS_Wrappers::gemm<Layout::RowMajor, Op::ConjTrans, Op::Id>(
                                //XXX Op::ConjTrans -> Op::Id?
                                 n_1, nrhs, n_0, // ???
-                                Scalar(-1), U_1, n_1, // n_1 -> n_0
+                                Scal(-1), U_1, n_1, // n_1 -> n_0
                                             X_0, nrhs,
-                                Scalar( 0), X_1, nrhs
+                                Scal( 0), X_1, nrhs
                             );
                         }
                     }
@@ -1102,13 +1102,13 @@ namespace Tensors
                     const Int n_1 = int_cast<Int>(l_end - l_begin);
 
                     // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                    ptr<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[k]];
+                    ptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[k]];
 
                     // U_0 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                    ptr<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[k]];
+                    ptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[k]];
 
                     // x_0 is the part of x that interacts with U_0, size = n_0.
-                    mut<Scalar> x_0 = &X[SN_rp[k]];
+                    mut<Scal> x_0 = &X[SN_rp[k]];
                     
                     if( n_0 == 1 )
                     {
@@ -1140,14 +1140,14 @@ namespace Tensors
                         if( n_1 > 0 )
                         {
                             // x_1 is the part of x that interacts with U_1, size = n_1.
-                            mut<Scalar> x_1 = X_scratch.data();
+                            mut<Scal> x_1 = X_scratch.data();
                             
                             // Compute x_1 = - U_1^H * x_0
                             BLAS_Wrappers::gemv<Layout::RowMajor, Op::ConjTrans>(
                                 n_0, n_1,             // XXX Op::ConjTrans -> Op::Trans
-                                Scalar(-1), U_1, n_1, // XXX n_1 -> n_0
+                                Scal(-1), U_1, n_1, // XXX n_1 -> n_0
                                             x_0, 1,
-                                Scalar( 0), x_1, 1
+                                Scal( 0), x_1, 1
                             );
                             
                             // Add x_1 into b_1.
@@ -1194,7 +1194,7 @@ namespace Tensors
                 valprint("nnz",U_rp.Last());
                 
                 Tensor1<Int,LInt>    U_ci  (U_rp.Last());
-                Tensor1<Scalar,LInt> U_val (U_rp.Last());
+                Tensor1<Scal,LInt> U_val (U_rp.Last());
                 
                 JobPointers<LInt> job_ptr ( SN_count, U_rp.data(), thread_count, false );
                 
@@ -1254,42 +1254,42 @@ namespace Tensors
 //####          IO routines
 //###########################################################################################
 
-            template<typename ExtScalar>
-            void ReadRightHandSide( ptr<ExtScalar> b )
+            template<typename ExtScal>
+            void ReadRightHandSide( ptr<ExtScal> b )
             {
                 ptic(ClassName()+"::ReadRightHandSide");
                 if( X.Size() < n )
                 {
-                    X         = Tensor1<Scalar,LInt>(n);
-                    X_scratch = Tensor1<Scalar,LInt>(max_n_1);
+                    X         = Tensor1<Scal,LInt>(n);
+                    X_scratch = Tensor1<Scal,LInt>(max_n_1);
                 }
                 perm.Permute( b, X.data(), Inverse::False );
                 ptoc(ClassName()+"::ReadRightHandSide");
             }
             
-            template<typename ExtScalar>
-            void ReadRightHandSide( ptr<ExtScalar> B, const LInt nrhs )
+            template<typename ExtScal>
+            void ReadRightHandSide( ptr<ExtScal> B, const LInt nrhs )
             {
                 ptic(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
                 if( X.Size() < n * nrhs )
                 {
-                    X         = Tensor1<Scalar,LInt>(n*nrhs);
-                    X_scratch = Tensor1<Scalar,LInt>(max_n_1*nrhs);
+                    X         = Tensor1<Scal,LInt>(n*nrhs);
+                    X_scratch = Tensor1<Scal,LInt>(max_n_1*nrhs);
                 }
                 perm.Permute( B, X.data(), Inverse::False, nrhs );
                 ptoc(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
             }
 
-            template<typename ExtScalar>
-            void WriteSolution( mut<ExtScalar> x )
+            template<typename ExtScal>
+            void WriteSolution( mut<ExtScal> x )
             {
                 ptic(ClassName()+"::WriteSolution");
                 perm.Permute( X.data(), x, Inverse::True );
                 ptoc(ClassName()+"::WriteSolution");
             }
             
-            template<typename ExtScalar>
-            void WriteSolution( mut<ExtScalar> X_, const LInt nrhs )
+            template<typename ExtScal>
+            void WriteSolution( mut<ExtScal> X_, const LInt nrhs )
             {
                 ptic(ClassName()+"::WriteSolution ("+ToString(nrhs)+")");
                 perm.Permute( X.data(), X_, Inverse::True, nrhs );
@@ -1357,7 +1357,7 @@ namespace Tensors
 
                 } // for( Int i = 0; i < n; ++i )
                 
-                Tensor1<Scalar,LInt> U_val ( U_ci.Size() );
+                Tensor1<Scal,LInt> U_val ( U_ci.Size() );
 
                 U = Matrix_T( std::move(U_rp), std::move(U_ci.Get()), std::move(U_val), n, n, thread_count );
 
@@ -1365,7 +1365,7 @@ namespace Tensors
             }
             
             template< Int RHS_COUNT, bool unitDiag = false>
-            void U_Solve_Sequential_0( ptr<Scalar> b,  mut<Scalar> x )
+            void U_Solve_Sequential_0( ptr<Scal> b,  mut<Scal> x )
             {
                 U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
             }
@@ -1434,12 +1434,12 @@ namespace Tensors
                 return SN_tri_ptr;
             }
             
-            Tensor1<Scalar,LInt> & SN_TriangleValues()
+            Tensor1<Scal,LInt> & SN_TriangleValues()
             {
                 return SN_tri_val;
             }
             
-            const Tensor1<Scalar,LInt> & SN_TriangleValues() const
+            const Tensor1<Scal,LInt> & SN_TriangleValues() const
             {
                 return SN_tri_val;
             }
@@ -1449,12 +1449,12 @@ namespace Tensors
                 return SN_rec_ptr;
             }
             
-            Tensor1<Scalar,LInt> & SN_RectangleValues()
+            Tensor1<Scal,LInt> & SN_RectangleValues()
             {
                 return SN_rec_val;
             }
             
-            const Tensor1<Scalar,LInt> & SN_RectangleValues() const
+            const Tensor1<Scal,LInt> & SN_RectangleValues() const
             {
                 return SN_rec_val;
             }
@@ -1466,7 +1466,7 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return "Sparse::CholeskyDecomposition<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::CholeskyDecomposition<"+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
             }
             
             

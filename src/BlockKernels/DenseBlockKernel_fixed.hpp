@@ -4,7 +4,7 @@
 #define CLASS DenseBlockKernel_fixed
 #define BASE  BlockKernel_fixed<                            \
     ROWS_,COLS_,RHS_COUNT_,fixed,                           \
-    Scalar_,Scalar_in_,Scalar_out_,                         \
+    Scal_,Scal_in_,Scal_out_,                         \
     Int_,LInt_,                                             \
     alpha_flag, beta_flag,                                  \
     x_RM, x_intRM, x_copy, x_prefetch,                      \
@@ -14,7 +14,7 @@
 
 //template<
 //    int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
-//    typename Scalar_, typename Scalar_in_, typename Scalar_out_,
+//    typename Scal_, typename Scal_in_, typename Scal_out_,
 //    typename Int_, typename LInt_,
 //    int alpha_flag, int beta_flag,
 //    bool a_RM  = true, bool a_intRM = false,  bool a_copy = true,
@@ -30,7 +30,7 @@ namespace Tensors
     // ROWS_ = 4, COLS_ = 4, RHS_COUNT_ = 3, alpha_flag = 1, beta_flag = 0, and doubles for all floating point types.
     template<
         int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
-        typename Scalar_, typename Scalar_in_, typename Scalar_out_,
+        typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         int alpha_flag, int beta_flag,
         bool a_RM,      bool a_intRM,   bool a_copy,
@@ -43,9 +43,9 @@ namespace Tensors
     {
     public:
 
-        using Scalar     = Scalar_;
-        using Scalar_out = Scalar_out_;
-        using Scalar_in  = Scalar_in_;
+        using Scal     = Scal_;
+        using Scal_out = Scal_out_;
+        using Scal_in  = Scal_in_;
 
         using Int        = Int_;
         using LInt       = LInt_;
@@ -76,24 +76,24 @@ namespace Tensors
         using BASE::get_y;
         using BASE::rhs_count;
         
-        const Scalar * restrict a_from = nullptr;
+        const Scal * restrict a_from = nullptr;
         
-        alignas(ALIGNMENT) Scalar a [(a_intRM)?ROWS:COLS][(a_intRM)?COLS:ROWS];
+        alignas(ALIGNMENT) Scal a [(a_intRM)?ROWS:COLS][(a_intRM)?COLS:ROWS];
         
     public:
         
         CLASS() = delete;
         
-        explicit CLASS( Scalar * restrict const A_ )
+        explicit CLASS( Scal * restrict const A_ )
         :   BASE( A_ )
         {}
         
         CLASS(
-            const Scalar     * restrict const A_,
-            const Scalar_out                  alpha_,
-            const Scalar_in  * restrict const X_,
-            const Scalar_out                  beta_,
-                  Scalar_out * restrict const Y_,
+            const Scal     * restrict const A_,
+            const Scal_out                  alpha_,
+            const Scal_in  * restrict const X_,
+            const Scal_out                  beta_,
+                  Scal_out * restrict const Y_,
             const Int                         rhs_count_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
@@ -113,8 +113,8 @@ namespace Tensors
                 
         force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            const Scalar * restrict const a_from_ = &A[ BLOCK_NNZ * from];
-                  Scalar * restrict const a_to_   = &A[ BLOCK_NNZ * to  ];
+            const Scal * restrict const a_from_ = &A[ BLOCK_NNZ * from];
+                  Scal * restrict const a_to_   = &A[ BLOCK_NNZ * to  ];
             
             if constexpr ( a_RM )
             {
@@ -194,7 +194,7 @@ namespace Tensors
             }
         }
         
-        force_inline Scalar get_a( const Int i, const Int j ) const
+        force_inline Scal get_a( const Int i, const Int j ) const
         {
             if constexpr ( a_copy )
             {
@@ -347,7 +347,7 @@ namespace Tensors
                 }
                 default:
                 {
-//                    if constexpr ( std::is_same_v<Scalar,double> )
+//                    if constexpr ( std::is_same_v<Scal,double> )
 //                    {
 //                        cblas_dgemm(
 //                            CblasColMajor,
@@ -391,11 +391,11 @@ namespace Tensors
             +","+ToString(COLS)
             +","+ToString(RHS_COUNT)
             +","+ToString(fixed)
-            +","+TypeName<Scalar>::Get()
-            +","+TypeName<Scalar_in>::Get()
-            +","+TypeName<Scalar_out>::Get()
-            +","+TypeName<Int>::Get()
-            +","+TypeName<LInt>::Get()
+            +","+TypeName<Scal>
+            +","+TypeName<Scal_in>
+            +","+TypeName<Scal_out>
+            +","+TypeName<Int>
+            +","+TypeName<LInt>
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
             +","+ToString(a_RM)+","+ToString(a_intRM)+","+ToString(a_copy)

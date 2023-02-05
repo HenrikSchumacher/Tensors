@@ -7,7 +7,7 @@ namespace Tensors
 
 #define CLASS UpperTriangularMatrix
         
-        template< int n_, typename Scalar_, typename Int_>
+        template< int n_, typename Scal_, typename Int_>
         class CLASS
         {
             // Allocates a square array, but accesses only upper triangle.
@@ -18,11 +18,11 @@ namespace Tensors
             
             static constexpr Int n = n_;
             
-            using Vector_T = Vector<n,Scalar,Int>;
+            using Vector_T = Vector<n,Scal,Int>;
                         
         protected:
             
-            std::array<std::array<Scalar,n>,n> A;
+            std::array<std::array<Scal,n>,n> A;
 
 
 #include "Tiny_Details_Matrix.hpp"
@@ -39,7 +39,7 @@ namespace Tensors
             {
                 for( Int i = 0; i < n; ++i )
                 {
-                    Scalar y_i ( static_cast<Scalar>(0) );
+                    Scal y_i ( static_cast<Scal>(0) );
                     
                     for( Int j = i; j < n; ++j )
                     {
@@ -51,9 +51,9 @@ namespace Tensors
             }
             
             
-            force_inline Scalar Det() const
+            force_inline Scal Det() const
             {
-                Scalar det = A[0][0];
+                Scal det = A[0][0];
                 
                 for( Int i = 1; i < n; ++i )
                 {
@@ -64,7 +64,7 @@ namespace Tensors
             }
 
             template<Op op = Op::Id, Diag diag = Diag::NonUnit>
-            void Solve( Vector<n,Scalar,Int> & b )
+            void Solve( Vector<n,Scal,Int> & b )
             {
                 // Solves op(A) x = b and overwrites b with the solution.
                 
@@ -119,7 +119,7 @@ namespace Tensors
             }
             
             template<int nrhs, Op op = Op::Id, Diag diag = Diag::NonUnit>
-            void Solve( Matrix<n,nrhs,Scalar,Int> & B )
+            void Solve( Matrix<n,nrhs,Scal,Int> & B )
             {
                 // Solves op(A) * X == B and overwrites B the solution with X.
                 if constexpr ( op == Op::Id )
@@ -137,7 +137,7 @@ namespace Tensors
                         
                         if constexpr (diag == Diag::NonUnit )
                         {
-                            scale_buffer<nrhs>( static_cast<Scalar>(1) / A[i][i], &B[i][0] );
+                            scale_buffer<nrhs>( static_cast<Scal>(1) / A[i][i], &B[i][0] );
                         }
                     }
                 }
@@ -156,7 +156,7 @@ namespace Tensors
                         
                         if constexpr (diag == Diag::NonUnit )
                         {
-                            scale_buffer<nrhs>( static_cast<Scalar>(1) / A[i][i], &B[i][0] );
+                            scale_buffer<nrhs>( static_cast<Scal>(1) / A[i][i], &B[i][0] );
                         }
                     }
                 }
@@ -174,7 +174,7 @@ namespace Tensors
                         
                         if constexpr (diag == Diag::NonUnit )
                         {
-                            scale_buffer<nrhs>( static_cast<Scalar>(1) / conj(A[i][i]), &B[i][0] );
+                            scale_buffer<nrhs>( static_cast<Scal>(1) / conj(A[i][i]), &B[i][0] );
                         }
                     }
                 }
@@ -209,7 +209,7 @@ namespace Tensors
                 return sout.str();
             }
             
-            template<typename T = Scalar>
+            template<typename T = Scal>
             void ToMatrix( Matrix<n,n,T,Int> & B ) const
             {
                 for( Int i = 0; i < n; ++i )
@@ -223,7 +223,7 @@ namespace Tensors
                 }
             }
             
-            template<typename T = Scalar>
+            template<typename T = Scal>
             Matrix<n,n,T,Int> ToMatrix() const
             {
                 Matrix<n,n,T,Int> B;
@@ -240,7 +240,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };

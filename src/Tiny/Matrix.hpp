@@ -6,7 +6,7 @@ namespace Tensors
     {
 #define CLASS Matrix
         
-        template< int m_, int n_, typename Scalar_, typename Int_>
+        template< int m_, int n_, typename Scal_, typename Int_>
         class CLASS
         {
         public:
@@ -16,19 +16,19 @@ namespace Tensors
             static constexpr Int m = m_;
             static constexpr Int n = n_;
             
-            using Vector_Out_T = Vector<m,Scalar,Int>;
-            using Vector_Int_T = Vector<n,Scalar,Int>;
+            using Vector_Out_T = Vector<m,Scal,Int>;
+            using Vector_Int_T = Vector<n,Scal,Int>;
             
-            using Vector_T = Vector<n,Scalar,Int>;
+            using Vector_T = Vector<n,Scal,Int>;
             
         protected:
             
-            std::array<std::array<Scalar,n>,m> A;
+            std::array<std::array<Scal,n>,m> A;
             
             
         public:
             
-            explicit CLASS( const Scalar init )
+            explicit CLASS( const Scal init )
             :   A {{{init}}}
             {}
             
@@ -48,7 +48,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator+=( const CLASS<m,n,T,Int> & B )
@@ -67,7 +67,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator-=( const CLASS<m,n,T,Int> & B )
@@ -86,7 +86,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator*=( const CLASS<m,n,T,Int> & B )
@@ -105,7 +105,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator/=( const CLASS<m,n,T,Int> & B )
@@ -133,13 +133,13 @@ namespace Tensors
             friend
             std::enable_if_t<
                 (
-                    std::is_same_v<R,Scalar>
+                    std::is_same_v<R,Scal>
                     ||
                     (IsComplex && std::is_same_v<R,Real>)
                 )
                 &&
                 (
-                    std::is_same_v<S,Scalar>
+                    std::is_same_v<S,Scal>
                     ||
                     (IsComplex && std::is_same_v<S,Real>)
                 )
@@ -189,21 +189,21 @@ namespace Tensors
             
             template<
                 bool add_to,
-                typename Scalar, typename S, typename T
+                typename Scal, typename S, typename T
             >
             friend
             force_inline
             std::enable_if_t<
                 (
-                    std::is_same_v<Scalar,T>
+                    std::is_same_v<Scal,T>
                     ||
-                    (ScalarTraits<T>::IsComplex && std::is_same_v<Scalar,typename ScalarTraits<T>::Real>)
+                    (Scalar::IsComplex<T> && std::is_same_v<Scal,typename Scalar::Real<T>>)
                 )
                 &&
                 (
                     std::is_same_v<S,T>
                     ||
-                 (ScalarTraits<T>::IsComplex && std::is_same_v<Scalar,typename ScalarTraits<T>::Real>)
+                 (Scalar::IsComplex<T> && std::is_same_v<Scal,typename Scalar::Real<T>>)
                 )
                 ,
                 void
@@ -305,7 +305,7 @@ namespace Tensors
                     {
                         if( std::abs(A[i][j]) <= threshold )
                         {
-                            A[i][j] = static_cast<Scalar>(0);
+                            A[i][j] = static_cast<Scal>(0);
                         }
                     }
                 }
@@ -318,8 +318,8 @@ namespace Tensors
             {
                 if constexpr ( n >= 2 )
                 {
-                    const Scalar c = scalar_cast<Scalar>(c_);
-                    const Scalar s = scalar_cast<Scalar>(s_);
+                    const Scal c = scalar_cast<Scal>(c_);
+                    const Scal s = scalar_cast<Scal>(s_);
                     
                     // Assumes that squared_abs(c) + squared_abs(s) == one.
                     // Assumes that i != j.
@@ -334,8 +334,8 @@ namespace Tensors
                     
                     for( Int k = 0; k < n; ++k )
                     {
-                        const Scalar x = A[i][k];
-                        const Scalar y = A[j][k];
+                        const Scal x = A[i][k];
+                        const Scal y = A[j][k];
                         
                         A[i][k] =      c    * x + s * y;
                         A[j][k] = - conj(s) * x + c * y;
@@ -348,8 +348,8 @@ namespace Tensors
             {
                 if constexpr ( n >= 2 )
                 {
-                    const Scalar c = scalar_cast<Scalar>(c_);
-                    const Scalar s = scalar_cast<Scalar>(s_);
+                    const Scal c = scalar_cast<Scal>(c_);
+                    const Scal s = scalar_cast<Scal>(s_);
                     
                     // Assumes that squared_abs(c) + squared_abs(s) == one.
                     // Assumes that i != j.
@@ -364,8 +364,8 @@ namespace Tensors
                     
                     for( Int k = 0; k < m; ++k )
                     {
-                        const Scalar x = A[k][i];
-                        const Scalar y = A[k][j];
+                        const Scal x = A[k][i];
+                        const Scal y = A[k][j];
                         
                         A[k][i] = c * x - conj(s) * y;
                         A[k][j] = s * x +    c    * y;
@@ -385,12 +385,12 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        A[i][j] = (i==j) ? static_cast<Scalar>(1) : static_cast<Scalar>(0);
+                        A[i][j] = (i==j) ? static_cast<Scal>(1) : static_cast<Scal>(0);
                     }
                 }
             }
             
-            force_inline void MakeDiagonal( const Tensors::Tiny::Vector<n,Scalar,Int> & v )
+            force_inline void MakeDiagonal( const Tensors::Tiny::Vector<n,Scal,Int> & v )
             {
                 static_assert(m==n, "MakeDiagonal is only defined for square matrices.");
                 
@@ -398,12 +398,12 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        A[i][j] = (i==j) ? v[i] : static_cast<Scalar>(0);
+                        A[i][j] = (i==j) ? v[i] : static_cast<Scal>(0);
                     }
                 }
             }
             
-            force_inline void SetDiagonal( const Tensors::Tiny::Vector<n,Scalar,Int> & v )
+            force_inline void SetDiagonal( const Tensors::Tiny::Vector<n,Scal,Int> & v )
             {
                 static_assert(m==n, "SetDiagonal is only defined for square matrices.");
                 
@@ -413,7 +413,7 @@ namespace Tensors
                 }
             }
             
-            Scalar Det() const
+            Scal Det() const
             {
                 if constexpr ( m != n )
                 {
@@ -442,11 +442,11 @@ namespace Tensors
                 
                 if constexpr ( n > 3 )
                 {
-                    Scalar M [n][n];
+                    Scal M [n][n];
                     
                     Write( &M[0][0] );
                     
-                    Scalar sign (one);
+                    Scal sign (one);
                     
                     for(Int k = 0; k < n - 1; ++k )
                     {
@@ -488,7 +488,7 @@ namespace Tensors
                     return sign * M[n-1][n-1];
                 }
                 
-                return static_cast<Scalar>(0);
+                return static_cast<Scal>(0);
             }
             
             
@@ -514,7 +514,7 @@ namespace Tensors
             }
             
             
-            force_inline void SetGivensRotation( const Scalar c, const Scalar s, const Int i, const Int j )
+            force_inline void SetGivensRotation( const Scal c, const Scal s, const Int i, const Int j )
             {
                 static_assert(m==n, "SetGivensRotation is only defined for square matrices.");
                 
@@ -537,7 +537,7 @@ namespace Tensors
                 A[j][j] = c;
             }
             
-            void Diagonal( Vector<n,Scalar,Int> & v ) const
+            void Diagonal( Vector<n,Scal,Int> & v ) const
             {
                 static_assert(m==n, "Diagonal is only defined for square matrices.");
                 
@@ -547,11 +547,11 @@ namespace Tensors
                 }
             }
             
-            Vector<n,Scalar,Int>  Diagonal() const
+            Vector<n,Scal,Int>  Diagonal() const
             {
                 static_assert(m==n, "Diagonal is only defined for square matrices.");
                 
-                Vector<n,Scalar,Int> v;
+                Vector<n,Scal,Int> v;
                 Diagonal(v);
                 return v;
             }
@@ -584,7 +584,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };

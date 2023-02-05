@@ -7,22 +7,22 @@ namespace Tensors
         template<
             const Op opA, const Op opB,
             int M, int N, int K,
-            ScalarFlag alpha_flag, ScalarFlag beta_flag,
-            typename Scalar,    typename Int,
-            typename Scalar_in, typename Scalar_out
+            Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+            typename Scal,    typename Int,
+            typename Scal_in, typename Scal_out
         >
         void gemm(
-            const Scalar_out alpha,
-            ptr<Scalar>      A_,
-            ptr<Scalar_in>   B_,
-            const Scalar_out beta,
-            mut<Scalar_out>  C_
+            const Scal_out alpha,
+            ptr<Scal>      A_,
+            ptr<Scal_in>   B_,
+            const Scal_out beta,
+            mut<Scal_out>  C_
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
-            Tiny::Matrix<M,K,Scalar,Int> A;
-            Tiny::Matrix<K,N,Scalar,Int> B;
-            Tiny::Matrix<M,N,Scalar,Int> C;
+            Tiny::Matrix<M,K,Scal,Int> A;
+            Tiny::Matrix<K,N,Scal,Int> B;
+            Tiny::Matrix<M,N,Scal,Int> C;
             
             A.template Read<opA>(A_);
             B.template Read<opB>(B_);
@@ -34,22 +34,22 @@ namespace Tensors
         template<
             const Op opA, const Op opB,
             int M, int N, int K,
-            ScalarFlag alpha_flag, ScalarFlag beta_flag,
-            typename Scalar,    typename Int,
-            typename Scalar_in, typename Scalar_out
+            Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+            typename Scal,    typename Int,
+            typename Scal_in, typename Scal_out
         >
         void gemm(
-            const Scalar_out alpha,
-            ptr<Scalar>      A_, const Int ldA,
-            ptr<Scalar_in>   B_, const Int ldB,
-            const Scalar_out beta,
-            mut<Scalar_out>  C_, const Int ldC
+            const Scal_out alpha,
+            ptr<Scal>      A_, const Int ldA,
+            ptr<Scal_in>   B_, const Int ldB,
+            const Scal_out beta,
+            mut<Scal_out>  C_, const Int ldC
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
-            Tiny::Matrix<M,K,Scalar,Int> A;
-            Tiny::Matrix<K,N,Scalar,Int> B;
-            Tiny::Matrix<M,N,Scalar,Int> C;
+            Tiny::Matrix<M,K,Scal,Int> A;
+            Tiny::Matrix<K,N,Scal,Int> B;
+            Tiny::Matrix<M,N,Scal,Int> C;
             A.template Read<opA>(A_,ldA);
             B.template Read<opB>(B_,ldB);
             Dot<0>(A,B,C);
@@ -59,24 +59,24 @@ namespace Tensors
         template<
             const Op opA, const Op opB,
             int M, int N, int K,
-            ScalarFlag alpha_flag, ScalarFlag beta_flag,
-            typename Scalar,    typename Int,
-            typename Scalar_in, typename Scalar_out
+            Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+            typename Scal,    typename Int,
+            typename Scal_in, typename Scal_out
         >
         void gemm(
-            const Scalar_out alpha,
-            ptr<Scalar>      A_, const Int ldA,
-            ptr<Scalar_in>   B_, const Int ldB, ptr<Int> idx,
-            const Scalar_out beta,
-            mut<Scalar_out>  C_, const Int ldC
+            const Scal_out alpha,
+            ptr<Scal>      A_, const Int ldA,
+            ptr<Scal_in>   B_, const Int ldB, ptr<Int> idx,
+            const Scal_out beta,
+            mut<Scal_out>  C_, const Int ldC
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
             // Reads from B in row-scattered fashion.
             
-            Tiny::Matrix<M,K,Scalar,Int> A;
-            Tiny::Matrix<K,N,Scalar,Int> B;
-            Tiny::Matrix<M,N,Scalar,Int> C;
+            Tiny::Matrix<M,K,Scal,Int> A;
+            Tiny::Matrix<K,N,Scal,Int> B;
+            Tiny::Matrix<M,N,Scal,Int> C;
             
             A.template Read<opA>(A_,ldA);
             B.template Read<opB>(B_,ldB,idx);
@@ -87,24 +87,24 @@ namespace Tensors
         template<
             const Op opA, const Op opB,
             int M, int N, int K,
-            ScalarFlag alpha_flag, ScalarFlag beta_flag,
-            typename Scalar,    typename Int,
-            typename Scalar_in, typename Scalar_out
+            Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+            typename Scal,    typename Int,
+            typename Scal_in, typename Scal_out
         >
         void gemm(
-            const Scalar_out alpha,
-            ptr<Scalar>      A_, const Int ldA,
-            ptr<Scalar_in>   B_, const Int ldB,
-            const Scalar_out beta,
-            mut<Scalar_out>  C_, const Int ldC, ptr<Int> idx
+            const Scal_out alpha,
+            ptr<Scal>      A_, const Int ldA,
+            ptr<Scal_in>   B_, const Int ldB,
+            const Scal_out beta,
+            mut<Scal_out>  C_, const Int ldC, ptr<Int> idx
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
             // Writes to C in row-scattered fashion.
 
-            Tiny::Matrix<M,K,Scalar,Int> A;
-            Tiny::Matrix<K,N,Scalar,Int> B;
-            Tiny::Matrix<M,N,Scalar,Int> C;
+            Tiny::Matrix<M,K,Scal,Int> A;
+            Tiny::Matrix<K,N,Scal,Int> B;
+            Tiny::Matrix<M,N,Scal,Int> C;
             A.template Read<opA>(A_,ldA);
             B.template Read<opB>(B_,ldB);
             Dot<0>(A,B,C);

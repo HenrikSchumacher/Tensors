@@ -31,7 +31,7 @@ int main(int argc, const char * argv[])
     
     dump(n);
     dump(reps);
-    dump(TypeName<Scalar>::Get());
+    dump(TypeName<Scalar>);
     //    constexpr Int p = 4;
     
     //    constexpr Scalar zero = static_cast<Scalar>(0);

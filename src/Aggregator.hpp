@@ -182,7 +182,7 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return "Aggregator<"+TypeName<T_0>::Get()+","+TypeName<LInt>::Get()+">";
+            return "Aggregator<"+TypeName<T_0>+","+TypeName<LInt>+">";
         }
     };
     

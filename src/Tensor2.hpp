@@ -4,7 +4,7 @@ namespace Tensors {
 
 #define TENSOR_T Tensor2
 
-    template <typename Scalar_, typename Int_>
+    template <typename Scal_, typename Int_>
     class Tensor2
     {
 
@@ -23,7 +23,7 @@ namespace Tensors {
             allocate();
         }
         
-        TENSOR_T( const Int d0, const Int d1, const Scalar init )
+        TENSOR_T( const Int d0, const Int d1, const Scal init )
         :   TENSOR_T( d0, d1 )
         {
             Fill( init );
@@ -68,7 +68,7 @@ namespace Tensors {
             {
                 for( Int j = 0; j < d_1; ++j )
                 {
-                    a[d_1 * i + j ] = static_cast<Scalar>( b[ d_0 * j + i ] );
+                    a[d_1 * i + j ] = static_cast<Scal>( b[ d_0 * j + i ] );
                 }
             }
         }
@@ -158,7 +158,7 @@ namespace Tensors {
         
     public:
 
-        force_inline mut<Scalar> data( const Int i )
+        force_inline mut<Scal> data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -166,7 +166,7 @@ namespace Tensors {
             return &a[i * dims[1]];
         }
         
-        force_inline ptr<Scalar> data( const Int i ) const
+        force_inline ptr<Scal> data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -174,7 +174,7 @@ namespace Tensors {
             return &a[i * dims[1]];
         }
         
-        force_inline Scalar & operator()(const Int i, const Int j)
+        force_inline Scal & operator()(const Int i, const Int j)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -182,7 +182,7 @@ namespace Tensors {
             return a[ i * dims[1] + j];
         }
         
-        force_inline const Scalar & operator()( const Int i, const Int j) const
+        force_inline const Scal & operator()( const Int i, const Int j) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -190,7 +190,7 @@ namespace Tensors {
             return a[i * dims[1] + j];
         }
         
-        force_inline mut<Scalar> operator[](const Int i)
+        force_inline mut<Scal> operator[](const Int i)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -198,7 +198,7 @@ namespace Tensors {
             return data(i);
         }
         
-        force_inline ptr<Scalar> operator[](const Int i) const
+        force_inline ptr<Scal> operator[](const Int i) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -228,7 +228,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return "Tensor2<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+            return "Tensor2<"+TypeName<Scal>+","+TypeName<Int>+">";
         }
         
     }; // Tensor2
@@ -334,10 +334,10 @@ namespace Tensors {
 //        return stat;
 //    }
 
-    template<typename Scalar, typename Int, typename S>
-    Tensor2<Scalar,Int> ToTensor2( ptr<S> a_, const Int d0, const Int d1, const bool transpose = false )
+    template<typename Scal, typename Int, typename S>
+    Tensor2<Scal,Int> ToTensor2( ptr<S> a_, const Int d0, const Int d1, const bool transpose = false )
     {
-        Tensor2<Scalar,Int> result ( d0, d1 );
+        Tensor2<Scal,Int> result ( d0, d1 );
 
         if( transpose )
         {
@@ -354,21 +354,21 @@ namespace Tensors {
 #ifdef LTEMPLATE_H
     
     
-    template<typename Scalar, typename Int>
-    Tensor2<Scalar,Int> from_MatrixRef( const mma::TensorRef<mreal> & A )
+    template<typename Scal, typename Int>
+    Tensor2<Scal,Int> from_MatrixRef( const mma::TensorRef<mreal> & A )
     {
-        return ToTensor2<Scalar,Int>( A.data(), A.dimensions()[0], A.dimensions()[1] );
+        return ToTensor2<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1] );
     }
     
-    template<typename Scalar, typename Int>
-    Tensor2<Scalar,Int> from_MatrixRef( const mma::TensorRef<mint> & A )
+    template<typename Scal, typename Int>
+    Tensor2<Scal,Int> from_MatrixRef( const mma::TensorRef<mint> & A )
     {
-        return ToTensor2<Scalar,Int>( A.data(), A.dimensions()[0], A.dimensions()[1] );
+        return ToTensor2<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1] );
     }
     
 
-    template<typename Scalar, typename Int, IS_FLOAT(Scalar)>
-    mma::MatrixRef<mreal> to_transposed_MTensorRef( const Tensor2<Scalar,Int> & B )
+    template<typename Scal, typename Int, IS_FLOAT(Scal)>
+    mma::MatrixRef<mreal> to_transposed_MTensorRef( const Tensor2<Scal,Int> & B )
     {
         Int rows = B.Dimension(0);
         Int cols = B.Dimension(1);
@@ -413,11 +413,11 @@ namespace Tensors {
 #endif
 
     // Should be only a fall-back. BLAS is _much_ faster.
-    template<typename Scalar, typename I1, typename I2, typename I3>
+    template<typename Scal, typename I1, typename I2, typename I3>
     void Dot(
-        const Tensor2<Scalar,I1> & A,
-        const Tensor1<Scalar,I2> & x,
-              Tensor1<Scalar,I3> & y
+        const Tensor2<Scal,I1> & A,
+        const Tensor1<Scal,I2> & x,
+              Tensor1<Scal,I3> & y
     )
     {
         ASSERT_INT (I1);
@@ -429,12 +429,12 @@ namespace Tensors {
 
         if( y.Dimension(0) != m )
         {
-            y = Tensor1<Scalar,I3> ( m);
+            y = Tensor1<Scal,I3> ( m);
         }
         
         for( I3 i = 0; i < m; ++i )
         {
-            Scalar y_i = A(i,0) * x[0];
+            Scal y_i = A(i,0) * x[0];
             
             for( I3 j = 1; j < n; ++j )
             {
@@ -446,11 +446,11 @@ namespace Tensors {
     }
     
     // Should be only a fall-back. BLAS is _much_ faster.
-    template<typename Scalar, typename I1, typename I2, typename I3>
+    template<typename Scal, typename I1, typename I2, typename I3>
     void Dot(
-        const Tensor1<Scalar,I1> & x,
-        const Tensor2<Scalar,I2> & A,
-              Tensor1<Scalar,I3> & y
+        const Tensor1<Scal,I1> & x,
+        const Tensor2<Scal,I2> & A,
+              Tensor1<Scal,I3> & y
     )
     {
         ASSERT_INT (I1);
@@ -462,11 +462,11 @@ namespace Tensors {
         
         if( y.Dimension(0) != n )
         {
-            y = Tensor1<Scalar,I3> (n);
+            y = Tensor1<Scal,I3> (n);
         }
 
         {
-            const Scalar x_0 = x[0];
+            const Scal x_0 = x[0];
             for( I3 j = 0; j < n; ++j )
             {
                 y[j] = x_0 * A(0,j);
@@ -475,7 +475,7 @@ namespace Tensors {
         
         for( I3 i = 1; i < m; ++i )
         {
-            const Scalar x_i = x[i];
+            const Scal x_i = x[i];
             
             for( I3 j = 0; j < n; ++j )
             {

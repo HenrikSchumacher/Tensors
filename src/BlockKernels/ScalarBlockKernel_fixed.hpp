@@ -4,7 +4,7 @@
 
 #define BASE  BlockKernel_fixed<                            \
     ROWS_,COLS_,RHS_COUNT_,fixed,                           \
-    Scalar_,Scalar_in_,Scalar_out_,                         \
+    Scal_,Scal_in_,Scal_out_,                         \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
     x_RM, x_intRM, x_copy, x_prefetch,                      \
@@ -16,7 +16,7 @@ namespace Tensors
 {
     template<
         int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
-        typename Scalar_, typename Scalar_in_, typename Scalar_out_,
+        typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         int alpha_flag, int beta_flag,
         bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
@@ -30,9 +30,9 @@ namespace Tensors
         
     public:
 
-        using Scalar     = Scalar_;
-        using Scalar_out = Scalar_out_;
-        using Scalar_in  = Scalar_in_;
+        using Scal     = Scal_;
+        using Scal_out = Scal_out_;
+        using Scal_in  = Scal_in_;
         using Int        = Int_;
         using LInt       = LInt_;
 
@@ -64,16 +64,16 @@ namespace Tensors
         
         CLASS() = delete;
         
-        explicit CLASS( Scalar * restrict const A_ )
+        explicit CLASS( Scal * restrict const A_ )
         :   BASE( A_ )
         {}
         
         CLASS(
-            const Scalar     * restrict const A_,
-            const Scalar_out                  alpha_,
-            const Scalar_in  * restrict const X_,
-            const Scalar_out                  beta_,
-                  Scalar_out * restrict const Y_,
+            const Scal     * restrict const A_,
+            const Scal_out                  alpha_,
+            const Scal_in  * restrict const X_,
+            const Scal_out                  beta_,
+                  Scal_out * restrict const Y_,
             const Int                         rhs_count_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
@@ -100,7 +100,7 @@ namespace Tensors
         {
             ReadX( j_global );
 
-            const Scalar a = A_const[BLOCK_NNZ * k_global];
+            const Scal a = A_const[BLOCK_NNZ * k_global];
             
             LOOP_UNROLL_FULL
             for( Int j = 0; j < COLS; ++j )
@@ -123,11 +123,11 @@ namespace Tensors
             +","+ToString(COLS)
             +","+ToString(RHS_COUNT)
             +","+ToString(fixed)
-            +","+TypeName<Scalar>::Get()
-            +","+TypeName<Scalar_in>::Get()
-            +","+TypeName<Scalar_out>::Get()
-            +","+TypeName<Int>::Get()
-            +","+TypeName<LInt>::Get()
+            +","+TypeName<Scal>
+            +","+TypeName<Scal_in>
+            +","+TypeName<Scal_out>
+            +","+TypeName<Int>
+            +","+TypeName<LInt>
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
             +","+ToString(x_RM)+","+ToString(x_intRM)+","+ToString(x_copy)+","+ToString(x_prefetch)

@@ -8,7 +8,7 @@ namespace Tensors
         template<
             Side side, UpLo uplo, Op op, Diag diag,
             int N, int NRHS,
-            ScalarFlag alpha_flag,
+            Scalar::Flag alpha_flag,
             typename Scalar
         >
         class TRSM

@@ -4,7 +4,7 @@
     
 public:
 
-    explicit CLASS( const Scalar init )
+    explicit CLASS( const Scal init )
     {
         Fill(init);
     }
@@ -17,7 +17,7 @@ public:
         }
     }
     
-    force_inline void Fill( const Scalar init )
+    force_inline void Fill( const Scal init )
     {
         if constexpr ( n > 0 )
         {
@@ -25,7 +25,7 @@ public:
         }
     }
     
-    force_inline void Read( const Scalar * const B )
+    force_inline void Read( const Scal * const B )
     {
         if constexpr ( n > 0 )
         {
@@ -33,7 +33,7 @@ public:
         }
     }
 
-    force_inline void Read( const Scalar * const B, const Int ldB )
+    force_inline void Read( const Scal * const B, const Int ldB )
     {
         if constexpr ( n > 0 )
         {
@@ -41,7 +41,7 @@ public:
         }
     }
     
-    force_inline void Write( Scalar * B ) const
+    force_inline void Write( Scal * B ) const
     {
         if constexpr ( n > 0 )
         {
@@ -49,7 +49,7 @@ public:
         }
     }
 
-    force_inline void Write( Scalar * B, const Int ldB ) const
+    force_inline void Write( Scal * B, const Int ldB ) const
     {
         if constexpr ( n > 0 )
         {
@@ -73,7 +73,7 @@ protected:
     }
     
     template<Int k>
-    force_inline void fill( const Scalar init )
+    force_inline void fill( const Scal init )
     {
         fill_buffer<n-k>( &A[k][k],init );
         
@@ -84,7 +84,7 @@ protected:
     }
     
     template<Int k>
-    force_inline void read( ptr<Scalar> const B )
+    force_inline void read( ptr<Scal> const B )
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
@@ -95,7 +95,7 @@ protected:
     }
 
     template<Int k>
-    force_inline void read( ptr<Scalar> B, const Int ldB )
+    force_inline void read( ptr<Scal> B, const Int ldB )
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
@@ -106,7 +106,7 @@ protected:
     }
     
     template<Int k>
-    force_inline void write( mut<Scalar> B ) const
+    force_inline void write( mut<Scal> B ) const
     {
         copy_buffer<n-k>( &A[k][k], B );
         
@@ -117,7 +117,7 @@ protected:
     }
 
     template<Int k>
-    force_inline void write( mut<Scalar> B, const Int ldB ) const
+    force_inline void write( mut<Scal> B, const Int ldB ) const
     {
         copy_buffer<n-k>( &A[k][k], B );
         
@@ -162,7 +162,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator+=( const CLASS<n,T,Int> & B )
@@ -180,7 +180,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator-=( const CLASS<n,T,Int> & B )
@@ -198,7 +198,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator*=( const CLASS<n,T,Int> & B )
@@ -216,7 +216,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator/=( const CLASS<n,T,Int> & B )
@@ -235,7 +235,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator+=( const T lambda )
@@ -254,7 +254,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator-=( const T lambda )
@@ -273,7 +273,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator*=( const T lambda )

@@ -6,9 +6,9 @@ namespace Tensors
     {
 #define CLASS Vector
         
-        template<int n_, typename Scalar_, typename Int_> class VectorList;
+        template<int n_, typename Scal_, typename Int_> class VectorList;
         
-        template< int n_, typename Scalar_, typename Int_>
+        template< int n_, typename Scal_, typename Int_>
         class CLASS
         {
             // Very slim vector type of fixed length, with basic arithmetic operations.
@@ -31,7 +31,7 @@ namespace Tensors
             
         protected:
             
-            std::array<Scalar,n> v;
+            std::array<Scal,n> v;
             
 //######################################################
 //##                     Memory                       ##
@@ -39,7 +39,7 @@ namespace Tensors
             
         public:
             
-            explicit CLASS( const Scalar init )
+            explicit CLASS( const Scal init )
             :   v {{init}}
             {}
             
@@ -64,7 +64,7 @@ namespace Tensors
                 zerofy_buffer<n>( &v[0] );
             }
             
-            void Fill( const Scalar init )
+            void Fill( const Scal init )
             {
                 fill_buffer<n>( &v[0], init );
             }
@@ -86,7 +86,7 @@ namespace Tensors
             {
                 for( Int i = 0; i < n; ++i )
                 {
-                    v[i] = static_cast<Scalar>(source[i][k]);
+                    v[i] = static_cast<Scal>(source[i][k]);
                 }
             }
             
@@ -105,32 +105,32 @@ namespace Tensors
             
         public:
             
-            Scalar * data()
+            Scal * data()
             {
                 return &v[0];
             }
             
-            const Scalar * data() const
+            const Scal * data() const
             {
                 return &v[0];
             }
             
-            Scalar & operator[]( const Int i )
+            Scal & operator[]( const Int i )
             {
                 return v[i];
             }
             
-            const Scalar & operator[]( const Int i ) const
+            const Scal & operator[]( const Int i ) const
             {
                 return v[i];
             }
             
-            Scalar & operator()( Int i )
+            Scal & operator()( Int i )
             {
                 return v[i];
             }
             
-            const Scalar & operator()( const Int i ) const
+            const Scal & operator()( const Int i ) const
             {
                 return v[i];
             }
@@ -142,7 +142,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator+=( const Tiny::Vector<n,T,Int> & s )
@@ -157,7 +157,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator-=( const Tiny::Vector<n,T,Int> & s )
@@ -172,7 +172,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator*=( const Tiny::Vector<n,T,Int> & s )
@@ -187,7 +187,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator/=( const Tiny::Vector<n,T,Int> & s )
@@ -202,7 +202,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator+=( const T & s )
@@ -217,7 +217,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator-=( const T & s )
@@ -232,7 +232,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator*=( const T & s )
@@ -261,11 +261,11 @@ namespace Tensors
             
             force_inline void Normalize()
             {
-                *this *= (static_cast<Scalar>(1) / Norm());
+                *this *= (static_cast<Scal>(1) / Norm());
             }
             
             
-            template <typename Dummy = Scalar>
+            template <typename Dummy = Scal>
             force_inline std::enable_if_t<std::is_same_v<Real,Dummy>,Real> Min() const
             {
                 if constexpr ( n > 0 )
@@ -284,9 +284,9 @@ namespace Tensors
             }
 
             
-            force_inline friend Scalar Dot( const CLASS & x, const CLASS & y )
+            force_inline friend Scal Dot( const CLASS & x, const CLASS & y )
             {
-                Scalar r (0);
+                Scal r (0);
                 
                 for( Int i = 0; i < n; ++i )
                 {
@@ -295,9 +295,9 @@ namespace Tensors
                 return r;
             }
             
-            force_inline friend Scalar InnerProduct( const CLASS & x, const CLASS & y )
+            force_inline friend Scal InnerProduct( const CLASS & x, const CLASS & y )
             {
-                Scalar r (0);
+                Scal r (0);
                 
                 for( Int i = 0; i < n; ++i )
                 {
@@ -341,7 +341,7 @@ namespace Tensors
                 }
             }
    
-            force_inline friend void Times( const Scalar scale, const CLASS & x, CLASS & y )
+            force_inline friend void Times( const Scal scale, const CLASS & x, CLASS & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -349,7 +349,7 @@ namespace Tensors
                 }
             }
             
-            force_inline friend void axpy( const Scalar alpha, const CLASS & x, CLASS & y )
+            force_inline friend void axpy( const Scal alpha, const CLASS & x, CLASS & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -380,7 +380,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
         };
         

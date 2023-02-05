@@ -120,7 +120,7 @@ namespace Tensors
             }
             else
             {
-                eprint("herk not defined for scalar type " + TypeName<Scalar>::Get() );
+                eprint("herk not defined for scalar type " + TypeName<Scalar> );
             }
             
         }

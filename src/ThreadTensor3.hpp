@@ -2,20 +2,20 @@
 
 namespace Tensors {
 
-    template <typename Scalar_, typename Int_>
+    template <typename Scal_, typename Int_>
     class ThreadTensor3
     {
         ASSERT_INT(Int_);
         
-        using Scalar = Scalar_;
-        using Real   = typename ScalarTraits<Scalar_>::Real;
+        using Scal = Scal_;
+        using Real   = typename Scalar::Real<Scal_>;
         using Int    = Int_;
         
     private:
         
         Int n = 0;
         std::array<Int,3> dims = {0,0,0};
-        std::vector<Tensor2<Scalar,Int>> tensors;
+        std::vector<Tensor2<Scal,Int>> tensors;
         
     public:
         
@@ -24,28 +24,28 @@ namespace Tensors {
         ThreadTensor3( const Int d0, const Int d1, const Int d2 )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
-        ,   tensors( std::vector<Tensor2<Scalar,Int>> ( d0 ) )
+        ,   tensors( std::vector<Tensor2<Scal,Int>> ( d0 ) )
         {
             const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
-                tensors[thread] = Tensor2<Scalar,Int>( dims[1], dims[2] );
+                tensors[thread] = Tensor2<Scal,Int>( dims[1], dims[2] );
             }
         }
         
-        ThreadTensor3( const Int d0, const Int d1, const Int d2, const Scalar init )
+        ThreadTensor3( const Int d0, const Int d1, const Int d2, const Scal init )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
-        ,   tensors( std::vector<Tensor2<Scalar,Int>> ( d0 ) )
+        ,   tensors( std::vector<Tensor2<Scal,Int>> ( d0 ) )
         {
             const Int thread_count = dims[0];
             
             #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
-                tensors[thread] = Tensor2<Scalar,Int>( dims[1], dims[2], init );
+                tensors[thread] = Tensor2<Scal,Int>( dims[1], dims[2], init );
             }
         }
         
@@ -63,7 +63,7 @@ namespace Tensors {
         }
 
         // Copy constructor
-        explicit ThreadTensor3( const ThreadTensor3<Scalar,Int> & other )
+        explicit ThreadTensor3( const ThreadTensor3<Scal,Int> & other )
         :   ThreadTensor3(other.dims)
         {
             print(ClassName()+" copy constructor");
@@ -96,7 +96,7 @@ namespace Tensors {
 //        // Copy constructor
 //        ThreadTensor3( const ThreadTensor3 & other )
 //        :
-//            tensors( std::vector<Tensor2<Scalar,Int>> (other.Dimension(0)) ),
+//            tensors( std::vector<Tensor2<Scal,Int>> (other.Dimension(0)) ),
 //            n(other.Size())
 //        {
 //            dims[0] = other.Dimension(0);
@@ -110,7 +110,7 @@ namespace Tensors {
 //            #pragma omp parallel for num_threads( thread_count )
 //            for( Int thread = 0; thread < thread_count; ++thread )
 //            {
-//                tensors[thread] = Tensor2<Scalar,Int>( other[thread] );
+//                tensors[thread] = Tensor2<Scal,Int>( other[thread] );
 //            }
 //        }
         
@@ -200,7 +200,7 @@ namespace Tensors {
             }
         }
         
-        force_inline mut<Scalar> data( const Int i )
+        force_inline mut<Scal> data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -208,7 +208,7 @@ namespace Tensors {
             return tensors[i].data();
         }
         
-        force_inline ptr<Scalar> data( const Int i ) const
+        force_inline ptr<Scal> data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -216,7 +216,7 @@ namespace Tensors {
             return tensors[i].data();
         }
 
-        force_inline mut<Scalar> data( const Int i, const Int j)
+        force_inline mut<Scal> data( const Int i, const Int j)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -224,7 +224,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        force_inline ptr<Scalar> data( const Int i, const Int j) const
+        force_inline ptr<Scal> data( const Int i, const Int j) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -232,7 +232,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        force_inline mut<Scalar> data( const Int i, const Int j, const Int k)
+        force_inline mut<Scal> data( const Int i, const Int j, const Int k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -240,7 +240,7 @@ namespace Tensors {
             return tensors[i].data(j,k);
         }
         
-        force_inline ptr<Scalar> data( const Int i, const Int j, const Int k) const
+        force_inline ptr<Scal> data( const Int i, const Int j, const Int k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -248,7 +248,7 @@ namespace Tensors {
             return tensors[i].data(j,k);
         }
 
-        force_inline Scalar & operator()( const Int i, const Int j, const Int k)
+        force_inline Scal & operator()( const Int i, const Int j, const Int k)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -256,7 +256,7 @@ namespace Tensors {
             return tensors[i](j,k);
         }
     
-        force_inline const Scalar & operator()( const Int i, const Int j, const Int k) const
+        force_inline const Scal & operator()( const Int i, const Int j, const Int k) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -264,7 +264,7 @@ namespace Tensors {
             return tensors[i](j,k);
         }
         
-        void Fill( const Scalar init )
+        void Fill( const Scal init )
         {
             const Int thread_count = dims[0];
             
@@ -286,7 +286,7 @@ namespace Tensors {
             }
         }
 
-        void Write( mut<Scalar> b ) const
+        void Write( mut<Scal> b ) const
         {
             const Int thread_count = dims[0];
             
@@ -387,12 +387,12 @@ namespace Tensors {
         }
         
         
-        Tensor2<Scalar,Int> & operator[]( const Int thread )
+        Tensor2<Scal,Int> & operator[]( const Int thread )
         {
             return tensors[thread];
         }
         
-        const Tensor2<Scalar,Int> & operator[]( const Int thread ) const
+        const Tensor2<Scal,Int> & operator[]( const Int thread ) const
         {
             return tensors[thread];
         }
@@ -401,7 +401,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return "ThreadTensor3<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+            return "ThreadTensor3<"+TypeName<Scal>+","+TypeName<Int>+">";
         }
         
     }; // ThreadTensor3
@@ -410,8 +410,8 @@ namespace Tensors {
 #ifdef LTEMPLATE_H
 
     
-    template<typename Scalar, typename Int, IS_FLOAT(Scalar)>
-    inline mma::TensorRef<mreal> to_MTensorRef( const ThreadTensor3<Scalar,Int> & A )
+    template<typename Scal, typename Int, IS_FLOAT(Scal)>
+    inline mma::TensorRef<mreal> to_MTensorRef( const ThreadTensor3<Scal,Int> & A )
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);

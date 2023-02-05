@@ -8,7 +8,7 @@ namespace Tensors
         template<
             Op opA, Op opB,
             int M, int N, int K,
-            ScalarFlag alpha_flag, ScalarFlag beta_flag,
+            Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
             typename Scalar
         >
         class GEMM

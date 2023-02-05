@@ -9,7 +9,7 @@ public:
         zerofy_buffer<m*n>( &A[0][0] );
     }
     
-    void Fill( const Scalar init )
+    void Fill( const Scal init )
     {
         fill_buffer<m*n>( &A[0][0], init );
     }
@@ -35,7 +35,7 @@ public:
     }
 
     // BLAS-like write-modify method without stride.
-    template<ScalarFlag alpha_flag, ScalarFlag beta_flag, typename R, typename S, typename T>
+    template<Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R, typename S, typename T>
     void Write( const R alpha, const S beta, mut<T> B) const
     {
         // Writing B = alpha * A + beta * B
@@ -43,7 +43,7 @@ public:
     }
 
     // BLAS-like write-modify method with stride.
-    template<ScalarFlag alpha_flag, ScalarFlag beta_flag, typename R, typename S, typename T>
+    template<Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R, typename S, typename T>
     void Write( const R alpha, const S beta, mut<T> B, const Int ldB ) const
     {
         // Writing B = alpha * A + beta * B
@@ -55,7 +55,7 @@ public:
 
     // Row-scattered write-modify method.
     // Useful in supernodal arithmetic for sparse matrices.
-    template<ScalarFlag alpha_flag, ScalarFlag beta_flag, typename R, typename S, typename T>
+    template<Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R, typename S, typename T>
     void Write( const R alpha, const S beta, mut<T> B, const Int ldB, ptr<Int> idx ) const
     {
         // Writing B[idx[i]][j] = alpha * A[i][j] + beta * B[idx[i]][j]
@@ -85,7 +85,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scalar> B_j = &B[m*j];
+                ptr<Scal> B_j = &B[m*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -98,7 +98,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scalar> B_j = &B[m*j];
+                ptr<Scal> B_j = &B[m*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -125,7 +125,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scalar> B_j = &B[ldB*j];
+                ptr<Scal> B_j = &B[ldB*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -138,7 +138,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scalar> B_j = &B[ldB*j];
+                ptr<Scal> B_j = &B[ldB*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -166,7 +166,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scalar> B_j = &B[ldB*idx[j]];
+                ptr<Scal> B_j = &B[ldB*idx[j]];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -179,7 +179,7 @@ public:
             // TODO: Not sure whether it would be better to  swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scalar> B_j = &B[ldB*idx[j]];
+                ptr<Scal> B_j = &B[ldB*idx[j]];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -214,7 +214,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator+=( const T lambda )
@@ -234,7 +234,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator-=( const T lambda )
@@ -253,7 +253,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scalar> || (ScalarTraits<Scalar>::IsComplex && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator*=( const T lambda )

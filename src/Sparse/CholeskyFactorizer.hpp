@@ -5,9 +5,9 @@ namespace Tensors
     namespace Sparse
     {
         
-        template<typename Scalar_, typename Int_, typename LInt_> class CholeskyDecomposition;
+        template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
         
-        template<typename Scalar_, typename Int_, typename LInt_>
+        template<typename Scal_, typename Int_, typename LInt_>
         class alignas(OBJECT_ALIGNMENT) CholeskyFactorizer
         {
             // Performs a left-looking factorization.
@@ -17,10 +17,10 @@ namespace Tensors
             
         public:
             
-            using Scalar    = Scalar_;
-            using Real      = typename ScalarTraits<Scalar_>::Real;
-            using Int       = Int_;
-            using LInt      = LInt_;
+            using Scal = Scal_;
+            using Real = typename Scalar::Real<Scal_>;
+            using Int  = Int_;
+            using LInt = LInt_;
             
             using SparseMatrix_T = Sparse::BinaryMatrixCSR<Int,LInt>;
             
@@ -35,9 +35,9 @@ namespace Tensors
             ptr<LInt>       A_diag; // position to the diagonal element of A in each row.
             ptr<LInt>       A_rp;   // row pointers of upper triangle of A
             ptr<Int>        A_ci;   // column indices of upper triangle of A
-            ptr<Scalar>     A_val;  // values of upper triangle of A
+            ptr<Scal>       A_val;  // values of upper triangle of A
             
-            Scalar          reg;     // Regularization parameter for the diagonal.
+            Scal            reg;     // Regularization parameter for the diagonal.
             
             ptr<Int>        child_ptr;
             ptr<Int>        child_idx;
@@ -47,9 +47,9 @@ namespace Tensors
             ptr<Int>        SN_inner;
             
             ptr<LInt>       SN_tri_ptr;
-            mut<Scalar>     SN_tri_val;
+            mut<Scal>       SN_tri_val;
             ptr<LInt>       SN_rec_ptr;
-            mut<Scalar>     SN_rec_val;
+            mut<Scal>       SN_rec_val;
             
             ptr<Int>         desc_counts;
             
@@ -71,15 +71,15 @@ namespace Tensors
             Int JL_len = 0;
             
             // Working space for BLAS3 routines.
-            Tensor1<Scalar,Int> B_0_buffer; // part that updates U_0
-            Tensor1<Scalar,Int> B_1_buffer; // part that updates U_1
-            Tensor1<Scalar,Int> C_0_buffer; // scattered subblock of U_0
-            Tensor1<Scalar,Int> C_1_buffer; // scattered subblock of U_1
+            Tensor1<Scal,Int> B_0_buffer; // part that updates U_0
+            Tensor1<Scal,Int> B_1_buffer; // part that updates U_1
+            Tensor1<Scal,Int> C_0_buffer; // scattered subblock of U_0
+            Tensor1<Scal,Int> C_1_buffer; // scattered subblock of U_1
             
-            mut<Scalar> B_0 = nullptr;
-            mut<Scalar> B_1 = nullptr;
-            mut<Scalar> C_0 = nullptr;
-            mut<Scalar> C_1 = nullptr;
+            mut<Scal> B_0 = nullptr;
+            mut<Scal> B_1 = nullptr;
+            mut<Scal> C_0 = nullptr;
+            mut<Scal> C_1 = nullptr;
 
             
             // Monitors.
@@ -124,7 +124,7 @@ namespace Tensors
             }
             
             CholeskyFactorizer(
-                CholeskyDecomposition<Scalar,Int,LInt> & chol
+                CholeskyDecomposition<Scal,Int,LInt> & chol
             )
             // shared data
             :   n               ( chol.n                                        )
@@ -163,13 +163,13 @@ namespace Tensors
             ,   C_1             ( C_1_buffer.data()                             )
             {
 //                valprint(
-//                    "scratch memory of type "+TypeName<Int>::Get(),
+//                    "scratch memory of type "+TypeName<Int>,
 //                    2 * (chol.max_n_0 + chol.max_n_1)
 //                );
 //
 //
 //                valprint(
-//                    "scratch memory of type "+TypeName<Scalar>::Get(),
+//                    "scratch memory of type "+TypeName<Scal>,
 //                    2 * (chol.max_n_0 * chol.max_n_0 + chol.max_n_0 * chol.max_n_1)
 //                );
             }
@@ -225,8 +225,8 @@ namespace Tensors
                 
                 // U_0 is interpreted as an upper triangular matrix of size n_0 x n_0.
                 // U_1 is interpreted as a  rectangular      matrix of size n_0 x n_1.
-                mut<Scalar> U_0 = &SN_tri_val[SN_tri_ptr[s]];
-                mut<Scalar> U_1 = &SN_rec_val[SN_rec_ptr[s]];
+                mut<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                mut<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                 
                 FetchFromA( i_begin, i_end, l_begin, l_end, U_0, U_1);
                 
@@ -246,7 +246,7 @@ namespace Tensors
         protected:
             
             void FetchFromA(
-                Int i_begin, Int i_end, LInt l_begin, LInt l_end, mut<Scalar> U_0, mut<Scalar> U_1
+                Int i_begin, Int i_end, LInt l_begin, LInt l_end, mut<Scal> U_0, mut<Scal> U_1
             )
             {
                 // Read the values of A into U_0 and U_1.
@@ -266,7 +266,7 @@ namespace Tensors
                         
                         const Int j = A_ci [k];
                         
-                        U_0[n_0 * (i-i_begin) + (j-i_begin)] = static_cast<Scalar>(A_val[k]+reg);
+                        U_0[n_0 * (i-i_begin) + (j-i_begin)] = static_cast<Scal>(A_val[k]+reg);
                         
                         ++k;
                     }
@@ -277,7 +277,7 @@ namespace Tensors
                         if( j < i_end )
                         {
                             // j belongs to the triangular part
-                            U_0[n_0 * (i-i_begin) + (j-i_begin)] = static_cast<Scalar>(A_val[k]);
+                            U_0[n_0 * (i-i_begin) + (j-i_begin)] = static_cast<Scal>(A_val[k]);
                         }
                         else
                         {
@@ -300,7 +300,7 @@ namespace Tensors
                         {
                             col_l = SN_inner[++l];
                         }
-                        U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scalar>(A_val[k]);
+                        U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scal>(A_val[k]);
                         // XXX conj-transpose here.
                     }
                 }
@@ -309,7 +309,7 @@ namespace Tensors
             void FetchFromDescendants(
                 const Int s,                             // the supernode into which to fetch
                 const Int t_begin, const Int t_end,     // the range of descendants
-                const Int n_0, const Int n_1, mut<Scalar> U_0, mut<Scalar> U_1
+                const Int n_0, const Int n_1, mut<Scal> U_0, mut<Scal> U_1
             )
             {
                 // Incorporate the row updates from descendants [ t_begin,...,t_end [ into U_0 and U_1.
@@ -330,7 +330,7 @@ namespace Tensors
                     const Int m_0 = SN_rp[t+1] - SN_rp[t];
                     const Int m_1 = int_cast<Int>(SN_outer[t+1] - SN_outer[t]);
 
-                    ptr<Scalar> t_rec = &SN_rec_val[SN_rec_ptr[t]];
+                    ptr<Scal> t_rec = &SN_rec_val[SN_rec_ptr[t]];
                     // t_rec is interpreted as a rectangular matrix of size m_0 x m_1.
 
                     // TODO: Maybe we should transpose U_0 and U_1 etc. to reduce amount of scattered-reads and adds...
@@ -398,8 +398,8 @@ namespace Tensors
                                     U_0[ n_0 * II_pos[i] + II_pos[j] ] += C_0[ IL_len * i + j ];
                                 }
                                 
-//                                mut<Scalar> U_0_i = &U_0[n_0 * II_pos[i]];
-//                                ptr<Scalar> C_0_i = &C_0[IL_len * i];
+//                                mut<Scal> U_0_i = &U_0[n_0 * II_pos[i]];
+//                                ptr<Scal> C_0_i = &C_0[IL_len * i];
 //
 //                                for( Int j = i; j < IL_len; ++j )
 //                                {
@@ -440,29 +440,29 @@ namespace Tensors
                                 {
                                     BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                                         IL_len, JL_len, m_0,
-                                        Scalar(-1), B_0, IL_len,
+                                        Scal(-1), B_0, IL_len,
                                                     B_1, JL_len,
-                                        Scalar( 0), C_1, JL_len
+                                        Scal( 0), C_1, JL_len
                                     );
                                 }
                                 else // IL_len == 1
                                 {
-                                    if constexpr ( !ScalarTraits<Scalar>::IsComplex )
+                                    if constexpr ( !Scalar::IsComplex<Scal> )
                                     {
                                         BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans  >(// XXX
                                             m_0, JL_len,
-                                            Scalar(-1), B_1, JL_len,
+                                            Scal(-1), B_1, JL_len,
                                                         B_0, 1,         // TODO: B_0 must be conjugated!
-                                            Scalar( 0), C_1, 1
+                                            Scal( 0), C_1, 1
                                         );
                                     }
                                     else
                                     {
                                         BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                                             IL_len, JL_len, m_0,
-                                            Scalar(-1), B_0, IL_len,
+                                            Scal(-1), B_0, IL_len,
                                                         B_1, JL_len,
-                                            Scalar( 0), C_1, JL_len
+                                            Scal( 0), C_1, JL_len
                                         );
                                     }
                                 }
@@ -475,9 +475,9 @@ namespace Tensors
                                 {
                                     BLAS_Wrappers::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
                                         m_0, IL_len,
-                                        Scalar(-1), B_0, IL_len,
+                                        Scal(-1), B_0, IL_len,
                                                     B_1, 1,
-                                        Scalar( 0), C_1, 1
+                                        Scal( 0), C_1, 1
                                     );
                                 }
                                 else // IL_len == 1
@@ -496,8 +496,8 @@ namespace Tensors
                             // where U_1 is a matrix of size n_0 x n_1.
                             for( Int i = 0; i < IL_len; ++i )
                             {
-                                mut<Scalar> U_1_i = &U_1[n_1 * II_pos[i]];
-                                ptr<Scalar> C_1_i = &C_1[JL_len * i];
+                                mut<Scal> U_1_i = &U_1[n_1 * II_pos[i]];
+                                ptr<Scal> C_1_i = &C_1[JL_len * i];
                                 
                                 for( Int j = 0; j < JL_len; ++j )
                                 {
@@ -525,11 +525,11 @@ namespace Tensors
                             
                             for( Int i = 0; i < IL_len; ++i )
                             {
-                                const Scalar factor = - conj(t_rec[IL_pos[i]]);
+                                const Scal factor = - conj(t_rec[IL_pos[i]]);
 
                                 const Int i_ = II_pos[i];
-                                mut<Scalar> U_0_i = &U_0[n_0 * i_];
-                                mut<Scalar> U_1_i = &U_1[n_1 * i_];
+                                mut<Scal> U_0_i = &U_0[n_0 * i_];
+                                mut<Scal> U_1_i = &U_1[n_1 * i_];
                                 
                                 for( Int j = i; j < IL_len; ++j )
                                 {
@@ -546,10 +546,10 @@ namespace Tensors
                         {
                             for( Int i = 0; i < IL_len; ++i )
                             {
-                                const Scalar factor = - conj(t_rec[IL_pos[i]]);
+                                const Scal factor = - conj(t_rec[IL_pos[i]]);
 
                                 const Int i_ = II_pos[i];
-                                mut<Scalar> U_0_i = &U_0[n_0 * i_];
+                                mut<Scal> U_0_i = &U_0[n_0 * i_];
 
                                 for( Int j = i; j < IL_len; ++j )
                                 {
@@ -563,7 +563,7 @@ namespace Tensors
                 } // for( Int t = t_begin; t < t_end; ++t )
             }
             
-            void FactorizeSupernode( Int n_0, Int n_1, mut<Scalar> U_0, mut<Scalar> U_1 )
+            void FactorizeSupernode( Int n_0, Int n_1, mut<Scal> U_0, mut<Scal> U_1 )
             {
                 _tic();
                 
@@ -578,7 +578,7 @@ namespace Tensors
                         BLAS_Wrappers::trsm<Layout::RowMajor,
                             Side::Left, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                         >(
-                            n_0, n_1, Scalar(1), U_0, n_0, U_1, n_1
+                            n_0, n_1, Scal(1), U_0, n_0, U_1, n_1
                         );
                     }
                     else if( n_1 == 1 )
@@ -595,7 +595,7 @@ namespace Tensors
                 else
                 {
                     U_0[0] = std::sqrt(std::abs(U_0[0]));
-                    scale_buffer(static_cast<Scalar>(1)/U_0[0], U_1, n_1);
+                    scale_buffer(static_cast<Scal>(1)/U_0[0], U_1, n_1);
                 }
                 
                 chol_time += _toc();
@@ -603,12 +603,12 @@ namespace Tensors
             
         protected:
             
-            force_inline void scatter_read( ptr<Scalar> x, mut<Scalar> y, ptr<Int> idx, Int N )
+            force_inline void scatter_read( ptr<Scal> x, mut<Scal> y, ptr<Int> idx, Int N )
             {
                 for( ; N --> 0; ) { y[N] = x[idx[N]]; }
             }
             
-            force_inline void scatter_add( ptr<Scalar> x, mut<Scalar> y, ptr<Int> idx, Int N )
+            force_inline void scatter_add( ptr<Scal> x, mut<Scal> y, ptr<Int> idx, Int N )
             {
                 for( ; N --> 0; ) { y[idx[N]] += x[N]; }
             }
@@ -799,7 +799,7 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return "Sparse::CholeskyFactorizer<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()+">";
+                return "Sparse::CholeskyFactorizer<"+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
             }
             
         }; // class CholeskyFactorizer

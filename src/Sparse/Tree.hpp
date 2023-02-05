@@ -459,7 +459,7 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return "Tree<"+TypeName<Int>::Get()+">";
+            return "Tree<"+TypeName<Int>+">";
         }
     };
 }

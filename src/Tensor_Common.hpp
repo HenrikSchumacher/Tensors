@@ -2,15 +2,15 @@ ASSERT_INT (Int_);
 
 public:
 
-using Scalar = Scalar_;
-using Real   = typename ScalarTraits<Scalar_>::Real;
-using Int    = Int_;
+using Scal = Scal_;
+using Real = typename Scalar::Real<Scal_>;
+using Int  = Int_;
 
 protected:
 
 Int n = 0;
 
-Scalar * restrict a __attribute__((aligned(ALIGNMENT))) = nullptr ;
+Scal * restrict a __attribute__((aligned(ALIGNMENT))) = nullptr ;
 
 public:
 
@@ -124,7 +124,7 @@ void Read( ptr<S> a_, const Int thread_count )
 }
 
 template<typename R>
-std::enable_if_t<ScalarTraits<Scalar>::IsComplex && !ScalarTraits<R>::IsComplex,void>
+std::enable_if_t<Scalar::IsComplex<Scal> && !Scalar::IsComplex<R>,void>
 Read( ptr<R> re, ptr<R> im )
 {
     for( Int i = 0; i < n; ++i )
@@ -146,7 +146,7 @@ void Write( mut<S> a_, const Int thread_count ) const
 }
 
 template<typename R>
-std::enable_if_t<ScalarTraits<Scalar>::IsComplex && !ScalarTraits<R>::IsComplex,void>
+std::enable_if_t<Scalar::IsComplex<Scal> && !Scalar::IsComplex<R>,void>
 Write( mut<R> re, mut<R> im ) const
 {
     for( Int i = 0; i < n; ++i )
@@ -156,12 +156,12 @@ Write( mut<R> re, mut<R> im ) const
     }
 }
 
-void Fill( const Scalar init )
+void Fill( const Scal init )
 {
     fill_buffer( a, static_cast<size_t>(n), init );
 }
 
-void Fill( const Scalar init, const Int thread_count )
+void Fill( const Scal init, const Int thread_count )
 {
     fill_buffer( a, static_cast<size_t>(n), init, static_cast<size_t>(thread_count) );
 }
@@ -176,16 +176,45 @@ void SetZero( const Int thread_count )
     zerofy_buffer( a, n, static_cast<size_t>(thread_count) );
 }
 
-void Random()
+void Random( Int thread_count = 1 )
 {
-    std::random_device r;
-    std::default_random_engine engine ( r() );
-    
-    std::uniform_real_distribution<Scalar> unif(static_cast<Scalar>(-1),static_cast<Scalar>(1));
-    
-    for( Int i = 0; i < n; ++i )
+    if constexpr (Scalar::IsReal<Scal> )
     {
-        a[i] = unif(engine);
+        #pragma omp parallel for num_threads(thread_count)
+        for( Int thread = 0; thread < thread_count; ++thread )
+        {
+            const Int i_begin = JobPointer( n, thread_count, thread     );
+            const Int i_end   = JobPointer( n, thread_count, thread + 1 );
+            
+            std::random_device r;
+            std::default_random_engine engine ( r() );
+            
+            std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
+            
+            for( Int i = i_begin; i < i_end; ++i )
+            {
+                a[i] = unif(engine);
+            }
+        }
+    }
+    else
+    {
+        #pragma omp parallel for num_threads(thread_count)
+        for( Int thread = 0; thread < thread_count; ++thread )
+        {
+            const Int i_begin = JobPointer( n, thread_count, thread     );
+            const Int i_end   = JobPointer( n, thread_count, thread + 1 );
+            
+            std::random_device r;
+            std::default_random_engine engine ( r() );
+            
+            std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
+            
+            for( Int i = i_begin; i < i_end; ++i )
+            {
+                a[i] = Scal( unif(engine), unif(engine) );
+            }
+        }
     }
 }
 
@@ -198,22 +227,22 @@ force_inline void allocate()
 
 public:
 
-force_inline Scalar * begin()
+force_inline Scal * begin()
 {
     return a;
 }
 
-force_inline const Scalar * begin() const
+force_inline const Scal * begin() const
 {
     return a;
 }
 
-force_inline Scalar * end()
+force_inline Scal * end()
 {
     return &a[n];
 }
 
-force_inline const Scalar * end() const
+force_inline const Scal * end() const
 {
     return &a[n];
 }
@@ -235,23 +264,23 @@ force_inline Int Dimension( const Int i ) const
 
 public:
 
-force_inline mut<Scalar> data()
+force_inline mut<Scal> data()
 {
     return a;
 }
 
-force_inline ptr<Scalar> data() const
+force_inline ptr<Scal> data() const
 {
     return a;
 }
 
 
-void AddFrom( ptr<Scalar> b )
+void AddFrom( ptr<Scal> b )
 {
     add_to_buffer( b, a, n);
 }
 
-void AddTo( mut<Scalar> b ) const
+void AddTo( mut<Scal> b ) const
 {
     add_to_buffer( a, b, n);
 }
@@ -290,9 +319,9 @@ force_inline TENSOR_T & operator*=( const T alpha )
 
 friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 {
-    ptr<Scalar> x_a = x.a;
-    ptr<Scalar> y_a = y.a;
-    mut<Scalar> z_a = z.a;
+    ptr<Scal> x_a = x.a;
+    ptr<Scal> y_a = y.a;
+    mut<Scal> z_a = z.a;
 
     const Int last = x.Size();
 
@@ -304,9 +333,9 @@ friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 
 friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
 {
-    ptr<Scalar> x_a = x.a;
-    ptr<Scalar> y_a = y.a;
-    mut<Scalar> z_a = z.a;
+    ptr<Scal> x_a = x.a;
+    ptr<Scal> y_a = y.a;
+    mut<Scal> z_a = z.a;
 
     const Int last = x.Size();
 
@@ -316,10 +345,10 @@ friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
     }
 }
 
-friend void Times( const Scalar alpha, const TENSOR_T & x, TENSOR_T & y )
+friend void Times( const Scal alpha, const TENSOR_T & x, TENSOR_T & y )
 {
-    ptr<Scalar> x_a = x.a;
-    mut<Scalar> y_a = y.a;
+    ptr<Scal> x_a = x.a;
+    mut<Scal> y_a = y.a;
 
     const Int last = x.Size();
 
@@ -339,7 +368,7 @@ void WriteToFile( const std::string & s ) const
 {
     std::ofstream file ( s );
     
-    file << std::setprecision( std::numeric_limits<Scalar>::digits10 + 1 );
+    file << std::setprecision( std::numeric_limits<Scal>::digits10 + 1 );
     
     if( n > 0 )
     {

@@ -7,7 +7,7 @@ namespace Tensors
         
 #define CLASS SelfAdjointMatrix
         
-        template< int n_, typename Scalar_, typename Int_>
+        template< int n_, typename Scal_, typename Int_>
         class CLASS
         {
             // Uses only upper triangle.
@@ -18,11 +18,11 @@ namespace Tensors
 
             static constexpr Int n = n_;
             
-            using Vector_T = Vector<n,Scalar,Int>;
+            using Vector_T = Vector<n,Scal,Int>;
             
         protected:
             
-            std::array<std::array<Scalar,n>,n> A;
+            std::array<std::array<Scal,n>,n> A;
 
 #include "Tiny_Details_Matrix.hpp"
 #include "Tiny_Details_UpperTriangular.hpp"
@@ -39,7 +39,7 @@ namespace Tensors
             {
                 for( Int i = 0; i < n; ++i )
                 {
-                    Scalar y_i (0);
+                    Scal y_i (0);
                     
                     for( Int j = 0; j < i; ++j )
                     {
@@ -54,13 +54,13 @@ namespace Tensors
                 }
             }
             
-            force_inline friend Scalar InnerProduct( const CLASS & G, const Vector_T & x, const Vector_T & y )
+            force_inline friend Scal InnerProduct( const CLASS & G, const Vector_T & x, const Vector_T & y )
             {
-                Scalar result (0);
+                Scal result (0);
                 
                 for( Int i = 0; i < n; ++i )
                 {
-                    Scalar z_i (0);
+                    Scal z_i (0);
                     
                     for( Int j = 0; j < i; ++j )
                     {
@@ -103,11 +103,11 @@ namespace Tensors
                 }
             }
             
-            UpperTriangularMatrix<n, Scalar, Int> CholeskyDecomposition() const
+            UpperTriangularMatrix<n, Scal, Int> CholeskyDecomposition() const
             {
                 // Computes and returns the upper factor U = L ^H such that A = U^H * U.
                 
-                UpperTriangularMatrix<n, Scalar, Int> U;
+                UpperTriangularMatrix<n, Scal, Int> U;
                 
                 U.Read( A.data() );
                 
@@ -128,7 +128,7 @@ namespace Tensors
                     
                     for( Int i = k+1; i < n; ++i ) // for each row i below k
                     {
-                        // combine_buffers<ScalarFlag::Generic,ScalarFlag::One>(
+                        // combine_buffers<Scalar::Flag::Generic,Scalar::Flag::One>(
                         //     -U[k][i], &U[k][i], 1, &U[i][i], n-1
                         // )
                         for( Int j = i; j < n; ++j )
@@ -198,7 +198,7 @@ namespace Tensors
                 {
                     Real lambda_min;
                     
-                    const Scalar p1 ( conj(A[0][1]*A[0][1]) + conj(A[0][2])*A[0][2] + conj(A[1][2])*A[1][2] );
+                    const Scal p1 ( conj(A[0][1]*A[0][1]) + conj(A[0][2])*A[0][2] + conj(A[1][2])*A[1][2] );
                     
                     if( std::sqrt(p1) < eps * std::sqrt( std::abs( A[0][0]*A[0][0] + A[1][1]*A[1][1] + A[2][2]*A[2][2])) )
                     {
@@ -207,34 +207,34 @@ namespace Tensors
                     }
                     else
                     {
-                        const Scalar q         ( ( A[0][0] + A[1][1] + A[2][2] ) / three );
-                        const Scalar delta [3] { A[0][0]-q, A[1][1]-q, A[2][2]-q } ;
-                        const Scalar p2        ( delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2] + two*p1 );
-                        const Scalar p    ( std::sqrt( p2 / static_cast<Scalar>(6) ) );
-                        const Scalar pinv ( one/p );
-                        const Scalar b11  ( delta[0] * pinv );
-                        const Scalar b22  ( delta[1] * pinv );
-                        const Scalar b33  ( delta[2] * pinv );
-                        const Scalar b12  (  A[0][1] * pinv );
-                        const Scalar b13  (  A[0][2] * pinv );
-                        const Scalar b23  (  A[1][2] * pinv );
+                        const Scal q         ( ( A[0][0] + A[1][1] + A[2][2] ) / three );
+                        const Scal delta [3] { A[0][0]-q, A[1][1]-q, A[2][2]-q } ;
+                        const Scal p2        ( delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2] + two*p1 );
+                        const Scal p    ( std::sqrt( p2 / static_cast<Scal>(6) ) );
+                        const Scal pinv ( one/p );
+                        const Scal b11  ( delta[0] * pinv );
+                        const Scal b22  ( delta[1] * pinv );
+                        const Scal b33  ( delta[2] * pinv );
+                        const Scal b12  (  A[0][1] * pinv );
+                        const Scal b13  (  A[0][2] * pinv );
+                        const Scal b23  (  A[1][2] * pinv );
                         
-                        const Scalar r (
+                        const Scal r (
                                 half * (two * b12 * b23 * b13 - b11 * b23 * b23 - b12 *b12 * b33 + b11 * b22 * b33 - b13 *b13 * b22)
                         );
                         
                         
-                        const Scalar phi (
+                        const Scal phi (
                                 ( r <= -one )
-                                ? ( static_cast<Scalar>(M_PI) / three )
+                                ? ( static_cast<Scal>(M_PI) / three )
                                 : ( ( r >= one ) ? zero : acos(r) / three )
                         );
                         
                         // The eigenvalues are ordered this way: eig2 <= eig1 <= eig0.
                         
-                        //                    Scalar eig0 ( q + two * p * cos( phi ) );
-                        //                    Scalar eig2 ( q + two * p * cos( phi + two * M_PI/ three ) );
-                        //                    Scalar eig1 ( three * q - eig0 - eig2 );
+                        //                    Scal eig0 ( q + two * p * cos( phi ) );
+                        //                    Scal eig2 ( q + two * p * cos( phi + two * M_PI/ three ) );
+                        //                    Scal eig1 ( three * q - eig0 - eig2 );
                         
                         lambda_min = q + two * p * cos( phi + two * M_PI/ three );
                     }
@@ -255,7 +255,7 @@ namespace Tensors
             }
             
             void HessenbergDecomposition(
-                Matrix                      <n,n,Scalar,Int> & U,
+                Matrix                      <n,n,Scal,Int> & U,
                 SelfAdjointTridiagonalMatrix<n,    Real,Int> & T
             ) const
             {
@@ -280,11 +280,11 @@ namespace Tensors
                 
                 if constexpr ( n > 2 )
                 {
-                    Matrix<n,n, Scalar, Int> B ;
+                    Matrix<n,n, Scal, Int> B ;
                     Write( &B[0][0] );
                     
-//                    Scalar u [n-2][n]; // vectors of the Householder reflections.
-//                    Scalar v [n];      // some scratch space
+//                    Scal u [n-2][n]; // vectors of the Householder reflections.
+//                    Scal v [n];      // some scratch space
                     
                     Vector_T u [n-2]; // vectors of the Householder reflections.
                     Vector_T v      ; // some scratch space
@@ -318,13 +318,13 @@ namespace Tensors
                         
                         Real u_norm = std::sqrt( uu );
                         
-                        Scalar u_pivot (u[k][k+1]);
+                        Scal u_pivot (u[k][k+1]);
                         
                         Real abs_squared_u_pivot = abs_squared(u_pivot);
                         
-                        const Scalar rho (
+                        const Scal rho (
                             COND(
-                                ScalarTraits<Scalar>::IsComplex
+                                Scalar::IsComplex<Scal>
                                  ,
                                 ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
                                 ,
@@ -348,12 +348,12 @@ namespace Tensors
                         
                         // Compute v_k = B . u_k and  u_k . B . u_k
                         
-                        Scalar ubarBu_accumulator (0);
+                        Scal ubarBu_accumulator (0);
                         
                         {
                             const Int i = k;
                             
-                            Scalar Bu_i (0);
+                            Scal Bu_i (0);
                             
                             // We can skip this.
 //                            for( Int j = k+1; j < i; ++j )
@@ -374,7 +374,7 @@ namespace Tensors
                         
                         for( Int i = k+1; i < n; ++i )
                         {
-                            Scalar Bu_i (0);
+                            Scal Bu_i (0);
                             
                             for( Int j = k+1; j < i; ++j )
                             {
@@ -395,7 +395,7 @@ namespace Tensors
 
                         {
                             const Int i = k;
-                            const Scalar a ( (- two) * v[k] );
+                            const Scal a ( (- two) * v[k] );
 
                             for( Int j = i+1; j < n; ++j )  // Exploit that u[k][i] = u[k][k] == 0
                             {
@@ -406,8 +406,8 @@ namespace Tensors
                         // Apply Householder reflection to both sides of B.
                         for( Int i = k+1; i < n; ++i )
                         {
-                            const Scalar a ( (four * ubarBu) * u[k][i] - two * v[i]);
-                            const Scalar b ( two * u[k][i] );
+                            const Scal a ( (four * ubarBu) * u[k][i] - two * v[i]);
+                            const Scal b ( two * u[k][i] );
                             
                             for( Int j = i; j < n; ++j )
                             {
@@ -420,12 +420,12 @@ namespace Tensors
                     for( Int i = 0; i < n-1; ++i )
                     {
                         T.Diag(i)  = real(B[i][i]);
-                        T.Upper(i) = COND( ScalarTraits<Scalar>::IsComplex, std::abs(B[i][i+1]), B[i][i+1] );
+                        T.Upper(i) = COND( Scalar::IsComplex<Scal>, std::abs(B[i][i+1]), B[i][i+1] );
                     }
                     T.Diag(n-1)  = real(B[n-1][n-1]);
                     
                     // ... hence we put appropriate unimodular numbers on the diagonal of U.
-                    if constexpr ( ScalarTraits<Scalar>::IsComplex )
+                    if constexpr ( Scalar::IsComplex<Scal> )
                     {
                         U.SetZero();
                         U[0][0] = 1;
@@ -446,7 +446,7 @@ namespace Tensors
                         // Compute v = conj(u[k]) * U;
                         for( Int j = k+1; j < n; ++j )
                         {
-                            Scalar ubarU_j = 0;
+                            Scal ubarU_j = 0;
                             for( Int i = k+1; i < n; ++i )
                             {
                                 ubarU_j += conj(u[k][i]) * U[i][j];
@@ -456,7 +456,7 @@ namespace Tensors
                         
                         for( Int i = k+1; i < n; ++i )
                         {
-                            const Scalar a = two * u[k][i];
+                            const Scal a = two * u[k][i];
                             for( Int j = k+1; j < n; ++j )
                             {
                                 U[i][j] -= a * v[j];
@@ -486,11 +486,11 @@ namespace Tensors
                 
                 if constexpr ( n > 2 )
                 {
-                    Matrix<n,n, Scalar, Int> B ;
+                    Matrix<n,n, Scal, Int> B ;
                     Write( &B[0][0] );
                     
-//                    Scalar u [n-2][n]; // vectors of the Householder reflections.
-//                    Scalar v [n];      // some scratch space
+//                    Scal u [n-2][n]; // vectors of the Householder reflections.
+//                    Scal v [n];      // some scratch space
                     
                     Vector_T u [n-2]; // vectors of the Householder reflections.
                     Vector_T v      ; // some scratch space
@@ -518,13 +518,13 @@ namespace Tensors
                         
                         Real u_norm = std::sqrt( uu );
                         
-                        Scalar u_pivot (u[k][k+1]);
+                        Scal u_pivot (u[k][k+1]);
                         
                         Real abs_squared_u_pivot = abs_squared(u_pivot);
                         
-                        const Scalar rho (
+                        const Scal rho (
                             COND(
-                                ScalarTraits<Scalar>::IsComplex
+                                Scalar::IsComplex<Scal>
                                  ,
                                 ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
                                 ,
@@ -548,12 +548,12 @@ namespace Tensors
                         
                         // Compute v_k = B . u_k and  u_k . B . u_k
                         
-                        Scalar ubarBu_accumulator (0);
+                        Scal ubarBu_accumulator (0);
                         
                         {
                             const Int i = k;
                             
-                            Scalar Bu_i (0);
+                            Scal Bu_i (0);
                             
                             // We can skip this.
 //                            for( Int j = k+1; j < i; ++j )
@@ -574,7 +574,7 @@ namespace Tensors
                         
                         for( Int i = k+1; i < n; ++i )
                         {
-                            Scalar Bu_i (0);
+                            Scal Bu_i (0);
                             
                             for( Int j = k+1; j < i; ++j )
                             {
@@ -595,7 +595,7 @@ namespace Tensors
 
                         {
                             const Int i = k;
-                            const Scalar a ( (- two) * v[k] );
+                            const Scal a ( (- two) * v[k] );
 
                             for( Int j = i+1; j < n; ++j )  // Exploit that u[k][i] = u[k][k] == 0
                             {
@@ -606,8 +606,8 @@ namespace Tensors
                         // Apply Householder reflection to both sides of B.
                         for( Int i = k+1; i < n; ++i )
                         {
-                            const Scalar a ( (four * ubarBu) * u[k][i] - two * v[i]);
-                            const Scalar b ( two * u[k][i] );
+                            const Scal a ( (four * ubarBu) * u[k][i] - two * v[i]);
+                            const Scal b ( two * u[k][i] );
                             
                             for( Int j = i; j < n; ++j )
                             {
@@ -620,7 +620,7 @@ namespace Tensors
                     for( Int i = 0; i < n-1; ++i )
                     {
                         T.Diag(i)  = real(B[i][i]);
-                        T.Upper(i) = COND( ScalarTraits<Scalar>::IsComplex, std::abs(B[i][i+1]), B[i][i+1] );
+                        T.Upper(i) = COND( Scalar::IsComplex<Scal>, std::abs(B[i][i+1]), B[i][i+1] );
                     }
                     T.Diag(n-1)  = real(B[n-1][n-1]);
                 }
@@ -637,7 +637,7 @@ namespace Tensors
             
             
             void Eigensystem(
-                Matrix<n,n,Scalar,Int> & U,
+                Matrix<n,n,Scal,Int> & U,
                 Vector <n,   Real,Int> & eigs,
                 const Real tol      = eps_sqrt,
                 const Int  max_iter = 8
@@ -645,7 +645,7 @@ namespace Tensors
             {
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
                 
-                Matrix<n,n,Scalar,Int> V;
+                Matrix<n,n,Scal,Int> V;
                 Matrix<n,n,Real,  Int> Q;
                 
                 HessenbergDecomposition(V,T);
@@ -684,7 +684,7 @@ namespace Tensors
                 return sout.str();
             }
             
-            template<typename T = Scalar>
+            template<typename T = Scal>
             void ToMatrix( Matrix<n,n,T,Int> & B ) const
             {
                 for( Int i = 0; i < n; ++i )
@@ -700,9 +700,9 @@ namespace Tensors
                 }
             }
             
-            Matrix<n,n,Scalar,Int> ToMatrix() const
+            Matrix<n,n,Scal,Int> ToMatrix() const
             {
-                Matrix<n,n,Scalar,Int> B;
+                Matrix<n,n,Scal,Int> B;
                 
                 ToMatrix(B);
                 
@@ -716,7 +716,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };

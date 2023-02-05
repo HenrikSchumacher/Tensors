@@ -6,7 +6,7 @@ namespace Tensors
 {
     template<
         int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
-        typename Scalar_, typename Scalar_in_, typename Scalar_out_,
+        typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         int alpha_flag, int beta_flag,
         bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
@@ -15,19 +15,19 @@ namespace Tensors
     >
     class alignas( OBJECT_ALIGNMENT ) CLASS
     {
-        ASSERT_ARITHMETIC(Scalar_)
-        ASSERT_ARITHMETIC(Scalar_in_)
-        ASSERT_ARITHMETIC(Scalar_out_)
+        ASSERT_ARITHMETIC(Scal_)
+        ASSERT_ARITHMETIC(Scal_in_)
+        ASSERT_ARITHMETIC(Scal_out_)
         ASSERT_INT(Int_);
         ASSERT_INT(LInt_);
         
     public:
         
-        using Scalar     = Scalar_;
-        using Scalar_in  = Scalar_in_;
-        using Scalar_out = Scalar_out_;
-        using Int        = Int_;
-        using LInt       = LInt_;
+        using Scal     = Scal_;
+        using Scal_in  = Scal_in_;
+        using Scal_out = Scal_out_;
+        using Int      = Int_;
+        using LInt     = LInt_;
         
         static constexpr Int RHS_COUNT = RHS_COUNT_;
         static constexpr Int MAX_RHS_COUNT = RHS_COUNT_;
@@ -38,19 +38,19 @@ namespace Tensors
         
     protected:
         
-        mut<Scalar>      A       = nullptr;
-        ptr<Scalar>      A_const = nullptr;
-        const Scalar_out alpha   = 0;
-        ptr<Scalar_in>   X       = nullptr;
-        const Scalar_out beta    = 0;
-        mut<Scalar_out>  Y       = nullptr;
+        mut<Scal>      A       = nullptr;
+        ptr<Scal>      A_const = nullptr;
+        const Scal_out alpha   = 0;
+        ptr<Scal_in>   X       = nullptr;
+        const Scal_out beta    = 0;
+        mut<Scal_out>  Y       = nullptr;
 
         
-        const Scalar_in  * restrict x_from = nullptr;
-//              Scalar_out * restrict y_to   = nullptr;
+        const Scal_in  * restrict x_from = nullptr;
+//              Scal_out * restrict y_to   = nullptr;
         
-        Scalar x [x_intRM ? COLS : RHS_COUNT][x_intRM ? RHS_COUNT : COLS] = {};
-        Scalar y [y_intRM ? ROWS : RHS_COUNT][y_intRM ? RHS_COUNT : ROWS] = {};
+        Scal x [x_intRM ? COLS : RHS_COUNT][x_intRM ? RHS_COUNT : COLS] = {};
+        Scal y [y_intRM ? ROWS : RHS_COUNT][y_intRM ? RHS_COUNT : ROWS] = {};
 
         const Int rhs_count = 1;
         const Int rows_size = ROWS;
@@ -60,7 +60,7 @@ namespace Tensors
         
         CLASS() = delete;
         
-        explicit CLASS( mut<Scalar> A_ )
+        explicit CLASS( mut<Scal> A_ )
         :   A       ( A_      )
         ,   A_const ( nullptr )
         ,   alpha   ( 0       )
@@ -70,9 +70,9 @@ namespace Tensors
         {}
 
         CLASS(
-            ptr<Scalar> A_,
-            const Scalar_out alpha_, ptr<Scalar_in>  X_,
-            const Scalar_out beta_,  mut<Scalar_out> Y_,
+            ptr<Scal> A_,
+            const Scal_out alpha_, ptr<Scal_in>  X_,
+            const Scal_out beta_,  mut<Scal_out> Y_,
             Int rhs_count_
         )
         :   A         ( nullptr          )
@@ -169,7 +169,7 @@ namespace Tensors
         }
         
         
-        force_inline void FMA( const Scalar a, const Scalar b, Scalar & c ) const
+        force_inline void FMA( const Scal a, const Scal b, Scal & c ) const
         {
             if constexpr ( use_fma )
             {
@@ -204,7 +204,7 @@ namespace Tensors
                                 LOOP_UNROLL_FULL
                                 for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                                 {
-                                    x[j][k] = static_cast<Scalar>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k] );
+                                    x[j][k] = static_cast<Scal>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k] );
                                 }
                             }
                         }
@@ -217,7 +217,7 @@ namespace Tensors
                             LOOP_UNROLL_FULL
                             for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
                             {
-                                x[k][j] = static_cast<Scalar>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k] );
+                                x[k][j] = static_cast<Scal>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k] );
                             }
                         }
                     }
@@ -232,7 +232,7 @@ namespace Tensors
                             LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                x[j][k] = static_cast<Scalar>( x_from[COLS*k+j] );
+                                x[j][k] = static_cast<Scal>( x_from[COLS*k+j] );
                             }
                         }
                     }
@@ -266,19 +266,19 @@ namespace Tensors
             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
         }
         
-        force_inline Scalar_out get_cast_y( const Int i, const Int k ) const
+        force_inline Scal_out get_cast_y( const Int i, const Int k ) const
         {
             if constexpr ( y_intRM )
             {
-                return static_cast<Scalar_out>(y[i][k]);
+                return static_cast<Scal_out>(y[i][k]);
             }
             else
             {
-                return static_cast<Scalar_out>(y[k][i]);
+                return static_cast<Scal_out>(y[k][i]);
             }
         }
         
-        force_inline Scalar & get_y( const Int i, const Int k )
+        force_inline Scal & get_y( const Int i, const Int k )
         {
             if constexpr ( y_intRM )
             {
@@ -290,19 +290,19 @@ namespace Tensors
             }
         }
         
-//        force_inline Scalar get_cast_x( const Int j, const Int k )
+//        force_inline Scal get_cast_x( const Int j, const Int k )
 //        {
 //            if constexpr ( x_intRM )
 //            {
-//                return static_cast<Scalar>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k];
+//                return static_cast<Scal>( x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k];
 //            }
 //            else
 //            {
-//                return static_cast<Scalar>( x_from[COLS*k+j];
+//                return static_cast<Scal>( x_from[COLS*k+j];
 //            }
 //        }
         
-        force_inline Scalar get_x( const Int j, const Int k )
+        force_inline Scal get_x( const Int j, const Int k )
         {
             if constexpr ( x_copy )
             {
@@ -319,11 +319,11 @@ namespace Tensors
             {
                 if constexpr ( x_RM )
                 {
-                    return static_cast<Scalar>(x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k]);
+                    return static_cast<Scal>(x_from[COND(fixed,RHS_COUNT,rhs_count)*j+k]);
                 }
                 else
                 {
-                    return static_cast<Scalar>(x_from[COLS*k+j]);
+                    return static_cast<Scal>(x_from[COLS*k+j]);
                 }
             }
         }
@@ -337,7 +337,7 @@ namespace Tensors
         
         force_inline void WriteY( const Int i_global ) const
         {
-            mut<Scalar_out> y_to = &Y[ RowsSize() * i_global];
+            mut<Scal_out> y_to = &Y[ RowsSize() * i_global];
             
             if constexpr ( alpha_flag == 1 )
             {
@@ -547,7 +547,7 @@ namespace Tensors
         force_inline void WriteYZero( const Int i_global ) const
         {
             // CAUTION! We cannot use i_global here because BeginRow() has not been in an empty row!
-            mut<Scalar_out> y_to = &Y[ RowsSize() * i_global ];
+            mut<Scal_out> y_to = &Y[ RowsSize() * i_global ];
             
             if constexpr ( beta_flag == 0 )
             {
@@ -582,8 +582,8 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)+","+ToString(COLS)+","+ToString(RHS_COUNT)+","+ToString(fixed)
             
-            +","+TypeName<Scalar>::Get()+","+TypeName<Scalar_in>::Get()+","+TypeName<Scalar_out>::Get()
-            +","+TypeName<Int>::Get()+","+TypeName<LInt>::Get()
+            +","+TypeName<Scal>+","+TypeName<Scal_in>+","+TypeName<Scal_out>
+            +","+TypeName<Int>+","+TypeName<LInt>
             +","+ToString(alpha_flag)+","+ToString(beta_flag)
 
             +","+ToString(x_RM)+","+ToString(x_intRM)+","+ToString(x_copy)+","+ToString(x_prefetch)

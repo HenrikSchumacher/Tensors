@@ -4,7 +4,7 @@ namespace Tensors {
 
 #define TENSOR_T Tensor1
 
-    template <typename Scalar_, typename Int_>
+    template <typename Scal_, typename Int_>
     class TENSOR_T
     {
         
@@ -23,7 +23,7 @@ namespace Tensors {
             allocate();
         }
         
-        TENSOR_T( const Int d0, const Scalar init )
+        TENSOR_T( const Int d0, const Scal init )
         :   TENSOR_T( d0 )
         {
             Fill( init );
@@ -54,7 +54,7 @@ namespace Tensors {
         }
         
 
-        force_inline mut<Scalar> data( const Int i )
+        force_inline mut<Scal> data( const Int i )
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -62,7 +62,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline ptr<Scalar> data( const Int i ) const
+        force_inline ptr<Scal> data( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -70,7 +70,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline Scalar & operator()(const Int i)
+        force_inline Scal & operator()(const Int i)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -78,7 +78,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline const Scalar & operator()(const Int i) const
+        force_inline const Scal & operator()(const Int i) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -86,7 +86,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline Scalar & operator[](const Int i)
+        force_inline Scal & operator[](const Int i)
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -94,7 +94,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline const Scalar & operator[](const Int i) const
+        force_inline const Scal & operator[](const Int i) const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
@@ -104,7 +104,7 @@ namespace Tensors {
         
 
         
-        force_inline Scalar & First()
+        force_inline Scal & First()
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(0);
@@ -112,7 +112,7 @@ namespace Tensors {
             return a[0];
         }
         
-        force_inline const Scalar & First() const
+        force_inline const Scal & First() const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(0);
@@ -120,7 +120,7 @@ namespace Tensors {
             return a[0];
         }
 
-        force_inline Scalar & Last()
+        force_inline Scal & Last()
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(n-1);
@@ -128,7 +128,7 @@ namespace Tensors {
             return a[n-1];
         }
         
-        force_inline const Scalar & Last() const
+        force_inline const Scal & Last() const
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(n-1);
@@ -181,9 +181,9 @@ namespace Tensors {
             parallel_accumulate(a, n, thread_count );
         }
         
-        Scalar Total() const
+        Scal Total() const
         {
-            Scalar sum = static_cast<Scalar>(0);
+            Scal sum = static_cast<Scal>(0);
             
             for( Int i = 0; i < n; ++ i )
             {
@@ -193,12 +193,12 @@ namespace Tensors {
             return sum;
         }
         
-        inline friend Scalar Total( const TENSOR_T & x )
+        inline friend Scal Total( const TENSOR_T & x )
         {
             return x.Total();
         }
         
-        inline friend Scalar Dot( const TENSOR_T & x, const TENSOR_T & y )
+        inline friend Scal Dot( const TENSOR_T & x, const TENSOR_T & y )
         {
             if( x.Size() != y.Size() )
             {
@@ -233,26 +233,26 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return "Tensor1<"+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+            return std::string("Tensor1<")+TypeName<Scal>+","+TypeName<Int>+">";
         }
         
         
     }; // Tensor1
     
-    template<typename Scalar, typename Int>
-    Tensor1<Scalar,Int> iota( const Int size_ )
+    template<typename Scal, typename Int>
+    Tensor1<Scal,Int> iota( const Int size_ )
     {
-        auto v = Tensor1<Scalar,Int>(size_);
+        auto v = Tensor1<Scal,Int>(size_);
         
         v.iota();
         
         return v;
     }
     
-    template<typename Scalar, typename Int, typename S>
-    Tensor1<Scalar,Int> ToTensor1( mut<S> a_, const Int d0 )
+    template<typename Scal, typename Int, typename S>
+    Tensor1<Scal,Int> ToTensor1( mut<S> a_, const Int d0 )
     {
-        Tensor1<Scalar,Int> result (d0);
+        Tensor1<Scal,Int> result (d0);
 
         result.Read(a_);
         
@@ -261,16 +261,16 @@ namespace Tensors {
     
 #ifdef LTEMPLATE_H
     
-    template<typename Scalar, typename Int>
-    Tensor1<Scalar,Int> from_VectorRef( const mma::TensorRef<mreal> & A )
+    template<typename Scal, typename Int>
+    Tensor1<Scal,Int> from_VectorRef( const mma::TensorRef<mreal> & A )
     {
-        return ToTensor1<Scalar,Int>( A.data(), A.dimensions()[0] );
+        return ToTensor1<Scal,Int>( A.data(), A.dimensions()[0] );
     }
     
-    template<typename Scalar, typename Int>
-    Tensor1<Scalar,Int> from_VectorRef( const mma::TensorRef<mint> & A )
+    template<typename Scal, typename Int>
+    Tensor1<Scal,Int> from_VectorRef( const mma::TensorRef<mint> & A )
     {
-        return ToTensor1<Scalar,Int>( A.data(), A.dimensions()[0] );
+        return ToTensor1<Scal,Int>( A.data(), A.dimensions()[0] );
     }
     
 #endif

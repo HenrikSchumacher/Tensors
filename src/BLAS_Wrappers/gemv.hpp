@@ -55,7 +55,7 @@ namespace Tensors
             }
             else
             {
-                eprint("gemv not defined for scalar type " + TypeName<Scalar>::Get() );
+                eprint("gemv not defined for scalar type " + TypeName<Scalar> );
             }
             
         }

@@ -43,7 +43,7 @@ namespace Tensors
             }
             else
             {
-                eprint("trsv not defined for scalar type " + TypeName<Scalar>::Get() );
+                eprint("trsv not defined for scalar type " + TypeName<Scalar> );
             }
             
         }

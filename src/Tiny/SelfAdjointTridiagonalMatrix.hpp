@@ -7,7 +7,7 @@ namespace Tensors
         
 #define CLASS SelfAdjointTridiagonalMatrix
         
-        template< int n_, typename Scalar_, typename Int_ >
+        template< int n_, typename Scal_, typename Int_ >
         class CLASS
         {
             // Uses only upper triangle.
@@ -18,12 +18,12 @@ namespace Tensors
             
             static constexpr Int n = n_;
             
-            using Vector_T = Vector<n,Scalar,Int>;
+            using Vector_T = Vector<n,Scal,Int>;
             
         protected:
             
             std::array<Real,n>   diag;  //the main diagonal (should actually only have real values on it.
-            std::array<Scalar,n> upper; //upper diagonal
+            std::array<Scal,n> upper; //upper diagonal
             
         
         public:
@@ -32,7 +32,7 @@ namespace Tensors
 //##                     Memory                       ##
 //######################################################
 
-            explicit CLASS( const Scalar init )
+            explicit CLASS( const Scal init )
             :   diag  { init }
             ,   upper { init }
             {}
@@ -59,17 +59,17 @@ namespace Tensors
                 return diag[i];
             }
             
-            force_inline Scalar & Upper( const Int i )
+            force_inline Scal & Upper( const Int i )
             {
                 return upper[i];
             }
             
-            force_inline const Scalar & Upper( const Int i ) const
+            force_inline const Scal & Upper( const Int i ) const
             {
                 return upper[i];
             }
             
-            force_inline Scalar Lower( const Int i )
+            force_inline Scal Lower( const Int i )
             {
                 return conj(upper[i]);
             }
@@ -149,7 +149,7 @@ namespace Tensors
                 return sout.str();
             }
             
-            template<typename T = Scalar>
+            template<typename T = Scal>
             void ToMatrix( Matrix<n,n,T,Int> & B ) const
             {
                 if( n <= 0 )
@@ -172,7 +172,7 @@ namespace Tensors
             
             template<typename S>
             force_inline std::enable_if_t<
-                std::is_same_v<S, Scalar> && !ScalarTraits<Scalar>::IsComplex,
+                std::is_same_v<S, Scal> && !Scalar::IsComplex<Scal>,
                 void
             >
             QRAlgorithm(
@@ -211,7 +211,7 @@ namespace Tensors
             
             template<typename S>
             force_inline std::enable_if_t<
-                std::is_same_v<S, Scalar> && !ScalarTraits<Scalar>::IsComplex,
+                std::is_same_v<S, Scal> && !Scalar::IsComplex<Scal>,
                 void
             >
             QRAlgorithm(
@@ -247,7 +247,7 @@ namespace Tensors
         public:
             
 
-            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
+            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
             qr_algorithm_2x2( Matrix<n,n,Real,Int> & Q )
             {
                 const Real a_0 = diag[0];
@@ -282,7 +282,7 @@ namespace Tensors
                 }
             }
             
-            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
+            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
             qr_algorithm_2x2()
             {
                 const Real a_0 = diag[0];
@@ -308,7 +308,7 @@ namespace Tensors
                 }
             }
 //
-            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
+            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
             qr_algorithm(
                 Matrix<n,n,Real,Int> & Q,
                 const Int m,
@@ -469,7 +469,7 @@ namespace Tensors
             }
             
             
-            force_inline std::enable_if_t< !ScalarTraits<Scalar>::IsComplex, void >
+            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
             qr_algorithm(
                 const Int m,
                 const Real tol,
@@ -644,7 +644,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };

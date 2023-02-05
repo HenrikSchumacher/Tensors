@@ -21,32 +21,32 @@ public:
             
 public:
     
-    mut<Scalar> data()
+    mut<Scal> data()
     {
         return &A[0][0];
     }
     
-    ptr<Scalar> data() const
+    ptr<Scal> data() const
     {
         return &A[0][0];
     }
     
-    Scalar & operator()( const Int i, const Int j )
+    Scal & operator()( const Int i, const Int j )
     {
         return A[i][j];
     }
     
-    const Scalar & operator()( const Int i, const Int j ) const
+    const Scal & operator()( const Int i, const Int j ) const
     {
         return A[i][j];
     }
     
-    mut<Scalar> operator[]( const Int i )
+    mut<Scal> operator[]( const Int i )
     {
         return &A[i][0];
     }
     
-    ptr<Scalar> operator[]( const Int i ) const
+    ptr<Scal> operator[]( const Int i ) const
     {
         return &A[i][0];
     }

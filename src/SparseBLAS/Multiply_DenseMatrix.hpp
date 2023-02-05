@@ -5,28 +5,18 @@
 
 public:
     
+    template<typename R_out, typename T_in, typename S_out, typename T_out>
     void Multiply_DenseMatrix
     (
-        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
-        const T     alpha, ptr<T_in>  X, const Int ldX,
-        const T_out beta,  mut<T_out> Y, const Int ldY,
-        const Int   cols
-    )
-    {
-        const JobPointers<Int> job_ptr (m,rp,thread_count,false);
-        
-        Multiply_DenseMatrix(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
-    }
-    
-    void Multiply_DenseMatrix
-    (
-        ptr<LInt> rp, ptr<Int> ci, ptr<T> a, const Int m, const Int n,
-        const T     alpha, ptr<T_in>  X, const Int ldX,
-        const T_out beta,  mut<T_out> Y, const Int ldY,
+        ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
+        const R_out alpha, ptr<T_in>  X, const Int ldX,
+        const S_out beta,  mut<T_out> Y, const Int ldY,
         const Int   cols,
         const JobPointers<Int> & job_ptr
     )
     {
+        StaticParameterCheck<R_out,T_in,S_out,T_out>();
+
         switch( cols )
         {
             case 1:
@@ -145,4 +135,19 @@ public:
                 SpMM_gen(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
             }
         }
+    }
+
+
+    template<typename R_out, typename T_in, typename S_out, typename T_out>
+    void Multiply_DenseMatrix
+    (
+        ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
+        const R_out alpha, ptr<T_in>  X, const Int ldX,
+        const S_out beta,  mut<T_out> Y, const Int ldY,
+        const Int   cols
+    )
+    {
+        const JobPointers<Int> job_ptr (m,rp,thread_count,false);
+        
+        Multiply_DenseMatrix(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
     }

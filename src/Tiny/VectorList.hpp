@@ -5,7 +5,7 @@ namespace Tensors
     namespace Tiny
     {
         
-        template< int n_, typename Scalar_, typename Int_ >
+        template< int n_, typename Scal_, typename Int_ >
         class VectorList
         {
         public:
@@ -14,9 +14,9 @@ namespace Tensors
             
             static constexpr Int n = n_;
             
-            using Tensor_T = Tensor1<Scalar,Int>;
+            using Tensor_T = Tensor1<Scal,Int>;
             
-            using Vector_T = Vector<n,Scalar,Int>;
+            using Vector_T = Vector<n,Scal,Int>;
             
         private:
             
@@ -41,7 +41,7 @@ namespace Tensors
                 }
             }
             
-            VectorList( const Int length_, const Scalar init )
+            VectorList( const Int length_, const Scal init )
             :   length(length_)
             {
                 for( Int i = 0; i < n; ++i )
@@ -50,8 +50,8 @@ namespace Tensors
                 }
             }
             
-            template< typename ExtScalar, typename ExtInt >
-            explicit VectorList( ptr<ExtScalar> a, const ExtInt length_ )
+            template< typename ExtScal, typename ExtInt >
+            explicit VectorList( ptr<ExtScal> a, const ExtInt length_ )
             :   length(length_)
             {
                 for( Int i = 0; i < n; ++i )
@@ -138,7 +138,7 @@ namespace Tensors
             
             //  Access routines
             
-            mut<Scalar> data( const Int i )
+            mut<Scal> data( const Int i )
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -146,7 +146,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            ptr<Scalar> data( const Int i ) const
+            ptr<Scal> data( const Int i ) const
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -186,7 +186,7 @@ namespace Tensors
                 return v[i];
             }
             
-            Scalar & operator()( const Int i, const Int k )
+            Scal & operator()( const Int i, const Int k )
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -194,7 +194,7 @@ namespace Tensors
                 return v[i][k];
             }
             
-            const Scalar & operator()( const Int i, const Int k ) const
+            const Scal & operator()( const Int i, const Int k ) const
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -288,7 +288,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "VectorList<"+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return "VectorList<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
         };
         
@@ -297,12 +297,12 @@ namespace Tensors
 #ifdef LTEMPLATE_H
         
         
-        template<int n, typename Scalar, typename Int, IS_FLOAT(Scalar)>
-        inline mma::TensorRef<mreal> to_MTensorRef( const VectorList<n,Scalar,Int> & A )
+        template<int n, typename Scal, typename Int, IS_FLOAT(Scal)>
+        inline mma::TensorRef<mreal> to_MTensorRef( const VectorList<n,Scal,Int> & A )
         {
             const mint m = A.Dimension(1);
             
-            ptr<Scalar> p [n];
+            ptr<Scal> p [n];
             
             for( mint j = 0; j < n; ++j )
             {

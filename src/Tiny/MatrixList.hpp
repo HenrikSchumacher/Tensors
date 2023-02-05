@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Tiny
     {
-        template< int m_, int n_, typename Scalar_, typename Int_>
+        template< int m_, int n_, typename Scal_, typename Int_>
         class MatrixList
         {
         public:
@@ -14,7 +14,7 @@ namespace Tensors
             static constexpr Int m = m_;
             static constexpr Int n = n_;
             
-            using Tensor_T = Tensor1<Scalar,Int>;
+            using Tensor_T = Tensor1<Scal,Int>;
             
         private:
             
@@ -42,7 +42,7 @@ namespace Tensors
                 }
             }
             
-            MatrixList( const Int length_, const Scalar init )
+            MatrixList( const Int length_, const Scal init )
             :   length(length_)
             {
                 for( Int i = 0; i < m; ++i )
@@ -128,12 +128,12 @@ namespace Tensors
             
             //  Access routines
             
-            mut<Scalar> data( const Int i, const Int j )
+            mut<Scal> data( const Int i, const Int j )
             {
                 return A[i][j].data();
             }
             
-            ptr<Scalar> data( const Int i, const Int j ) const
+            ptr<Scal> data( const Int i, const Int j ) const
             {
                 return A[i][j].data();
             }
@@ -159,12 +159,12 @@ namespace Tensors
                 return A[i][j];
             }
             
-            Scalar & operator()( const Int i, const Int j, const Int k )
+            Scal & operator()( const Int i, const Int j, const Int k )
             {
                 return A[i][j][k];
             }
             
-            const Scalar & operator()( const Int i, const Int j, const Int k ) const
+            const Scal & operator()( const Int i, const Int j, const Int k ) const
             {
                 return A[i][j][k];
             }
@@ -264,7 +264,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "MatrixList<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scalar>::Get()+","+TypeName<Int>::Get()+">";
+                return "MatrixList<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
         };
         

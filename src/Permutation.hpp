@@ -694,7 +694,7 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return "Permutation<"+TypeName<Int>::Get()+">";
+            return "Permutation<"+TypeName<Int>+">";
         }
 
     }; // class Permutation

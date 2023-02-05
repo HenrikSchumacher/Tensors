@@ -7,11 +7,11 @@ namespace Tensors
     {
     public:
         
-        using Scalar     = typename Kernel_T::Scalar;
-        using Int        = typename Kernel_T::Int;
-        using LInt       = typename Kernel_T::LInt;
-        using Scalar_in  = typename Kernel_T::Scalar_in;
-        using Scalar_out = typename Kernel_T::Scalar_out;
+        using Scal     = typename Kernel_T::Scal;
+        using Int      = typename Kernel_T::Int;
+        using LInt     = typename Kernel_T::LInt;
+        using Scal_in  = typename Kernel_T::Scal_in;
+        using Scal_out = typename Kernel_T::Scal_out;
         
         DiagonalKernelMatrix()
         :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
@@ -71,11 +71,11 @@ namespace Tensors
 //      Matrix multiplication
 //##############################################################################################
         
-        void Scale( mut<Scalar_out> Y, const Scalar_out beta, const Int rhs_count ) const
+        void Scale( mut<Scal_out> Y, const Scal_out beta, const Int rhs_count ) const
         {
             const Int size = RowCount() * rhs_count;
             
-            if( beta == static_cast<Scalar_out>(0) )
+            if( beta == static_cast<Scal_out>(0) )
             {
                 zerofy_buffer( Y, size, thread_count );
             }
@@ -87,15 +87,15 @@ namespace Tensors
         
         
         __attribute__((flatten)) void Dot(
-            ptr<Scalar> A,
-            const Scalar_out alpha, ptr<Scalar_in>  X,
-            const Scalar_out beta,  mut<Scalar_out> Y,
+            ptr<Scal> A,
+            const Scal_out alpha, ptr<Scal_in>  X,
+            const Scal_out beta,  mut<Scal_out> Y,
             const Int rhs_count
         ) const
         {
             ptic(ClassName()+"::Dot" );
             
-            if( (alpha == static_cast<Scalar_out>(0)) || (NonzeroCount() <= 0) )
+            if( (alpha == static_cast<Scal_out>(0)) || (NonzeroCount() <= 0) )
             {
                 Scale( Y, beta, rhs_count );
                 
