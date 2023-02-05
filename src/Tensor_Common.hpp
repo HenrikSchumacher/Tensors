@@ -29,7 +29,7 @@ TENSOR_T( const TENSOR_T & other )
 :   n    ( other.n    )
 ,   dims ( other.dims )
 {
-    logprint("Copy of "+ClassName()+" of size "+ToString(other.Size()) );
+    logprint("Copy of "+ClassName()+" of size "+Tools::ToString(other.Size()) );
     
     allocate();
     Read(other.a);
@@ -41,7 +41,7 @@ explicit TENSOR_T( const TENSOR_T<S,J> & other )
 :   n    ( other.n    )
 ,   dims ( other.dims )
 {
-    logprint("Copy-cast of "+ClassName()+" of size "+ToString(other.Size()) );
+    logprint("Copy-cast of "+ClassName()+" of size "+Tools::ToString(other.Size()) );
     
     allocate();
     Read(other.a);
