@@ -71,7 +71,7 @@
 //                // Assumes that b has size n x rhs_count.
 //
 //                // Some scratch space to read parts of x that belong to a supernode's rectangular part.
-//                Tensor2<Scalar,Int> x_buffer ( n, nrhs );
+//                Tensor2<Scal,Int> x_buffer ( n, nrhs );
 //
 //                for( Int k = SN_count; k --> 0; )
 //                {

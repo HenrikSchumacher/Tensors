@@ -663,21 +663,21 @@ namespace Tensors
                 sout << "{\n";
                 sout << "\t{ ";
                 
-                sout << Tools::ToString(A[0][0],p);
+                sout << ToString(A[0][0],p);
                 for( Int j = 1; j < n; ++j )
                 {
-                    sout << ", " << Tools::ToString(A[0][j],p);
+                    sout << ", " << ToString(A[0][j],p);
                 }
                 
                 for( Int i = 1; i < n; ++i )
                 {
                     sout << " },\n\t{ ";
                     
-                    sout << Tools::ToString(A[i][0],p);
+                    sout << ToString(A[i][0],p);
                     
                     for( Int j = 1; j < n; ++j )
                     {
-                        sout << ", " << Tools::ToString(A[i][j],p);
+                        sout << ", " << ToString(A[i][j],p);
                     }
                 }
                 sout << " }\n}";

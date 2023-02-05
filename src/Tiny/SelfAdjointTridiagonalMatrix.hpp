@@ -128,21 +128,21 @@ namespace Tensors
                 sout << "{\n";
                 sout << "\tdiag  = { ";
                 
-                sout << Tools::ToString(diag[0],p);
+                sout << ToString(diag[0],p);
                 for( Int j = 1; j < n; ++j )
                 {
-                    sout << ", " << Tools::ToString(diag[j],p);
+                    sout << ", " << ToString(diag[j],p);
                 }
                 
                 sout << " },\n\tupper = { ";
                 
                 if( n > 1 )
                 {
-                    sout << Tools::ToString(upper[0],p);
+                    sout << ToString(upper[0],p);
                     
                     for( Int j = 1; j < n-1; ++j )
                     {
-                        sout << ", " << Tools::ToString(upper[j],p);
+                        sout << ", " << ToString(upper[j],p);
                     }
                 }
                 sout << " }\n}";

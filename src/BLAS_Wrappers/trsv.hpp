@@ -5,7 +5,7 @@ namespace Tensors
     namespace BLAS_Wrappers
     {
         template<
-            Layout layout, UpLo uplo, Op opA, Diag diag, typename Scalar,
+            Layout layout, UpLo uplo, Op opA, Diag diag, typename Scal,
             typename I0, typename I1, typename I2
         >
         force_inline void trsv(
@@ -25,19 +25,19 @@ namespace Tensors
             assert_positive(ldA);
             assert_positive(incx);
             
-            if constexpr ( std::is_same_v<Scalar,double> )
+            if constexpr ( std::is_same_v<Scal,double> )
             {
                 return cblas_dtrsv( to_BLAS(layout), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, const_cast<Scalar*>(A), ldA, x, incx );
             }
-            else if constexpr ( std::is_same_v<Scalar,float> )
+            else if constexpr ( std::is_same_v<Scal,float> )
             {
                 return cblas_strsv( to_BLAS(layout), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, const_cast<Scalar*>(A), ldA, x, incx );
             }
-            else if constexpr ( std::is_same_v<Scalar,std::complex<double>> )
+            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
             {
                 return cblas_ztrsv( to_BLAS(layout), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, const_cast<Scalar*>(A), ldA, x, incx );
             }
-            else if constexpr ( std::is_same_v<Scalar,std::complex<float>> )
+            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
             {
                 return cblas_ctrsv( to_BLAS(layout), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, const_cast<Scalar*>(A), ldA, x, incx );
             }

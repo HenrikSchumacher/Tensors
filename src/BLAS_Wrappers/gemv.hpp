@@ -5,7 +5,7 @@ namespace Tensors
     namespace BLAS_Wrappers
     {
         template<
-            Layout layout, Op opA, typename Scalar,
+            Layout layout, Op opA, typename Scal,
             typename I0, typename I1, typename I2, typename I3, typename I4
         >
         force_inline void gemv(
@@ -33,22 +33,22 @@ namespace Tensors
             assert_positive(incx);
             assert_positive(incy);
             
-            if constexpr ( std::is_same_v<Scalar,double> )
+            if constexpr ( std::is_same_v<Scal,double> )
             {
                 return cblas_dgemv(
                     to_BLAS(layout), to_BLAS(opA), m, n, alpha, A, ldA, x, incx, beta, y, incy );
             }
-            else if constexpr ( std::is_same_v<Scalar,float> )
+            else if constexpr ( std::is_same_v<Scal,float> )
             {
                 return cblas_sgemv(
                     to_BLAS(layout), to_BLAS(opA), m, n, alpha, A, ldA, x, incx, beta, y, incy );
             }
-            else if constexpr ( std::is_same_v<Scalar,std::complex<double>> )
+            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
             {
                 return cblas_zgemv(
                     to_BLAS(layout), to_BLAS(opA), m, n, &alpha, A, ldA, x, incx, &beta, y, incy );
             }
-            else if constexpr ( std::is_same_v<Scalar,std::complex<float>> )
+            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
             {
                 return cblas_cgemv(
                     to_BLAS(layout), to_BLAS(opA), m, n, &alpha, A, ldA, x, incx, &beta, y, incy );

@@ -29,7 +29,7 @@ TENSOR_T( const TENSOR_T & other )
 :   n    ( other.n    )
 ,   dims ( other.dims )
 {
-    logprint("Copy of "+ClassName()+" of size "+Tools::ToString(other.Size()) );
+    logprint("Copy of "+ClassName()+" of size "+ToString(other.Size()) );
     
     allocate();
     Read(other.a);
@@ -394,13 +394,13 @@ void ReadFromFile( const std::string & s ) const
 
 std::string ToString( int prec = 16 ) const
 {
-    return Tools::ArrayToString( a, dims.data(), Rank(), prec );
+    return ArrayToString( a, dims.data(), Rank(), prec );
 }
 
 template<class Stream_T>
 Stream_T & ToStream( Stream_T & s ) const
 {
-    return Tools::ArrayToStream( a, dims.data(), Rank(), s );
+    return ArrayToStream( a, dims.data(), Rank(), s );
 }
 
 inline friend std::ostream & operator<<( std::ostream & s, const TENSOR_T & tensor )

@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Dense
     {
-        template<int n, typename Scalar, typename Int>
+        template<int n, typename Scal, typename Int>
         class CholeskyDecomposition
         {
         protected:
@@ -338,7 +338,7 @@ namespace Tensors
             {
                 //Goal is to solve (U^T U) X = B
                 
-                Tiny::VectorList<n,Scalar,Int> Y (nrhs);
+                Tiny::VectorList<n,Scal,Int> Y (nrhs);
                 
                 // Step 1: Permute B and store it in Y.
                 LOOP_UNROLL_FULL

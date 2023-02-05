@@ -362,10 +362,10 @@ namespace Tensors
             {
                 std::stringstream sout;
                 sout << "{ ";
-                sout << Tools::ToString(v[0],p);
+                sout << ToString(v[0],p);
                 for( Int i = 1; i < n; ++i )
                 {
-                    sout << ", " << Tools::ToString(v[i],p);
+                    sout << ", " << ToString(v[i],p);
                 }
                 sout << " }";
                 return sout.str();

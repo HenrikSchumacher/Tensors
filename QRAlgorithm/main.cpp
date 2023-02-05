@@ -15,7 +15,7 @@ using namespace Tensors;
 using Scalar = double;
 //using Scalar = std::complex<float>;
 //using Scalar = float;
-using Real   = ScalarTraits<Scalar>::Real;
+using Real   = Scalar::Real<Scalar>;
 using Int    = int32_t;
 
 constexpr Int n = 4;
@@ -65,10 +65,10 @@ int main(int argc, const char * argv[])
             for( Int j = i; j < n; ++j )
             {
                 A_list(k,i,j) = COND(
-                                     ScalarTraits<Scalar>::IsComplex,
-                                     std::complex<Real> ( unif(engine), unif(engine) ),
-                                     unif(engine);
-                                     );
+                     Scalar::IsComplex<Scalar>,
+                     std::complex<Real> ( unif(engine), unif(engine) ),
+                     unif(engine);
+                 );
             }
             A_list(k,i,i) = real(A_list(k,i,i));
         }

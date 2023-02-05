@@ -5,7 +5,7 @@ namespace Tensors
 
     namespace LAPACK_Wrappers
     {
-        template<Layout layout, UpLo uplo, typename Scalar, typename I0, typename I1>
+        template<Layout layout, UpLo uplo, typename Scal, typename I0, typename I1>
         force_inline int potrf( const I0 n_, Scalar * A, const I1 ldA_ )
         {
             ASSERT_INT(I0);
@@ -17,19 +17,19 @@ namespace Tensors
             assert_positive(n);
             assert_positive(ldA);
             
-            if constexpr ( std::is_same_v<Scalar,double> )
+            if constexpr ( std::is_same_v<Scal,double> )
             {
                 return LAPACKE_dpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
             }
-            else if constexpr ( std::is_same_v<Scalar,float> )
+            else if constexpr ( std::is_same_v<Scal,float> )
             {
                 return LAPACKE_spotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
             }
-            else if constexpr ( std::is_same_v<Scalar,std::complex<double>> )
+            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
             {
                 return LAPACKE_zpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
             }
-            else if constexpr ( std::is_same_v<Scalar,std::complex<float>> )
+            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
             {
                 return LAPACKE_cpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
             }

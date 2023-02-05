@@ -449,8 +449,8 @@ namespace Tensors
             
         public:
             
-            template< Int RHS_COUNT, typename Scalar, bool unitDiag = false>
-            void SolveUpperTriangular_Sequential_0( ptr<Scalar> values, ptr<Scalar> b, mut<Scalar> x )
+            template< Int RHS_COUNT, typename Scal, bool unitDiag = false>
+            void SolveUpperTriangular_Sequential_0( ptr<Scal> values, ptr<Scal> b, mut<Scal> x )
             {
                 this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,unitDiag>(values,b,x);
             }

@@ -11,7 +11,7 @@ using namespace Tools;
 using namespace Tensors;
 
 using Scalar = double;
-using Real   = ScalarTraits<Scalar>::Real;
+using Real   = Scalar::Real<Scalar>;
 using LInt   = int64_t;
 using Int    = int32_t;
 

@@ -1048,8 +1048,8 @@ namespace Tensors
             
         protected:
             
-            template< Int RHS_COUNT, typename Scalar, bool unitDiag = false>
-            void SolveUpperTriangular_Sequential_0_( ptr<Scalar> values, ptr<Scalar> b, mut<Scalar> x )
+            template< Int RHS_COUNT, typename Scal, bool unitDiag = false>
+            void SolveUpperTriangular_Sequential_0_( ptr<Scal> values, ptr<Scal> b, mut<Scal> x )
             {
                 if( m != n )
                 {
@@ -1087,16 +1087,16 @@ namespace Tensors
                     const LInt l_begin = ( inner__[diag] > i ) ? diag : diag+1;
                     const LInt l_end   = outer__[i+1];
                     
-                    mut<Scalar> x_i = &x[RHS_COUNT * i];
+                    mut<Scal> x_i = &x[RHS_COUNT * i];
                     
                     // We do this in reverse order so that the value of a_ii will be likely hot after this loop.
                     for( LInt l = l_end; l --> l_begin; )
                     {
                         const Int j = inner__[l];
                         
-                        const Scalar a_ij = values[l];
+                        const Scal a_ij = values[l];
                         
-                        ptr<Scalar> x_j = &x[RHS_COUNT*j];
+                        ptr<Scal> x_j = &x[RHS_COUNT*j];
                         
                         for( Int k = RHS_COUNT; k --> 0; )
                         {
@@ -1106,7 +1106,7 @@ namespace Tensors
                     
                     if constexpr ( !unitDiag )
                     {
-                        const Scalar a_ii_inv = static_cast<Scalar>(1) / values[diag];
+                        const Scal a_ii_inv = static_cast<Scal>(1) / values[diag];
                         
                         for( Int k = RHS_COUNT; k --> 0;  )
                         {
