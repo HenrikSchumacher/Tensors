@@ -176,7 +176,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return "Tensor3<"+TypeName<Scal>+","+TypeName<Int>+">";
+            return std::string("Tensor3<")+TypeName<Scal>+","+TypeName<Int>+">";
         }
         
     }; // Tensor3

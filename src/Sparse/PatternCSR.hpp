@@ -997,7 +997,7 @@ namespace Tensors
         protected:
             
             // Assume all nonzeros are equal to 1.
-            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot_(
                 const R_out alpha, ptr<T_in>  X, const Int ldX,
                 const S_out beta,  mut<T_out> Y, const Int ldY,
@@ -1006,7 +1006,7 @@ namespace Tensors
             {
                 if( WellFormed() )
                 {
-                    SparseBLAS<T_ext,Int,LInt> sblas ( thread_count );
+                    SparseBLAS<T_out,Int,LInt> sblas ( thread_count );
                     
                     sblas.Multiply_DenseMatrix(
                         outer.data(),inner.data(),nullptr,m,n,alpha,X,ldX,beta,Y,ldY,cols,JobPtr()
