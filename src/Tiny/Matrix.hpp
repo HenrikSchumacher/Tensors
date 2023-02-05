@@ -274,20 +274,20 @@ namespace Tensors
                 sout << "\t{ ";
                 if( (m > 0) && (n > 0) )
                 {
-                    sout << ToString(A[0][0],p);
+                    sout << Tools::ToString(A[0][0],p);
                     for( Int j = 1; j < n; ++j )
                     {
-                        sout << ", " << ToString(A[0][j],p);
+                        sout << ", " << Tools::ToString(A[0][j],p);
                     }
                     for( Int i = 1; i < m; ++i )
                     {
                         sout << " },\n\t{ ";
                         
-                        sout << ToString(A[i][0],p);
+                        sout << Tools::ToString(A[i][0],p);
                         
                         for( Int j = 1; j < n; ++j )
                         {
-                            sout << ", " << ToString(A[i][j],p);
+                            sout << ", " << Tools::ToString(A[i][j],p);
                         }
                     }
                 }
