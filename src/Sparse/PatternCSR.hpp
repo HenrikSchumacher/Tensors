@@ -309,6 +309,8 @@ namespace Tensors
             void SetThreadCount( const Int thread_count_ )
             {
                 thread_count = std::max( static_cast<Int>(1), thread_count_);
+                
+                job_ptr_initialized = false;
             }
             
         protected:
@@ -441,6 +443,8 @@ namespace Tensors
 //                    job_ptr = JobPointers<Int>( m, costs.data(), thread_count, false );
                     
                     job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
+                    
+                    job_ptr_initialized = true;
                     
                     ptoc(ClassName()+"::RequireJobPtr");
                 }
