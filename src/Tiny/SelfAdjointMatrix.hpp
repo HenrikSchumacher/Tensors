@@ -226,7 +226,7 @@ namespace Tensors
                         
                         const Scal phi (
                                 ( r <= -one )
-                                ? ( static_cast<Scal>(M_PI) / three )
+                                ? ( Scalar::Pi<Scal> / three )
                                 : ( ( r >= one ) ? zero : acos(r) / three )
                         );
                         
@@ -236,7 +236,7 @@ namespace Tensors
                         //                    Scal eig2 ( q + two * p * cos( phi + two * M_PI/ three ) );
                         //                    Scal eig1 ( three * q - eig0 - eig2 );
                         
-                        lambda_min = q + two * p * cos( phi + two * M_PI/ three );
+                        lambda_min = q + two * p * cos( phi + two * Scalar::Pi<Scal> / three );
                     }
                     
                     return lambda_min;
