@@ -307,6 +307,28 @@ Real FrobeniusNorm() const
     return norm_2( a, Size() );
 }
 
+friend Real MaxDistance( const TENSOR_T & x, const TENSOR_T & y )
+{
+    ptr<Scal> x_a = x.a;
+    ptr<Scal> y_a = y.a;
+
+    const Int last = x.Size();
+
+    Real max = 0;
+    
+    for( Int k = 0; k < last; ++k )
+    {
+        max = std::max( max, std::abs( x_a[k] - y_a[k] ) );
+    }
+    
+    return max;
+}
+
+inline friend Real RelativeMaxError( const TENSOR_T & x, const TENSOR_T & y )
+{
+    return MaxDistance(x,y) / x.MaxNorm();
+}
+
 
 template<class T>
 force_inline TENSOR_T & operator*=( const T alpha )
