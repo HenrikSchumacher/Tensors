@@ -53,6 +53,6 @@ public:
         }
         else
         {
-            SpMM<1>(rp,ci,a,m,n,alpha,X,incX,beta,Y,incY,job_ptr);
+            SpMM_fixed<1>(rp,ci,a,m,n,alpha,X,incX,beta,Y,incY,job_ptr);
         }
     }
