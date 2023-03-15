@@ -29,6 +29,32 @@ namespace Tensors
                 Read( buffer[n * k], k );
             }
             
+            template<typename S>
+            CLASS( const std::initializer_list<S> & w )
+            {
+                const Int m = int_cast<Int>(w.size());
+                
+                if(m > n )
+                {
+                    eprint(TO_STD_STRING(CLASS)+": Length of initializer list must not exceed length of n");
+                }
+                else
+                {
+                    ptr<S> w_ = &(*w.begin());
+                    
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        v[i] = scalar_cast<Scal>(w_[i]);
+                    }
+                    for( Int i = m; i < n; ++i )
+                    {
+                        v[i] = Scalar::Zero<Scal>;
+                    }
+                }
+            }
+            
+            
+            
         protected:
             
             std::array<Scal,n> v;

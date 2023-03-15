@@ -448,9 +448,9 @@ namespace Tensors
                     Tensor2<LInt,Int> counters = CreateTransposeCounters();
                     
                     MatrixCSR B ( n, m, outer[m], thread_count );
-                    
+
                     copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
-                    
+
                     #pragma omp parallel for num_threads( thread_count )
                     for( Int thread = 0; thread < thread_count; ++thread )
                     {
@@ -486,12 +486,12 @@ namespace Tensors
                             }
                         }
                     }
-                    
+
                     // Finished counting sort.
                     
                     // We only have to care about the correct ordering of inner indices and values.
                     B.SortInner();
-                    
+
                     if constexpr ( conjugate )
                     {
                         ptoc(ClassName()+"::ConjugateTranspose");

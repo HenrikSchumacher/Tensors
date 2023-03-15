@@ -3,7 +3,7 @@
 namespace Tensors
 {
     template <typename Int1, typename Int0>
-    force_inline Int1 int_cast( const Int0 n )
+    force_inline constexpr Int1 int_cast( const Int0 n )
     {
         ASSERT_INT(Int1);
         ASSERT_INT(Int0);
