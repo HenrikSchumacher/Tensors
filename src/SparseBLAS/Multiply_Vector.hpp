@@ -47,5 +47,12 @@ public:
         const JobPointers<Int> & job_ptr
     )
     {
-        SpMM<1>(rp,ci,a,m,n,alpha,X,incX,beta,Y,incY,job_ptr);
+        if( incX == 1 && incY == 1)
+        {
+            SpMV(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+        }
+        else
+        {
+            SpMM_fixed<1>(rp,ci,a,m,n,alpha,X,incX,beta,Y,incY,job_ptr);
+        }
     }
