@@ -10,7 +10,7 @@ protected:
 
 Int n = 0;
 
-Scal * restrict a __attribute__((aligned(ALIGNMENT))) = nullptr ;
+Scal * restrict a ALIGNED = nullptr ;
 
 public:
 

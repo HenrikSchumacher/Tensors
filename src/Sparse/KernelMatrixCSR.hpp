@@ -189,7 +189,7 @@ namespace Tensors
                 }
             }
             
-            __attribute__((flatten)) void Dot(
+            force_flattening void Dot(
                 ptr<Scal> A,
                 const Scal_out alpha, ptr<Scal_in>  X,
                 const Scal_out beta,  mut<Scal_out> Y,
