@@ -47,10 +47,10 @@ namespace Tensors
             
             template<class T>
             force_inline
-            std::enable_if_t<
+            typename std::enable_if<
                 std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
-            >
+            >::type
             operator+=( const CLASS<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
@@ -66,10 +66,10 @@ namespace Tensors
             
             template<class T>
             force_inline
-            std::enable_if_t<
+            typename std::enable_if<
                 std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
-            >
+            >::type
             operator-=( const CLASS<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
@@ -85,10 +85,10 @@ namespace Tensors
             
             template<class T>
             force_inline
-            std::enable_if_t<
+            typename std::enable_if<
                 std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
-            >
+            >::type
             operator*=( const CLASS<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
@@ -104,10 +104,10 @@ namespace Tensors
             
             template<class T>
             force_inline
-            std::enable_if_t<
+            typename std::enable_if<
                 std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
                 CLASS &
-            >
+            >::type
             operator/=( const CLASS<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
@@ -131,7 +131,7 @@ namespace Tensors
             >
             force_inline
             friend
-            std::enable_if_t<
+            typename std::enable_if<
                 (
                     std::is_same_v<R,Scal>
                     ||
@@ -145,7 +145,7 @@ namespace Tensors
                 )
                 ,
                 void
-            >
+            >::type
             Dot(
                 const Tiny::Matrix<m,K,R,Int> & X,
                 const Tiny::Matrix<K,n,S,Int> & Y,
@@ -193,7 +193,7 @@ namespace Tensors
             >
             friend
             force_inline
-            std::enable_if_t<
+            typename std::enable_if<
                 (
                     std::is_same_v<Scal,T>
                     ||
@@ -207,7 +207,7 @@ namespace Tensors
                 )
                 ,
                 void
-            >
+            >::type
             Dot(
                 const CLASS & M,
                 const Tiny::Vector<n,S,Int> & x,
