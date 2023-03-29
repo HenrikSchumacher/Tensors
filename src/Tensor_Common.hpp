@@ -124,7 +124,7 @@ void Read( ptr<S> a_, const Int thread_count )
 }
 
 template<typename R>
-typename std::enable_if<Scalar::IsComplex<Scal> && !Scalar::IsComplex<R>,void>::type
+std::enable_if_t<Scalar::IsComplex<Scal> && !Scalar::IsComplex<R>,void>
 Read( ptr<R> re, ptr<R> im )
 {
     for( Int i = 0; i < n; ++i )
@@ -146,7 +146,7 @@ void Write( mut<S> a_, const Int thread_count ) const
 }
 
 template<typename R>
-typename std::enable_if<Scalar::IsComplex<Scal> && !Scalar::IsComplex<R>,void>::type
+std::enable_if_t<Scalar::IsComplex<Scal> && !Scalar::IsComplex<R>,void>
 Write( mut<R> re, mut<R> im ) const
 {
     for( Int i = 0; i < n; ++i )

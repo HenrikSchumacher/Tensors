@@ -171,10 +171,10 @@ namespace Tensors
         public:
             
             template<typename S>
-            force_inline typename std::enable_if<
+            force_inline std::enable_if_t<
                 std::is_same_v<S, Scal> && !Scalar::IsComplex<Scal>,
                 void
-            >::type
+            >
             QRAlgorithm(
                 Matrix<n,n,S,Int> & Q,
                 Vector<n,  S,Int> & eigs,
@@ -210,10 +210,10 @@ namespace Tensors
             }
             
             template<typename S>
-            force_inline typename std::enable_if<
+            force_inline std::enable_if_t<
                 std::is_same_v<S, Scal> && !Scalar::IsComplex<Scal>,
                 void
-            >::type
+            >
             QRAlgorithm(
                 Vector<n,S,Int> & eigs,
                 const Real tol = MyMath::sqrt(eps),
@@ -247,7 +247,7 @@ namespace Tensors
         public:
             
 
-            force_inline typename std::enable_if< !Scalar::IsComplex<Scal>, void >::type
+            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
             qr_algorithm_2x2( Matrix<n,n,Real,Int> & Q )
             {
                 const Real a_0 = diag[0];
@@ -282,7 +282,7 @@ namespace Tensors
                 }
             }
             
-            force_inline typename std::enable_if_t<!Scalar::IsComplex<Scal>,void>::type
+            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
             qr_algorithm_2x2()
             {
                 const Real a_0 = diag[0];
@@ -308,7 +308,7 @@ namespace Tensors
                 }
             }
 //
-            force_inline typename std::enable_if<!Scalar::IsComplex<Scal>,void>::type
+            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
             qr_algorithm(
                 Matrix<n,n,Real,Int> & Q,
                 const Int m,
@@ -469,7 +469,7 @@ namespace Tensors
             }
             
             
-            force_inline typename std::enable_if_t<!Scalar::IsComplex<Scal>,void>::type
+            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
             qr_algorithm(
                 const Int m,
                 const Real tol,
