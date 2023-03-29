@@ -22,7 +22,7 @@ namespace Tensors
 
             Tiny::UpperTriangularMatrix<N,Scal,Int> A;
             Tiny::Matrix<N,NRHS,Scal,Int> B;
-            A.template Read(A_,ldA);
+            A.template Read<Op::Id>(A_,ldA);
             B.template Read<Op::Id>(B_,ldB);
             A.template Solve<opA,diag>(B);
             B.template Write<alpha_flag,Scalar::Flag::Zero>(alpha,0,B_,ldB);
@@ -43,7 +43,7 @@ namespace Tensors
             
             Tiny::UpperTriangularMatrix<N,Scal,Int> A;
             Tiny::Matrix<N,NRHS,Scal,Int> B;
-            A.template Read(A_);
+            A.template Read<Op::Id>(A_);
             B.template Read<Op::Id>(B_);
             A.template Solve<opA,diag>(B);
             B.template Write<alpha_flag,Scalar::Flag::Zero>(alpha,0,B_);
