@@ -269,54 +269,29 @@ int main( int argc, const char * argv[] )
     dump(n);
     dump(nnz);
     
-//    std::vector<Int> col_list {1,12};
-//
-//    ptic("Testing");
-//    for( Int cols : col_list )
-//    {
-//        logvalprint("cols",cols);
-//        Test_SpMM<Real32   ,Int,LInt>( m, n, nnz, cols );
-//        Test_SpMM<Real64   ,Int,LInt>( m, n, nnz, cols );
-//        Test_SpMM<Complex32,Int,LInt>( m, n, nnz, cols );
-//        Test_SpMM<Complex64,Int,LInt>( m, n, nnz, cols );
-//        logprint("");
-//    }
-//    ptoc("Testing");
-//
-//    logvalprint("Total error count", error_count);
-//    logvalprint("Total ineff count", ineff_count);
-//
-//    valprint("Total error count", error_count);
-//    valprint("Total ineff count", ineff_count);
-//
-//    print("See file "+path+"Tools_Log.txt for details.");
-    
-    
-    
-    print("AAAAAA");
-    
-    Tensor1<Int ,LInt> idx (nnz);
-    Tensor1<Int ,LInt> jdx (nnz);
-    Tensor1<Scal,LInt> a   (nnz);
+    std::vector<Int> col_list {1,12};
 
-    #pragma omp parallel for num_threads(max_thread_count)
-    for( LInt thread = 0; thread < max_thread_count; ++thread )
+    ptic("Testing");
+    for( Int cols : col_list )
     {
-        const LInt i_begin = JobPointer( nnz, max_thread_count, thread     );
-        const LInt i_end   = JobPointer( nnz, max_thread_count, thread + 1 );
-
-        std::random_device r;
-        std::default_random_engine engine ( r() );
-        std::uniform_int_distribution<Int> unif_m(static_cast<Int>(0),static_cast<Int>(m-1));
-        std::uniform_int_distribution<Int> unif_n(static_cast<Int>(0),static_cast<Int>(n-1));
-        
-        for( LInt i = i_begin; i < i_end; ++i )
-        {
-            idx[i] = unif_m(engine);
-            jdx[i] = unif_n(engine);
-        }
+        logvalprint("cols",cols);
+        Test_SpMM<Real32   ,Int,LInt>( m, n, nnz, cols );
+        Test_SpMM<Real64   ,Int,LInt>( m, n, nnz, cols );
+        Test_SpMM<Complex32,Int,LInt>( m, n, nnz, cols );
+        Test_SpMM<Complex64,Int,LInt>( m, n, nnz, cols );
+        logprint("");
     }
-    a.Random( max_thread_count );
+    ptoc("Testing");
+
+    logvalprint("Total error count", error_count);
+    logvalprint("Total ineff count", ineff_count);
+
+    valprint("Total error count", error_count);
+    valprint("Total ineff count", ineff_count);
+
+    print("See file "+path+"Tools_Log.txt for details.");
+    
+    
     
     return 0;
 }
