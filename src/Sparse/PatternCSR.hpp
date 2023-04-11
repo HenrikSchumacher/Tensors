@@ -440,7 +440,6 @@ namespace Tensors
 //                    costs[i+1] += i;
 //                }
 //
-//                    job_ptr = JobPointers<Int>( m, costs.data(), thread_count, false );
                     
                     job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
                     
@@ -448,7 +447,6 @@ namespace Tensors
                     
                     ptoc(ClassName()+"::RequireJobPtr");
                 }
-
             }
             
             void CheckOrdering() const
@@ -875,9 +873,9 @@ namespace Tensors
                         swap( new_outer, outer  );
                         swap( new_inner, inner  );
                         
-                        duplicate_free = true;
-                        
                         job_ptr = JobPointers<Int>();
+                        job_ptr_initialized = false;
+                        duplicate_free = true;
                     }
                     
                     ptoc(ClassName()+"::Compress");

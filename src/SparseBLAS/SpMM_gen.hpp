@@ -3,8 +3,8 @@ public:
     template<typename R_out, typename T_in, typename S_out, typename T_out>
     void SpMM_gen (
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
-        const R_out alpha_,  ptr<T_in>  X, const Int ldX,
-        const S_out beta,    mut<T_out> Y, const Int ldY,
+        const R_out alpha_, ptr<T_in>  X, const Int ldX,
+        const S_out beta,   mut<T_out> Y, const Int ldY,
         const Int   cols,
         const JobPointers<Int> & job_ptr
     )

@@ -33,7 +33,7 @@ template<typename R_out, typename T_in, typename S_out, typename T_out, typename
     const Int   cols
 )
 {
-    std::string tag = std::string("Dot_True")
+    std::string tag = std::string("Dot_True<")
         +TypeName<Scalar>+","
         +TypeName<R_out >+","
         +TypeName<T_in  >+","
@@ -74,17 +74,19 @@ template<
 >
 void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
 {
+    
     const Int  m   = A.RowCount();
     const Int  n   = A.ColCount();
     
     using Real = typename Scalar::Real<T_out>;
     
-    logprint(std::string("    <")
+    std::string s = std::string("\n    <")
           +TypeName<R_out>+","
           +TypeName<T_in >+","
           +TypeName<S_out>+","
           +TypeName<T_out>+
-          +">");
+    +">";
+    logprint(s);
     
     Tensor2<T_in, Int> X      ( n, cols );
     Tensor2<T_out,Int> Y_0    ( m, cols );
@@ -152,13 +154,15 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
     if( error > std::sqrt( Scalar::eps<Scal> ) )
     {
         error_count++;
-        eprint("Accuracy issue!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111elf");
+        eprint("Accuracy issue in "+s+".");
+        logprint(s);
     }
     
     if( seq_speedup < float(0.95) )
     {
         ineff_count++;
-        wprint("Performance issue!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!111elf");
+        wprint("Performance issue in "+s+".");
+        dump(seq_speedup);
     }
     
     logprint("");
@@ -261,27 +265,147 @@ int main( int argc, const char * argv[] )
         (static_cast<double>(m) * static_cast<double>(m)) * 0.0001
     );
 
-    std::vector<Int> col_list {1,12};
+    dump(m);
+    dump(n);
+    dump(nnz);
     
-    ptic("Testing");
-    for( Int cols : col_list )
-    {
-        logvalprint("cols",cols);
-        Test_SpMM<Real32   ,Int,LInt>( m, n, nnz, cols );
-        Test_SpMM<Real64   ,Int,LInt>( m, n, nnz, cols );
-        Test_SpMM<Complex32,Int,LInt>( m, n, nnz, cols );
-        Test_SpMM<Complex64,Int,LInt>( m, n, nnz, cols );
-        logprint("");
-    }
-    ptoc("Testing");
+//    std::vector<Int> col_list {1,12};
+//
+//    ptic("Testing");
+//    for( Int cols : col_list )
+//    {
+//        logvalprint("cols",cols);
+//        Test_SpMM<Real32   ,Int,LInt>( m, n, nnz, cols );
+//        Test_SpMM<Real64   ,Int,LInt>( m, n, nnz, cols );
+//        Test_SpMM<Complex32,Int,LInt>( m, n, nnz, cols );
+//        Test_SpMM<Complex64,Int,LInt>( m, n, nnz, cols );
+//        logprint("");
+//    }
+//    ptoc("Testing");
+//
+//    logvalprint("Total error count", error_count);
+//    logvalprint("Total ineff count", ineff_count);
+//
+//    valprint("Total error count", error_count);
+//    valprint("Total ineff count", ineff_count);
+//
+//    print("See file "+path+"Tools_Log.txt for details.");
+    
+    
+    
+    print("AAAAAA");
+    
+    Tensor1<Int ,LInt> idx (nnz);
+    Tensor1<Int ,LInt> jdx (nnz);
+    Tensor1<Scal,LInt> a   (nnz);
 
-    logvalprint("Total error count", error_count);
-    logvalprint("Total ineff count", ineff_count);
+    #pragma omp parallel for num_threads(max_thread_count)
+    for( LInt thread = 0; thread < max_thread_count; ++thread )
+    {
+        const LInt i_begin = JobPointer( nnz, max_thread_count, thread     );
+        const LInt i_end   = JobPointer( nnz, max_thread_count, thread + 1 );
+
+        std::random_device r;
+        std::default_random_engine engine ( r() );
+        std::uniform_int_distribution<Int> unif_m(static_cast<Int>(0),static_cast<Int>(m-1));
+        std::uniform_int_distribution<Int> unif_n(static_cast<Int>(0),static_cast<Int>(n-1));
+        
+        for( LInt i = i_begin; i < i_end; ++i )
+        {
+            idx[i] = unif_m(engine);
+            jdx[i] = unif_n(engine);
+        }
+    }
+    a.Random( max_thread_count );
     
-    valprint("Total error count", error_count);
-    valprint("Total ineff count", ineff_count);
+    Sparse::MatrixCSR<Real64,Int32,UInt64> A ( nnz, idx.data(), jdx.data(), a.data(), m, n, max_thread_count );
     
-    print("See file "+path+"Tools_Log.txt for details.");
+//    Sparse::PatternCSR<Int32,UInt64> A_0 ( A.Outer(), A.Inner(), m, n, max_thread_count );
+    
+    constexpr size_t cols (9);
+    
+    using Ker_T = ScalarBlockKernel_fixed<
+        1, 1, cols, false,
+        Real64, Real64, Real64,
+        Int32, UInt64,
+        1, 0,
+        true, true, false, false,
+        true, true,
+        false
+    >;
+
+    
+    Sparse::KernelMatrixCSR<Ker_T> B (A);
+    
+    dump(B.ClassName());
+    
+    Tensor2<Real64,Int32> X      ( n, cols );
+    Tensor2<Real64,Int32> Y_0    ( m, cols );
+    Tensor2<Real64,Int32> Y      ( m, cols );
+    Tensor2<Real64,Int32> Y_True ( m, cols );
+    Tensor2<Real64,Int32> Z      ( m, cols );
+    
+    X.Random( max_thread_count );
+    Y_0.Random( max_thread_count );
+
+    
+    const Real64 alpha = 1;
+    const Real64 beta  = 0;
+
+    Y_True = Y_0;
+    auto start_time_1 = Clock::now();
+    A.Dot( alpha, X, beta, Y_True );
+    float time_1 = Duration( start_time_1, Clock::now() );
+    
+    Y = Y_0;
+    auto start_time_2 = Clock::now();
+    B.Dot( A.Values().data(), alpha, X.data(), beta, Y.data(), cols );
+    float time_2 = Duration( start_time_2, Clock::now() );
+//
+//    Y = Y_0;
+//    A.SetThreadCount(max_thread_count);
+//    auto start_time_3 = Clock::now();
+//    A.Dot( alpha, X, beta, Y );
+//    float time_3 = Duration( start_time_3, Clock::now() );
+    
+    Real64 max   = 0;
+    Real64 error = 0;
+    
+    for( Int i = 0; i < m; ++i )
+    {
+        for( Int l = 0; l < cols; ++l )
+        {
+            max    = std::max( max,   std::abs(Y_True(i,l)) );
+            Z(i,l) = Y(i,l) - Y_True(i,l);
+            error  = std::max( error, std::abs(Z(i,l)) );
+        }
+    }
+    
+    if( max > 0 )
+    {
+        error /= max;
+    }
+    
+    const float seq_speedup = time_1/time_2;
+//    const float par_speedup = time_2/time_3;
+    
+    valprint("         Time 1     ", time_1 );
+    valprint("         Time 2     ", time_2 );
+//    logvalprint("         Time 3     ", time_3 );
+    valprint("         Seq_speedup", seq_speedup );
+//    logvalprint("         Par speedup", par_speedup );
+    valprint("         error      ", error );
+    
+    if( error > std::sqrt( Scalar::eps<Scal> ) )
+    {
+        error_count++;
+    }
+    
+    if( seq_speedup < float(0.95) )
+    {
+        ineff_count++;
+        dump(seq_speedup);
+    }
     
     return 0;
 }

@@ -25,6 +25,7 @@ namespace Tensors
             using Base_T::inner;
             using Base_T::thread_count;
             using Base_T::job_ptr;
+            using Base_T::job_ptr_initialized;
             using Base_T::diag_ptr;
             using Base_T::inner_sorted;
             using Base_T::duplicate_free;
@@ -161,7 +162,7 @@ namespace Tensors
             MatrixCSR(
                   const Int    * const * const idx,
                   const Int    * const * const jdx,
-                  const Scal * const * const val,
+                  const Scal   * const * const val,
                   const LInt   *         const entry_counts,
                   const Int list_count,
                   const Int m_,
@@ -372,7 +373,7 @@ namespace Tensors
                     ptoc(ClassName()+"::FromTriples -- writing reordered data");
                     
                     // Now all j-indices and nonzero values lie in the correct row (as indexed by outer).
-                    
+
                     // From here on, we may use as many threads as we want.
                     SetThreadCount( final_thread_count );
                     
@@ -524,7 +525,7 @@ namespace Tensors
             
             
             void SortInner() const override
-            {
+            {   
                 if( !inner_sorted )
                 {
                     ptic(ClassName()+"::SortInner");
@@ -555,6 +556,7 @@ namespace Tensors
                         
                         inner_sorted = true;
                     }
+                    
                     ptoc(ClassName()+"::SortInner");
                 }
             }
@@ -682,7 +684,7 @@ namespace Tensors
                         swap( new_values, values );
                         
                         job_ptr = JobPointers<Int>();
-                        
+                        job_ptr_initialized = false;
                         duplicate_free = true;
                     }
                     
