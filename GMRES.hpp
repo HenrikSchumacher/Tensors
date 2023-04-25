@@ -71,9 +71,7 @@ namespace Tensors
         ,   z               ( n, K )
         ,   reduction_buffer( thread_count, K ) // TODO: Add padding!
         ,   real_reduction_buffer( thread_count, K ) // TODO: Add padding!
-        {
-            print(ClassName());
-        }
+        {}
         
         
         ~GMRES() = default;
@@ -89,6 +87,7 @@ namespace Tensors
             const Int  max_restarts
         )
         {
+            ptic(ClassName()+" Compute norm of right hand side.");
             // Compute norms of b.
             x.Read( b_in, ldx, thread_count );
             
@@ -107,16 +106,17 @@ namespace Tensors
             TOL = b_norms;
             TOL *= relative_tolerance;
             
-
+            ptoc(ClassName()+" Compute norm of right hand side.");
+            
             restarts = 0;
             bool succeeded = false;
             
             while( !succeeded && (restarts < max_restarts) )
             {
-                dump(restarts);
+//                dump(restarts);
                 succeeded = Solve( A, P, b_in, ldb, x_inout, ldx, relative_tolerance );
-                dump(succeeded);
-                dump(iter);
+//                dump(succeeded);
+//                dump(iter);
                 ++restarts;
             }
             
@@ -185,10 +185,12 @@ namespace Tensors
                 succeeded = CheckResiduals();
             }
             
+            ptic(ClassName()+" Solve least squares system.");
+            
             // TODO: y = H[1..iter][1..iter] \ beta[1..iter];
-            Tensor2<Scal,Int> H_mat    (max_iter,max_iter);
-            Tensor1<Scal,Int> beta_vec (max_iter);
-            Tensor2<Scal,Int> y        (max_iter,K);
+            Tensor2<Scal,Int> H_mat    (iter,iter);
+            Tensor1<Scal,Int> beta_vec (iter);
+            Tensor2<Scal,Int> y        (iter,K);
         
             
             for( Int k = 0; k < K; ++k )
@@ -203,9 +205,10 @@ namespace Tensors
                     }
                 }
                 
+                // Solve H_mat.y = beta_vec.
                 BLAS_Wrappers::trsv<
                     Layout::RowMajor, UpLo::Upper, Op::Id, Diag::NonUnit
-                >( iter, H_mat.data(), max_iter, beta_vec.data(), static_cast<Int>(1) );
+                >( iter, H_mat.data(), iter, beta_vec.data(), static_cast<Int>(1) );
                 
                 for( Int j = 0; j < iter; ++j )
                 {
@@ -248,7 +251,7 @@ namespace Tensors
             combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus>(
                 -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * K, thread_count
             );
-            
+            ptoc(ClassName()+" Solve least squares system.");
             
             ptoc(ClassName()+"::Solve");
             
@@ -285,11 +288,13 @@ namespace Tensors
             // Several runs of Gram-Schmidt algorithm.
             // Rumor has it that Kahan's "twice is enough" statement states that gram_schmidt_counts does not need to be greater then 2.
             // But gram_schmidt_counts = 1 seems to produce good GMRES solutions, even if Q is not perfectly orthogonalized.
-            ptic(ClassName()+"::Gram-Schmidt");
+            ptic(ClassName()+" Gram-Schmidt");
+            
             for( Int gs_iter = 0; gs_iter < gram_schmidt_counts; ++ gs_iter)
             {
                 for( Int i = 0; i < iter+1; ++ i )
                 {
+                
                     // h = Q[i] . Q[iter+1];
                     ComputeScalarProducts( Q.data(i), q, h );
                     
@@ -303,7 +308,7 @@ namespace Tensors
                     MulAdd<Scalar::Flag::Minus>( q, Q.data(i), h );
                 }
             }
-            ptoc(ClassName()+"::Gram-Schmidt");
+            ptoc(ClassName()+" Gram-Schmidt");
             
             // Residual norms
             ComputeNorms( q, q_norms );
@@ -557,8 +562,16 @@ namespace Tensors
             
             return succeeded;
         }
-
-
+        
+        const Tensor3<Scal,Int> & GetBasis() const
+        {
+            return Q;
+        }
+        
+        const Tensor3<Scal,Int> & GetHessenbergMatrix() const
+        {
+            return H;
+        }
         
         std::string ClassName() const
         {
