@@ -21,6 +21,7 @@
     #include "src/Tensor1.hpp"
     #include "src/Tensor2.hpp"
     #include "src/Tensor3.hpp"
+    #include "src/ThreadTensor2.hpp"
     #include "src/ThreadTensor3.hpp"
 
     #include "src/Sorting/TwoArrayQuickSort.hpp"

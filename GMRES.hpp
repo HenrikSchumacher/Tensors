@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Tensors.hpp"
 #include "MyBLAS.hpp"
 
 namespace Tensors
@@ -13,7 +14,6 @@ namespace Tensors
         using Scal     = Scal_;
         using Real     = Scalar::Real<Scal>;
         using Int      = Int_;
-        
         
         static constexpr Int K = int_cast<Int>(eq_count_);
         
@@ -40,9 +40,9 @@ namespace Tensors
         
         Tensor2<Scal,Int> x;
         Tensor2<Scal,Int> z;
-        
-        Tensor2<Scal,Int> reduction_buffer;
-        Tensor2<Real,Int> real_reduction_buffer;
+
+        ThreadTensor2<Scal,Int>      reduction_buffer;
+        ThreadTensor2<Real,Int> real_reduction_buffer;
         
         RealVector_T TOL;
         RealVector_T b_norms;
@@ -69,8 +69,8 @@ namespace Tensors
         ,   beta            ( max_iter + 1, K )
         ,   x               ( n, K )
         ,   z               ( n, K )
-        ,   reduction_buffer( thread_count, K ) // TODO: Add padding!
-        ,   real_reduction_buffer( thread_count, K ) // TODO: Add padding!
+        ,        reduction_buffer ( thread_count, K )
+        ,   real_reduction_buffer ( thread_count, K )
         {}
         
         
@@ -87,7 +87,7 @@ namespace Tensors
             const Int  max_restarts
         )
         {
-            ptic(ClassName()+" Compute norm of right hand side.");
+            ptic(ClassName()+": Compute norm of right hand side.");
             // Compute norms of b.
             x.Read( b_in, ldx, thread_count );
             
@@ -106,17 +106,14 @@ namespace Tensors
             TOL = b_norms;
             TOL *= relative_tolerance;
             
-            ptoc(ClassName()+" Compute norm of right hand side.");
+            ptoc(ClassName()+": Compute norm of right hand side.");
             
             restarts = 0;
             bool succeeded = false;
             
             while( !succeeded && (restarts < max_restarts) )
             {
-//                dump(restarts);
                 succeeded = Solve( A, P, b_in, ldb, x_inout, ldx, relative_tolerance );
-//                dump(succeeded);
-//                dump(iter);
                 ++restarts;
             }
             
@@ -185,7 +182,7 @@ namespace Tensors
                 succeeded = CheckResiduals();
             }
             
-            ptic(ClassName()+" Solve least squares system.");
+            ptic(ClassName()+": Solve least squares system.");
             
             // TODO: y = H[1..iter][1..iter] \ beta[1..iter];
             Tensor2<Scal,Int> H_mat    (iter,iter);
@@ -216,6 +213,9 @@ namespace Tensors
                 }
             }
             
+            ptoc(ClassName()+": Solve least squares system.");
+            
+            ptic(ClassName()+": Synthesize solution.");
             // z = y * Q;
             z.SetZero();
             #pragma omp parallel for num_threads( thread_count )
@@ -251,7 +251,8 @@ namespace Tensors
             combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus>(
                 -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * K, thread_count
             );
-            ptoc(ClassName()+" Solve least squares system.");
+            
+            ptoc(ClassName()+": Synthesize solution.");
             
             ptoc(ClassName()+"::Solve");
             
@@ -383,7 +384,6 @@ namespace Tensors
         
         void ComputeNorms( ptr<Scal> v, RealVector_T & norms )
         {
-//            ptic(ClassName()+"::ComputeNorms");
             #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
@@ -402,32 +402,19 @@ namespace Tensors
                     }
                 }
                 
-                sums.Write( real_reduction_buffer.data(thread) );
+                sums.Write( &real_reduction_buffer[thread][0] );
             }
             
-            // Reduction
-            norms.SetZero();
-            
-            
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                for( Int k = 0; k < K; ++k )
-                {
-                    norms[k] += real_reduction_buffer[thread][k];
-                }
-            }
+            real_reduction_buffer.AddReduce( norms.data(), false );
             
             for( Int k = 0; k < K; ++k )
             {
                 norms[k] = std::sqrt( norms[k] );
             }
-            
-//            ptoc(ClassName()+"::ComputeNorms");
         }
         
         void ComputeScalarProducts( ptr<Scal> v, ptr<Scal> w, Vector_T & dots )
         {
-//            ptic(ClassName()+"::ComputeScalarProducts");
             #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
@@ -446,26 +433,15 @@ namespace Tensors
                     }
                 }
                 
-                sums.Write( reduction_buffer.data(thread) );
+                sums.Write( &reduction_buffer[thread][0] );
             }
             
-            // Reduction
-            dots.SetZero();
-            
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                for( Int k = 0; k < K; ++k )
-                {
-                    dots[k] += reduction_buffer[thread][k];
-                }
-            }
-//            ptoc(ClassName()+"::ComputeScalarProducts");
+            reduction_buffer.AddReduce( dots.data(), false );
         }
         
         template<Scalar::Flag flag>
-        void MulAdd( mut<Scal> v, ptr<Scal> w, Vector_T & factors )
+        void MulAdd( mut<Scal> v, ptr<Scal> w, const Vector_T & factors )
         {
-//            ptic(ClassName()+"::MulAdd");
             #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
@@ -487,12 +463,10 @@ namespace Tensors
                     }
                 }
             }
-//            ptoc(ClassName()+"::MulAdd");
         }
         
-        void InverseScale( mut<Scal> q, RealVector_T & factors )
+        void InverseScale( mut<Scal> q, const RealVector_T & factors )
         {
-//            ptic(ClassName()+"::InverseScale");
             #pragma omp parallel for num_threads( thread_count )
             for( Int thread = 0; thread < thread_count; ++thread )
             {
@@ -514,7 +488,6 @@ namespace Tensors
                     }
                 }
             }
-//            ptoc(ClassName()+"::InverseScale");
         }
         
     public:
