@@ -388,13 +388,27 @@ namespace Tensors
             {
                 std::stringstream sout;
                 sout << "{ ";
-                sout << ToString(v[0],p);
+                sout << Tools::ToString(v[0],p);
                 for( Int i = 1; i < n; ++i )
                 {
-                    sout << ", " << ToString(v[i],p);
+                    sout << ", " << Tools::ToString(v[i],p);
                 }
                 sout << " }";
                 return sout.str();
+            }
+            
+            template<class Stream_T>
+            Stream_T & ToStream( Stream_T & s ) const
+            {
+                s << "{ ";
+                s << Tools::ToString(v[0],16);
+                for( Int i = 1; i < n; ++i )
+                {
+                    s << ", " << Tools::ToString(v[i],16);
+                }
+                s << " }";
+                
+                return s;
             }
             
         public:

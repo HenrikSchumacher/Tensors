@@ -10,8 +10,8 @@ namespace Tensors
         >
         force_inline void trsm(
             const I0 n_, const I1 nrhs_,
-            const Scalar alpha, const Scalar * A, const I2 ldA_,
-                                      Scalar * B, const I3 ldB_
+            const Scal alpha, const Scal * A, const I2 ldA_,
+                                    Scal * B, const I3 ldB_
         )
         {
             ASSERT_INT(I0);
@@ -32,23 +32,23 @@ namespace Tensors
             
             if constexpr ( std::is_same_v<Scal,double> )
             {
-                return cblas_dtrsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+                return cblas_dtrsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, alpha, const_cast<Scal*>(A), ldA, B, ldB );
             }
             else if constexpr ( std::is_same_v<Scal,float> )
             {
-                return cblas_strsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+                return cblas_strsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, alpha, const_cast<Scal*>(A), ldA, B, ldB );
             }
             else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
             {
-                return cblas_ztrsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, &alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+                return cblas_ztrsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, &alpha, const_cast<Scal*>(A), ldA, B, ldB );
             }
             else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
             {
-                return cblas_ctrsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, &alpha, const_cast<Scalar*>(A), ldA, B, ldB );
+                return cblas_ctrsm( to_BLAS(layout), to_BLAS(side), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, nrhs, &alpha, const_cast<Scal*>(A), ldA, B, ldB );
             }
             else
             {
-                eprint("trsm not defined for scalar type " + TypeName<Scalar> );
+                eprint("trsm not defined for scalar type " + TypeName<Scal> );
             }
         }
         
@@ -58,11 +58,11 @@ namespace Tensors
 //    template<int n, int nrhs,
 //        CBLAS_UPLO uplo,
 //        CBLAS_DIAG diag,
-//        typename Scalar
+//        typename Scal
 //    >
 //    force_inline void TriangularSolve(
-//        const Scalar * restrict const A,
-//              Scalar * restrict const B
+//        const Scal * restrict const A,
+//              Scal * restrict const B
 //    )
 //    {
 //        if constexpr ( uplo == CblasUpper )
@@ -71,13 +71,13 @@ namespace Tensors
 //
 //            for( int i = n; i --> 0; )
 //            {
-//                Scalar * restrict const B_i = &B[nrhs*i];
+//                Scal * restrict const B_i = &B[nrhs*i];
 //
 //                for( int j = i+1; j < n; ++j )
 //                {
-//                    Scalar * restrict const B_j = &B[nrhs*j];
+//                    Scal * restrict const B_j = &B[nrhs*j];
 //
-//                    const Scalar A_ij = A[n*i+j];
+//                    const Scal A_ij = A[n*i+j];
 //
 //                    for( int k = 0; k < nrhs; ++k )
 //                    {
@@ -87,7 +87,7 @@ namespace Tensors
 //
 //                if constexpr (diag == CblasNonUnit )
 //                {
-//                    scale_buffer<nrhs>( static_cast<Scalar>(1) / A[(n+1)*i], B_i );
+//                    scale_buffer<nrhs>( static_cast<Scal>(1) / A[(n+1)*i], B_i );
 //                }
 //            }
 //        }
@@ -96,13 +96,13 @@ namespace Tensors
 //            // Lower triangular back substitution
 //            for( int i = 0; i < n; ++i )
 //            {
-//                Scalar * restrict const B_i = &B[nrhs*i];
+//                Scal * restrict const B_i = &B[nrhs*i];
 //
 //                for( int j = 0; j < i; ++j )
 //                {
-//                    Scalar * restrict const B_j = &B[nrhs*j];
+//                    Scal * restrict const B_j = &B[nrhs*j];
 //
-//                    const Scalar A_ij = A[n*i+j];
+//                    const Scal A_ij = A[n*i+j];
 //
 //                    for( int k = 0; k < nrhs; ++k )
 //                    {
@@ -112,7 +112,7 @@ namespace Tensors
 //
 //                if constexpr (diag == CblasNonUnit )
 //                {
-//                    scale_buffer<nrhs>( static_cast<Scalar>(1) / A[(n+1)*i], B_i );
+//                    scale_buffer<nrhs>( static_cast<Scal>(1) / A[(n+1)*i], B_i );
 //                }
 //            }
 //        }
@@ -124,11 +124,11 @@ namespace Tensors
 //        constexpr int MaxNRHS = 16;
 //
 //
-//        template<int n_lo, int n_hi, int nrhs, CBLAS_UPLO uplo, CBLAS_DIAG diag, typename Scalar>
+//        template<int n_lo, int n_hi, int nrhs, CBLAS_UPLO uplo, CBLAS_DIAG diag, typename Scal>
 //        force_inline void Search(
 //            const int n,
-//            const Scalar * restrict const A,
-//                  Scalar * restrict const B
+//            const Scal * restrict const A,
+//                  Scal * restrict const B
 //        )
 //        {
 //            constexpr int n_mid = n_lo + (n_hi - n_lo)/2;
@@ -147,12 +147,12 @@ namespace Tensors
 //            }
 //        }
 //
-//        template<int nrhs_lo, int nrhs_hi, CBLAS_UPLO uplo, CBLAS_DIAG diag, typename Scalar>
+//        template<int nrhs_lo, int nrhs_hi, CBLAS_UPLO uplo, CBLAS_DIAG diag, typename Scal>
 //        force_inline void Search(
 //            const int n,
 //            const int nrhs,
-//            const Scalar * restrict const A,
-//            Scalar * restrict const B
+//            const Scal * restrict const A,
+//            Scal * restrict const B
 //        )
 //        {
 //            constexpr int nrhs_mid = nrhs_lo + (nrhs_hi - nrhs_lo)/2;
@@ -184,12 +184,12 @@ namespace Tensors
 //        int nrhs,
 //        CBLAS_UPLO uplo,
 //        CBLAS_DIAG diag,
-//        typename Scalar
+//        typename Scal
 //    >
 //    force_inline void TriangularSolve(
 //        const int n,
-//        const Scalar * restrict const A,
-//              Scalar * restrict const B
+//        const Scal * restrict const A,
+//              Scal * restrict const B
 //    )
 //    {
 //        using namespace TriangularSolveDetails;
@@ -212,13 +212,13 @@ namespace Tensors
 //                // Upper triangular back substitution
 //                for( int i = n; i --> 0; )
 //                {
-//                    Scalar * restrict const B_i = &B[nrhs*i];
+//                    Scal * restrict const B_i = &B[nrhs*i];
 //
 //                    for( int j = i+1; j < n; ++j )
 //                    {
-//                        Scalar * restrict const B_j = &B[nrhs*j];
+//                        Scal * restrict const B_j = &B[nrhs*j];
 //
-//                        const Scalar A_ij = A[n*i+j];
+//                        const Scal A_ij = A[n*i+j];
 //
 //                        for( int k = 0; k < nrhs; ++k )
 //                        {
@@ -228,7 +228,7 @@ namespace Tensors
 //
 //                    if constexpr (diag == CblasNonUnit )
 //                    {
-//                        scale_buffer<nrhs>( static_cast<Scalar>(1) / A[(n+1)*i], B_i );
+//                        scale_buffer<nrhs>( static_cast<Scal>(1) / A[(n+1)*i], B_i );
 //                    }
 //                }
 //            }
@@ -237,13 +237,13 @@ namespace Tensors
 //                // Lower triangular back substitution
 //                for( int i = 0; i < n; ++i )
 //                {
-//                    Scalar * restrict const B_i = &B[nrhs*i];
+//                    Scal * restrict const B_i = &B[nrhs*i];
 //
 //                    for( int j = 0; j < i; ++j )
 //                    {
-//                        Scalar * restrict const B_j = &B[nrhs*j];
+//                        Scal * restrict const B_j = &B[nrhs*j];
 //
-//                        const Scalar A_ij = A[n*i+j];
+//                        const Scal A_ij = A[n*i+j];
 //
 //                        for( int k = 0; k < nrhs; ++k )
 //                        {
@@ -253,7 +253,7 @@ namespace Tensors
 //
 //                    if constexpr (diag == CblasNonUnit )
 //                    {
-//                        scale_buffer<nrhs>( static_cast<Scalar>(1) / A[(n+1)*i], B_i );
+//                        scale_buffer<nrhs>( static_cast<Scal>(1) / A[(n+1)*i], B_i );
 //                    }
 //                }
 //            }
@@ -263,13 +263,13 @@ namespace Tensors
 //    template<
 //        CBLAS_UPLO uplo,
 //        CBLAS_DIAG diag,
-//        typename Scalar
+//        typename Scal
 //    >
 //    force_inline void TriangularSolve(
 //        const int n,
 //        const int nrhs,
-//        const Scalar * restrict const A,
-//              Scalar * restrict const B
+//        const Scal * restrict const A,
+//              Scal * restrict const B
 //    )
 //    {
 //        using namespace TriangularSolveDetails;
@@ -310,7 +310,7 @@ namespace Tensors
 //        {
 //            BLAS_Wrappers::trsm(
 //                CblasRowMajor, CblasLeft, uplo, CblasNoTrans, diag,
-//                n, nrhs, static_cast<Scalar>(1), A, n, B, nrhs
+//                n, nrhs, static_cast<Scal>(1), A, n, B, nrhs
 //            );
 //        }
 //    }

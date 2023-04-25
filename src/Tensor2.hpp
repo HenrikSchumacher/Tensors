@@ -89,10 +89,10 @@ namespace Tensors {
         
         
         template<typename S>
-        void Read( ptr<S> a_, const Int lda, const Int thread_count )
+        void Read( ptr<S> a_, const Int lda, const Int thread_count = 0 )
         {
-            const size_t d_0 = static_cast<size_t>(dims[0]);
-            const size_t d_1 = static_cast<size_t>(dims[1]);
+            const Int d_0 = dims[0];
+            const Int d_1 = dims[1];
             
             if( thread_count > 1 )
             {
@@ -112,10 +112,10 @@ namespace Tensors {
         }
         
         template<typename S>
-        void Write( mut<S> a_, const Int lda, const Int thread_count )
+        void Write( mut<S> a_, const Int lda, const Int thread_count = 0 )
         {
-            const size_t d_0 = static_cast<size_t>(dims[0]);
-            const size_t d_1 = static_cast<size_t>(dims[1]);
+            const Int d_0 = dims[0];
+            const Int d_1 = dims[1];
             
             if( thread_count > 1 )
             {

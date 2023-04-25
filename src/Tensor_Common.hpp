@@ -116,9 +116,9 @@ void Read( ptr<S> a_ )
     copy_buffer( a_, a, static_cast<size_t>(n) );
 }
 
-// Parallelized version.
+//// Parallelized version.
 template<typename S>
-void Read( ptr<S> a_, const Int thread_count )
+void ReadParallel( ptr<S> a_, const Int thread_count )
 {
     copy_buffer( a_, a, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
 }
@@ -140,7 +140,7 @@ void Write( mut<S> a_ ) const
     copy_buffer( a, a_, static_cast<size_t>(n) );
 }
 template<typename S>
-void Write( mut<S> a_, const Int thread_count ) const
+void WriteParallel( mut<S> a_, const Int thread_count ) const
 {
     copy_buffer( a, a_, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
 }

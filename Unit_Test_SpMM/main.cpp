@@ -16,10 +16,10 @@
 using namespace Tools;
 using namespace Tensors;
 
-constexpr Scalar::Flag Generic = Scalar::Flag::Generic;
-constexpr Scalar::Flag Plus    = Scalar::Flag::Plus;
-constexpr Scalar::Flag Minus   = Scalar::Flag::Minus;
-constexpr Scalar::Flag Zero    = Scalar::Flag::Zero;
+//constexpr Scalar::Flag Generic = Scalar::Flag::Generic;
+//constexpr Scalar::Flag Plus    = Scalar::Flag::Plus;
+//constexpr Scalar::Flag Minus   = Scalar::Flag::Minus;
+//constexpr Scalar::Flag Zero    = Scalar::Flag::Zero;
 
 int error_count = 0;
 int ineff_count = 0;

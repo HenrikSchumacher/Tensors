@@ -10,9 +10,9 @@ namespace Tensors
         >
         force_inline void gemv(
             const I0 m_, const I1 n_,
-            const Scalar & alpha, const Scalar * A, const I2 ldA_,
-                                  const Scalar * x, const I3 incx_,
-            const Scalar & beta,        Scalar * y, const I4 incy_
+            const Scal & alpha, const Scal * A, const I2 ldA_,
+                                const Scal * x, const I3 incx_,
+            const Scal & beta,        Scal * y, const I4 incy_
         )
         {
             ASSERT_INT(I0);
@@ -55,7 +55,7 @@ namespace Tensors
             }
             else
             {
-                eprint("gemv not defined for scalar type " + TypeName<Scalar> );
+                eprint("gemv not defined for scalar type " + TypeName<Scal> );
             }
             
         }
