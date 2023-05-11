@@ -275,7 +275,7 @@ namespace Tensors
                 Real r = 0;
                 for( Int i = 0; i < n; ++i )
                 {
-                    r += abs_squared(v[i]);
+                    r += Scalar::AbsSquared(v[i]);
                 }
                 return std::sqrt( r );
             }
@@ -327,7 +327,7 @@ namespace Tensors
                 
                 for( Int i = 0; i < n; ++i )
                 {
-                    r += conj(x.v[i]) * y.v[i];
+                    r += Scalar::Conj(x.v[i]) * y.v[i];
                 }
                 return r;
             }
@@ -340,8 +340,8 @@ namespace Tensors
                 
                 for( int i = 0; i < n; ++i )
                 {
-                    a += real( conj(u[i]-w[i]) * (u[i]-w[i]) );
-                    b += real( conj(u[i]+w[i]) * (u[i]+w[i]) );
+                    a += Scalar::Re( Scalar::Conj(u[i]-w[i]) * (u[i]-w[i]) );
+                    b += Scalar::Re( Scalar::Conj(u[i]+w[i]) * (u[i]+w[i]) );
                 }
                 
                 return static_cast<Real>(2) * atan( std::sqrt(a/b) );

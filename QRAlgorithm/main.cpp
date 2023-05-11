@@ -70,7 +70,7 @@ int main(int argc, const char * argv[])
                      unif(engine);
                  );
             }
-            A_list(k,i,i) = real(A_list(k,i,i));
+            A_list(k,i,i) = Scalar::Re(A_list(k,i,i));
         }
     }
     toc("Randomize");

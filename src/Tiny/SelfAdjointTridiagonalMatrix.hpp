@@ -71,7 +71,7 @@ namespace Tensors
             
             force_inline Scal Lower( const Int i )
             {
-                return conj(upper[i]);
+                return Scalar::Conj(upper[i]);
             }
 
             
@@ -163,7 +163,7 @@ namespace Tensors
                 {
                     B[i][i]     = static_cast<T>(diag[i]);
                     B[i  ][i+1] = static_cast<T>(upper[i]);
-                    B[i+1][i  ] = static_cast<T>(conj(upper[i]));
+                    B[i+1][i  ] = static_cast<T>(Scalar::Conj(upper[i]));
                 }
                 B[n-1][n-1] = static_cast<T>(diag[n-1]);
             }

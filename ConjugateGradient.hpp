@@ -218,7 +218,7 @@ namespace Tensors
                     for( Int k = 0; k < K; ++k )
                     {
                         // We know that all scalar products that we compute have to be real-valued.
-                        sums[k] += real(conj(v[K * i + k]) * w[K * i + k]);
+                        sums[k] += Scalar::Re(Scalar::Conj(v[K * i + k]) * w[K * i + k]);
                     }
                 }
                 

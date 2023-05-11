@@ -107,12 +107,12 @@ namespace Tensors
                     {
                         for( Int j = 0; j < i; ++j )
                         {
-                            b[i] -= conj(A[j][i]) * b[j];
+                            b[i] -= Scalar::Conj(A[j][i]) * b[j];
                         }
                         
                         if constexpr (diag == Diag::NonUnit )
                         {
-                            b[i] /= conj(A[i][i]);
+                            b[i] /= Scalar::Conj(A[i][i]);
                         }
                     }
                 }
@@ -168,13 +168,13 @@ namespace Tensors
                         {
                             for( int k = 0; k < nrhs; ++k )
                             {
-                                B[i][k] -= conj(A[j][i]) * B[j][k];
+                                B[i][k] -= Scalar::Conj(A[j][i]) * B[j][k];
                             }
                         }
                         
                         if constexpr (diag == Diag::NonUnit )
                         {
-                            scale_buffer<nrhs>( static_cast<Scal>(1) / conj(A[i][i]), &B[i][0] );
+                            scale_buffer<nrhs>( static_cast<Scal>(1) / Scalar::Conj(A[i][i]), &B[i][0] );
                         }
                     }
                 }

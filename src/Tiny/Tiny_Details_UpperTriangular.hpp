@@ -154,7 +154,7 @@ public:
         {
             for( Int j = i; j < n; ++j )
             {
-                B.A[i][j] = conj(A[i][j]);
+                B.A[i][j] = Scalar::Conj(A[i][j]);
             }
         }
     }

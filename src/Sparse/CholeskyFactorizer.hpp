@@ -485,7 +485,7 @@ namespace Tensors
                                     C_1[0] = 0;
                                     for( Int i = 0; i < m_0; ++i )
                                     {
-                                        C_1[0] -= conj(B_0[i]) * B_1[i];
+                                        C_1[0] -= Scalar::Conj(B_0[i]) * B_1[i];
                                     }
                                 }
                             }
@@ -525,7 +525,7 @@ namespace Tensors
                             
                             for( Int i = 0; i < IL_len; ++i )
                             {
-                                const Scal factor = - conj(t_rec[IL_pos[i]]);
+                                const Scal factor = - Scalar::Conj(t_rec[IL_pos[i]]);
 
                                 const Int i_ = II_pos[i];
                                 mut<Scal> U_0_i = &U_0[n_0 * i_];
@@ -546,7 +546,7 @@ namespace Tensors
                         {
                             for( Int i = 0; i < IL_len; ++i )
                             {
-                                const Scal factor = - conj(t_rec[IL_pos[i]]);
+                                const Scal factor = - Scalar::Conj(t_rec[IL_pos[i]]);
 
                                 const Int i_ = II_pos[i];
                                 mut<Scal> U_0_i = &U_0[n_0 * i_];

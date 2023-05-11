@@ -43,7 +43,7 @@ namespace Tensors
                     
                     for( Int j = 0; j < i; ++j )
                     {
-                        y_i += conj(M.A[j][i]) * x.v[j];
+                        y_i += Scalar::Conj(M.A[j][i]) * x.v[j];
                     }
                     for( Int j = i; j < n; ++j )
                     {
@@ -68,10 +68,10 @@ namespace Tensors
                     }
                     for( Int j = i; j < n; ++j )
                     {
-                        z_i += conj(G.A[i][j]) * x.v[j];
+                        z_i += Scalar::Conj(G.A[i][j]) * x.v[j];
                     }
 
-                    result += conj(y.v[i]) * z_i;
+                    result += Scalar::Conj(y.v[i]) * z_i;
                 }
 
                 return result;
@@ -157,7 +157,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < i; ++j )
                     {
-                        x[i] -= conj(A[j][i]) * x[j];
+                        x[i] -= Scalar::Conj(A[j][i]) * x[j];
                     }
                     x[i] /= A[i][i];
                 }
@@ -186,7 +186,7 @@ namespace Tensors
                         A[0][0] + A[1][1]
                         - std::sqrt(
                             std::abs(
-                                (A[0][0]-A[1][1])*(A[0][0]-A[1][1]) + four * conj(A[0][1])*A[0][1]
+                                (A[0][0]-A[1][1])*(A[0][0]-A[1][1]) + four * Scalar::Conj(A[0][1])*A[0][1]
                             )
                         )
                     );
@@ -198,7 +198,7 @@ namespace Tensors
                 {
                     Real lambda_min;
                     
-                    const Scal p1 ( conj(A[0][1]*A[0][1]) + conj(A[0][2])*A[0][2] + conj(A[1][2])*A[1][2] );
+                    const Scal p1 ( Scalar::Conj(A[0][1]*A[0][1]) + Scalar::Conj(A[0][2])*A[0][2] + Scalar::Conj(A[1][2])*A[1][2] );
                     
                     if( std::sqrt(p1) < eps * std::sqrt( std::abs( A[0][0]*A[0][0] + A[1][1]*A[1][1] + A[2][2]*A[2][2])) )
                     {
@@ -263,19 +263,19 @@ namespace Tensors
 
                 if constexpr ( n == 1 )
                 {
-                    T.Diag(0) = real(A[0][0]);
+                    T.Diag(0) = Scalar::Re(A[0][0]);
                     U[0][0]   = one;
                 }
                 
                 if constexpr ( n == 2 )
                 {
-                    T.Diag(0)  = real(A[0][0]);
-                    T.Diag(1)  = real(A[1][1]);
+                    T.Diag(0)  = Scalar::Re(A[0][0]);
+                    T.Diag(1)  = Scalar::Re(A[1][1]);
                     T.Upper(0) = std::abs(A[0][1]);
                     U[0][0] = 1;
                     U[0][1] = 0;
                     U[1][0] = 0;
-                    U[1][1] = (T.Upper(0) == zero) ? one : conj(A[0][1]) / T.Upper(0);
+                    U[1][1] = (T.Upper(0) == zero) ? one : Scalar::Conj(A[0][1]) / T.Upper(0);
                 }
                 
                 if constexpr ( n > 2 )
@@ -301,7 +301,7 @@ namespace Tensors
                         
                         for( Int i = k+1; i < n; ++i )
                         {
-                            u[k][i] = conj(B[k][i]);
+                            u[k][i] = Scalar::Conj(B[k][i]);
                         }
                         
                         Real uu = 0;
@@ -358,7 +358,7 @@ namespace Tensors
                             // We can skip this.
 //                            for( Int j = k+1; j < i; ++j )
 //                            {
-//                                Bu_i += conj(B[j][i]) * u[k][j];
+//                                Bu_i += Scalar::Conj(B[j][i]) * u[k][j];
 //                            }
                             
                             for( Int j = k+1; j < n; ++j ) // we implicitly use u[k][k] == 0
@@ -369,7 +369,7 @@ namespace Tensors
                             v[i] = Bu_i;
                             
                             // We implicitly use u[k][k] = 0;
-//                            ubarBu += conj(u[k][i]) * Bu_i;
+//                            ubarBu += Scalar::Conj(u[k][i]) * Bu_i;
                         }
                         
                         for( Int i = k+1; i < n; ++i )
@@ -378,7 +378,7 @@ namespace Tensors
                             
                             for( Int j = k+1; j < i; ++j )
                             {
-                                Bu_i += conj(B[j][i]) * u[k][j];
+                                Bu_i += Scalar::Conj(B[j][i]) * u[k][j];
                             }
                             
                             for( Int j = i; j < n; ++j )
@@ -388,10 +388,10 @@ namespace Tensors
                             
                             v[i] = Bu_i;
                             
-                            ubarBu_accumulator += conj(u[k][i]) * Bu_i;
+                            ubarBu_accumulator += Scalar::Conj(u[k][i]) * Bu_i;
                         }
                         
-                        Real ubarBu = real(ubarBu_accumulator);
+                        Real ubarBu = Scalar::Re(ubarBu_accumulator);
 
                         {
                             const Int i = k;
@@ -399,7 +399,7 @@ namespace Tensors
 
                             for( Int j = i+1; j < n; ++j )  // Exploit that u[k][i] = u[k][k] == 0
                             {
-                                B[k][j] += a * conj(u[k][j]);
+                                B[k][j] += a * Scalar::Conj(u[k][j]);
                             }
                         }
                         
@@ -411,7 +411,7 @@ namespace Tensors
                             
                             for( Int j = i; j < n; ++j )
                             {
-                                B[i][j] += a * conj(u[k][j]) - b * conj(v[j]);
+                                B[i][j] += a * Scalar::Conj(u[k][j]) - b * Scalar::Conj(v[j]);
                             }
                         }
                     }
@@ -419,10 +419,10 @@ namespace Tensors
                     // We want a purely real tridiagonal matrix...
                     for( Int i = 0; i < n-1; ++i )
                     {
-                        T.Diag(i)  = real(B[i][i]);
+                        T.Diag(i)  = Scalar::Re(B[i][i]);
                         T.Upper(i) = COND( Scalar::IsComplex<Scal>, std::abs(B[i][i+1]), B[i][i+1] );
                     }
-                    T.Diag(n-1)  = real(B[n-1][n-1]);
+                    T.Diag(n-1)  = Scalar::Re(B[n-1][n-1]);
                     
                     // ... hence we put appropriate unimodular numbers on the diagonal of U.
                     if constexpr ( Scalar::IsComplex<Scal> )
@@ -432,7 +432,7 @@ namespace Tensors
                         for( Int k = 1; k < n; ++k )
                         {
                             Real absb = T.Upper(k-1);
-                            U[k][k]   = (absb == zero) ? one : U[k-1][k-1] * conj(B[k-1][k]) / absb;
+                            U[k][k]   = (absb == zero) ? one : U[k-1][k-1] * Scalar::Conj(B[k-1][k]) / absb;
                         }
                     }
                     else
@@ -443,13 +443,13 @@ namespace Tensors
                     // Apply Householder transformations from the left (reverse order to safe some flops).
                     for( Int k = n-2; k --> 0 ; )
                     {
-                        // Compute v = conj(u[k]) * U;
+                        // Compute v = Scalar::Conj(u[k]) * U;
                         for( Int j = k+1; j < n; ++j )
                         {
                             Scal ubarU_j = 0;
                             for( Int i = k+1; i < n; ++i )
                             {
-                                ubarU_j += conj(u[k][i]) * U[i][j];
+                                ubarU_j += Scalar::Conj(u[k][i]) * U[i][j];
                             }
                             v[j] = ubarU_j;
                         }
@@ -474,13 +474,13 @@ namespace Tensors
 
                 if constexpr ( n == 1 )
                 {
-                    T.Diag(0) = real(A[0][0]);
+                    T.Diag(0) = Scalar::Re(A[0][0]);
                 }
                 
                 if constexpr ( n == 2 )
                 {
-                    T.Diag(0)  = real(A[0][0]);
-                    T.Diag(1)  = real(A[1][1]);
+                    T.Diag(0)  = Scalar::Re(A[0][0]);
+                    T.Diag(1)  = Scalar::Re(A[1][1]);
                     T.Upper(0) = std::abs(A[0][1]);
                 }
                 
@@ -507,7 +507,7 @@ namespace Tensors
                         
                         for( Int i = k+1; i < n; ++i )
                         {
-                            u[k][i] = conj(B[k][i]);
+                            u[k][i] = Scalar::Conj(B[k][i]);
                         }
                         
                         Real uu = 0;
@@ -558,7 +558,7 @@ namespace Tensors
                             // We can skip this.
 //                            for( Int j = k+1; j < i; ++j )
 //                            {
-//                                Bu_i += conj(B[j][i]) * u[k][j];
+//                                Bu_i += Scalar::Conj(B[j][i]) * u[k][j];
 //                            }
                             
                             for( Int j = k+1; j < n; ++j ) // we implicitly use u[k][k] == 0
@@ -569,7 +569,7 @@ namespace Tensors
                             v[i] = Bu_i;
                             
                             // We implicitly use u[k][k] = 0;
-//                            ubarBu += conj(u[k][i]) * Bu_i;
+//                            ubarBu += Scalar::Conj(u[k][i]) * Bu_i;
                         }
                         
                         for( Int i = k+1; i < n; ++i )
@@ -578,7 +578,7 @@ namespace Tensors
                             
                             for( Int j = k+1; j < i; ++j )
                             {
-                                Bu_i += conj(B[j][i]) * u[k][j];
+                                Bu_i += Scalar::Conj(B[j][i]) * u[k][j];
                             }
                             
                             for( Int j = i; j < n; ++j )
@@ -588,10 +588,10 @@ namespace Tensors
                             
                             v[i] = Bu_i;
                             
-                            ubarBu_accumulator += conj(u[k][i]) * Bu_i;
+                            ubarBu_accumulator += Scalar::Conj(u[k][i]) * Bu_i;
                         }
                         
-                        Real ubarBu = real(ubarBu_accumulator);
+                        Real ubarBu = Scalar::Re(ubarBu_accumulator);
 
                         {
                             const Int i = k;
@@ -599,7 +599,7 @@ namespace Tensors
 
                             for( Int j = i+1; j < n; ++j )  // Exploit that u[k][i] = u[k][k] == 0
                             {
-                                B[k][j] += a * conj(u[k][j]);
+                                B[k][j] += a * Scalar::Conj(u[k][j]);
                             }
                         }
                         
@@ -611,7 +611,7 @@ namespace Tensors
                             
                             for( Int j = i; j < n; ++j )
                             {
-                                B[i][j] += a * conj(u[k][j]) - b * conj(v[j]);
+                                B[i][j] += a * Scalar::Conj(u[k][j]) - b * Scalar::Conj(v[j]);
                             }
                         }
                     }
@@ -619,10 +619,10 @@ namespace Tensors
                     // We want a purely real tridiagonal matrix...
                     for( Int i = 0; i < n-1; ++i )
                     {
-                        T.Diag(i)  = real(B[i][i]);
+                        T.Diag(i)  = Scalar::Re(B[i][i]);
                         T.Upper(i) = COND( Scalar::IsComplex<Scal>, std::abs(B[i][i+1]), B[i][i+1] );
                     }
-                    T.Diag(n-1)  = real(B[n-1][n-1]);
+                    T.Diag(n-1)  = Scalar::Re(B[n-1][n-1]);
                 }
             }
             
@@ -691,7 +691,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < i; ++j )
                     {
-                        B[i][j] = static_cast<T>(conj(A[j][i]));
+                        B[i][j] = static_cast<T>(Scalar::Conj(A[j][i]));
                     }
                     for( Int j = i; j < n; ++j )
                     {

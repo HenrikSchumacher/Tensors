@@ -338,7 +338,7 @@ namespace Tensors
                         const Scal y = A[j][k];
                         
                         A[i][k] =      c    * x + s * y;
-                        A[j][k] = - conj(s) * x + c * y;
+                        A[j][k] = - Scalar::Conj(s) * x + c * y;
                     }
                 }
             }
@@ -367,7 +367,7 @@ namespace Tensors
                         const Scal x = A[k][i];
                         const Scal y = A[k][j];
                         
-                        A[k][i] = c * x - conj(s) * y;
+                        A[k][i] = c * x - Scalar::Conj(s) * y;
                         A[k][j] = s * x +    c    * y;
                     }
                 }
@@ -508,7 +508,7 @@ namespace Tensors
                 {
                     for( Int j = begin; j < end; ++j )
                     {
-                        A[i][j] -= two * u[i] * conj(u[j]);
+                        A[i][j] -= two * u[i] * Scalar::Conj(u[j]);
                     }
                 }
             }
@@ -533,7 +533,7 @@ namespace Tensors
                 
                 A[i][i] = c;
                 A[i][j] = s;
-                A[j][i] = -conj(s);
+                A[j][i] = -Scalar::Conj(s);
                 A[j][j] = c;
             }
             

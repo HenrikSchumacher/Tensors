@@ -860,7 +860,7 @@ namespace Tensors
                             BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans>(
                                 n_1, nrhs,
                                 Scal(-1), X_1, nrhs,
-                                            U_1, 1,        // XXX Problem: We need conj(U_1)!
+                                          U_1, 1,        // XXX Problem: We need Scalar::Conj(U_1)!
                                 Scal( 1), X_0, 1
                             );
                         }
@@ -878,7 +878,7 @@ namespace Tensors
                                 // XX Op::Id -> Op::ConjugateTranspose
                                 n_0, nrhs, n_1,
                                 Scal(-1), U_1, n_1,      // XXX n_1 -> n_0
-                                            X_1, nrhs,
+                                          X_1, nrhs,
                                 Scal( 1), X_0, nrhs
                             );
                         }
@@ -888,7 +888,7 @@ namespace Tensors
                         >(
                             n_0, nrhs,
                             Scal(1), U_0, n_0,
-                                       X_0, nrhs
+                                     X_0, nrhs
                         );
                     }
                 }
@@ -940,7 +940,7 @@ namespace Tensors
 
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                U_1x_1 += U_1[j] * X[SN_inner[l_begin+j]]; // XXX conj(U_1[j])
+                                U_1x_1 += U_1[j] * X[SN_inner[l_begin+j]]; // XXX Scalar::Conj(U_1[j])
                             }
                         }
 
@@ -1038,7 +1038,7 @@ namespace Tensors
 
                             for( LInt i = 0; i < int_cast<LInt>(n_1); ++i )
                             {
-                                const Scal factor = - conj(U_1[i]); // XXX conj(U_1[i])-> U_1[i]
+                                const Scal factor = - Scalar::Conj(U_1[i]); // XXX Scalar::Conj(U_1[i])-> U_1[i]
                                 for( LInt j = 0; j < int_cast<LInt>(nrhs); ++j )
                                 {
                                     X_1[nrhs*i+j] = factor * X_0[j];
@@ -1126,8 +1126,8 @@ namespace Tensors
                             // Add x_1 into b_1.
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                X[SN_inner[l_begin+j]] -= conj(U_1[j]) * x_0[0];
-                            }   // XXX conj(U_1[j]) -> U_1[j]
+                                X[SN_inner[l_begin+j]] -= Scalar::Conj(U_1[j]) * x_0[0];
+                            }   // XXX Scalar::Conj(U_1[j]) -> U_1[j]
                         }
                     }
                     else // using BLAS2 routines.

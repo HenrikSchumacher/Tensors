@@ -341,7 +341,7 @@ namespace Tensors
                     const Scal sin = sn[i][k];
                     
                     H(i  ,iter,k) =  cos * xi + sin * eta;
-                    H(i+1,iter,k) = -conj(sin) * xi + cos * eta;
+                    H(i+1,iter,k) = -Scalar::Conj(sin) * xi + cos * eta;
                 }
             }
             {
@@ -365,7 +365,7 @@ namespace Tensors
                         const Real r_inv = Scalar::Inv<Real>(r);
                         
                         cos =  std::abs(xi) * r_inv;
-                        sin = (xi / std::abs(xi)) * conj(eta) * r_inv;
+                        sin = (xi / std::abs(xi)) * Scalar::Conj(eta) * r_inv;
                     }
                     
                     cs[iter][k] = cos;
@@ -374,7 +374,7 @@ namespace Tensors
                     H(iter  ,iter,k) = cos * xi + sin * eta;
                     H(iter+1,iter,k) = Scalar::Zero<Scal>;
                                                                       
-                    beta[iter+1][k] = -conj(sin) * beta[iter][k];
+                    beta[iter+1][k] = -Scalar::Conj(sin) * beta[iter][k];
                     beta[iter  ][k] =  cos * beta[iter][k];
                 }
             }
@@ -429,7 +429,7 @@ namespace Tensors
                 {
                     for( Int k = 0; k < K; ++k )
                     {
-                        sums[k] += conj(v[K * i + k]) * w[K * i + k];
+                        sums[k] += Scalar::Conj(v[K * i + k]) * w[K * i + k];
                     }
                 }
                 

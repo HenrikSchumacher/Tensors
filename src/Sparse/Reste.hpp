@@ -318,7 +318,7 @@
 //            // This is equivalent to
 //            // C_1^H = B_1^H * B_0^H
 //            // <=>
-//            // conj(C_1) = B_1^H * B_0,
+//            // Scalar::Conj(C_1) = B_1^H * B_0,
 //            // where C_1 is a vector of size JL_ctr.
 //
 //            BLAS_Wrappers::gemv(
@@ -336,7 +336,7 @@
 //
 //            for( Int j = 0; j < JL_ctr; ++j )
 //            {
-//                A_1_[JJ_pos[j]] -= conj(C_1[j]); // XXX
+//                A_1_[JJ_pos[j]] -= Scalar::Conj(C_1[j]); // XXX
 //            }
 //        }
 //        else
@@ -349,7 +349,7 @@
 //            Scalar sum = 0;
 //            for( Int i = 0; i < m_0; ++i )
 //            {
-//                sum += conj(B_0[i]) * B_1[i];
+//                sum += Scalar::Conj(B_0[i]) * B_1[i];
 //            }
 //
 //            A_1[n_1 * II_pos[0] + JJ_pos[0] ] -= sum; // XXX
