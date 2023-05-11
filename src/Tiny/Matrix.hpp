@@ -260,7 +260,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        AA += abs_squared(A[i][j]);
+                        AA += Scalar::AbsSquared(A[i][j]);
                     }
                 }
                 return std::sqrt(AA);
@@ -321,7 +321,7 @@ namespace Tensors
                     const Scal c = scalar_cast<Scal>(c_);
                     const Scal s = scalar_cast<Scal>(s_);
                     
-                    // Assumes that abs_squared(c) + abs_squared(s) == one.
+                    // Assumes that Scalar::AbsSquared(c) + Scalar::AbsSquared(s) == one.
                     // Assumes that i != j.
                     // Multiplies matrix with the rotation
                     //
@@ -351,7 +351,7 @@ namespace Tensors
                     const Scal c = scalar_cast<Scal>(c_);
                     const Scal s = scalar_cast<Scal>(s_);
                     
-                    // Assumes that abs_squared(c) + abs_squared(s) == one.
+                    // Assumes that Scalar::AbsSquared(c) + Scalar::AbsSquared(s) == one.
                     // Assumes that i != j.
                     // Multiplies matrix with rotation
                     //
@@ -519,7 +519,7 @@ namespace Tensors
                 static_assert(m==n, "SetGivensRotation is only defined for square matrices.");
                 
                 // Mostly meant for debugging purposes, thus not extremely optimized.
-                // Assumes that abs_squared(c) + abs_squared(s) == one.
+                // Assumes that Scalar::AbsSquared(c) + Scalar::AbsSquared(s) == one.
                 // Write Givens rotion
                 //
                 //    /              \

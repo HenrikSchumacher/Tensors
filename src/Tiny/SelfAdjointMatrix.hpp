@@ -307,7 +307,7 @@ namespace Tensors
                         Real uu = 0;
                         for( Int i = k+1; i < n; ++i )
                         {
-                            uu += abs_squared(u[k][i]);
+                            uu += Scalar::AbsSquared(u[k][i]);
                         }
                         
                         if( uu < eps_squared )
@@ -320,23 +320,23 @@ namespace Tensors
                         
                         Scal u_pivot (u[k][k+1]);
                         
-                        Real abs_squared_u_pivot = abs_squared(u_pivot);
+                        Real Scalar::AbsSquared_u_pivot = Scalar::AbsSquared(u_pivot);
                         
                         const Scal rho (
                             COND(
                                 Scalar::IsComplex<Scal>
                                  ,
-                                ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
+                                ( Scalar::AbsSquared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(Scalar::AbsSquared_u_pivot)
                                 ,
                                 ( u_pivot > zero ) ? -one : one
                             )
                         );
                         
-                        uu -= abs_squared_u_pivot;
+                        uu -= Scalar::AbsSquared_u_pivot;
                         
                         u[k][k+1] -= rho * u_norm;
                         
-                        uu += abs_squared(u[k][k+1]);
+                        uu += Scalar::AbsSquared(u[k][k+1]);
                         
                         Real u_norm_inv ( one / std::sqrt( uu ) );
                         
@@ -513,30 +513,30 @@ namespace Tensors
                         Real uu = 0;
                         for( Int i = k+1; i < n; ++i )
                         {
-                            uu += abs_squared(u[k][i]);
+                            uu += Scalar::AbsSquared(u[k][i]);
                         }
                         
                         Real u_norm = std::sqrt( uu );
                         
                         Scal u_pivot (u[k][k+1]);
                         
-                        Real abs_squared_u_pivot = abs_squared(u_pivot);
+                        Real Scalar::AbsSquared_u_pivot = Scalar::AbsSquared(u_pivot);
                         
                         const Scal rho (
                             COND(
                                 Scalar::IsComplex<Scal>
                                  ,
-                                ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
+                                ( Scalar::AbsSquared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(Scalar::AbsSquared_u_pivot)
                                 ,
                                 ( u_pivot > zero ) ? -one : one
                             )
                         );
                         
-                        uu -= abs_squared_u_pivot;
+                        uu -= Scalar::AbsSquared_u_pivot;
                         
                         u[k][k+1] -= rho * u_norm;
                         
-                        uu += abs_squared(u[k][k+1]);
+                        uu += Scalar::AbsSquared(u[k][k+1]);
                         
                         Real u_norm_inv ( one / std::sqrt( uu ) );
                         

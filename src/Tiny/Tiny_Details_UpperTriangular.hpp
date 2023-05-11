@@ -312,7 +312,7 @@ public:
         {
             for( Int j = i; j < n; ++j )
             {
-                AA += abs_squared(A[i][j]);
+                AA += Scalar::AbsSquared(A[i][j]);
             }
         }
         return std::sqrt(AA);
