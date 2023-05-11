@@ -320,19 +320,19 @@ namespace Tensors
                         
                         Scal u_pivot (u[k][k+1]);
                         
-                        Real Scalar::AbsSquared_u_pivot = Scalar::AbsSquared(u_pivot);
+                        Real abs_squared_u_pivot = Scalar::AbsSquared(u_pivot);
                         
                         const Scal rho (
                             COND(
                                 Scalar::IsComplex<Scal>
                                  ,
-                                ( Scalar::AbsSquared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(Scalar::AbsSquared_u_pivot)
+                                ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrtabs_squared_u_pivot)
                                 ,
                                 ( u_pivot > zero ) ? -one : one
                             )
                         );
                         
-                        uu -= Scalar::AbsSquared_u_pivot;
+                        uu -= abs_squared_u_pivot;
                         
                         u[k][k+1] -= rho * u_norm;
                         
@@ -520,19 +520,19 @@ namespace Tensors
                         
                         Scal u_pivot (u[k][k+1]);
                         
-                        Real Scalar::AbsSquared_u_pivot = Scalar::AbsSquared(u_pivot);
+                        Real abs_squared_u_pivot = Scalar::AbsSquared(u_pivot);
                         
                         const Scal rho (
                             COND(
                                 Scalar::IsComplex<Scal>
                                  ,
-                                ( Scalar::AbsSquared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(Scalar::AbsSquared_u_pivot)
+                                ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
                                 ,
                                 ( u_pivot > zero ) ? -one : one
                             )
                         );
                         
-                        uu -= Scalar::AbsSquared_u_pivot;
+                        uu -= abs_squared_u_pivot;
                         
                         u[k][k+1] -= rho * u_norm;
                         
