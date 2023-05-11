@@ -325,8 +325,8 @@ namespace Tensors
                         const Scal rho (
                             COND(
                                 Scalar::IsComplex<Scal>
-                                 ,
-                                ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrtabs_squared_u_pivot)
+                                ,
+                                ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
                                 ,
                                 ( u_pivot > zero ) ? -one : one
                             )
