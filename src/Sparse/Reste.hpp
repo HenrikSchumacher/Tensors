@@ -233,7 +233,7 @@
 //        Scalar sum = 0;
 //        for( Int i = 0; i < m_0; ++i )
 //        {
-//            sum += abs_squared(B_0[i]);
+//            sum += Scalar::AbsSquared(B_0[i]);
 //        }
 //
 //        //Write directly to A_0.

@@ -353,7 +353,7 @@ namespace Tensors
                     Scal cos;
                     Scal sin;
                     
-                    const Real r = std::sqrt( abs_squared(xi) + abs_squared(eta) );
+                    const Real r = std::sqrt( Scalar::AbsSquared(xi) + Scalar::AbsSquared(eta) );
                     
                     if( abs(xi) <= Scalar::eps<Scal> * r )
                     {
@@ -398,7 +398,7 @@ namespace Tensors
                 {
                     for( Int k = 0; k < K; ++k )
                     {
-                        sums[k] += abs_squared(v[K * i + k]);
+                        sums[k] += Scalar::AbsSquared(v[K * i + k]);
                     }
                 }
                 
