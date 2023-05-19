@@ -309,6 +309,23 @@ namespace Tensors
                 }
             }
 
+            template <typename Dummy = Scal>
+            force_inline std::enable_if_t<std::is_same_v<Real,Dummy>,Real> Max() const
+            {
+                if constexpr ( n > 0 )
+                {
+                    Real m = v[0];
+                    for( Int i = 1; i < n; ++i )
+                    {
+                        m = std::max(m,v[i]);
+                    }
+                    return m;
+                }
+                else
+                {
+                    return std::numeric_limits<Real>::lowest();
+                }
+            }
             
             force_inline friend Scal Dot( const CLASS & x, const CLASS & y )
             {

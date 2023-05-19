@@ -87,6 +87,13 @@ namespace Tensors
                 TOL[k] = b_squared_norms[k] * factor;
             }
             
+            if( TOL.Max() <= scalar_cast<Scalar::Real<Scal>>(0) )
+            {
+                r.Write( x_inout, ldx, thread_count );
+               
+                return true;
+            }
+            
             x.Read( x_inout, ldx, thread_count );
 
             // u = A.x
@@ -120,8 +127,8 @@ namespace Tensors
             ComputeScalarProducts( r.data(), z.data(), rho );
             
             iter = 0;
-            bool succeeded = false;
-            
+            bool succeeded = CheckResiduals();
+
             
             while( !succeeded && (iter < max_iter ) )
             {

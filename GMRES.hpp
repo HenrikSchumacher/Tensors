@@ -106,6 +106,13 @@ namespace Tensors
             TOL = b_norms;
             TOL *= relative_tolerance;
             
+            if( TOL.Max() <= scalar_cast<Scalar::Real<Scal>>(0) )
+            {
+                x.Write( x_inout, ldx, thread_count );
+               
+                return true;
+            }
+            
             ptoc(ClassName()+": Compute norm of right hand side.");
             
             restarts = 0;
@@ -188,7 +195,6 @@ namespace Tensors
             Tensor2<Scal,Int> H_mat    (iter,iter);
             Tensor1<Scal,Int> beta_vec (iter);
             Tensor2<Scal,Int> y        (iter,K);
-        
             
             for( Int k = 0; k < K; ++k )
             {
