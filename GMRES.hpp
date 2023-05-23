@@ -106,7 +106,7 @@ namespace Tensors
             TOL = b_norms;
             TOL *= relative_tolerance;
             
-            if( TOL.Max() <= scalar_cast<Scalar::Real<Scal>>(0) )
+            if( TOL.Max() <= Scalar::Zero<Scal> )
             {
                 x.Write( x_inout, ldx, thread_count );
                

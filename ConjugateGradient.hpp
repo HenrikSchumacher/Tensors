@@ -87,7 +87,7 @@ namespace Tensors
                 TOL[k] = b_squared_norms[k] * factor;
             }
             
-            if( TOL.Max() <= scalar_cast<Scalar::Real<Scal>>(0) )
+            if( TOL.Max() <= Scalar::Zero<Scal> )
             {
                 r.Write( x_inout, ldx, thread_count );
                
