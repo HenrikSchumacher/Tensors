@@ -64,7 +64,7 @@ namespace Tensors {
 
         // Copy constructor
         explicit ThreadTensor3( const ThreadTensor3<Scal,Int> & other )
-        :   ThreadTensor3(other.dims)
+        :   ThreadTensor3(other.dims[0],other.dims[1],other.dims[2])
         {
             print(ClassName()+" copy constructor");
             
@@ -401,7 +401,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return "ThreadTensor3<"+TypeName<Scal>+","+TypeName<Int>+">";
+            return std::string("ThreadTensor3")+"<"+TypeName<Scal>+","+TypeName<Int>+">";
         }
         
     }; // ThreadTensor3
