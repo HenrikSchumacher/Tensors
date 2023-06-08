@@ -232,30 +232,29 @@ namespace Tensors
                 
                 if( WellFormed() )
                 {
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        mut<LInt> c        = counters.data(thread);
-                        mut<Int>  B_inner  = B.Inner().data();
-                        ptr<LInt> A_outer  = Outer().data();
-                        ptr< Int> A_inner  = Inner().data();
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    ParallelDo(
+                        [&]( const Int thread )
                         {
-                            const LInt k_begin = A_outer[i  ];
-                            const LInt k_end   = A_outer[i+1];
+                            const Int i_begin = job_ptr[thread  ];
+                            const Int i_end   = job_ptr[thread+1];
                             
-                            for( LInt k = k_end; k --> k_begin; )
+                            mut<LInt> c = counters.data(thread);
+                            
+                            for( Int i = i_begin; i < i_end; ++i )
                             {
-                                const Int j = A_inner[k];
-                                const LInt pos = --c[j];
-                                B_inner [pos] = i;
+                                const LInt k_begin = outer[i  ];
+                                const LInt k_end   = outer[i+1];
+                                
+                                for( LInt k = k_end; k --> k_begin; )
+                                {
+                                    const Int j = inner[k];
+                                    const LInt pos = --c[j];
+                                    B.Inner(pos) = i;
+                                }
                             }
-                        }
-                    }
+                        },
+                        thread_count
+                    );
                 }
                 
                 // Finished counting sort.

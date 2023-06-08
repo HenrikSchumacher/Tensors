@@ -608,6 +608,18 @@ namespace Tensors
                 return outer;
             }
             
+
+            LInt & Outer( const Int i )
+            {
+#ifdef TENSORS_BOUND_CHECKS
+                if( i < 0 || i >= outer.Size() )
+                {
+                    eprint(ClassName()+"::Outer(): Out of bound access.");
+                }
+#endif
+                return outer[i];
+            }
+            
             const LInt & Outer( const Int i ) const
             {
 #ifdef TENSORS_BOUND_CHECKS
@@ -628,6 +640,17 @@ namespace Tensors
             const Tensor1<Int,LInt> & Inner() const
             {
                 return inner;
+            }
+
+            Int & Inner( const LInt k )
+            {
+#ifdef TENSORS_BOUND_CHECKS
+                if( k < 0 || k >= inner.Size() )
+                {
+                    eprint(ClassName()+"::Inner(): Out of bound access.");
+                }
+#endif
+                return inner[k];
             }
             
             const Int & Inner( const LInt k ) const
@@ -702,29 +725,28 @@ namespace Tensors
                     // https://en.wikipedia.org/wiki/Counting_sort
                     //            ptic("Counting");
                     
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        mut<LInt> c = counters.data(thread);
-                        
-                        ptr<LInt> A_outer = Outer().data();
-                        ptr<Int>  A_inner = Inner().data();
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    ParallelDo(
+                        [&]( const Int thread )
                         {
-                            const LInt jj_begin = A_outer[i  ];
-                            const LInt jj_end   = A_outer[i+1];
+                            const Int i_begin = job_ptr[thread  ];
+                            const Int i_end   = job_ptr[thread+1];
                             
-                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            mut<LInt> c = counters.data(thread);
+                            
+                            for( Int i = i_begin; i < i_end; ++i )
                             {
-                                const Int j = A_inner[jj];
-                                ++c[j];
+                                const LInt jj_begin = outer[i  ];
+                                const LInt jj_end   = outer[i+1];
+                                
+                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                                {
+                                    const Int j = inner[jj];
+                                    ++c[j];
+                                }
                             }
-                        }
-                    }
+                        },
+                        thread_count
+                    );
                     
                     AccumulateAssemblyCounters_Parallel<LInt,Int>( counters );
                 }
@@ -748,20 +770,13 @@ namespace Tensors
                     {
                         RequireJobPtr();
                         
-                        #pragma omp parallel for num_threads( thread_count )
-                        for( Int thread = 0; thread < thread_count; ++thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            ptr<LInt> rp = outer.data();
-                            mut<Int>  ci = inner.data();
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
+                        ParallelDo(
+                            [&]( const Int i )
                             {
-                                std::sort( &ci[rp[i]], &ci[rp[i+1]] );
-                            }
-                        }
+                                std::sort( &inner[outer[i]], &inner[outer[i+1]] );
+                            },
+                            job_ptr
+                        );
                         
                         inner_sorted = true;
                     }

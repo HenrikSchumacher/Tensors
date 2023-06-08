@@ -8,19 +8,6 @@ namespace Tensors
         ASSERT_INT(Int);
 
     public:
-
-        SparseBLAS()
-        {
-//            ptic("SparseBLAS()");
-            
-            #pragma omp parallel
-            {
-                // cppcheck-suppress [useInitializationList]
-                thread_count = static_cast<Int>(omp_get_num_threads());
-            }
-//            ptoc("SparseBLAS()");
-
-        };
         
         explicit SparseBLAS( const Int thread_count_ )
         :   thread_count(thread_count_)
