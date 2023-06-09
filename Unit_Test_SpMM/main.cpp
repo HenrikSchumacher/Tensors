@@ -186,23 +186,26 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
     Tensor1<Int ,LInt> jdx (nnz);
     Tensor1<Scal,LInt> a   (nnz);
 
-    #pragma omp parallel for num_threads(max_thread_count)
-    for( LInt thread = 0; thread < max_thread_count; ++thread )
-    {
-        const LInt i_begin = JobPointer( nnz, max_thread_count, thread     );
-        const LInt i_end   = JobPointer( nnz, max_thread_count, thread + 1 );
-
-        std::random_device r;
-        std::default_random_engine engine ( r() );
-        std::uniform_int_distribution<Int> unif_m(static_cast<Int>(0),static_cast<Int>(m-1));
-        std::uniform_int_distribution<Int> unif_n(static_cast<Int>(0),static_cast<Int>(n-1));
-        
-        for( LInt i = i_begin; i < i_end; ++i )
+    ParallelDoReduce(
+        [&]( const LInt thread )
         {
-            idx[i] = unif_m(engine);
-            jdx[i] = unif_n(engine);
-        }
-    }
+            const LInt i_begin = JobPointer( nnz, max_thread_count, thread     );
+            const LInt i_end   = JobPointer( nnz, max_thread_count, thread + 1 );
+
+            std::random_device r;
+            std::default_random_engine engine ( r() );
+            std::uniform_int_distribution<Int> unif_m(static_cast<Int>(0),static_cast<Int>(m-1));
+            std::uniform_int_distribution<Int> unif_n(static_cast<Int>(0),static_cast<Int>(n-1));
+            
+            for( LInt i = i_begin; i < i_end; ++i )
+            {
+                idx[i] = unif_m(engine);
+                jdx[i] = unif_n(engine);
+            }
+        },
+        max_thread_count
+    );
+                    
     a.Random( max_thread_count );
     
     Sparse::MatrixCSR<Scal,Int,LInt> A( nnz, idx.data(), jdx.data(), a.data(), m, n, max_thread_count );
