@@ -224,8 +224,8 @@ namespace Tensors
                 Int list_count = static_cast<Int>(idx.size());
                 Tensor1<const Int *,Int> i      (list_count);
                 Tensor1<const Int *,Int> j      (list_count);
-                Tensor1<const Scal*,Int> a   (list_count);
-                Tensor1<LInt,Int> entry_counts (list_count);
+                Tensor1<const Scal*,Int> a      (list_count);
+                Tensor1<LInt,Int> entry_counts  (list_count);
                 
                 for( Int thread = 0; thread < list_count; ++thread )
                 {
@@ -251,9 +251,9 @@ namespace Tensors
             {
                 Int list_count = static_cast<Int>(triples.size());
                 
-                Tensor1<const Int *,Int> i   (list_count);
-                Tensor1<const Int *,Int> j   (list_count);
-                Tensor1<const Scal*,Int> a   (list_count);
+                Tensor1<const Int *,Int> i     (list_count);
+                Tensor1<const Int *,Int> j     (list_count);
+                Tensor1<const Scal*,Int> a     (list_count);
                 Tensor1<LInt,Int> entry_counts (list_count);
                 
                 for( Int thread = 0; thread < list_count; ++thread )
@@ -276,11 +276,11 @@ namespace Tensors
                 const Int  * const * const idx,               // list of lists of i-indices
                 const Int  * const * const jdx,               // list of lists of j-indices
                 const Scal * const * const val,               // list of lists of nonzero values
-                const LInt           * const entry_counts,      // list of lengths of the lists above
-                const Int list_count,                           // number of lists
-                const Int final_thread_count,                   // number of threads that the matrix shall use
-                const bool compress   = true,                   // whether to do additive assembly or not
-                const int  symmetrize = 0                       // whether to symmetrize the matrix
+                const LInt         * const entry_counts,      // list of lengths of the lists above
+                const Int list_count,                         // number of lists
+                const Int final_thread_count,                 // number of threads that the matrix shall use
+                const bool compress   = true,                 // whether to do additive assembly or not
+                const int  symmetrize = 0                     // whether to symmetrize the matrix
             )
             {
                 // Parallel sparse matrix assembly using counting sort.
@@ -337,39 +337,41 @@ namespace Tensors
                     
                     ptic(ClassName()+"::FromTriples -- writing reordered data");
                     
-                    #pragma omp parallel for num_threads( list_count )
-                    for( Int thread = 0; thread < list_count; ++thread )
-                    {
-                        const LInt entry_count = entry_counts[thread];
-                        
-                        ptr<Int>  thread_idx = idx[thread];
-                        ptr<Int>  thread_jdx = jdx[thread];
-                        ptr<Scal> thread_val = val[thread];
-                        
-                        mut<LInt> c = counters.data(thread);
-                        
-                        for( LInt k = entry_count; k --> 0; )
+                    ParallelDo(
+                        [&,this]( const Int thread )
                         {
-                            const Int  i = thread_idx[k];
-                            const Int  j = thread_jdx[k];
-                            const Scal a = thread_val[k];
+                            const LInt entry_count = entry_counts[thread];
                             
-                            {
-                                const LInt pos  = --c[i];
-                                inner__[pos] = j;
-                                value__[pos] = a;
-                            }
+                            ptr<Int>  thread_idx = idx[thread];
+                            ptr<Int>  thread_jdx = jdx[thread];
+                            ptr<Scal> thread_val = val[thread];
                             
-                            // Write the transposed matrix (diagonal excluded) in the same go in order to symmetrize the matrix. (Typical use case: Only the upper triangular part of a symmetric matrix is stored in idx, jdx, and val, but we need the full, symmetrized matrix.)
-                            if( (symmetrize != 0) && (i != j) )
+                            mut<LInt> c = counters.data(thread);
+                            
+                            for( LInt k = entry_count; k --> 0; )
                             {
-                                const LInt pos  = --c[j];
-                                inner__[pos] = i;
-                                value__[pos] = a;
+                                const Int  i = thread_idx[k];
+                                const Int  j = thread_jdx[k];
+                                const Scal a = thread_val[k];
+                                
+                                {
+                                    const LInt pos  = --c[i];
+                                    inner__[pos] = j;
+                                    value__[pos] = a;
+                                }
+                                
+                                // Write the transposed matrix (diagonal excluded) in the same go in order to symmetrize the matrix. (Typical use case: Only the upper triangular part of a symmetric matrix is stored in idx, jdx, and val, but we need the full, symmetrized matrix.)
+                                if( (symmetrize != 0) && (i != j) )
+                                {
+                                    const LInt pos  = --c[j];
+                                    inner__[pos] = i;
+                                    value__[pos] = a;
+                                }
                             }
-                        }
-                    }
-
+                        },
+                        list_count
+                    );
+                    
                     ptoc(ClassName()+"::FromTriples -- writing reordered data");
                     
                     // Now all j-indices and nonzero values lie in the correct row (as indexed by outer).
@@ -452,41 +454,43 @@ namespace Tensors
 
                     copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
 
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        mut<LInt> c = counters.data(thread);
-                        mut<Int > B_inner  = B.Inner().data();
-                        mut<Scal> B_values = B.Value().data();
-                        ptr<LInt> A_outer  = Outer().data();
-                        ptr<Int > A_inner  = Inner().data();
-                        ptr<Scal> A_values = Value().data();
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    ParallelDo(
+                        [&,this]( const Int thread )
                         {
-                            const LInt k_begin = A_outer[i  ];
-                            const LInt k_end   = A_outer[i+1];
+                            const Int i_begin = job_ptr[thread  ];
+                            const Int i_end   = job_ptr[thread+1];
                             
-                            for( LInt k = k_end; k --> k_begin; )
+                            mut<LInt> c = counters.data(thread);
+                            mut<Int > B_inner  = B.Inner().data();
+                            mut<Scal> B_values = B.Value().data();
+                            ptr<LInt> A_outer  = Outer().data();
+                            ptr<Int > A_inner  = Inner().data();
+                            ptr<Scal> A_values = Value().data();
+                            
+                            for( Int i = i_begin; i < i_end; ++i )
                             {
-                                const Int j = A_inner[k];
-                                const LInt pos = --c[j];
-                                B_inner [pos] = i;
+                                const LInt k_begin = A_outer[i  ];
+                                const LInt k_end   = A_outer[i+1];
                                 
-                                if constexpr ( conjugate )
+                                for( LInt k = k_end; k --> k_begin; )
                                 {
-                                    B_values[pos] = Scalar::Conj(A_values[k]);
-                                }
-                                else
-                                {
-                                    B_values[pos] = A_values[k];
+                                    const Int j = A_inner[k];
+                                    const LInt pos = --c[j];
+                                    B_inner [pos] = i;
+                                    
+                                    if constexpr ( conjugate )
+                                    {
+                                        B_values[pos] = Scalar::Conj(A_values[k]);
+                                    }
+                                    else
+                                    {
+                                        B_values[pos] = A_values[k];
+                                    }
                                 }
                             }
-                        }
-                    }
+                        },
+                        thread_count
+                    );
 
                     // Finished counting sort.
                     
@@ -534,25 +538,27 @@ namespace Tensors
                     {
                         RequireJobPtr();
                         
-                        #pragma omp parallel for num_threads( thread_count )
-                        for( Int thread = 0; thread < thread_count; ++thread )
-                        {
-                            TwoArrayQuickSort<Int,Scal,LInt> quick_sort;
-                            
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            ptr<LInt> outer__  = outer.data();
-                            mut<Int>  inner__  = inner.data();
-                            mut<Scal> values__ = values.data();
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
+                        ParallelDo(
+                            [=]( const Int thread )
                             {
-                                const LInt begin = outer__[i  ];
-                                const LInt end   = outer__[i+1];
-                                quick_sort( inner__ + begin, values__ + begin, end - begin );
-                            }
-                        }
+                                TwoArrayQuickSort<Int,Scal,LInt> quick_sort;
+                                
+                                const Int i_begin = job_ptr[thread  ];
+                                const Int i_end   = job_ptr[thread+1];
+                                
+                                ptr<LInt> outer__  = outer.data();
+                                mut<Int>  inner__  = inner.data();
+                                mut<Scal> values__ = values.data();
+                                
+                                for( Int i = i_begin; i < i_end; ++i )
+                                {
+                                    const LInt begin = outer__[i  ];
+                                    const LInt end   = outer__[i+1];
+                                    quick_sort( inner__ + begin, values__ + begin, end - begin );
+                                }
+                            },
+                            thread_count
+                        );
                         
                         inner_sorted = true;
                     }
@@ -582,72 +588,74 @@ namespace Tensors
                         mut<Scal> values__  = values.data();
                         mut<LInt> new_outer__ = new_outer.data();
                         
-                        #pragma omp parallel for num_threads( thread_count )
-                        for( Int thread = 0; thread < thread_count; ++thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            //                // Starting position of thread in inner list.
-                            //                thread_info(thread,0)= outer[i_begin];
-                            //                // End position of thread in inner list (not important).
-                            //                thread_info(thread,1)= outer[i_end  ];
-                            //                // Number of nonzeroes in thread after compression.
-                            //                thread_info(thread,2)= static_cast<Int>(0);
-                            
-                            // To where we write.
-                            LInt jj_new        = outer__[i_begin];
-                            LInt next_jj_begin = outer__[i_begin];
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
+                        ParallelDo(
+                            [=]( const Int thread )
                             {
-                                const LInt jj_begin = next_jj_begin;
-                                const LInt jj_end   = outer__[i+1];
+                                const Int i_begin = job_ptr[thread  ];
+                                const Int i_end   = job_ptr[thread+1];
                                 
-                                // Memoize the next entry in outer because outer will be overwritten
-                                next_jj_begin = jj_end;
+                                //                // Starting position of thread in inner list.
+                                //                thread_info(thread,0)= outer[i_begin];
+                                //                // End position of thread in inner list (not important).
+                                //                thread_info(thread,1)= outer[i_end  ];
+                                //                // Number of nonzeroes in thread after compression.
+                                //                thread_info(thread,2)= static_cast<Int>(0);
                                 
-                                LInt row_nonzero_counter = static_cast<Int>(0);
+                                // To where we write.
+                                LInt jj_new        = outer__[i_begin];
+                                LInt next_jj_begin = outer__[i_begin];
                                 
-                                // From where we read.
-                                LInt jj = jj_begin;
-                                
-                                while( jj< jj_end )
+                                for( Int i = i_begin; i < i_end; ++i )
                                 {
-                                    Int j = inner__ [jj];
-                                    Scal a = values__[jj];
+                                    const LInt jj_begin = next_jj_begin;
+                                    const LInt jj_end   = outer__[i+1];
                                     
-                                    if( jj > jj_new )
+                                    // Memoize the next entry in outer because outer will be overwritten
+                                    next_jj_begin = jj_end;
+                                    
+                                    LInt row_nonzero_counter = static_cast<Int>(0);
+                                    
+                                    // From where we read.
+                                    LInt jj = jj_begin;
+                                    
+                                    while( jj< jj_end )
                                     {
-                                        inner__ [jj] = static_cast<Int>(0);
-                                        values__[jj] = static_cast<Scal>(0);
-                                    }
-                                    
-                                    ++jj;
-                                    
-                                    while( (jj < jj_end) && (j == inner__[jj]) )
-                                    {
-                                        a+= values__[jj];
+                                        Int j = inner__ [jj];
+                                        Scal a = values__[jj];
+                                        
                                         if( jj > jj_new )
                                         {
                                             inner__ [jj] = static_cast<Int>(0);
                                             values__[jj] = static_cast<Scal>(0);
                                         }
+                                        
                                         ++jj;
+                                        
+                                        while( (jj < jj_end) && (j == inner__[jj]) )
+                                        {
+                                            a+= values__[jj];
+                                            if( jj > jj_new )
+                                            {
+                                                inner__ [jj] = static_cast<Int>(0);
+                                                values__[jj] = static_cast<Scal>(0);
+                                            }
+                                            ++jj;
+                                        }
+                                        
+                                        inner__ [jj_new] = j;
+                                        values__[jj_new] = a;
+                                        
+                                        ++jj_new;
+                                        ++row_nonzero_counter;
                                     }
                                     
-                                    inner__ [jj_new] = j;
-                                    values__[jj_new] = a;
+                                    new_outer__[i+1] = row_nonzero_counter;
                                     
-                                    ++jj_new;
-                                    ++row_nonzero_counter;
+                                    //                    thread_info(thread,2) += row_nonzero_counter;
                                 }
-                                
-                                new_outer__[i+1] = row_nonzero_counter;
-                                
-                                //                    thread_info(thread,2) += row_nonzero_counter;
-                            }
-                        }
+                            },
+                            thread_count
+                        );
                         
                         // This is the new array of outer indices.
                         new_outer.Accumulate( thread_count );
@@ -661,23 +669,25 @@ namespace Tensors
                         mut<Scal> new_values__ = new_values.data();
                         
                         //TODO: Parallelization might be a bad idea here.
-                        #pragma omp parallel for num_threads( thread_count )
-                        for( Int thread = 0; thread < thread_count; ++thread )
-                        {
-                            const  Int i_begin = job_ptr[thread  ];
-                            const  Int i_end   = job_ptr[thread+1];
-                            
-                            const LInt new_pos = new_outer__[i_begin];
-                            const LInt     pos =     outer__[i_begin];
-                            
-                            const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
-                            
-                            // Starting position of thread in inner list.
-                            
-                            copy_buffer( &inner__[pos],  &new_inner__[new_pos],  thread_nonzeroes );
-                            
-                            copy_buffer( &values__[pos], &new_values__[new_pos], thread_nonzeroes );
-                        }
+                        ParallelDo(
+                            [=]( const Int thread )
+                            {
+                                const  Int i_begin = job_ptr[thread  ];
+                                const  Int i_end   = job_ptr[thread+1];
+                                
+                                const LInt new_pos = new_outer__[i_begin];
+                                const LInt     pos =     outer__[i_begin];
+                                
+                                const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
+                                
+                                // Starting position of thread in inner list.
+                                
+                                copy_buffer( &inner__[pos],  &new_inner__[new_pos],  thread_nonzeroes );
+                                
+                                copy_buffer( &values__[pos], &new_values__[new_pos], thread_nonzeroes );
+                            },
+                            thread_count
+                        );
                         
                         swap( new_outer,  outer  );
                         swap( new_inner,  inner  );
@@ -757,13 +767,16 @@ namespace Tensors
                     
                     B_outer[0] = 0;
                     
-                    #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        const Int p_i = p[i];
-                        
-                        B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
-                    }
+                    ParallelDo(
+                        [=]( const Int i )
+                        {
+                            const Int p_i = p[i];
+                            
+                            B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
+                        },
+                        m,
+                        ThreadCount()
+                    );
                 }
                 
                 B.Outer().Accumulate();
@@ -781,13 +794,8 @@ namespace Tensors
                     mut<Int > B_inner  = B.Inner().data();
                     mut<Scal> B_values = B.Values().data();
                     
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = B_job_ptr[thread  ];
-                        const Int i_end   = B_job_ptr[thread+1];
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    ParallelDo(
+                        [=,&B]( const Int i )
                         {
                             const Int p_i = p[i];
                             const LInt A_begin = A_outer[p_i  ];
@@ -800,8 +808,9 @@ namespace Tensors
                             copy_buffer( &A_inner [A_begin], &A_inner [A_end], &B_inner [B_begin] );
                             copy_buffer( &A_values[A_begin], &A_values[A_end], &B_values[B_begin] );
                             B.inner_sorted = true;
-                        }
-                    }
+                        },
+                        B_job_ptr
+                    );
                 }
                 
                 return B;
@@ -815,36 +824,32 @@ namespace Tensors
                 
                 mut<Int> q_inv = q_inv_buffer.data();
                 
-                {
-                    #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
-                    for( Int j = 0; j < n; ++j )
+                ParallelDo(
+                    [=]( const Int j )
                     {
                         q_inv[q[j]] = j;
-                    }
-                }
+                    },
+                    n,
+                    ThreadCount()
+                );
                 
                 copy_buffer( outer.data(), B.Outer().data(), m+1 );
                 
-                {
-                    auto & B_job_ptr = B.JobPtr();
-                    
-                    const Int thread_count = B_job_ptr.ThreadCount();
-                    
-    //                ptr<LInt> A_outer  = outer.data();
-                    ptr<Int > A_inner  = inner.data();
-                    ptr<Scal> A_values = values.data();
-                    
-                    ptr<LInt> B_outer  = B.Outer().data();
-                    mut<Int > B_inner  = B.Inner().data();
-                    mut<Scal> B_values = B.Values().data();
-                    
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
+                ParallelDo(
+                    [=,&B]( const Int thread )
                     {
                         TwoArrayQuickSort<Int,Scal,LInt> quick_sort;
                         
-                        const Int i_begin = B_job_ptr[thread  ];
-                        const Int i_end   = B_job_ptr[thread+1];
+//                            ptr<LInt> A_outer  = outer.data();
+                        ptr<Int > A_inner  = inner.data();
+                        ptr<Scal> A_values = values.data();
+                        
+                        ptr<LInt> B_outer  = B.Outer().data();
+                        mut<Int > B_inner  = B.Inner().data();
+                        mut<Scal> B_values = B.Values().data();
+                        
+                        const Int i_begin = B.JobPtr()[thread  ];
+                        const Int i_end   = B.JobPtr()[thread+1];
                         
                         for( Int i = i_begin; i < i_end; ++i )
                         {
@@ -866,8 +871,9 @@ namespace Tensors
                                 B.inner_sorted = true;
                             }
                         }
-                    }
-                }
+                    },
+                    B.JobPtr().ThreadCount()
+                );
                 
                 return B;
             }
@@ -879,13 +885,14 @@ namespace Tensors
                 Tensor1<Int,Int> q_inv_buffer ( ColCount() );
                 mut<Int> q_inv = q_inv_buffer.data();
                 
-                {
-                    #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
-                    for( Int j = 0; j < n; ++j )
+                ParallelDo(
+                    [=]( const Int j )
                     {
                         q_inv[q[j]] = j;
-                    }
-                }
+                    },
+                    n,
+                    ThreadCount()
+                );
                 
                 {
                     ptr<LInt> A_outer = outer.data();
@@ -893,37 +900,35 @@ namespace Tensors
                     
                     B_outer[0] = 0;
                     
-                    #pragma omp parallel for num_threads( ThreadCount() ) schedule( static )
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        const Int p_i = p[i];
-                        
-                        B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
-                    }
+                    ParallelDo(
+                        [=]( const Int i )
+                        {
+                            const Int p_i = p[i];
+                            
+                            B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
+                        },
+                        m,
+                        ThreadCount()
+                    );
                 }
                 
                 B.Outer().Accumulate();
                 
-                {
-                    auto & B_job_ptr = B.JobPtr();
-                    
-                    const Int thread_count = B_job_ptr.ThreadCount();
-                    
-                    ptr<LInt> A_outer  = outer.data();
-                    ptr<Int > A_inner  = inner.data();
-                    ptr<Scal> A_values = values.data();
-                    
-                    ptr<LInt> B_outer  = B.Outer().data();
-                    ptr<Int > B_inner  = B.Inner().data();
-                    mut<Scal> B_values = B.Values().data();
-                    
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
+                ParallelDo(
+                    [=,&B]( const Int thread )
                     {
+                        ptr<LInt> A_outer  = outer.data();
+                        ptr<Int > A_inner  = inner.data();
+                        ptr<Scal> A_values = values.data();
+                        
+                        ptr<LInt> B_outer  = B.Outer().data();
+                        mut<Int > B_inner  = B.Inner().data();
+                        mut<Scal> B_values = B.Values().data();
+                        
                         TwoArrayQuickSort<Int,Scal,LInt> quick_sort;
                         
-                        const Int i_begin = B_job_ptr[thread  ];
-                        const Int i_end   = B_job_ptr[thread+1];
+                        const Int i_begin = B.JobPtr()[thread  ];
+                        const Int i_end   = B.JobPtr()[thread+1];
                         
                         for( Int i = i_begin; i < i_end; ++i )
                         {
@@ -949,8 +954,9 @@ namespace Tensors
                                 B.inner_sorted = true;
                             }
                         }
-                    }
-                }
+                    },
+                    B.JobPtr().ThreadCount()
+                );
                 
                 return B;
             }
@@ -969,32 +975,35 @@ namespace Tensors
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        mut<LInt> c = counters.data(thread);
-                        
-                        ptr<LInt> A_outer  = Outer().data();
-                        ptr<Int>  A_inner  = Inner().data();
-                        
-                        ptr<LInt> B_outer  = B.Outer().data();
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    
+                    ParallelDo(
+                        [=,&B,&counters]( const Int thread )
                         {
-                            const LInt jj_begin = A_outer[i  ];
-                            const LInt jj_end   = A_outer[i+1];
+                            const Int i_begin = job_ptr[thread  ];
+                            const Int i_end   = job_ptr[thread+1];
                             
-                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            mut<LInt> c = counters.data(thread);
+                            
+                            ptr<LInt> A_outer  = Outer().data();
+                            ptr<Int>  A_inner  = Inner().data();
+                            
+                            ptr<LInt> B_outer  = B.Outer().data();
+                            
+                            for( Int i = i_begin; i < i_end; ++i )
                             {
-                                const Int j = A_inner[jj];
+                                const LInt jj_begin = A_outer[i  ];
+                                const LInt jj_end   = A_outer[i+1];
                                 
-                                c[i] += (B_outer[j+1] - B_outer[j]);
+                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                                {
+                                    const Int j = A_inner[jj];
+                                    
+                                    c[i] += (B_outer[j+1] - B_outer[j]);
+                                }
                             }
-                        }
-                    }
+                        },
+                        thread_count
+                    );
                     
                     AccumulateAssemblyCounters_Parallel( counters );
                     
@@ -1004,48 +1013,51 @@ namespace Tensors
                     
                     copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
                     
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        mut<LInt> c        = counters.data(thread);
-                        
-                        ptr<LInt> A_outer  = Outer().data();
-                        ptr<Int > A_inner  = Inner().data();
-                        ptr<Scal> A_values = Value().data();
-                        
-                        ptr<LInt> B_outer  = B.Outer().data();
-                        ptr<Int > B_inner  = B.Inner().data();
-                        ptr<Scal> B_values = B.Value().data();
-                        
-                        mut<LInt> C_inner  = C.Inner().data();
-                        ptr<Scal> C_values = C.Value().data();
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    ParallelDo(
+                        [=,&B,&counters]( const Int thread )
                         {
-                            const LInt jj_begin = A_outer[i  ];
-                            const LInt jj_end   = A_outer[i+1];
+                            const Int i_begin = job_ptr[thread  ];
+                            const Int i_end   = job_ptr[thread+1];
                             
-                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            mut<LInt> c        = counters.data(thread);
+                            
+                            ptr<LInt> A_outer  = Outer().data();
+                            ptr<Int > A_inner  = Inner().data();
+                            ptr<Scal> A_values = Value().data();
+                            
+                            ptr<LInt> B_outer  = B.Outer().data();
+                            ptr<Int > B_inner  = B.Inner().data();
+                            ptr<Scal> B_values = B.Value().data();
+                            
+                            mut<LInt> C_inner  = C.Inner().data();
+                            ptr<Scal> C_values = C.Value().data();
+                            
+                            for( Int i = i_begin; i < i_end; ++i )
                             {
-                                const Int j = A_inner[jj];
+                                const LInt jj_begin = A_outer[i  ];
+                                const LInt jj_end   = A_outer[i+1];
                                 
-                                const LInt kk_begin = B_outer[j  ];
-                                const LInt kk_end   = B_outer[j+1];
-                                
-                                for( LInt kk = kk_end; kk --> kk_begin; )
+                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
                                 {
-                                    const Int k = B_inner[kk];
-                                    const LInt pos = --c[i];
+                                    const Int j = A_inner[jj];
                                     
-                                    C_inner [pos] = k;
-                                    C_values[pos] = A_values[jj] * B_values[kk];
+                                    const LInt kk_begin = B_outer[j  ];
+                                    const LInt kk_end   = B_outer[j+1];
+                                    
+                                    for( LInt kk = kk_end; kk --> kk_begin; )
+                                    {
+                                        const Int k = B_inner[kk];
+                                        const LInt pos = --c[i];
+                                        
+                                        C_inner [pos] = k;
+                                        C_values[pos] = A_values[jj] * B_values[kk];
+                                    }
                                 }
                             }
-                        }
-                    }
+                        },
+                        thread_count
+                    );
+                    
                     // Finished expansion phase (counting sort).
                     
                     // Finally we row-sort inner and compress duplicates in inner and values.

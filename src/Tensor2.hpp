@@ -94,21 +94,14 @@ namespace Tensors {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
             
-            if( thread_count > 1 )
-            {
-                #pragma omp parallel for num_threads(thread_count) schedule( static )
-                for( Int i = 0; i < d_0; ++i )
+            ParallelDo(
+                [=]( const Int i )
                 {
                     copy_buffer( &a_[lda * i], &a[d_1 * i], d_1, 1 );
-                }
-            }
-            else
-            {
-                for( Int i = 0; i < d_0; ++i )
-                {
-                    copy_buffer( &a_[lda * i], &a[d_1 * i], d_1, 1 );
-                }
-            }
+                },
+                d_0,
+                thread_count
+            );
         }
         
         template<typename S>
@@ -117,21 +110,14 @@ namespace Tensors {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
             
-            if( thread_count > 1 )
-            {
-                #pragma omp parallel for num_threads(thread_count) schedule( static )
-                for( Int i = 0; i < d_0; ++i )
+            ParallelDo(
+                [=]( const Int i )
                 {
                     copy_buffer( &a[d_1 * i], &a_[lda * i], d_1, 1 );
-                }
-            }
-            else
-            {
-                for( Int i = 0; i < d_0; ++i )
-                {
-                    copy_buffer( &a[d_1 * i], &a_[lda * i], d_1, 1 );
-                }
-            }
+                },
+                d_0,
+                thread_count
+            );
         }
 
     private:
@@ -376,7 +362,6 @@ namespace Tensors {
 
         ptr<double> a_out = A.data();
 
-        #pragma omp parallel for collapse(2)
         for( Int i = 0; i < rows; ++i )
         {
             for( Int j = 0; j < cols; ++j )
@@ -397,7 +382,6 @@ namespace Tensors {
 
         ptr<double> a_out = A.data();
 
-        #pragma omp parallel for collapse(2)
         for( Int i = 0; i < rows; ++i )
         {
             for( Int j = 0; j < cols; ++j )

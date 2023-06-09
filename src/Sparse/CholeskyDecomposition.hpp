@@ -767,18 +767,13 @@ namespace Tensors
                 ptic("Initialize factorizers");
                 std::vector<std::unique_ptr<Factorizer>> SN_list (thread_count);
                 
-                if( thread_count > 1 )
-                {
-                    #pragma omp parallel for num_threads( thread_count ) schedule(static)
-                    for( Int thread = 0; thread < thread_count; ++thread )
+                ParallelDo(
+                    [&SN_list,this]( const Int thread )
                     {
                         SN_list[thread] = std::make_unique<Factorizer>(*this);
-                    }
-                }
-                else
-                {
-                    SN_list[0] = std::make_unique<Factorizer>(*this);
-                }
+                    },
+                    thread_count
+                );
                 
                 ptoc("Initialize factorizers");
                 
@@ -1198,13 +1193,8 @@ namespace Tensors
                 
                 JobPointers<LInt> job_ptr ( SN_count, U_rp.data(), thread_count, false );
                 
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
-                {
-                    const Int k_begin = job_ptr[thread  ];
-                    const Int k_end   = job_ptr[thread+1];
-                    
-                    for( Int k = k_begin; k < k_end; ++k )
+                ParallelDo(
+                    [&,this]( const Int k )
                     {
                         const Int i_begin  = SN_rp[k  ];
                         const Int i_end    = SN_rp[k+1];
@@ -1244,8 +1234,9 @@ namespace Tensors
                                 n_1
                             );
                         }
-                    }
-                }
+                    },
+                    job_ptr
+                );
                 
                 U = Matrix_T( std::move(U_rp), std::move(U_ci), std::move(U_val), n, n, thread_count );
             }

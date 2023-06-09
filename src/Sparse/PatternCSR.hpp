@@ -351,55 +351,59 @@ namespace Tensors
                     
                     if( symmetrize != 0 )
                     {
-                        #pragma omp parallel for num_threads( list_count )
-                        for( Int thread = 0; thread < list_count; ++thread )
-                        {
-                            const LInt entry_count = entry_counts[thread];
-                            
-                            ptr<Int> thread_idx = idx[thread];
-                            ptr<Int> thread_jdx = jdx[thread];
-                            
-                            mut<LInt> c = counters.data(thread);
-                            
-                            for( LInt k = entry_count; k --> 0; )
+                        ParallelDo(
+                            [&]( const Int thread )
                             {
-                                const Int i = thread_idx[k];
-                                const Int j = thread_jdx[k];
+                                const LInt entry_count = entry_counts[thread];
+                                
+                                ptr<Int> thread_idx = idx[thread];
+                                ptr<Int> thread_jdx = jdx[thread];
+                                
+                                mut<LInt> c = counters.data(thread);
+                                
+                                for( LInt k = entry_count; k --> 0; )
                                 {
-                                    const LInt pos = --c[i];
-                                    inner__[pos] = j;
+                                    const Int i = thread_idx[k];
+                                    const Int j = thread_jdx[k];
+                                    {
+                                        const LInt pos = --c[i];
+                                        inner__[pos] = j;
+                                    }
+                                    
+                                    c[j] -= static_cast<LInt>(i != j);
+                                    
+                                    const LInt pos  = c[j];
+                                    
+                                    inner__[pos] = i;
                                 }
-                                
-                                c[j] -= static_cast<LInt>(i != j);
-                                
-                                const LInt pos  = c[j];
-                                
-                                inner__[pos] = i;
-                            }
-                        }
+                            },
+                            list_count
+                        );
                     }
                     else
                     {
-                        #pragma omp parallel for num_threads( list_count )
-                        for( Int thread = 0; thread < list_count; ++thread )
-                        {
-                            const LInt entry_count = entry_counts[thread];
-                            
-                            ptr<Int> thread_idx = idx[thread];
-                            ptr<Int> thread_jdx = jdx[thread];
-                            
-                            mut<LInt> c = counters.data(thread);
-                            
-                            for( LInt k = entry_count; k --> 0; )
+                        ParallelDo(
+                            [&]( const Int thread )
                             {
-                                const Int i = thread_idx[k];
-                                const Int j = thread_jdx[k];
+                                const LInt entry_count = entry_counts[thread];
+                                
+                                ptr<Int> thread_idx = idx[thread];
+                                ptr<Int> thread_jdx = jdx[thread];
+                                
+                                mut<LInt> c = counters.data(thread);
+                                
+                                for( LInt k = entry_count; k --> 0; )
                                 {
-                                    const LInt pos = --c[i];
-                                    inner__[pos] = j;
+                                    const Int i = thread_idx[k];
+                                    const Int j = thread_jdx[k];
+                                    {
+                                        const LInt pos = --c[i];
+                                        inner__[pos] = j;
+                                    }
                                 }
-                            }
-                        }
+                            },
+                            list_count
+                        );
                     }
                     
                     // From here on, we may use as many threads as we want.
@@ -479,13 +483,8 @@ namespace Tensors
                         ptr<LInt> outer__    = outer.data();
                         ptr<Int>  inner__    = inner.data();
                         
-                        #pragma omp parallel for num_threads( thread_count )
-                        for( Int thread = 0; thread < thread_count; ++thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
+                        ParallelDo(
+                            [=]( const Int i )
                             {
                                 const LInt k_begin = outer__[i  ];
                                 const LInt k_end   = outer__[i+1];
@@ -497,8 +496,9 @@ namespace Tensors
                                     ++k;
                                 }
                                 diag_ptr__[i] = k;
-                            }
-                        }
+                            },
+                            job_ptr
+                        );
                     }
                     
                     diag_ptr_initialized = true;
@@ -522,17 +522,13 @@ namespace Tensors
                     ptr<LInt> outer__    = outer.data();
                     mut<LInt> costs__    = costs.data();
                     
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        for( Int i = i_begin; i < i_end; ++ i )
+                    ParallelDo(
+                        [=]( const Int i )
                         {
                             costs__[i+1] = outer__[i+1] - diag_ptr__[i];
-                        }
-                    }
+                        },
+                        job_ptr
+                    );
                     
                     costs.Accumulate( thread_count );
                     
@@ -559,17 +555,13 @@ namespace Tensors
                     ptr<LInt> outer__    = outer.data();
                     mut<LInt> costs__    = costs.data();
                     
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        for( Int i = i_begin; i < i_end; ++ i )
+                    ParallelDo(
+                        [=]( const Int i )
                         {
                             costs__[i+1] = diag_ptr__[i] - outer__[i];
-                        }
-                    }
+                        },
+                        job_ptr
+                    );
                     
                     costs.Accumulate( thread_count );
                     
@@ -726,7 +718,7 @@ namespace Tensors
                     //            ptic("Counting");
                     
                     ParallelDo(
-                        [&]( const Int thread )
+                        [&,this]( const Int thread )
                         {
                             const Int i_begin = job_ptr[thread  ];
                             const Int i_end   = job_ptr[thread+1];
@@ -771,7 +763,7 @@ namespace Tensors
                         RequireJobPtr();
                         
                         ParallelDo(
-                            [&]( const Int i )
+                            [this]( const Int i )
                             {
                                 std::sort( &inner[outer[i]], &inner[outer[i+1]] );
                             },
@@ -806,61 +798,63 @@ namespace Tensors
                         mut<LInt>     outer__ = outer.data();
                         mut<Int>      inner__ = inner.data();
                         
-                        #pragma omp parallel for num_threads( thread_count )
-                        for( Int thread = 0; thread < thread_count; ++thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            // To where we write.
-                            LInt jj_new        = outer__[i_begin];
-                            
-                            // Memoize the next entry in outer because outer will be overwritten
-                            LInt next_jj_begin = outer__[i_begin];
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
+                        ParallelDo(
+                            [=]( const Int thread )
                             {
-                                const LInt jj_begin = next_jj_begin;
-                                const LInt jj_end   = outer__[i+1];
+                                const Int i_begin = job_ptr[thread  ];
+                                const Int i_end   = job_ptr[thread+1];
+                                
+                                // To where we write.
+                                LInt jj_new        = outer__[i_begin];
                                 
                                 // Memoize the next entry in outer because outer will be overwritten
-                                next_jj_begin = jj_end;
+                                LInt next_jj_begin = outer__[i_begin];
                                 
-                                LInt row_nonzero_counter = static_cast<Int>(0);
-                                
-                                // From where we read.
-                                LInt jj = jj_begin;
-                                
-                                while( jj< jj_end )
+                                for( Int i = i_begin; i < i_end; ++i )
                                 {
-                                    Int j = inner__[jj];
+                                    const LInt jj_begin = next_jj_begin;
+                                    const LInt jj_end   = outer__[i+1];
                                     
+                                    // Memoize the next entry in outer because outer will be overwritten
+                                    next_jj_begin = jj_end;
+                                    
+                                    LInt row_nonzero_counter = static_cast<Int>(0);
+                                    
+                                    // From where we read.
+                                    LInt jj = jj_begin;
+                                    
+                                    while( jj< jj_end )
                                     {
-                                        if( jj > jj_new )
+                                        Int j = inner__[jj];
+                                        
                                         {
-                                            inner__[jj] = static_cast<Int>(0);
+                                            if( jj > jj_new )
+                                            {
+                                                inner__[jj] = static_cast<Int>(0);
+                                            }
+                                            
+                                            ++jj;
                                         }
                                         
-                                        ++jj;
-                                    }
-                                    
-                                    while( (jj < jj_end) && (j == inner__[jj]) )
-                                    {
-                                        if( jj > jj_new )
+                                        while( (jj < jj_end) && (j == inner__[jj]) )
                                         {
-                                            inner__[jj] = static_cast<Int>(0);
+                                            if( jj > jj_new )
+                                            {
+                                                inner__[jj] = static_cast<Int>(0);
+                                            }
+                                            ++jj;
                                         }
-                                        ++jj;
+                                        
+                                        inner__[jj_new] = j;
+                                        
+                                        ++jj_new;
+                                        ++row_nonzero_counter;
                                     }
-                                    
-                                    inner__[jj_new] = j;
-                                    
-                                    ++jj_new;
-                                    ++row_nonzero_counter;
+                                    new_outer__[i+1] = row_nonzero_counter;
                                 }
-                                new_outer__[i+1] = row_nonzero_counter;
-                            }
-                        }
+                            },
+                            thread_count
+                        );
                         
                         // This is the new array of outer indices.
                         new_outer.Accumulate( thread_count  );
@@ -871,19 +865,21 @@ namespace Tensors
                         
                         //TODO: Parallelization might be a bad idea here.
                         
-                        #pragma omp parallel for num_threads( thread_count )
-                        for( Int thread = 0; thread < thread_count; ++thread )
-                        {
-                            const  Int i_begin = job_ptr[thread  ];
-                            const  Int i_end   = job_ptr[thread+1];
-                            
-                            const LInt new_pos = new_outer__[i_begin];
-                            const LInt     pos =     outer__[i_begin];
-                            
-                            const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
-                            
-                            copy_buffer( &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes );
-                        }
+                        ParallelDo(
+                            [&,this]( const Int thread )
+                            {
+                                const  Int i_begin = job_ptr[thread  ];
+                                const  Int i_end   = job_ptr[thread+1];
+                                
+                                const LInt new_pos = new_outer__[i_begin];
+                                const LInt     pos =     outer__[i_begin];
+                                
+                                const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
+                                
+                                copy_buffer( &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes );
+                            },
+                            thread_count
+                        );
                         
                         swap( new_outer, outer  );
                         swap( new_inner, inner  );
@@ -917,32 +913,35 @@ namespace Tensors
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        mut<LInt> c       = counters.data(thread);
-                        
-                        ptr<LInt> A_outer = Outer().data();
-                        ptr<Int>  A_inner = Inner().data();
-                        
-                        ptr<LInt> B_outer = B.Outer().data();
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    
+                    ParallelDo(
+                        [&,this]( const Int thread )
                         {
-                            const LInt jj_begin = A_outer[i  ];
-                            const LInt jj_end   = A_outer[i+1];
+                            const Int i_begin = job_ptr[thread  ];
+                            const Int i_end   = job_ptr[thread+1];
                             
-                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            mut<LInt> c       = counters.data(thread);
+                            
+                            ptr<LInt> A_outer = Outer().data();
+                            ptr<Int>  A_inner = Inner().data();
+                            
+                            ptr<LInt> B_outer = B.Outer().data();
+                            
+                            for( Int i = i_begin; i < i_end; ++i )
                             {
-                                const Int j = A_inner[jj];
+                                const LInt jj_begin = A_outer[i  ];
+                                const LInt jj_end   = A_outer[i+1];
                                 
-                                c[i] += (B_outer[j+1] - B_outer[j]);
+                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                                {
+                                    const Int j = A_inner[jj];
+                                    
+                                    c[i] += (B_outer[j+1] - B_outer[j]);
+                                }
                             }
-                        }
-                    }
+                        },
+                        thread_count
+                    );
                     
                     ptoc("Create counters for counting sort");
                     
@@ -956,45 +955,48 @@ namespace Tensors
                     
                     ptic("Counting sort");
                     
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {   
-                        const Int i_begin = job_ptr[thread  ];
-                        const Int i_end   = job_ptr[thread+1];
-                        
-                        mut<LInt> c        = counters.data(thread);
-                        
-                        ptr<LInt> A_outer  = Outer().data();
-                        ptr<Int>  A_inner  = Inner().data();
-                        
-                        ptr<LInt> B_outer  = B.Outer().data();
-                        ptr<Int>  B_inner  = B.Inner().data();
-                        
-                        mut<Int>  C_inner  = C.Inner().data();
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    ParallelDo(
+                        [&,this]( const Int thread )
                         {
-                            const LInt jj_begin = A_outer[i  ];
-                            const LInt jj_end   = A_outer[i+1];
+                            const Int i_begin = job_ptr[thread  ];
+                            const Int i_end   = job_ptr[thread+1];
                             
-                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            mut<LInt> c        = counters.data(thread);
+                            
+                            ptr<LInt> A_outer  = Outer().data();
+                            ptr<Int>  A_inner  = Inner().data();
+                            
+                            ptr<LInt> B_outer  = B.Outer().data();
+                            ptr<Int>  B_inner  = B.Inner().data();
+                            
+                            mut<Int>  C_inner  = C.Inner().data();
+                            
+                            for( Int i = i_begin; i < i_end; ++i )
                             {
-                                const Int j = A_inner[jj];
+                                const LInt jj_begin = A_outer[i  ];
+                                const LInt jj_end   = A_outer[i+1];
                                 
-                                const LInt kk_begin = B_outer[j  ];
-                                const LInt kk_end   = B_outer[j+1];
-                                
-                                for( LInt kk = kk_end; kk --> kk_begin; )
+                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
                                 {
-                                    const Int k = B_inner[kk];
-                                    const LInt pos = --c[i];
+                                    const Int j = A_inner[jj];
                                     
-                                    C_inner [pos] = k;
-                                    //                            C_values[pos] = A_values[jj] * B_values[kk];
+                                    const LInt kk_begin = B_outer[j  ];
+                                    const LInt kk_end   = B_outer[j+1];
+                                    
+                                    for( LInt kk = kk_end; kk --> kk_begin; )
+                                    {
+                                        const Int k = B_inner[kk];
+                                        const LInt pos = --c[i];
+                                        
+                                        C_inner [pos] = k;
+//                                        C_values[pos] = A_values[jj] * B_values[kk];
+                                    }
                                 }
                             }
-                        }
-                    }
+                        },
+                        thread_count
+                    );
+                    
                     // Finished expansion phase (counting sort).
                     ptoc("Counting sort");
                     
@@ -1235,15 +1237,8 @@ namespace Tensors
                     ptr<LInt> outer__ = Outer().data();
                     ptr<Int>  inner__ = Inner().data();
                     
-                    auto & job_ptr__ = LowerTriangularJobPtr();
-                    
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
-                    {
-                        const Int i_begin = job_ptr__[thread];
-                        const Int i_end   = job_ptr__[thread+1];
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
+                    ParallelDo(
+                        [=]( const Int i )
                         {
                             const LInt k_begin = outer__[i];
                             const LInt k_end   =  diag__[i];
@@ -1276,10 +1271,10 @@ namespace Tensors
                                 }
                                 
                             } // for( Int k = k_begin; k < k_end; ++k )
-                            
-                        } // for( Int i = i_begin; i < i_end; ++i )
-                        
-                    } // #pragma omp parallel
+                        },
+                        LowerTriangularJobPtr()
+                    );
+                    
                 }
                 
                 ptoc(ClassName()+"::FillLowerTriangleFromUpperTriangle");

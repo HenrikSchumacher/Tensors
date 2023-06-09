@@ -28,11 +28,13 @@ namespace Tensors {
         {
             const Int thread_count = dims[0];
             
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                tensors[thread] = Tensor2<Scal,Int>( dims[1], dims[2] );
-            }
+            ParallelDo(
+                [&]( const Int thread )
+                {
+                    tensors[thread] = Tensor2<Scal,Int>( dims[1], dims[2] );
+                },
+                thread_count
+            );
         }
         
         ThreadTensor3( const Int d0, const Int d1, const Int d2, const Scal init )
@@ -42,11 +44,13 @@ namespace Tensors {
         {
             const Int thread_count = dims[0];
             
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                tensors[thread] = Tensor2<Scal,Int>( dims[1], dims[2], init );
-            }
+            ParallelDo(
+                [&]( const Int thread )
+                {
+                    tensors[thread] = Tensor2<Scal,Int>( dims[1], dims[2], init );
+                },
+                thread_count
+            );
         }
         
         template<typename S>
@@ -55,42 +59,48 @@ namespace Tensors {
         {
             const Int thread_count = dims[0];
             
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                tensors[thread].Read( a_ + thread * dims[1] * dims[2]);
-            }
+            ParallelDo(
+                [&]( const Int thread )
+                {
+                    tensors[thread].Read( a_ + thread * dims[1] * dims[2]);
+                },
+                thread_count
+            );
         }
 
         // Copy constructor
         explicit ThreadTensor3( const ThreadTensor3<Scal,Int> & other )
-        :   ThreadTensor3(other.dims[0],other.dims[1],other.dims[2])
+        :   ThreadTensor3( other.dims[0], other.dims[1], other.dims[2] )
         {
             print(ClassName()+" copy constructor");
-            
+
             const Int thread_count = dims[0];
-            
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                tensors[thread].Read( other[thread].data() );
-            }
+
+            ParallelDo(
+                [&]( const Int thread )
+                {
+                    tensors[thread].Read( other[thread].data() );
+                },
+                thread_count
+            );
         }
         
         // Copy constructor
         template<typename S, typename J, IS_INT(J)>
         explicit ThreadTensor3( const ThreadTensor3<S,J> & other )
-        :   ThreadTensor3(other.dims)
+        :   ThreadTensor3( other.dims[0], other.dims[1], other.dims[2] )
         {
             print(ClassName()+" copy constructor");
             
             const Int thread_count = dims[0];
             
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                tensors[thread].Read( other[thread].data() );
-            }
+            ParallelDo(
+                [&]( const Int thread )
+                {
+                    tensors[thread].Read( other[thread].data() );
+                },
+                thread_count
+            );
         }
         
 //        // Copy constructor
@@ -107,11 +117,13 @@ namespace Tensors {
 //
 //            const Int thread_count = dims[0];
 //
-//            #pragma omp parallel for num_threads( thread_count )
-//            for( Int thread = 0; thread < thread_count; ++thread )
-//            {
-//                tensors[thread] = Tensor2<Scal,Int>( other[thread] );
-//            }
+//            ParallelDo(
+//                [&]( const Int thread )
+//                {
+//                    tensors[thread] = Tensor2<Scal,Int>( other[thread] );
+//                },
+//                thread_count
+//            );
 //        }
         
         friend void swap(ThreadTensor3 &A, ThreadTensor3 &B) noexcept
@@ -268,33 +280,39 @@ namespace Tensors {
         {
             const Int thread_count = dims[0];
             
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                tensors[thread].fill( init );
-            }
+            ParallelDo(
+                [&]( const Int thread )
+                {
+                    tensors[thread].fill( init );
+                },
+                thread_count
+            );
         }
         
         void SetZero()
         {
             const Int thread_count = dims[0];
             
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                tensors[thread].SetZero();
-            }
+            ParallelDo(
+                [&]( const Int thread )
+                {
+                    tensors[thread].SetZero();
+                },
+                thread_count
+            );
         }
 
         void Write( mut<Scal> b ) const
         {
             const Int thread_count = dims[0];
             
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                tensors[thread].Write( b + dims[1] * dims[2] * thread );
-            }
+            ParallelDo(
+                [&]( const Int thread )
+                {
+                    tensors[thread].Write( b + dims[1] * dims[2] * thread );
+                },
+                thread_count
+            );
         }
         
         template<typename S>

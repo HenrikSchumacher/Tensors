@@ -106,11 +106,8 @@ namespace Tensors
             
             const auto & job_ptr = JobPointers<Int>(n,thread_count);
             
-            // OpenMP has a considerable overhead at launching the threads...
-            if( thread_count > 1)
-            {
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
+            ParallelDo(
+                [&]( const Int thread)
                 {
                     // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                     Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
@@ -124,23 +121,9 @@ namespace Tensors
                         ker.ApplyBlock(i,i);
                         ker.WriteY(i);
                     }
-                }
-            }
-            else
-            {
-                // Initialize local kernel and feed it all the information that is going to be constant along its life time.
-                Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
-                
-                const Int i_begin = job_ptr[0  ];
-                const Int i_end   = job_ptr[0+1];
-                
-                for( Int i = i_begin; i < i_end; ++i )
-                {
-                    ker.CleanseY();
-                    ker.ApplyBlock(i,i);
-                    ker.WriteY(i);
-                }
-            }
+                },
+                thread_count
+            );
             
             ptoc(ClassName()+"::Dot" );
         }

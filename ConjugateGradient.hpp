@@ -101,20 +101,18 @@ namespace Tensors
             A( x.data(), u.data() );
             ptoc(ClassName()+ ": Apply operator");
             // r = b - A.x
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                const Int i_begin = JobPointer( n, thread_count, thread   );
-                const Int i_end   = JobPointer( n, thread_count, thread+1 );
-                
-                for( Int i = i_begin; i < i_end; ++i )
+            
+            ParallelDo(
+                [K,&r,&u]( const Int i )
                 {
                     for( Int k = 0; k < K; ++k )
                     {
                         r[i][k] -= u[i][k];
                     }
-                }
-            }
+                },
+                n,
+                thread_count
+            );
             
             // z = P.r
             ptic(ClassName()+ ": Apply preconditioner");
@@ -146,21 +144,19 @@ namespace Tensors
                 
                 // x = x + alpha p;
                 // r = r - alpha u;
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
-                {
-                    const Int i_begin = JobPointer( n, thread_count, thread   );
-                    const Int i_end   = JobPointer( n, thread_count, thread+1 );
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+                
+                ParallelDo(
+                    [&,K]( const Int i )
                     {
                         for( Int k = 0; k < K; ++k )
                         {
                             x[i][k] += alpha[k] * p[i][k];
                             r[i][k] -= alpha[k] * u[i][k];
                         }
-                    }
-                }
+                    },
+                    n,
+                    thread_count
+                );
                 
                 // z = P.r;
                 ptic(ClassName()+ ": Apply preconditioner");
@@ -181,20 +177,17 @@ namespace Tensors
                 
                 // TODO: Put this at the start of the while loop, and only for iter > 0?
                 // p = z + beta p;
-                #pragma omp parallel for num_threads( thread_count )
-                for( Int thread = 0; thread < thread_count; ++thread )
-                {
-                    const Int i_begin = JobPointer( n, thread_count, thread   );
-                    const Int i_end   = JobPointer( n, thread_count, thread+1 );
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
+                ParallelDo(
+                    [&,K]( const Int i )
                     {
                         for( Int k = 0; k < K; ++k )
                         {
                             p[i][k] = z[i][k] + beta[k] * p[i][k];
                         }
-                    }
-                }
+                    },
+                    n,
+                    thread_count
+                );
                 
                 succeeded = CheckResiduals();
                 ++iter;
@@ -210,27 +203,26 @@ namespace Tensors
         
         void ComputeScalarProducts( ptr<Scal> v, ptr<Scal> w, RealVector_T & dots )
         {
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                const Int i_begin = JobPointer( n, thread_count, thread   );
-                const Int i_end   = JobPointer( n, thread_count, thread+1 );
-                
-                RealVector_T sums;
-                
-                sums.SetZero();
-                
-                for( Int i = i_begin; i < i_end; ++i )
+            ParallelDo(
+                [&,K]( const Int thread )
                 {
-                    for( Int k = 0; k < K; ++k )
+                    RealVector_T sums;
+                    
+                    sums.SetZero();
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        // We know that all scalar products that we compute have to be real-valued.
-                        sums[k] += Scalar::Re(Scalar::Conj(v[K * i + k]) * w[K * i + k]);
+                        for( Int k = 0; k < K; ++k )
+                        {
+                            // We know that all scalar products that we compute have to be real-valued.
+                            sums[k] += Scalar::Re(Scalar::Conj(v[K * i + k]) * w[K * i + k]);
+                        }
                     }
-                }
-                
-                sums.Write( reduction_buffer.data(thread) );
-            }
+                    
+                    sums.Write( reduction_buffer.data(thread) );
+                },
+                thread_count
+            );
             
             reduction_buffer.AddReduce( dots.data(), false );
         }

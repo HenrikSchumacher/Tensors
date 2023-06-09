@@ -224,13 +224,9 @@ namespace Tensors
             ptic(ClassName()+": Synthesize solution.");
             // z = y * Q;
             z.SetZero();
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                const Int i_begin = job_ptr[thread  ];
-                const Int i_end   = job_ptr[thread+1];
-                
-                for( Int i = i_begin; i < i_end; ++i )
+            
+            ParallelDo(
+                [&,iter,K]( const Int i )
                 {
                     for( Int j = 0; j < iter; ++j )
                     {
@@ -239,8 +235,9 @@ namespace Tensors
                             z(i,k) += y(j,k) * Q(j,i,k);
                         }
                     }
-                }
-            }
+                },
+                job_ptr
+            );
             
             if constexpr( side == Side::Left )
             {
@@ -390,26 +387,28 @@ namespace Tensors
         
         void ComputeNorms( ptr<Scal> v, RealVector_T & norms )
         {
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                const Int i_begin = job_ptr[thread  ];
-                const Int i_end   = job_ptr[thread+1];
-                
-                RealVector_T sums;
-                
-                sums.SetZero();
-                
-                for( Int i = i_begin; i < i_end; ++i )
+            ParallelDo(
+                [&,K,v]( const Int i )
                 {
-                    for( Int k = 0; k < K; ++k )
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
+                    
+                    RealVector_T sums;
+                    
+                    sums.SetZero();
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        sums[k] += Scalar::AbsSquared(v[K * i + k]);
+                        for( Int k = 0; k < K; ++k )
+                        {
+                            sums[k] += Scalar::AbsSquared(v[K * i + k]);
+                        }
                     }
-                }
-                
-                sums.Write( &real_reduction_buffer[thread][0] );
-            }
+                    
+                    sums.Write( &real_reduction_buffer[thread][0] );
+                },
+                thread_count
+            );
             
             real_reduction_buffer.AddReduce( norms.data(), false );
             
@@ -421,26 +420,28 @@ namespace Tensors
         
         void ComputeScalarProducts( ptr<Scal> v, ptr<Scal> w, Vector_T & dots )
         {
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                const Int i_begin = job_ptr[thread  ];
-                const Int i_end   = job_ptr[thread+1];
-                
-                Vector_T sums;
-                
-                sums.SetZero();
-                
-                for( Int i = i_begin; i < i_end; ++i )
+            ParallelDo(
+                [=,&job_ptr]( const Int thread )
                 {
-                    for( Int k = 0; k < K; ++k )
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
+                    
+                    Vector_T sums;
+                    
+                    sums.SetZero();
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
                     {
-                        sums[k] += Scalar::Conj(v[K * i + k]) * w[K * i + k];
+                        for( Int k = 0; k < K; ++k )
+                        {
+                            sums[k] += Scalar::Conj(v[K * i + k]) * w[K * i + k];
+                        }
                     }
-                }
-                
-                sums.Write( &reduction_buffer[thread][0] );
-            }
+                    
+                    sums.Write( &reduction_buffer[thread][0] );
+                },
+                thread_count
+            );
             
             reduction_buffer.AddReduce( dots.data(), false );
         }
@@ -448,13 +449,8 @@ namespace Tensors
         template<Scalar::Flag flag>
         void MulAdd( mut<Scal> v, ptr<Scal> w, const Vector_T & factors )
         {
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                const Int i_begin = job_ptr[thread  ];
-                const Int i_end   = job_ptr[thread+1];
-                
-                for( Int i = i_begin; i < i_end; ++i )
+            ParallelDo(
+                [&,K,v,w]( const Int i )
                 {
                     for( Int k = 0; k < K; ++k )
                     {
@@ -467,33 +463,36 @@ namespace Tensors
                             v[K * i + k] += w[K * i + k] * factors[k];
                         }
                     }
-                }
-            }
+                },
+                job_ptr
+            );
         }
         
         void InverseScale( mut<Scal> q, const RealVector_T & factors )
         {
-            #pragma omp parallel for num_threads( thread_count )
-            for( Int thread = 0; thread < thread_count; ++thread )
-            {
-                RealVector_T factors_inv;
-                
-                for( Int k = 0; k < K; ++k )
+            ParallelDo(
+                [&,K,q]( const Int thread )
                 {
-                    factors_inv[k] = Scalar::Inv<Real>( factors[k] );
-                }
-                
-                const Int i_begin = job_ptr[thread  ];
-                const Int i_end   = job_ptr[thread+1];
-                
-                for( Int i = i_begin; i < i_end; ++i )
-                {
+                    RealVector_T factors_inv;
+                    
                     for( Int k = 0; k < K; ++k )
                     {
-                        q[K * i + k] *= factors_inv[k];
+                        factors_inv[k] = Scalar::Inv<Real>( factors[k] );
                     }
-                }
-            }
+                    
+                    const Int i_begin = job_ptr[thread  ];
+                    const Int i_end   = job_ptr[thread+1];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        for( Int k = 0; k < K; ++k )
+                        {
+                            q[K * i + k] *= factors_inv[k];
+                        }
+                    }
+                },
+                thread_count
+            );
         }
         
     public:

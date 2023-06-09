@@ -254,29 +254,18 @@ namespace Tensors
         
         bool PostOrdered() const
         {
-            bool postordered = true;
-            
-            if( thread_count > 1 )
-            {
-                #pragma omp parallel for num_threads( thread_count ) reduction( && : postordered ) schedule( static )
-                for( Int i = 0; i < n-1; ++i )
+            return ParallelDoReduce(
+                [=]( const Int i ) -> bool
                 {
                     const Int p_i = parents[i];
-                    
-                    postordered = postordered && (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
-                }
-            }
-            else
-            {
-                for( Int i = 0; i < n-1; ++i )
-                {
-                    const Int p_i = parents[i];
-                    
-                    postordered = postordered && (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
-                }
-            }
-            
-            return postordered;
+                 
+                    return (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
+                },
+                AndReducer(),
+                true,
+                n-1,
+                thread_count
+            );
         }
         
         

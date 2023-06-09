@@ -27,21 +27,14 @@ public:
                 }
                 else
                 {
-                    if( job_ptr.ThreadCount() > 1 )
-                    {
-                        #pragma omp parallel for num_threads(job_ptr.ThreadCount())
-                        for( Int i = 0; i < m; ++ i )
+                    ParallelDo(
+                        [&]( const Int i )
                         {
                             zerofy_buffer( &Y[ldY*i], cols );
-                        }
-                    }
-                    else
-                    {
-                        for( Int i = 0; i < m; ++ i )
-                        {
-                            zerofy_buffer( &Y[ldY*i], cols );
-                        }
-                    }
+                        },
+                        m,
+                        job_ptr.ThreadCount()
+                    );
                 }
             }
             else if( beta == static_cast<S_out>(1) )
@@ -56,21 +49,14 @@ public:
                 }
                 else
                 {
-                    if( job_ptr.ThreadCount() > 1 )
-                    {
-                        #pragma omp parallel for num_threads(job_ptr.ThreadCount())
-                        for( Int i = 0; i < m; ++ i )
+                    ParallelDo(
+                        [&]( const Int i )
                         {
                             scale_buffer( beta, &Y[ldY*i], cols );
-                        }
-                    }
-                    else
-                    {
-                        for( Int i = 0; i < m; ++ i )
-                        {
-                            scale_buffer( beta, &Y[ldY*i], cols );
-                        }
-                    }
+                        },
+                        m,
+                        job_ptr.ThreadCount()
+                    );
                 }
             }
             return;
@@ -188,118 +174,120 @@ private:
             typename Scalar::Real<Scal>
         >;
         
-        #pragma omp parallel for num_threads( job_ptr.ThreadCount() ) schedule( static )
-        for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
-        {
-            Tensor1<T,Int> z (cols);
-            const Int i_begin = job_ptr[thread  ];
-            const Int i_end   = job_ptr[thread+1];
-
-            for( Int i = i_begin; i < i_end; ++i )
+        ParallelDo(
+            [&]( const Int thread )
             {
-                const LInt l_begin = rp[i  ];
-                const LInt l_end   = rp[i+1];
+                Tensor1<T,Int> z (cols);
+                const Int i_begin = job_ptr[thread  ];
+                const Int i_end   = job_ptr[thread+1];
 
-        //            __builtin_prefetch( &ci[l_end] );
-        //
-        //            if constexpr ( a_flag )
-        //            {
-        //                __builtin_prefetch( &a[l_end] );
-        //            }
-
-                if( l_end > l_begin )
+                for( Int i = i_begin; i < i_end; ++i )
                 {
-                    // create a local buffer for accumulating the result
+                    const LInt l_begin = rp[i  ];
+                    const LInt l_end   = rp[i+1];
 
+            //            __builtin_prefetch( &ci[l_end] );
+            //
+            //            if constexpr ( a_flag )
+            //            {
+            //                __builtin_prefetch( &a[l_end] );
+            //            }
+
+                    if( l_end > l_begin )
                     {
-                        const LInt l = l_begin;
-                        const Int  j = ci[l];
+                        // create a local buffer for accumulating the result
 
-                        __builtin_prefetch( &X[ldX * ci[l+1]] );
+                        {
+                            const LInt l = l_begin;
+                            const Int  j = ci[l];
 
-                        if constexpr ( a_flag == Generic )
-                        {
-                            combine_buffers<Generic,Zero>(
-                              a[l],            &X[ldX * j],
-                              Scalar::Zero<T>, &z[0],
-                              cols
-                            );
+                            __builtin_prefetch( &X[ldX * ci[l+1]] );
+
+                            if constexpr ( a_flag == Generic )
+                            {
+                                combine_buffers<Generic,Zero>(
+                                  a[l],            &X[ldX * j],
+                                  Scalar::Zero<T>, &z[0],
+                                  cols
+                                );
+                            }
+                            else
+                            {
+                                combine_buffers<One,Zero>(
+                                  Scalar::One<T>,  &X[ldX * j],
+                                  Scalar::Zero<T>, &z[0],
+                                  cols
+                                );
+                            }
                         }
-                        else
+                        // Remark: l_end-1 is unproblematic here because we have l_end > l_begin and
+                        // l_begin and l_end are of the same type LInt .
+                        // So if LInt is unsigned, then l_end == 0 cannot occur.
+                        for( LInt l = l_begin+1; l < l_end-1; ++l )
                         {
-                            combine_buffers<One,Zero>(
-                              Scalar::One<T>,  &X[ldX * j],
-                              Scalar::Zero<T>, &z[0],
-                              cols
-                            );
+                            const Int j = ci[l];
+
+                            __builtin_prefetch( &X[ldX * ci[l+1]] );
+
+                            if constexpr ( a_flag == Generic )
+                            {
+                                combine_buffers<Generic,One>(
+                                  a[l],           &X[ldX * j],
+                                  Scalar::One<T>, &z[0],
+                                  cols
+                                );
+                            }
+                            else
+                            {
+                                combine_buffers<One,One>(
+                                  Scalar::One<T>, &X[ldX * j],
+                                  Scalar::One<T>, &z[0],
+                                  cols
+                                );
+                            }
                         }
+
+                        if( l_end > l_begin+1 )
+                        {
+                            const LInt l = l_end-1;
+
+                            const Int  j = ci[l];
+
+                            if constexpr ( a_flag == Generic)
+                            {
+                                combine_buffers<Generic,One>(
+                                    a[l],           &X[ldX * j],
+                                    Scalar::One<T>, &z[0],
+                                    cols
+                                );
+                            }
+                            else
+                            {
+                                combine_buffers<One,One>(
+                                    Scalar::One<T>, &X[ldX * j],
+                                    Scalar::One<T>, &z[0],
+                                    cols
+                                );
+                            }
+                        }
+
+                        // incorporate the local updates into Y-buffer
+
+                        combine_buffers<alpha_flag,beta_flag>(
+                            alpha, &z[0],
+                            beta,  &Y[ldY * i],
+                            cols
+                        );
                     }
-                    // Remark: l_end-1 is unproblematic here because we have l_end > l_begin and
-                    // l_begin and l_end are of the same type LInt .
-                    // So if LInt is unsigned, then l_end == 0 cannot occur.
-                    for( LInt l = l_begin+1; l < l_end-1; ++l )
+                    else
                     {
-                        const Int j = ci[l];
-
-                        __builtin_prefetch( &X[ldX * ci[l+1]] );
-
-                        if constexpr ( a_flag == Generic )
-                        {
-                            combine_buffers<Generic,One>(
-                              a[l],           &X[ldX * j],
-                              Scalar::One<T>, &z[0],
-                              cols
-                            );
-                        }
-                        else
-                        {
-                            combine_buffers<One,One>(
-                              Scalar::One<T>, &X[ldX * j],
-                              Scalar::One<T>, &z[0],
-                              cols
-                            );
-                        }
+                        // zerofy the relevant portion of the Y-buffer
+                        zerofy_buffer( &Y[ldY * i], cols );
                     }
-
-                    if( l_end > l_begin+1 )
-                    {
-                        const LInt l = l_end-1;
-
-                        const Int  j = ci[l];
-
-                        if constexpr ( a_flag == Generic)
-                        {
-                            combine_buffers<Generic,One>(
-                                a[l],           &X[ldX * j],
-                                Scalar::One<T>, &z[0],
-                                cols
-                            );
-                        }
-                        else
-                        {
-                            combine_buffers<One,One>(
-                                Scalar::One<T>, &X[ldX * j],
-                                Scalar::One<T>, &z[0],
-                                cols
-                            );
-                        }
-                    }
-
-                    // incorporate the local updates into Y-buffer
-
-                    combine_buffers<alpha_flag,beta_flag>(
-                        alpha, &z[0],
-                        beta,  &Y[ldY * i],
-                        cols
-                    );
                 }
-                else
-                {
-                    // zerofy the relevant portion of the Y-buffer
-                    zerofy_buffer( &Y[ldY * i], cols );
-                }
-            }
-        }
+            },
+            job_ptr.ThreadCount()
+        );
         
         ptoc(tag);
     }
