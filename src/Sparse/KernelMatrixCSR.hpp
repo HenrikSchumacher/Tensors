@@ -79,11 +79,8 @@ namespace Tensors
                     
                     const Int thread_count = job_ptr.ThreadCount();
                     
-                    // OpenMP has a considerable overhead at launching the threads...
-                    if( thread_count > 1)
-                    {
-                        #pragma omp parallel for num_threads( thread_count )
-                        for( Int thread = 0; thread < thread_count; ++thread )
+                    ParallelDo(
+                        [&job_ptr,outer,inner,values,diag]( const Int thread )
                         {
                             Kernel_T ker ( values );
                             
@@ -122,49 +119,10 @@ namespace Tensors
                                 } // for( LInt k = k_begin; k < k_end; ++k )
                                 
                             } // for( Int i = i_begin; i < i_end; ++i )
-                            
-                        } // #pragma omp parallel
-                    }
-                    else
-                    {
-                        Kernel_T ker ( values );
-                        
-                        const Int i_begin = job_ptr[0  ];
-                        const Int i_end   = job_ptr[0+1];
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
-                        {
-                            const LInt k_begin = outer[i];
-                            const LInt k_end   =  diag[i];
-                            
-                            for( LInt k = k_begin; k < k_end; ++k )
-                            {
-                                const Int j = inner[k];
-                                
-                                LInt L =  diag[j];
-                                LInt R = outer[j+1]-1;
-                                
-                                while( L < R )
-                                {
-                                    const LInt M = R - (R-L)/static_cast<LInt>(2);
-                                    const  Int col = inner[M];
-                                    
-                                    if( col > i )
-                                    {
-                                        R = M-1;
-                                    }
-                                    else
-                                    {
-                                        L = M;
-                                    }
-                                }
-                                
-                                ker.TransposeBlock(L,k);
-                                
-                            } // for( Int k = k_begin; k < k_end; ++k )
-                            
-                        } // for( Int i = i_begin; i < i_end; ++i )
-                    }
+                        },
+                        thread_count
+                    );
+                    
                 }
                 
                 ptoc(ClassName()+"::FillLowerTriangleFromUpperTriangle");
@@ -211,11 +169,8 @@ namespace Tensors
                 
                 const Int thread_count = job_ptr.ThreadCount();
                 
-                // OpenMP has a considerable overhead at launching the threads...
-                if( thread_count > 1 )
-                {
-                    #pragma omp parallel for num_threads( thread_count )
-                    for( Int thread = 0; thread < thread_count; ++thread )
+                ParallelDo(
+                    [=, &job_ptr, this]( const Int thread )
                     {
                         // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                         Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
@@ -272,67 +227,10 @@ namespace Tensors
                             }
                             
                         }
-                    }
-                }
-                else
-                {
-                    // Initialize local kernel and feed it all the information that is going to be constant along its life time.
-                    Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
-                    
-                    ptr<LInt> rp = pattern.Outer().data();
-                    ptr<Int> ci = pattern.Inner().data();
-                    
-                    // Kernel is supposed the following rows of pattern:
-                    const Int i_begin = job_ptr[0  ];
-                    const Int i_end   = job_ptr[0+1];
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
-                    {
-                        // These are the corresponding nonzero blocks in i-th row.
-                        const LInt k_begin = rp[i  ];
-                        const LInt k_end   = rp[i+1];
-                        
-                        if( k_end > k_begin )
-                        {
-                            // Clear the local vector chunk of the kernel.
-                            ker.CleanseY();
-                            
-                            // Perform all but the last calculation in row with prefetch.
-                            for( LInt k = k_begin; k < k_end-1; ++k )
-                            {
-                                const Int j = ci[k];
-                                
-                                ker.Prefetch(k,ci[k+1]);
-                                
-                                // Let the kernel apply to the k-th block to the j-th chunk of the input.
-                                // The result is stored in the kernel's local vector chunk X.
-                                ker.ApplyBlock(k,j);
-                            }
-                            
-                            // Perform last calculation in row without prefetch.
-                            {
-                                const LInt k = k_end-1;
-                                
-                                const Int j = ci[k];
-                                
-                                // Let the kernel apply to the k-th block to the j-th chunk of the input X.
-                                // The result is stored in the kernel's local vector chunk.
-                                ker.ApplyBlock(k,j);
-                            }
-                            
-                            // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
-                            
-                            ker.WriteY(i);
-                        }
-                        else
-                        {
-                            // Make sure that Y(i) is correctly overwritten in the case that there are not entries in the row.
-                            ker.WriteYZero(i);
-                        }
-                        
-                    }
-                    
-                }
+                    },
+                    thread_count
+                );
+                
                 ptoc(ClassName()+"::Dot" );
             }
             
@@ -363,11 +261,11 @@ namespace Tensors
                     mut<Scal> v = this->values.data();
                     Tensor1<Scal,LInt> new_values ( nnz );
                     
-                    #pragma omp parallel for num_threads( this->ThreadCount() ) schedule(static)
-                    for( Int i = 0; i < nnz; ++i )
-                    {
-                        v[i] = u[perm[i]];
-                    }
+                    ParallelDo(
+                        [&]( const Int i ) { v[i] = u[perm[i]]; },
+                        nnz,
+                        this->ThreadCount()
+                    );
                     
                     swap( this->values, new_values);
                 }

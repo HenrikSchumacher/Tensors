@@ -54,8 +54,6 @@ namespace Tensors {
         
         const Int line_count = (m * sizeof(LInt) + CACHE_LINE_WIDTH - 1 ) / CACHE_LINE_WIDTH;
         
-    //        valprint("line_count",line_count);
-        
         LInt * S_buffer = nullptr;
         safe_alloc(S_buffer,thread_count+1);
         mut<LInt> S = S_buffer;
@@ -64,53 +62,40 @@ namespace Tensors {
         const Int step = line_count / thread_count;
         const Int corr = line_count % thread_count;
         
-    //        for( Int thread = 0; thread < thread_count; ++thread )
-    //        {
-    //            // each thread does the accumulation on its chunk independently
-    //            const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
-    //            const Int j_end   = std::min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
-    //
-    //            print("thread = "+ToString(thread)+", j_begin = "+ToString(j_begin)+", j_end = "+ToString(j_end));
-    //        }
-        
-    //        tic("local acc");
-        #pragma omp parallel for num_threads( thread_count )
-        for( Int thread = 0; thread < thread_count; ++thread )
-        {
-            // each thread does the accumulation on its chunk independently
-            const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
-            const Int j_end   = std::min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
-            
-            if( j_end > j_begin )
+        ParallelDo(
+            [=,&counters]( const Int thread )
             {
-                for( Int i = 1; i < thread_count; ++i )
-                {
-                    counters[i][j_begin] += counters[i-1][j_begin];
-                }
+                // each thread does the accumulation on its chunk independently
+                const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
+                const Int j_end   = std::min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
                 
-                for( Int j = j_begin+1; j < j_end; ++j )
+                if( j_end > j_begin )
                 {
-                    counters[0][j] += counters[thread_count-1][j-1];
-                    
                     for( Int i = 1; i < thread_count; ++i )
                     {
-                        counters[i][j] += counters[i-1][j];
+                        counters[i][j_begin] += counters[i-1][j_begin];
                     }
+                    
+                    for( Int j = j_begin+1; j < j_end; ++j )
+                    {
+                        counters[0][j] += counters[thread_count-1][j-1];
+                        
+                        for( Int i = 1; i < thread_count; ++i )
+                        {
+                            counters[i][j] += counters[i-1][j];
+                        }
+                    }
+                    
+                    S[thread+1] = counters(thread_count-1,j_end-1);
                 }
-                
-                S[thread+1] = counters(thread_count-1,j_end-1);
-            }
-            else
-            {
-                S[thread+1] = static_cast<LInt>(0);
-            }
-        }
-    //        toc("local acc");
-        
-    //        for( Int i = 0; i < thread_count; ++i )
-    //        {
-    //            valprint("S[i]",S[i]);
-    //        }
+                else
+                {
+                    S[thread+1] = static_cast<LInt>(0);
+                }
+            },
+            thread_count
+        );
+
         // scan through the last results of each chunk
         {
             LInt s_local = static_cast<LInt>(0);
@@ -121,34 +106,28 @@ namespace Tensors {
             }
         }
 
-    //        for( Int i = 0; i < thread_count; ++i )
-    //        {
-    //            valprint("S[i]",S[i]);
-    //        }
-    //
-    //        tic("correction");
-        #pragma omp parallel for num_threads( thread_count )
-        for( Int thread = 0; thread < thread_count; ++ thread )
-        {
-            // each thread adds-in its correction
-            const LInt correction = S[thread];
-            
-            const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
-            const Int j_end   = std::min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
-
-            
-            for( Int i = 0; i < thread_count; ++i )
+        ParallelDo(
+            [=,&counters]( const Int thread )
             {
-                mut<LInt> c_i = counters.data(i);
+                // each thread adds-in its correction
+                const LInt correction = S[thread];
                 
-                for( Int j = j_begin; j < j_end; ++j )
+                const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
+                const Int j_end   = std::min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
+
+                
+                for( Int i = 0; i < thread_count; ++i )
                 {
-                    c_i[j] += correction;
+                    mut<LInt> c_i = counters.data(i);
+                    
+                    for( Int j = j_begin; j < j_end; ++j )
+                    {
+                        c_i[j] += correction;
+                    }
                 }
-            }
-            
-        }
-    //        toc("correction");
+            },
+            thread_count
+        );
         
         ptoc("AccumulateAssemblyCounters (parallel)");
     }
@@ -174,37 +153,40 @@ namespace Tensors {
         // using parallel count sort to sort the cluster (i,j)-pairs according to i.
         // storing counters of each i-index in thread-interleaved format
         // TODO: Improve data layout (transpose counts).
-        #pragma omp parallel for num_threads( list_count )
-        for( Int thread = 0; thread < list_count; ++thread )
-        {
-            ptr<Int> thread_idx = idx[thread];
-            ptr<Int> thread_jdx = jdx[thread];
-            
-            const LInt entry_count = entry_counts[thread];
-            
-            mut<LInt> c = counters.data(thread);
-            
-            if( symmetrize!=0 )
+        
+        ParallelDo(
+            [=,&counters]( const Int thread )
             {
-                for( LInt k = 0; k < entry_count; ++k )
+                ptr<Int> thread_idx = idx[thread];
+                ptr<Int> thread_jdx = jdx[thread];
+                
+                const LInt entry_count = entry_counts[thread];
+                
+                mut<LInt> c = counters.data(thread);
+                
+                if( symmetrize!=0 )
                 {
-                    const Int i = thread_idx[k];
-                    const Int j = thread_jdx[k];
-                    
-                    c[i] ++;
-                    c[j] += static_cast<Int>(i != j);
+                    for( LInt k = 0; k < entry_count; ++k )
+                    {
+                        const Int i = thread_idx[k];
+                        const Int j = thread_jdx[k];
+                        
+                        c[i] ++;
+                        c[j] += static_cast<Int>(i != j);
+                    }
                 }
-            }
-            else
-            {
-                for( LInt k = 0; k < entry_count; ++k )
+                else
                 {
-                    const Int i = thread_idx[k];
-                    
-                    ++c[i];
+                    for( LInt k = 0; k < entry_count; ++k )
+                    {
+                        const Int i = thread_idx[k];
+                        
+                        ++c[i];
+                    }
                 }
-            }
-        }
+            },
+            list_count
+        );
         
     //        print(counters.ToString());
     //        AccumulateAssemblyCounters(counters);

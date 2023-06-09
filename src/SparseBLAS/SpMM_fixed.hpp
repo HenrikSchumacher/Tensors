@@ -26,11 +26,11 @@ public:
                 }
                 else
                 {
-                    #pragma omp parallel for num_threads(job_ptr.ThreadCount())
-                    for( Int i = 0; i < m; ++ i )
-                    {
-                        zerofy_buffer<cols>( &Y[ldY*i] );
-                    }
+                    ParallelDo(
+                        [=]( const Int i ){ zerofy_buffer<cols>( &Y[ldY*i] ); },
+                        m,
+                        job_ptr.ThreadCount()
+                    );
                 }
             }
             else if( beta == static_cast<S_out>(1) )
@@ -45,21 +45,11 @@ public:
                 }
                 else
                 {
-                    if( job_ptr.ThreadCount() > 1 )
-                    {
-                        #pragma omp parallel for num_threads(job_ptr.ThreadCount())
-                        for( Int i = 0; i < m; ++ i )
-                        {
-                            scale_buffer<cols>( beta, &Y[ldY*i] );
-                        }
-                    }
-                    else
-                    {
-                        for( Int i = 0; i < m; ++ i )
-                        {
-                            scale_buffer<cols>( beta, &Y[ldY*i] );
-                        }
-                    }
+                    ParallelDo(
+                        [=]( const Int i ){ scale_buffer<cols>( beta, &Y[ldY*i] ); },
+                        m,
+                        job_ptr.ThreadCount()
+                    );
                 }
             }
             return;
@@ -174,13 +164,8 @@ private:
             typename Scalar::Real<Scal>
         >;
 
-        #pragma omp parallel for num_threads( job_ptr.ThreadCount() ) schedule( static )
-        for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
-        {
-            const Int i_begin = job_ptr[thread  ];
-            const Int i_end   = job_ptr[thread+1];
-            
-            for( Int i = i_begin; i < i_end; ++i )
+        ParallelDo(
+            [=]( const Int i )
             {
                 const LInt k_begin = rp[i  ];
                 const LInt k_end   = rp[i+1];
@@ -201,7 +186,7 @@ private:
                         if constexpr ( a_flag == Generic )
                         {
                             combine_buffers<cols,Generic,One>(
-                                a[k],                 &X[ldX * j],
+                                a[k],           &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
                         }
@@ -247,8 +232,9 @@ private:
                     // Row i has no nonzero entries. Just zerofy the according row of Y-buffer
                     zerofy_buffer<cols>( &Y[ldY * i] );
                 }
-            }
-        }
+            },
+            job_ptr
+        );
         
         ptoc(tag);
     }
