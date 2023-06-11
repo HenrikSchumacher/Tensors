@@ -384,23 +384,14 @@ namespace Tensors
 
 //            print("level["+ToString(max_depth)+"] = "+ToString(&LevelIndices()[LevelPointer(max_depth)], LevelPointer(max_depth+1)-LevelPointer(max_depth), 16 ) );
             
-            // TODO: Here we actually want _dynamic_ scheduling.
-            ParallelDo(
-                [=]( const Int thread )
+            ParallelDo_Dynamic(
+                [=,&workers]( const Int thread, const Int k )
                 {
-                    const Int n = LevelPointer(max_depth+1);
+                    Worker_T & worker = *workers[thread];
                     
-                    const Int k_begin = JobPointer<Int>( n, thread_cout, thread    );
-                    const Int k_end   = JobPointer<Int>( n, thread_cout, thread + 1);
-                    
-                    for( Int k = k_begin; k < k_end; ++k )
-                    {
-                        Worker_T & worker = *workers[thread];
-                        
-                        Traverse_DFS_Postordered( worker, LevelIndex(k) );
-                    }
+                    Traverse_DFS_Postordered( worker, LevelIndex(k) );
                 },
-                LevelPointer(max_depth+1),
+                0, LevelPointer(max_depth+1), 1
                 std::min( thread_count, LevelPointer(max_depth+1))
             );
             
@@ -418,24 +409,14 @@ namespace Tensors
                 
                 const Int use_threads = std::min( thread_count, k_end - k_begin );
                 
-                
-                // TODO: Here we actually want _dynamic_ scheduling.
-                ParallelDo(
-                    [=]( const Int thread )
+                ParallelDo_Dynamic(
+                    [=,&workers]( const Int thread, const Int k )
                     {
-                        const Int n = k_end - k_begin;
+                        Worker_T & worker = *workers[thread];
                         
-                        const Int i_begin = k_begin + JobPointer<Int>( n, thread_cout, thread    );
-                        const Int i_end   = k_begin + JobPointer<Int>( n, thread_cout, thread + 1);
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
-                        {
-                            Worker_T & worker = *workers[thread];
-                            
-                            worker(LevelIndex(i));
-                        }
+                        worker(LevelIndex(i));
                     },
-                    k_begin, k_end,
+                    k_begin, k_end, 1,
                     use_threads
                 );
                 
