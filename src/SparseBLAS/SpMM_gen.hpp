@@ -5,7 +5,7 @@ public:
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha_, ptr<T_in>  X, const Int ldX,
         const S_out beta,   mut<T_out> Y, const Int ldY,
-        const Int   cols,
+        const Int   nrhs,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -21,16 +21,16 @@ public:
         {
             if( beta == static_cast<S_out>(0) )
             {
-                if( ldY == cols )
+                if( ldY == nrhs )
                 {
-                    zerofy_buffer( Y, m * cols, job_ptr.ThreadCount() );
+                    zerofy_buffer( Y, m * nrhs, job_ptr.ThreadCount() );
                 }
                 else
                 {
                     ParallelDo(
                         [&]( const Int i )
                         {
-                            zerofy_buffer( &Y[ldY*i], cols );
+                            zerofy_buffer( &Y[ldY*i], nrhs );
                         },
                         m,
                         job_ptr.ThreadCount()
@@ -43,16 +43,16 @@ public:
             }
             else
             {
-                if( ldY == cols )
+                if( ldY == nrhs )
                 {
-                    scale_buffer( beta, Y, m * cols, job_ptr.ThreadCount() );
+                    scale_buffer( beta, Y, m * nrhs, job_ptr.ThreadCount() );
                 }
                 else
                 {
                     ParallelDo(
                         [&]( const Int i )
                         {
-                            scale_buffer( beta, &Y[ldY*i], cols );
+                            scale_buffer( beta, &Y[ldY*i], nrhs );
                         },
                         m,
                         job_ptr.ThreadCount()
@@ -68,15 +68,15 @@ public:
             {
                 if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_gen_impl<Generic,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
                 else if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_gen_impl<Generic,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
                 else
                 {
-                    SpMM_gen_impl<Generic,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
             }
             else
@@ -84,15 +84,15 @@ public:
                 // general alpha
                 if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_gen_impl<Generic,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
                 else if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_gen_impl<Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
                 else
                 {
-                    SpMM_gen_impl<Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
             }
         }
@@ -102,15 +102,15 @@ public:
             {
                 if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_gen_impl<One,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<One,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
                 else if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_gen_impl<One,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<One,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
                 else
                 {
-                    SpMM_gen_impl<One,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<One,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
             }
             else
@@ -118,15 +118,15 @@ public:
                 // general alpha
                 if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_gen_impl<Generic,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
                 else if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_gen_impl<Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
                 else
                 {
-                    SpMM_gen_impl<Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,cols,job_ptr);
+                    SpMM_gen_impl<Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
                 }
             }
         }
@@ -141,7 +141,7 @@ private:
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha,  ptr<T_in>  X, const Int ldX,
         const S_out beta,   mut<T_out> Y, const Int ldY,
-        const Int   cols,
+        const Int   nrhs,
         const JobPointers<Int> & job_ptr
     )
     {
@@ -152,7 +152,7 @@ private:
             +TypeName<R_out>+","
             +TypeName<T_in >+","
             +TypeName<S_out>+","
-            +TypeName<T_out>+">";
+            +TypeName<T_out>+">("+ToString(nrhs)+")";
         
         ptic(tag);
         
@@ -177,7 +177,7 @@ private:
         ParallelDo(
             [&]( const Int thread )
             {
-                Tensor1<T,Int> z (cols);
+                Tensor1<T,Int> z (nrhs);
                 const Int i_begin = job_ptr[thread  ];
                 const Int i_end   = job_ptr[thread+1];
 
@@ -208,7 +208,7 @@ private:
                                 combine_buffers<Generic,Zero>(
                                   a[l],            &X[ldX * j],
                                   Scalar::Zero<T>, &z[0],
-                                  cols
+                                  nrhs
                                 );
                             }
                             else
@@ -216,7 +216,7 @@ private:
                                 combine_buffers<One,Zero>(
                                   Scalar::One<T>,  &X[ldX * j],
                                   Scalar::Zero<T>, &z[0],
-                                  cols
+                                  nrhs
                                 );
                             }
                         }
@@ -234,7 +234,7 @@ private:
                                 combine_buffers<Generic,One>(
                                   a[l],           &X[ldX * j],
                                   Scalar::One<T>, &z[0],
-                                  cols
+                                  nrhs
                                 );
                             }
                             else
@@ -242,7 +242,7 @@ private:
                                 combine_buffers<One,One>(
                                   Scalar::One<T>, &X[ldX * j],
                                   Scalar::One<T>, &z[0],
-                                  cols
+                                  nrhs
                                 );
                             }
                         }
@@ -258,7 +258,7 @@ private:
                                 combine_buffers<Generic,One>(
                                     a[l],           &X[ldX * j],
                                     Scalar::One<T>, &z[0],
-                                    cols
+                                    nrhs
                                 );
                             }
                             else
@@ -266,7 +266,7 @@ private:
                                 combine_buffers<One,One>(
                                     Scalar::One<T>, &X[ldX * j],
                                     Scalar::One<T>, &z[0],
-                                    cols
+                                    nrhs
                                 );
                             }
                         }
@@ -276,13 +276,13 @@ private:
                         combine_buffers<alpha_flag,beta_flag>(
                             alpha, &z[0],
                             beta,  &Y[ldY * i],
-                            cols
+                            nrhs
                         );
                     }
                     else
                     {
                         // zerofy the relevant portion of the Y-buffer
-                        zerofy_buffer( &Y[ldY * i], cols );
+                        zerofy_buffer( &Y[ldY * i], nrhs );
                     }
                 }
             },

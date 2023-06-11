@@ -10,8 +10,8 @@
 using namespace Tools;
 using namespace Tensors;
 
-using Scalar = double;
-using Real   = Scalar::Real<Scalar>;
+using Scal   = double;
+using Real   = Scalar::Real<Scal>;
 using LInt   = int64_t;
 using Int    = int32_t;
 
@@ -63,7 +63,7 @@ int main(int argc, const char * argv[])
         32, 39, 45, 47, 47, 12, 13, 14, 30, 31, 32, 46, 48, 48, 13, 14, 31,
         32, 47};
 
-    Scalar a [361] = {4., -1., -1., -1., 6., -1., -1., -1., -1., -1., 6., -1., -1., -1.,
+    Scal a [361] = {4., -1., -1., -1., 6., -1., -1., -1., -1., -1., 6., -1., -1., -1.,
         -1., -1., 6., -1., -1., -1., -1., -1., 9., -1., -1., -1., -1., -1.,
         -1., -1., -1., 9., -1., -1., -1., -1., -1., -1., -1., -1., 6., -1.,
         -1., -1., -1., -1., 9., -1., -1., -1., -1., -1., -1., -1., -1., 9.,
@@ -92,20 +92,20 @@ int main(int argc, const char * argv[])
     
     const Int nrhs = 3;
     
-    Tensor2<Scalar,Int> B (n,nrhs);
-    Tensor2<Scalar,Int> X (n,nrhs,0);
+    Tensor2<Scal,Int> B (n,nrhs);
+    Tensor2<Scal,Int> X (n,nrhs,0);
 
     B.Random();
     
-    Tensor2<Scalar,Int> Y;
+    Tensor2<Scal,Int> Y;
     
-    Sparse::MatrixCSR<Scalar, Int, LInt> A ( &rp[0], &ci[0], &a[0], n, n, thread_count );
+    Sparse::MatrixCSR<Scal, Int, LInt> A ( &rp[0], &ci[0], &a[0], n, n, thread_count );
     
-    Scalar reg = 0;
+    Scal reg = 0;
     
     for( Int rep = 0; rep < 1; ++rep )
     {
-        Sparse::CholeskyDecomposition<Scalar, Int, LInt> chol ( &rp[0], &ci[0], &perm[0], n, thread_count, max_depth );
+        Sparse::CholeskyDecomposition<Scal, Int, LInt> chol ( &rp[0], &ci[0], &perm[0], n, thread_count, max_depth );
         
         chol.SN_SymbolicFactorization();
         
@@ -118,7 +118,7 @@ int main(int argc, const char * argv[])
         dump(X.Size());
         dump(X.CountNan());
         
-        A.Dot(Scalar(-1), X, Scalar(1), Y);
+        A.Dot(Scal(-1), X, Scal(1), Y);
         
         dump(Y.MaxNorm());
     }

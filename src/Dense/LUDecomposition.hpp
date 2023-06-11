@@ -11,10 +11,10 @@ namespace Tensors
             
             static constexpr Int max_n = n;
             
-            Scalar LU [max_n][max_n] = {{}};
-            Int    p  [max_n]      = {};
+            Scal LU [max_n][max_n] = {{}};
+            Int  p  [max_n]        = {};
             
-            Scalar buffer [max_n]  = {};
+            Scal buffer [max_n]    = {};
             
             
         public:
@@ -278,7 +278,7 @@ namespace Tensors
             {
                 //Goal is to solve (L U) X = B
                 
-                Scalar Y[n][max_rhs] = {{}};
+                Scal Y[n][max_rhs] = {{}};
                 
                 // Step 1: Permute B and store it in Y.
                 LOOP_UNROLL_FULL
@@ -316,7 +316,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scalar U_ii_inv = static_cast<Scalar>(1) / LU[i][i];
+                    const Scal U_ii_inv = Scalar::Inv( LU[i][i] );
                     
                     LOOP_UNROLL_FULL
                     for( Int k = 0; k < max_rhs; ++k )
@@ -378,7 +378,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scalar U_ii_inv = static_cast<Scalar>(1) / LU[i][i];
+                    const Scal U_ii_inv = Scalar::Inv( LU[i][i] );
                     
                     for( Int k = 0; k < nrhs; ++k )
                     {
@@ -417,11 +417,11 @@ namespace Tensors
                     // Find pivot index r = argmax |A[i][k]|, i = k,...,n.
                     Int r = k;
                     
-                    Scalar a = std::abs(LU[k][k]);
+                    Scal a = std::abs(LU[k][k]);
                     LOOP_UNROLL_FULL
                     for( Int i = k+1; i < n; ++i )
                     {
-                        const Scalar b = std::abs(LU[i][k]);
+                        const Scal b = std::abs(LU[i][k]);
                         
                         if( b > a )
                         {
@@ -437,7 +437,7 @@ namespace Tensors
                         std::swap_ranges( &LU[r][0], &LU[r+1][0], &LU[k][0] );
                     }
                     
-                    const Scalar LU_kk_inv = static_cast<Scalar>(1) / LU[k][k];
+                    const Scal LU_kk_inv = Scalar::Inv( LU[k][k] );
                     
                     LOOP_UNROLL_FULL
                     for( Int i = k+1; i < n; ++i )

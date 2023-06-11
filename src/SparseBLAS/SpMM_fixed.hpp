@@ -1,6 +1,6 @@
 public:
 
-    template<int cols, typename R_out, typename T_in, typename S_out, typename T_out>
+    template<int nrhs, typename R_out, typename T_in, typename S_out, typename T_out>
     void SpMM_fixed(
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha_, ptr<T_in>  X, const Int ldX,
@@ -20,14 +20,14 @@ public:
         {
             if( beta == static_cast<S_out>(0) )
             {
-                if( ldY == cols )
+                if( ldY == nrhs )
                 {
-                    zerofy_buffer( Y, m * cols, job_ptr.ThreadCount() );
+                    zerofy_buffer( Y, m * nrhs, job_ptr.ThreadCount() );
                 }
                 else
                 {
                     ParallelDo(
-                        [=]( const Int i ){ zerofy_buffer<cols>( &Y[ldY*i] ); },
+                        [=]( const Int i ){ zerofy_buffer<nrhs>( &Y[ldY*i] ); },
                         m,
                         job_ptr.ThreadCount()
                     );
@@ -39,14 +39,14 @@ public:
             }
             else
             {
-                if( ldY == cols )
+                if( ldY == nrhs )
                 {
-                    scale_buffer( beta, Y, m * cols, job_ptr.ThreadCount() );
+                    scale_buffer( beta, Y, m * nrhs, job_ptr.ThreadCount() );
                 }
                 else
                 {
                     ParallelDo(
-                        [=]( const Int i ){ scale_buffer<cols>( beta, &Y[ldY*i] ); },
+                        [=]( const Int i ){ scale_buffer<nrhs>( beta, &Y[ldY*i] ); },
                         m,
                         job_ptr.ThreadCount()
                     );
@@ -61,15 +61,15 @@ public:
             {
                 if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_fixed_impl<cols,Generic,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,Generic,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_fixed_impl<cols,Generic,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,Generic,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_fixed_impl<cols,Generic,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,Generic,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else
@@ -77,15 +77,15 @@ public:
                 // general alpha
                 if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_fixed_impl<cols,Generic,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,Generic,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_fixed_impl<cols,Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_fixed_impl<cols,Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
         }
@@ -95,15 +95,15 @@ public:
             {
                 if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_fixed_impl<cols,One,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,One,One,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_fixed_impl<cols,One,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,One,One,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_fixed_impl<cols,One,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,One,One,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
             else
@@ -111,15 +111,15 @@ public:
                 // general alpha
                 if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_fixed_impl<cols,One,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,One,Generic,One>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_fixed_impl<cols,One,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,One,Generic,Zero>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
                 else
                 {
-                    SpMM_fixed_impl<cols,One,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                    SpMM_fixed_impl<nrhs,One,Generic,Generic>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
                 }
             }
         }
@@ -127,7 +127,7 @@ public:
 
 private:
 
-    template<Int cols, Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R_out, typename T_in, typename S_out, typename T_out>
+    template<Int nrhs, Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R_out, typename T_in, typename S_out, typename T_out>
     void SpMM_fixed_impl(
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha, ptr<T_in>  X, const Int ldX,
@@ -136,6 +136,7 @@ private:
     )
     {
         std::string tag = std::string(ClassName()+"::SpMM_fixed_impl<")
+            +ToString(nrhs)+","
             +ToString(a_flag)+","
             +ToString(alpha_flag)+","
             +ToString(beta_flag)+","
@@ -175,24 +176,24 @@ private:
                     // Row i has at least one nonzero entry.
                     
                     // create a local buffer for accumulating the result
-                    T z [cols] = {};
+                    T z [nrhs] = {};
                     
                     for( LInt k = k_begin; k < k_end-1; ++k )
                     {
                         const Int j = ci[k];
                         
-//                        prefetch_buffer<cols,0,0>( &X[ldX * ci[k+1]] );
+//                        prefetch_buffer<nrhs,0,0>( &X[ldX * ci[k+1]] );
                         
                         if constexpr ( a_flag == Generic )
                         {
-                            combine_buffers<cols,Generic,One>(
+                            combine_buffers<nrhs,Generic,One>(
                                 a[k],           &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
                         }
                         else
                         {
-                            combine_buffers<cols,One,One>(
+                            combine_buffers<nrhs,One,One>(
                                 Scalar::One<T>, &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
@@ -207,14 +208,14 @@ private:
                         
                         if constexpr ( a_flag == Generic )
                         {
-                            combine_buffers<cols,Generic,One>(
+                            combine_buffers<nrhs,Generic,One>(
                                 a[k],           &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
                         }
                         else
                         {
-                            combine_buffers<cols,One,One>(
+                            combine_buffers<nrhs,One,One>(
                                 Scalar::One<T>, &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
@@ -222,7 +223,7 @@ private:
                     }
                     
                     // incorporate the local updates into Y-buffer
-                    combine_buffers<cols,alpha_flag,beta_flag>(
+                    combine_buffers<nrhs,alpha_flag,beta_flag>(
                         alpha, &z[0],
                         beta,  &Y[ldY * i]
                     );
@@ -230,7 +231,7 @@ private:
                 else
                 {
                     // Row i has no nonzero entries. Just zerofy the according row of Y-buffer
-                    zerofy_buffer<cols>( &Y[ldY * i] );
+                    zerofy_buffer<nrhs>( &Y[ldY * i] );
                 }
             },
             job_ptr

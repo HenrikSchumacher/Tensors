@@ -365,7 +365,7 @@ namespace Tensors
                     }
                     else
                     {
-                        const Real r_inv = Scalar::Inv<Real>(r);
+                        const Real r_inv = Scalar::Inv(r);
                         
                         cos =  std::abs(xi) * r_inv;
                         sin = (xi / std::abs(xi)) * Scalar::Conj(eta) * r_inv;
@@ -477,7 +477,7 @@ namespace Tensors
                     
                     for( Int k = 0; k < K; ++k )
                     {
-                        factors_inv[k] = Scalar::Inv<Real>( factors[k] );
+                        factors_inv[k] = Scalar::Inv( factors[k] );
                     }
                     
                     const Int i_begin = job_ptr[thread  ];

@@ -1016,19 +1016,19 @@ namespace Tensors
         protected:
             
             // Assume all nonzeros are equal to 1.
-            template<typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = 0, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot_(
                 const R_out alpha, ptr<T_in>  X, const Int ldX,
                 const S_out beta,  mut<T_out> Y, const Int ldY,
-                const Int cols = static_cast<Int>(1)
+                const Int nrhs = static_cast<Int>(1)
             ) const
             {
                 if( WellFormed() )
                 {
                     SparseBLAS<T_out,Int,LInt> sblas ( thread_count );
                     
-                    sblas.Multiply_DenseMatrix(
-                        outer.data(),inner.data(),nullptr,m,n,alpha,X,ldX,beta,Y,ldY,cols,JobPtr()
+                    sblas.template Multiply_DenseMatrix<NRHS>(
+                        outer.data(),inner.data(),nullptr,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,JobPtr()
                     );
                 }
                 else
@@ -1038,20 +1038,20 @@ namespace Tensors
             }
             
             // Supply an external list of values.
-            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = 0, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot_(
                       ptr<T_ext>  values,
                       const R_out alpha, ptr<T_in>  X, const Int ldX,
                       const S_out beta,  mut<T_out> Y, const Int ldY,
-                      const Int   cols = static_cast<Int>(1)
-                      ) const
+                      const Int   nrhs = static_cast<Int>(1)
+            ) const
             {
                 if( WellFormed() )
                 {
                     auto sblas = SparseBLAS<T_ext,Int,LInt>( thread_count );
                     
-                    sblas.Multiply_DenseMatrix(
-                        outer.data(),inner.data(),values,m,n,alpha,X,ldX,beta,Y,ldY,cols,JobPtr()
+                    sblas.template Multiply_DenseMatrix<NRHS>(
+                        outer.data(),inner.data(),values,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,JobPtr()
                     );
                 }
                 else

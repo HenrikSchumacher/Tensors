@@ -331,14 +331,14 @@ namespace Tensors
                     // The counters array tells each thread where to write.
                     // Since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
                     
-                    // TODO: The threads write quite chaotically to inner_ and value_. This might cause a lot of false sharing. Nontheless, it seems to scale quite well -- at least among 4 threads!
+                    // TODO: The threads write quite chaotically to inner_ and value_. This might cause a lot of false sharing. Nonetheless, it seems to scale quite well -- at least among 4 threads!
                     
                     // TODO: False sharing can be prevented by not distributing whole sublists of idx, jdx, val to the threads but by distributing the rows of the final matrix, instead. It's just a bit fiddly, though.
                     
                     ptic(ClassName()+"::FromTriples -- writing reordered data");
                     
                     ParallelDo(
-                        [&,this]( const Int thread )
+                        [=,&counters]( const Int thread )
                         {
                             const LInt entry_count = entry_counts[thread];
                             
@@ -546,15 +546,11 @@ namespace Tensors
                                 const Int i_begin = job_ptr[thread  ];
                                 const Int i_end   = job_ptr[thread+1];
                                 
-                                ptr<LInt> outer__  = outer.data();
-                                mut<Int>  inner__  = inner.data();
-                                mut<Scal> values__ = values.data();
-                                
                                 for( Int i = i_begin; i < i_end; ++i )
                                 {
-                                    const LInt begin = outer__[i  ];
-                                    const LInt end   = outer__[i+1];
-                                    quick_sort( inner__ + begin, values__ + begin, end - begin );
+                                    const LInt begin = outer[i  ];
+                                    const LInt end   = outer[i+1];
+                                    quick_sort( inner.data(begin), values.data(begin), end - begin );
                                 }
                             },
                             thread_count
@@ -1093,25 +1089,25 @@ namespace Tensors
             
             
             // Use own nonzero values.
-            template<typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = 0, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                 const R_out alpha, ptr<T_in>  X, const Int ldX,
                 const S_out beta,  mut<T_out> Y, const Int ldY,
-                const Int   cols = Int(1)
+                const Int   nrhs = Int(1)
             ) const
             {
-                Dot_( values.data(), alpha, X, ldX, beta, Y, ldY, cols );
+                this->template Dot_<NRHS>( values.data(), alpha, X, ldX, beta, Y, ldY, nrhs );
             }
             
             // Use own nonzero values.
-            template<typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = 0, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                 const R_out alpha, ptr<T_in>  X,
                 const S_out beta,  mut<T_out> Y,
-                const Int   cols = Int(1)
+                const Int   nrhs = Int(1)
             ) const
             {
-                Dot_( values.data(), alpha, X, cols, beta, Y, cols, cols );
+                this->template Dot_<NRHS>( values.data(), alpha, X, nrhs, beta, Y, nrhs, nrhs );
             }
             
             // Use own nonzero values.
@@ -1125,7 +1121,7 @@ namespace Tensors
                 {
                     const Int one = static_cast<Int>(1);
                     
-                    Dot_( values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
+                    Dot_<1>( values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
                 }
                 else
                 {
@@ -1134,7 +1130,7 @@ namespace Tensors
             }
             
             // Use own nonzero values.
-            template<typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = 0, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                  const R_out alpha, const Tensor2<T_in, Int> & X,
                  const S_out beta,        Tensor2<T_out,Int> & Y
@@ -1142,9 +1138,9 @@ namespace Tensors
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
                 {
-                    const Int cols = X.Dimension(1);
+                    const Int nrhs = X.Dimension(1);
                     
-                    Dot_( values.data(), alpha, X.data(), cols, beta, Y.data(), cols, cols );
+                    this->template Dot_<NRHS>( values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
                 }
                 else
                 {
@@ -1155,27 +1151,27 @@ namespace Tensors
             
             
             // Use external list of values.
-            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = 0, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                 ptr<T_ext>  ext_values,
                 const R_out alpha, ptr<T_ext> X, const Int ldX,
                 const S_out beta,  mut<T_ext> Y, const Int ldY,
-                const Int   cols = static_cast<Int>(1)
+                const Int   nrhs = static_cast<Int>(1)
             ) const
             {
-                Dot_( ext_values, alpha, X, ldX, beta, Y, ldY, cols );
+                this->template Dot_<NRHS>( ext_values, alpha, X, ldX, beta, Y, ldY, nrhs );
             }
             
             // Use external list of values.
-            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = 0, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                 ptr<T_ext>  ext_values,
                 const R_out alpha, ptr<T_ext> X,
                 const S_out beta,  mut<T_ext> Y,
-                const Int   cols = static_cast<Int>(1)
+                const Int   nrhs = static_cast<Int>(1)
             ) const
             {
-                Dot_( ext_values, alpha, X, cols, beta, Y, cols, cols );
+                this->template Dot_<NRHS>( ext_values, alpha, X, nrhs, beta, Y, nrhs, nrhs );
             }
             
             template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
@@ -1189,7 +1185,7 @@ namespace Tensors
                 {
                     const Int one = static_cast<Int>(1);
                     
-                    Dot_( ext_values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
+                    this->template Dot_<1>( ext_values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
                 }
                 else
                 {
@@ -1197,7 +1193,7 @@ namespace Tensors
                 }
             }
             
-            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = 0, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                  const Tensor1<T_ext,Int> & ext_values,
                  const R_out alpha, const Tensor2<T_in, Int> & X,
@@ -1206,9 +1202,9 @@ namespace Tensors
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
                 {
-                    const Int cols = X.Dimension(1);
+                    const Int nrhs = X.Dimension(1);
                     
-                    Dot_( ext_values.data(), alpha, X.data(), cols, beta, Y.data(), cols, cols );
+                    this->template Dot_<NRHS>( ext_values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
                 }
                 else
                 {
