@@ -384,25 +384,25 @@ namespace Tensors
 
 //            print("level["+ToString(max_depth)+"] = "+ToString(&LevelIndices()[LevelPointer(max_depth)], LevelPointer(max_depth+1)-LevelPointer(max_depth), 16 ) );
             
-            if( thread_count > 1 )
-            {
-                #pragma omp parallel for num_threads( thread_count ) schedule( dynamic )
-                for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
+            // TODO: Here we actually want _dynamic_ scheduling.
+            ParallelDo(
+                [=]( const Int thread )
                 {
-                    Worker_T & worker = *workers[omp_get_thread_num()];
+                    const Int n = LevelPointer(max_depth+1);
                     
-                    Traverse_DFS_Postordered( worker, LevelIndex(k) );
-                }
-            }
-            else
-            {
-                for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
-                {
-                    Worker_T & worker = *workers[0];
+                    const Int k_begin = JobPointer<Int>( n, thread_cout, thread    );
+                    const Int k_end   = JobPointer<Int>( n, thread_cout, thread + 1);
                     
-                    Traverse_DFS_Postordered( worker, LevelIndex(k) );
-                }
-            }
+                    for( Int k = k_begin; k < k_end; ++k )
+                    {
+                        Worker_T & worker = *workers[thread];
+                        
+                        Traverse_DFS_Postordered( worker, LevelIndex(k) );
+                    }
+                },
+                LevelPointer(max_depth+1),
+                std::min( thread_count, LevelPointer(max_depth+1))
+            );
             
             ptoc(tag+" <= "+ToString(max_depth)+")");
 
@@ -418,25 +418,26 @@ namespace Tensors
                 
                 const Int use_threads = std::min( thread_count, k_end - k_begin );
                 
-                if( use_threads > 1 )
-                {
-                    #pragma omp parallel for num_threads( use_threads ) schedule( dynamic )
-                    for( Int k = k_begin; k < k_end; ++k )
+                
+                // TODO: Here we actually want _dynamic_ scheduling.
+                ParallelDo(
+                    [=]( const Int thread )
                     {
-                        Worker_T & worker = *workers[omp_get_thread_num()];
+                        const Int n = k_end - k_begin;
                         
-                        worker(LevelIndex(k));
-                    }
-                }
-                else
-                {
-                    for( Int k = k_begin; k < k_end; ++k )
-                    {
-                        Worker_T & worker = *workers[0];
+                        const Int i_begin = k_begin + JobPointer<Int>( n, thread_cout, thread    );
+                        const Int i_end   = k_begin + JobPointer<Int>( n, thread_cout, thread + 1);
                         
-                        worker(LevelIndex(k));
-                    }
-                }
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            Worker_T & worker = *workers[thread];
+                            
+                            worker(LevelIndex(i));
+                        }
+                    },
+                    k_begin, k_end,
+                    use_threads
+                );
                 
                 ptoc(tag+" = "+ToString(d)+")");
             }
