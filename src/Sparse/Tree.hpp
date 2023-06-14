@@ -254,29 +254,18 @@ namespace Tensors
         
         bool PostOrdered() const
         {
-            bool postordered = true;
-            
-            if( thread_count > 1 )
-            {
-                #pragma omp parallel for num_threads( thread_count ) reduction( && : postordered ) schedule( static )
-                for( Int i = 0; i < n-1; ++i )
+            return ParallelDoReduce(
+                [=]( const Int i ) -> bool
                 {
                     const Int p_i = parents[i];
-                    
-                    postordered = postordered && (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
-                }
-            }
-            else
-            {
-                for( Int i = 0; i < n-1; ++i )
-                {
-                    const Int p_i = parents[i];
-                    
-                    postordered = postordered && (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
-                }
-            }
-            
-            return postordered;
+                 
+                    return (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
+                },
+                AndReducer(),
+                true,
+                n-1,
+                thread_count
+            );
         }
         
         
@@ -395,25 +384,16 @@ namespace Tensors
 
 //            print("level["+ToString(max_depth)+"] = "+ToString(&LevelIndices()[LevelPointer(max_depth)], LevelPointer(max_depth+1)-LevelPointer(max_depth), 16 ) );
             
-            if( thread_count > 1 )
-            {
-                #pragma omp parallel for num_threads( thread_count ) schedule( dynamic )
-                for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
+            ParallelDo_Dynamic(
+                [=,&workers]( const Int thread, const Int k )
                 {
-                    Worker_T & worker = *workers[omp_get_thread_num()];
+                    Worker_T & worker = *workers[thread];
                     
                     Traverse_DFS_Postordered( worker, LevelIndex(k) );
-                }
-            }
-            else
-            {
-                for( Int k = LevelPointer(max_depth); k < LevelPointer(max_depth+1); ++k )
-                {
-                    Worker_T & worker = *workers[0];
-                    
-                    Traverse_DFS_Postordered( worker, LevelIndex(k) );
-                }
-            }
+                },
+                0, LevelPointer(max_depth+1), 1
+                std::min( thread_count, LevelPointer(max_depth+1))
+            );
             
             ptoc(tag+" <= "+ToString(max_depth)+")");
 
@@ -429,25 +409,16 @@ namespace Tensors
                 
                 const Int use_threads = std::min( thread_count, k_end - k_begin );
                 
-                if( use_threads > 1 )
-                {
-                    #pragma omp parallel for num_threads( use_threads ) schedule( dynamic )
-                    for( Int k = k_begin; k < k_end; ++k )
+                ParallelDo_Dynamic(
+                    [=,&workers]( const Int thread, const Int k )
                     {
-                        Worker_T & worker = *workers[omp_get_thread_num()];
+                        Worker_T & worker = *workers[thread];
                         
-                        worker(LevelIndex(k));
-                    }
-                }
-                else
-                {
-                    for( Int k = k_begin; k < k_end; ++k )
-                    {
-                        Worker_T & worker = *workers[0];
-                        
-                        worker(LevelIndex(k));
-                    }
-                }
+                        worker(LevelIndex(i));
+                    },
+                    k_begin, k_end, 1,
+                    use_threads
+                );
                 
                 ptoc(tag+" = "+ToString(d)+")");
             }

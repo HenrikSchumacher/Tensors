@@ -26,8 +26,8 @@ namespace Tensors
             
             void operator()(
                 const int n, const int nrhs,
-                const Scalar & alpha, const Scalar * restrict A, const int ldA,
-                                      const Scalar * restrict B, const int ldB
+                const Scal & alpha, ptr<Scal> A, const int ldA,
+                                    ptr<Scal> B, const int ldB
             )
             {
                 if constexpr( (1 <= N) && (N<=MaxN) && (1 <= MaxNRHS) && (NRHS<=MaxNRHS) )
@@ -46,7 +46,7 @@ namespace Tensors
 //                        const CBLAS_TRANSPOSE transa,
 //                        const CBLAS_DIAG diag,
 //                        const int n,
-//                        const Scalar * A, const int ldA, Scalar * const x, const int incx
+//                        const Scal * A, const int ldA, Scalar * const x, const int incx
 //                    }
 //                    else
                     {

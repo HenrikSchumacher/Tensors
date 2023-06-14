@@ -11,17 +11,17 @@
 using namespace Tools;
 using namespace Tensors;
 
-//using Scalar = std::complex<double>;
-using Scalar = double;
-//using Scalar = std::complex<float>;
-//using Scalar = float;
-using Real   = Scalar::Real<Scalar>;
+//using Scal = std::complex<double>;
+using Scal = double;
+//using Scal = std::complex<float>;
+//using Scal = float;
+using Real   = Scalar::Real<Scal>;
 using Int    = int32_t;
 
 constexpr Int n = 4;
 
-using E_C_Matrix_T = Eigen::Matrix<Scalar,n,n>;
-using E_R_Matrix_T = Eigen::Matrix<Scalar,n,n>;
+using E_C_Matrix_T = Eigen::Matrix<Scal,n,n>;
+using E_R_Matrix_T = Eigen::Matrix<Scal,n,n>;
 
 int main(int argc, const char * argv[])
 {
@@ -31,24 +31,24 @@ int main(int argc, const char * argv[])
     
     dump(n);
     dump(reps);
-    dump(TypeName<Scalar>);
+    dump(TypeName<Scal>);
     //    constexpr Int p = 4;
     
-    //    constexpr Scalar zero = static_cast<Scalar>(0);
-    //    constexpr Scalar two  = static_cast<Scalar>(2);
-    //    constexpr Scalar four = static_cast<Scalar>(4);
+    //    constexpr Scal zero = static_cast<Scal>(0);
+    //    constexpr Scal two  = static_cast<Scal>(2);
+    //    constexpr Scal four = static_cast<Scal>(4);
     
-    Tensor3<Scalar,Int> A_list    (reps,n,n);
-    Tensor3<Scalar,Int> U_list    (reps,n,n);
-    Tensor3<Scalar,Int> H_list    (reps,n,n);
-    Tensor3<Scalar,Int> T_list    (reps,n,n);
+    Tensor3<Scal,Int> A_list    (reps,n,n);
+    Tensor3<Scal,Int> U_list    (reps,n,n);
+    Tensor3<Scal,Int> H_list    (reps,n,n);
+    Tensor3<Scal,Int> T_list    (reps,n,n);
     
     Tensor2<Real,Int> eigs_list (reps,n);
     Tensor3<Real,Int> Q_list    (reps,n,n);
     
     Tiny::Vector      <n,Real,Int> eigs;
     
-    Tiny::SelfAdjointMatrix<n,Scalar,Int> A;
+    Tiny::SelfAdjointMatrix<n,Scal,Int> A;
     
     std::random_device r;
     std::default_random_engine engine ( r() );
@@ -65,7 +65,7 @@ int main(int argc, const char * argv[])
             for( Int j = i; j < n; ++j )
             {
                 A_list(k,i,j) = COND(
-                     Scalar::IsComplex<Scalar>,
+                     Scalar::IsComplex<Scal>,
                      std::complex<Real> ( unif(engine), unif(engine) ),
                      unif(engine);
                  );
@@ -77,12 +77,12 @@ int main(int argc, const char * argv[])
     
     print("");
     
-    Tiny::Matrix<n,n,Scalar,Int> U;
-    Tiny::Matrix<n,n,Scalar,Int> UH;
-    Tiny::Matrix<n,n,Scalar,Int> A_mat;
+    Tiny::Matrix<n,n,Scal,Int> U;
+    Tiny::Matrix<n,n,Scal,Int> UH;
+    Tiny::Matrix<n,n,Scal,Int> A_mat;
     
     Tiny::SelfAdjointTridiagonalMatrix<n,Real,Int> T;
-    Tiny::Matrix<n,n,Scalar,Int> T_mat;
+    Tiny::Matrix<n,n,Scal,Int> T_mat;
     
     tic("HessenbergDecomposition");
     for( Int rep = 0; rep < reps; ++rep )
@@ -188,8 +188,8 @@ int main(int argc, const char * argv[])
     
     U.ConjugateTranspose(UH);
     
-    Tiny::Matrix<n,n,Scalar,Int> V;
-    Tiny::Matrix<n,n,Scalar,Int> W;
+    Tiny::Matrix<n,n,Scal,Int> V;
+    Tiny::Matrix<n,n,Scal,Int> W;
     
     // W = U . T_mat . UH
     Dot<0>( T_mat, UH, V );
@@ -215,8 +215,8 @@ int main(int argc, const char * argv[])
 //
 //            U.ConjugateTranspose(UH);
 //
-//            Tiny::Matrix<n,n,Scalar,Int> V;
-//            Tiny::Matrix<n,n,Scalar,Int> W;
+//            Tiny::Matrix<n,n,Scal,Int> V;
+//            Tiny::Matrix<n,n,Scal,Int> W;
 //
 //            // W = U . T_mat . UH
 //            Dot<0>( T_mat, UH, V );
@@ -232,13 +232,13 @@ int main(int argc, const char * argv[])
 //    }
     
     {
-        Tiny::Matrix<n,n,Scalar,Int> Id;
+        Tiny::Matrix<n,n,Scal,Int> Id;
         Id.SetIdentity();
         
-        Tiny::Matrix<n,n,Scalar,Int> U;
-        Tiny::Matrix<n,n,Scalar,Int> UH;
-        Tiny::Matrix<n,n,Scalar,Int> B;
-        Tiny::Matrix<n,n,Scalar,Int> C;
+        Tiny::Matrix<n,n,Scal,Int> U;
+        Tiny::Matrix<n,n,Scal,Int> UH;
+        Tiny::Matrix<n,n,Scal,Int> B;
+        Tiny::Matrix<n,n,Scal,Int> C;
         Tiny::Matrix<n,n,Real,  Int> D ( static_cast<Real>(0));
         Real error_0 = 0;
         Real error_1 = 0;

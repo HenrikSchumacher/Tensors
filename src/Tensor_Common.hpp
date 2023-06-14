@@ -180,41 +180,45 @@ void Random( Int thread_count = 1 )
 {
     if constexpr (Scalar::IsReal<Scal> )
     {
-        #pragma omp parallel for num_threads(thread_count)
-        for( Int thread = 0; thread < thread_count; ++thread )
-        {
-            const Int i_begin = JobPointer( n, thread_count, thread     );
-            const Int i_end   = JobPointer( n, thread_count, thread + 1 );
-            
-            std::random_device r;
-            std::default_random_engine engine ( r() );
-            
-            std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
-            
-            for( Int i = i_begin; i < i_end; ++i )
+        ParallelDo(
+            [=]( const Int thread )
             {
-                a[i] = unif(engine);
-            }
-        }
+                const Int i_begin = JobPointer( n, thread_count, thread     );
+                const Int i_end   = JobPointer( n, thread_count, thread + 1 );
+                
+                std::random_device r;
+                std::default_random_engine engine ( r() );
+                
+                std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
+                
+                for( Int i = i_begin; i < i_end; ++i )
+                {
+                    a[i] = unif(engine);
+                }
+            },
+            thread_count
+        );
     }
     else
     {
-        #pragma omp parallel for num_threads(thread_count)
-        for( Int thread = 0; thread < thread_count; ++thread )
-        {
-            const Int i_begin = JobPointer( n, thread_count, thread     );
-            const Int i_end   = JobPointer( n, thread_count, thread + 1 );
-            
-            std::random_device r;
-            std::default_random_engine engine ( r() );
-            
-            std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
-            
-            for( Int i = i_begin; i < i_end; ++i )
+        ParallelDo(
+            [=]( const Int thread )
             {
-                a[i] = Scal( unif(engine), unif(engine) );
-            }
-        }
+                const Int i_begin = JobPointer( n, thread_count, thread     );
+                const Int i_end   = JobPointer( n, thread_count, thread + 1 );
+                
+                std::random_device r;
+                std::default_random_engine engine ( r() );
+                
+                std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
+                
+                for( Int i = i_begin; i < i_end; ++i )
+                {
+                    a[i] = Scal( unif(engine), unif(engine) );
+                }
+            },
+            thread_count
+        );
     }
 }
 

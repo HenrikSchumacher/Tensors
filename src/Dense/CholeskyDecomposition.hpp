@@ -11,9 +11,9 @@ namespace Tensors
             
             static constexpr Int max_n = n;
             
-            Scalar U [max_n][max_n] = {{}};
+            Scal U [max_n][max_n] = {{}};
             
-            Scalar buffer [max_n]  = {};
+            Scal buffer [max_n]  = {};
             
             
         public:
@@ -269,9 +269,9 @@ namespace Tensors
             {
                 //Goal is to solve (U^T U) X = B
                 
-                Scalar Y[n][max_rhs] = {{}};
+                Scal Y[n][max_rhs] = {{}};
                 
-                // Step 1: Permute B and store it in Y.
+                // Step 1: Store B  in Y.
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
@@ -292,7 +292,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scalar U_ii_inv = static_cast<Scalar>(1) / U[i][i];
+                    const Scal U_ii_inv = Scalar::Inv( U[i][i] );
                     
                     LOOP_UNROLL_FULL
                     for( Int k = 0; k < max_rhs; ++k )
@@ -315,7 +315,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scalar U_ii_inv = static_cast<Scalar>(1) / U[i][i];
+                    const Scal U_ii_inv = Scalar::Inv( U[i][i] );
                     
                     LOOP_UNROLL_FULL
                     for( Int k = 0; k < max_rhs; ++k )
@@ -340,7 +340,7 @@ namespace Tensors
                 
                 Tiny::VectorList<n,Scal,Int> Y (nrhs);
                 
-                // Step 1: Permute B and store it in Y.
+                // Step 1: Store B in Y.
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
@@ -360,7 +360,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scalar U_ii_inv = static_cast<Scalar>(1) / U[i][i];
+                    const Scal U_ii_inv = Scalar::Inv( U[i][i] );
                     
                     for( Int k = 0; k < nrhs; ++k )
                     {
@@ -381,7 +381,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scalar U_ii_inv = static_cast<Scalar>(1) / U[i][i];
+                    const Scal U_ii_inv = Scalar::Inv( U[i][i] );
                     
                     for( Int k = 0; k < nrhs; ++k )
                     {
@@ -411,7 +411,7 @@ namespace Tensors
                 LOOP_UNROLL_FULL
                 for( Int k = 0; k < n; ++k )
                 {
-                    const Scalar a = static_cast<Scalar>(1) / std::sqrt(U[k][k]);
+                    const Scal a = Scalar::Inv( std::sqrt(U[k][k]) );
                     
                     LOOP_UNROLL_FULL
                     for( Int j = k; j < n; ++j )

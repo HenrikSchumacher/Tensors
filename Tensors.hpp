@@ -7,6 +7,12 @@
 //    #include <array>
     #include <complex>
 
+
+#ifndef NDEBUG
+    #define TENSORS_BOUND_CHECKS
+#endif
+
+
     #include "Tools/Tools.hpp"
 
     namespace Tensors

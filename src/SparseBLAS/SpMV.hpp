@@ -143,13 +143,8 @@ private:
             typename Scalar::Real<Scal>
         >;
         
-        #pragma omp parallel for num_threads( job_ptr.ThreadCount() )
-        for( Int thread = 0; thread < job_ptr.ThreadCount(); ++thread )
-        {
-            const Int i_begin = job_ptr[thread  ];
-            const Int i_end   = job_ptr[thread+1];
-
-            for( Int i = i_begin; i < i_end; ++i )
+        ParallelDo(
+            [&]( const Int i )
             {
                 T sum = static_cast<T>(0);
 
@@ -178,8 +173,9 @@ private:
                 }
                     
                 combine_scalars<alpha_flag,beta_flag>( alpha, sum, beta, y[i] );
-            }
-        }
+            },
+            job_ptr
+        );
         
         ptoc(tag);
     }
