@@ -8,9 +8,13 @@ namespace Tensors
         ASSERT_INT(Int1);
         ASSERT_INT(Int0);
 #ifdef TENSORS_BOUND_CHECKS
-        if( (n < std::numeric_limits<Int1>::lowest()) ||  (n > std::numeric_limits<Int1>::max()) )
+        if( n < std::numeric_limits<Int1>::lowest() )
         {
-            eprint("int_cast reports integer overflow.");
+            eprint("int_cast<"+TypeName<Int1>+"> reports integer underflow for n = " + ToString(n) + " of type " + TypeName<Int0>+".");
+        }
+        if( n > std::numeric_limits<Int1>::max() )
+        {
+            eprint("int_cast<"+TypeName<Int1>+"> reports integer overflow for n = " + ToString(n) + " of type " + TypeName<Int0>+".");
         }
 #endif
         return static_cast<Int1>(n);

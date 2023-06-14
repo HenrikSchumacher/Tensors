@@ -389,6 +389,17 @@ namespace Tensors
                 WriteSolution(x);
             }
         
+            template<typename ExtScal>
+            void LowerSolve( ptr<ExtScal> B, mut<ExtScal> X_, const Int nrhs )
+            {
+                // No problem if X_ and B overlap, since we load B into X anyways.
+                ReadRightHandSide( B, nrhs );
+                
+                SN_LowerSolve_Sequential( nrhs );
+                
+                WriteSolution( X_, nrhs );
+            }
+            
 //###########################################################################################
 //####          Elimination tree
 //###########################################################################################
