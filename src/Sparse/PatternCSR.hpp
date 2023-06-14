@@ -603,7 +603,7 @@ namespace Tensors
 
             LInt & Outer( const Int i )
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifndef TENSORS_BOUND_CHECKS
                 if( i < 0 || i >= outer.Size() )
                 {
                     eprint(ClassName()+"::Outer(): Out of bound access.");
