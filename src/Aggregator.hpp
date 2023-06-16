@@ -25,7 +25,7 @@ namespace Tensors
         
         Container_0_T container_0 {capacity};
 
-        size_t thread_count = 1;
+        Size_T thread_count = 1;
         
     public:
 
@@ -40,7 +40,7 @@ namespace Tensors
         ,   thread_count ( 1                                )
         {}
         
-        explicit Aggregator( const LInt n, const size_t thread_count_ )
+        explicit Aggregator( const LInt n, const Size_T thread_count_ )
         :   current_size ( static_cast<LInt>(0)             )
         ,   capacity     ( std::max(static_cast<LInt>(1),n) )
         ,   container_0  ( std::max(static_cast<LInt>(1),n) )

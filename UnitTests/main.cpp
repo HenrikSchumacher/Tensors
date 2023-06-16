@@ -24,10 +24,10 @@ template<typename R_0, typename S_0,typename R_1, typename S_1>
 __attribute__((noinline)) void combine_buffers_true(
     const R_0 & alpha, ptr<S_0> x,
     const R_1 & beta,  mut<S_1> y,
-    std::size_t n
+    Size_T n
 )
 {
-    for( std::size_t i = 0; i < n; ++i )
+    for( Size_T i = 0; i < n; ++i )
     {
         y[i] = static_cast<S_1>(alpha) * static_cast<S_1>(x[i]) + static_cast<S_1>(beta) * y[i];
     }
@@ -35,13 +35,13 @@ __attribute__((noinline)) void combine_buffers_true(
 
 template<Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R_0, typename S_0, typename R_1, typename S_1>
 void test_combine_buffers(
-    Tensor1<S_0,std::size_t> & x,
-    Tensor1<S_1,std::size_t> & y,
-    Tensor1<S_1,std::size_t> & z,
-    Tensor1<S_1,std::size_t> & z_true
+    Tensor1<S_0,Size_T> & x,
+    Tensor1<S_1,Size_T> & y,
+    Tensor1<S_1,Size_T> & z,
+    Tensor1<S_1,Size_T> & z_true
 )
 {
-    const std::size_t n = x.Size();
+    const Size_T n = x.Size();
     
     R_0 alpha;
     
@@ -69,7 +69,7 @@ void test_combine_buffers(
         }
         default:
         {
-            Tensor1<R_0,std::size_t> T_alpha (1);
+            Tensor1<R_0,Size_T> T_alpha (1);
             T_alpha.Random();
             alpha = T_alpha[0];
             alpha_string = "G";
@@ -102,7 +102,7 @@ void test_combine_buffers(
         }
         default:
         {
-            Tensor1<R_1,std::size_t> T_beta (1);
+            Tensor1<R_1,Size_T> T_beta (1);
             T_beta.Random();
             beta = T_beta[0];
             beta_string = "G";
@@ -127,7 +127,7 @@ void test_combine_buffers(
     typename Scalar::Real<S_1> error = 0;
     typename Scalar::Real<S_1> max   = 0;
     
-    for( std::size_t i = 0; i < n ; ++i )
+    for( Size_T i = 0; i < n ; ++i )
     {
         max   = std::max( max, std::abs(z_true[i]) );
         error = std::max(error, std::abs(z[i] - z_true[i]));
@@ -158,14 +158,14 @@ void test_combine_buffers(
 }
 
 template<typename R_0, typename S_0, typename R_1, typename S_1>
-void Test_combine_buffers( std::size_t n )
+void Test_combine_buffers( Size_T n )
 {
     tic(std::string("Test_combine_buffers<")+TypeName<R_0>+","+TypeName<S_0>+","+TypeName<R_1>+","+TypeName<S_1>+">");
     
-    Tensor1<S_0,std::size_t> x      ( n );
-    Tensor1<S_1,std::size_t> y      ( n );
-    Tensor1<S_1,std::size_t> z      ( n );
-    Tensor1<S_1,std::size_t> z_true ( n );
+    Tensor1<S_0,Size_T> x      ( n );
+    Tensor1<S_1,Size_T> y      ( n );
+    Tensor1<S_1,Size_T> z      ( n );
+    Tensor1<S_1,Size_T> z_true ( n );
 
     x.Random();
     y.Random();
@@ -209,7 +209,7 @@ void Test_combine_buffers( std::size_t n )
 
 int main(int argc, const char * argv[])
 {
-    const std::size_t n = 200000000;
+    const Size_t n = 200000000;
     
     Test_combine_buffers<Real32    ,Real32    ,Real32    ,Real32    >(n);
     Test_combine_buffers<Real32    ,Real64    ,Real32    ,Real32    >(n);

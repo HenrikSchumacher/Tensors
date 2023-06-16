@@ -258,8 +258,7 @@ int main( int argc, const char * argv[] )
 
     using Scal = Real64;
     using Int  = Int32;
-    using LInt = std::size_t;
-    using LInt = std::size_t;
+    using LInt = Size_t;
     
     
     const Int  m            = 600000;

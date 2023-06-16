@@ -108,8 +108,8 @@ namespace Tensors
             
             template<typename I_0, typename I_1, typename I_3>
             MatrixCSR(
-                Tensor1<LInt  , Int> && outer_,
-                Tensor1< Int  ,LInt> && inner_,
+                Tensor1<LInt, Int> && outer_,
+                Tensor1< Int,LInt> && inner_,
                 Tensor1<Scal,LInt> && values_,
                 const I_0 m_,
                 const I_1 n_,

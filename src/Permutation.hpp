@@ -413,7 +413,7 @@ namespace Tensors
         }
         
         template<typename S, typename T>
-        void Permute( ptr<S> a, mut<T> b, const Inverse inverseQ, size_t chunk )
+        void Permute( ptr<S> a, mut<T> b, const Inverse inverseQ, Size_T chunk )
         {
             // Permute a chunkwise into b, i.e., b[size*i+k] <- a[size*p[i]+k];
             ptic(ClassName()+"::Permute ("+ToString(chunk)+")");
@@ -631,8 +631,6 @@ namespace Tensors
         const Int m = P.Size();
 
         const Int thread_count = P.ThreadCount();
-
-        dump(thread_count);
         
         ptr<Int> p     = P.GetPermutation().data();
         ptr<Int> q_inv = Q.GetInversePermutation().data();

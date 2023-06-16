@@ -140,7 +140,7 @@ namespace Tensors
             
             mut<Scal> data( const Int i )
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i);
 #endif
                 return v[i].data();
@@ -148,7 +148,7 @@ namespace Tensors
             
             ptr<Scal> data( const Int i ) const
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i);
 #endif
                 return v[i].data();
@@ -156,7 +156,7 @@ namespace Tensors
             
             Tensor_T & operator[]( const Int i )
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i);
 #endif
                 return v[i];
@@ -164,7 +164,7 @@ namespace Tensors
             
             const Tensor_T & operator[]( const Int i ) const
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i);
 #endif
                 return v[i];
@@ -172,7 +172,7 @@ namespace Tensors
             
             Tensor_T & operator()( const Int i )
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i);
 #endif
                 return v[i];
@@ -180,7 +180,7 @@ namespace Tensors
             
             const Tensor_T & operator()( const Int i ) const
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i);
 #endif
                 return v[i];
@@ -188,7 +188,7 @@ namespace Tensors
             
             Scal & operator()( const Int i, const Int k )
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i);
 #endif
                 return v[i][k];
@@ -196,7 +196,7 @@ namespace Tensors
             
             const Scal & operator()( const Int i, const Int k ) const
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i);
 #endif
                 return v[i][k];

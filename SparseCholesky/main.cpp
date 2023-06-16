@@ -2,7 +2,7 @@
 #include <iostream>
 
 #define TOOLS_ENABLE_PROFILER
-#define NDEBUG
+//#define TOOLS_DEBUG
 
 #include "Tensors.hpp"
 #include "Sparse.hpp"

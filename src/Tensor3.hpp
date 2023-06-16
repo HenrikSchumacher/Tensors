@@ -84,7 +84,7 @@ namespace Tensors {
 
         force_inline mut<Scal> data( const Int i )
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i);
 #endif
             return &a[i * dims[1] * dims[2]];
@@ -92,7 +92,7 @@ namespace Tensors {
         
         force_inline ptr<Scal> data( const Int i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i);
 #endif
             return &a[i * dims[1] * dims[2]];
@@ -100,7 +100,7 @@ namespace Tensors {
 
         force_inline mut<Scal> data( const Int i, const Int j )
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i,j);
 #endif
             return &a[( i * dims[1] + j ) * dims[2]];
@@ -108,7 +108,7 @@ namespace Tensors {
         
         force_inline ptr<Scal> data( const Int i, const Int j ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i,j);
 #endif
             return &a[( i * dims[1] + j ) * dims[2]];
@@ -117,7 +117,7 @@ namespace Tensors {
         
         force_inline mut<Scal> data( const Int i, const Int j, const Int k)
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
 #endif
             return &a[( i *  dims[1] + j ) * dims[2] + k];
@@ -126,7 +126,7 @@ namespace Tensors {
         
         force_inline ptr<Scal> data( const Int i, const Int j, const Int k) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
 #endif
             return &a[( i *  dims[1] + j ) * dims[2] + k];
@@ -134,7 +134,7 @@ namespace Tensors {
         
         force_inline Scal & operator()( const Int i, const Int j, const Int k)
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
 #endif
             return a[( i *  dims[1] + j ) * dims[2] + k];
@@ -142,7 +142,7 @@ namespace Tensors {
         
         force_inline const Scal & operator()( const Int i, const Int j, const Int k) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
 #endif
             return a[( i *  dims[1] + j ) * dims[2] + k];

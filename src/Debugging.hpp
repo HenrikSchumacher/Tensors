@@ -7,15 +7,35 @@ namespace Tensors
     {
         ASSERT_INT(Int1);
         ASSERT_INT(Int0);
-#ifdef TENSORS_BOUND_CHECKS
-        if( n < std::numeric_limits<Int1>::lowest() )
+        
+#ifdef TOOLS_DEBUG
+        
+        if constexpr ( !std::numeric_limits<Int1>::is_signed && std::numeric_limits<Int0>::is_signed)
         {
-            eprint("int_cast<"+TypeName<Int1>+"> reports integer underflow for n = " + ToString(n) + " of type " + TypeName<Int0>+".");
+            if( n < static_cast<Int0>(0) )
+            {
+                eprint(std::string("int_cast<") + TypeName<Int1> + "> reports integer underflow n < 0 for n = " + ToString(n) + " of type " + TypeName<Int0> + ".");
+            }
         }
-        if( n > std::numeric_limits<Int1>::max() )
+        else
         {
-            eprint("int_cast<"+TypeName<Int1>+"> reports integer overflow for n = " + ToString(n) + " of type " + TypeName<Int0>+".");
+            if constexpr ( std::numeric_limits<Int0>::lowest() < std::numeric_limits<Int1>::lowest() )
+            {
+                if( n < std::numeric_limits<Int1>::lowest() )
+                {
+                    eprint(std::string("int_cast<") + TypeName<Int1> + "> reports integer underflow n < " + ToString(std::numeric_limits<Int1>::lowest()) + " for n = " + ToString(n) + " of type " + TypeName<Int0> + ".");
+                }
+            }
         }
+
+        if constexpr ( std::numeric_limits<Int0>::max() > std::numeric_limits<Int1>::max() )
+        {
+            if( n > std::numeric_limits<Int1>::max() )
+            {
+                eprint(std::string("int_cast<") + TypeName<Int1> + "> reports integer overflow n > " + ToString(std::numeric_limits<Int1>::max()) + "  for n = " + ToString(n) + " of type " + TypeName<Int0> + ".");
+            }
+        }
+        
 #endif
         return static_cast<Int1>(n);
     }
@@ -23,24 +43,15 @@ namespace Tensors
     template<typename T>
     force_inline void assert_positive( const T x )
     {
-#ifdef TENSORS_BOUND_CHECKS
-        if( x <= 0 )
+#ifdef TOOLS_DEBUG
+        if constexpr ( std::numeric_limits<T>::is_signed )
         {
-            eprint(std::string("assert_positive failed in function in ")+std::string(__FILE__)+" at line "+ ToString(__LINE__)+".");
+            if( x <= static_cast<T>(0) )
+            {
+                eprint(std::string("assert_positive failed in function in ") + std::string(__FILE__) + " at line "+ ToString(__LINE__)+".");
+            }
         }
 #endif
     }
-//
-//#ifdef TENSORS_BOUND_CHECKS
-//    #define assert_positive(x,str)                                                          \
-//    if( x <= 0 )                                                                            \
-//    {                                                                                       \
-//        eprint( "assert_positive failed for variable "+std::string(#x)+" at "+str+"." );    \
-//    }                                                                                       \
-//    else (void)0
-//#else
-//
-//    #define assert_positive(x,str)
-//#endif
     
 } // namespace Tensors

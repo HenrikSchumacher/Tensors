@@ -56,7 +56,7 @@ namespace Tensors {
 
         force_inline mut<Scal> data( const Int i )
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i);
 #endif
             return &a[i];
@@ -64,7 +64,7 @@ namespace Tensors {
         
         force_inline ptr<Scal> data( const Int i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i);
 #endif
             return &a[i];
@@ -72,7 +72,7 @@ namespace Tensors {
         
         force_inline Scal & operator()(const Int i)
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i);
 #endif
             return a[i];
@@ -80,7 +80,7 @@ namespace Tensors {
         
         force_inline const Scal & operator()(const Int i) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i);
 #endif
             return a[i];
@@ -88,7 +88,7 @@ namespace Tensors {
         
         force_inline Scal & operator[](const Int i)
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i);
 #endif
             return a[i];
@@ -96,7 +96,7 @@ namespace Tensors {
         
         force_inline const Scal & operator[](const Int i) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(i);
 #endif
             return a[i];
@@ -106,7 +106,7 @@ namespace Tensors {
         
         force_inline Scal & First()
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(0);
 #endif
             return a[0];
@@ -114,7 +114,7 @@ namespace Tensors {
         
         force_inline const Scal & First() const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(0);
 #endif
             return a[0];
@@ -122,7 +122,7 @@ namespace Tensors {
 
         force_inline Scal & Last()
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(n-1);
 #endif
             return a[n-1];
@@ -130,7 +130,7 @@ namespace Tensors {
         
         force_inline const Scal & Last() const
         {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
             BoundCheck(n-1);
 #endif
             return a[n-1];

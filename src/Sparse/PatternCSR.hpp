@@ -603,7 +603,7 @@ namespace Tensors
 
             LInt & Outer( const Int i )
             {
-#ifndef TENSORS_BOUND_CHECKS
+#ifndef TOOLS_DEBUG
                 if( i < 0 || i >= outer.Size() )
                 {
                     eprint(ClassName()+"::Outer(): Out of bound access.");
@@ -614,7 +614,7 @@ namespace Tensors
             
             const LInt & Outer( const Int i ) const
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 if( i < 0 || i >= outer.Size() )
                 {
                     eprint(ClassName()+"::Outer(): Out of bound access.");
@@ -636,7 +636,7 @@ namespace Tensors
 
             Int & Inner( const LInt k )
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 if( k < 0 || k >= inner.Size() )
                 {
                     eprint(ClassName()+"::Inner(): Out of bound access.");
@@ -647,7 +647,7 @@ namespace Tensors
             
             const Int & Inner( const LInt k ) const
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 if( k < 0 || k >= inner.Size() )
                 {
                     eprint(ClassName()+"::Inner(): Out of bound access.");
@@ -666,7 +666,7 @@ namespace Tensors
             
             const LInt & Diag( const Int i ) const
             {
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 if( i < 0 || i >= diag_ptr.Size() )
                 {
                     eprint(ClassName()+"::Diag(): Out of bound access.");
@@ -909,7 +909,7 @@ namespace Tensors
                     
                     ptic("Create counters for counting sort");
                     
-                    Tensor2<Int,Int> counters ( thread_count, m, static_cast<Int>(0) );
+                    Tensor2<LInt,Int> counters ( thread_count, m, static_cast<Int>(0) );
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort
@@ -964,12 +964,12 @@ namespace Tensors
                             mut<LInt> c        = counters.data(thread);
                             
                             ptr<LInt> A_outer  = Outer().data();
-                            ptr<Int>  A_inner  = Inner().data();
+                            ptr< Int> A_inner  = Inner().data();
                             
                             ptr<LInt> B_outer  = B.Outer().data();
-                            ptr<Int>  B_inner  = B.Inner().data();
+                            ptr< Int> B_inner  = B.Inner().data();
                             
-                            mut<Int>  C_inner  = C.Inner().data();
+                            mut< Int> C_inner  = C.Inner().data();
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
@@ -1175,7 +1175,7 @@ namespace Tensors
             {
                 // Looks up the entry {i,j}. If existent, its index within the list of nonzeroes is returned. Otherwise, a negative number is returned (-1 if simply not found and -2 if i is out of bounds).
                 
-#ifdef TENSORS_BOUND_CHECKS
+#ifdef TOOLS_DEBUG
                 BoundCheck(i,j);
 #endif
                 
