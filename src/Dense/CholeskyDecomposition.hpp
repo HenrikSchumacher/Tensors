@@ -292,7 +292,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scal U_ii_inv = Scalar::Inv( U[i][i] );
+                    const Scal U_ii_inv = Scalar::Inv<Scal>( U[i][i] );
                     
                     LOOP_UNROLL_FULL
                     for( Int k = 0; k < max_rhs; ++k )

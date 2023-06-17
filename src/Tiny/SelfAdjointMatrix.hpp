@@ -103,13 +103,11 @@ namespace Tensors
                 }
             }
             
-            UpperTriangularMatrix<n, Scal, Int> CholeskyDecomposition() const
+            void Cholesky( UpperTriangularMatrix<n, Scal, Int> & U ) const
             {
                 // Computes and returns the upper factor U = L ^H such that A = U^H * U.
                 
-                UpperTriangularMatrix<n, Scal, Int> U;
-                
-                U.Read( A.data() );
+                Write( U.data() );
                 
                 for( Int k = 0; k < n; ++k ) // for each row
                 {
@@ -137,8 +135,6 @@ namespace Tensors
                         }
                     }
                 }
-                
-                return U;
             }
             
             
@@ -170,6 +166,54 @@ namespace Tensors
                         x[i] -= A[i][j] * x[j];
                     }
                     x[i] /= A[i][i];
+                }
+            }
+            
+            template< int K >
+            void CholeskySolve(Tiny::Matrix<n,K,Real,Int> & X) const
+            {
+                //In-place solve.
+                
+                // Lower triangular back substitution
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = 0; j < i; ++j )
+                    {
+                        for( Int k = 0; k < K; ++k )
+                        {
+                            const Scal bar_a_ji = Scalar::Conj(A[j][i]);
+                            
+                            X[i][k] -= bar_a_ji * X[j][k];
+                        }
+                    }
+                    
+                    const Scal A_ii_inv = Scalar::Inv<Scal>(A[i][i]);
+                    
+                    for( Int k = 0; k < K; ++k )
+                    {
+                        X[i][k] *= A_ii_inv;
+                    }
+                }
+                
+                // Upper triangular back substitution
+                for( Int i = n; i --> 0; )
+                {
+                    for( Int j = i+1; j < n; ++j )
+                    {
+                        const Scal A_ij = A[i][j];
+                        
+                        for( Int k = 0; k < K; ++k )
+                        {
+                            X[i][k] -= A_ij * X[j][k];
+                        }
+                    }
+                    
+                    const Scal A_ii_inv = Scalar::Inv<Scal>(A[i][i]);
+                    
+                    for( Int k = 0; k < K; ++k )
+                    {
+                        X[i][k] *= A_ii_inv;
+                    }
                 }
             }
             
@@ -656,28 +700,28 @@ namespace Tensors
                 Dot<false>(V,Q,U);
             }
             
-            std::string ToString( const int p = 16) const
+            std::string ToString() const
             {
                 std::stringstream sout;
 
                 sout << "{\n";
                 sout << "\t{ ";
                 
-                sout << ToString(A[0][0],p);
+                sout << Tools::ToString(A[0][0]);
                 for( Int j = 1; j < n; ++j )
                 {
-                    sout << ", " << ToString(A[0][j],p);
+                    sout << ", " << Tools::ToString(A[0][j]);
                 }
                 
                 for( Int i = 1; i < n; ++i )
                 {
                     sout << " },\n\t{ ";
                     
-                    sout << ToString(A[i][0],p);
+                    sout << Tools::ToString(A[i][0]);
                     
                     for( Int j = 1; j < n; ++j )
                     {
-                        sout << ", " << ToString(A[i][j],p);
+                        sout << ", " << Tools::ToString(A[i][j]);
                     }
                 }
                 sout << " }\n}";

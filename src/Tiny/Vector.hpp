@@ -401,14 +401,14 @@ namespace Tensors
             }
 
             
-            std::string ToString( const int p = 16) const
+            std::string ToString() const
             {
                 std::stringstream sout;
                 sout << "{ ";
-                sout << Tools::ToString(v[0],p);
+                sout << Tools::ToString(v[0]);
                 for( Int i = 1; i < n; ++i )
                 {
-                    sout << ", " << Tools::ToString(v[i],p);
+                    sout << ", " << Tools::ToString(v[i]);
                 }
                 sout << " }";
                 return sout.str();
@@ -418,10 +418,10 @@ namespace Tensors
             Stream_T & ToStream( Stream_T & s ) const
             {
                 s << "{ ";
-                s << Tools::ToString(v[0],16);
+                s << Tools::ToString(v[0]);
                 for( Int i = 1; i < n; ++i )
                 {
-                    s << ", " << Tools::ToString(v[i],16);
+                    s << ", " << Tools::ToString(v[i]);
                 }
                 s << " }";
                 

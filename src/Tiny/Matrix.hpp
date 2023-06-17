@@ -123,7 +123,6 @@ namespace Tensors
             
         public:
             
-            
             template<
                 bool add_to,
                 int K,
@@ -147,16 +146,14 @@ namespace Tensors
                 void
             >
             Dot(
-                const Tiny::Matrix<m,K,R,Int> & X,
-                const Tiny::Matrix<K,n,S,Int> & Y,
-                CLASS & Z
+                const Tiny::Matrix<m,K,R,   Int> & X,
+                const Tiny::Matrix<K,n,S,   Int> & Y,
+                      Tiny::Matrix<m,n,Scal,Int> & Z
             )
             {
                 // First pass to overwrite (if desired).
-//                LOOP_UNROLL_FULL
                 for( Int i = 0; i < m; ++i )
                 {
-//                    LOOP_UNROLL_FULL
                     for( Int j = 0; j < n; ++j )
                     {
                         if constexpr ( add_to )
@@ -171,13 +168,10 @@ namespace Tensors
                 }
                 
                 // Now add-in the rest.
-//                LOOP_UNROLL_FULL
                 for( Int k = 1; k < K; ++k )
                 {
-//                    LOOP_UNROLL_FULL
                     for( Int i = 0; i < m; ++i )
                     {
-//                        LOOP_UNROLL_FULL
                         for( Int j = 0; j < n; ++j )
                         {
                             Z[i][j] += X[i][k] * Y[k][j];
@@ -203,23 +197,21 @@ namespace Tensors
                 (
                     std::is_same_v<S,T>
                     ||
-                 (Scalar::IsComplex<T> && std::is_same_v<Scal,typename Scalar::Real<T>>)
+                    (Scalar::IsComplex<T> && std::is_same_v<Scal,typename Scalar::Real<T>>)
                 )
                 ,
                 void
             >
             Dot(
-                const CLASS & M,
-                const Tiny::Vector<n,S,Int> & x,
-                      Tiny::Vector<m,T,Int> & y
+                const Tiny::Matrix<m,n,Scal,Int> & M,
+                const Tiny::Vector<n,  S,   Int> & x,
+                      Tiny::Vector<m,  T,   Int> & y
             )
             {
-//                LOOP_UNROLL_FULL
                 for( Int i = 0; i < m; ++i )
                 {
                     T y_i (0);
                     
-//                    LOOP_UNROLL_FULL
                     for( Int j = 0; j < n; ++j )
                     {
                         y_i += M[i][j] * x[j];
@@ -236,7 +228,49 @@ namespace Tensors
                 }
             }
             
+
         public:
+            
+
+            force_inline void Transpose( Matrix<n,m,Scal,Int> & B ) const
+            {
+                for( Int j = 0; j < n; ++j )
+                {
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        B[j][i] = A[i][j];
+                    }
+                }
+            }
+            
+            force_inline Matrix<n,m,Scal,Int> Transpose() const
+            {
+                Matrix<n,m,Scal,Int> B;
+                
+                Transpose(B);
+                
+                return B;
+            }
+
+            force_inline void ConjugateTranspose( Matrix<n,m,Scal,Int> & B ) const
+            {
+                for( Int j = 0; j < n; ++j )
+                {
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        B[j][i] = Scalar::Conj(A[i][j]);
+                    }
+                }
+            }
+
+            force_inline Matrix<n,m,Scal,Int> ConjugateTranspose() const
+            {
+                Matrix<n,m,Scal,Int> B;
+                
+                ConjugateTranspose(B);
+                
+                return B;
+            }
             
             force_inline Real MaxNorm() const
             {
@@ -267,27 +301,27 @@ namespace Tensors
             }
 
             
-            std::string ToString( const int p = 16) const
+            std::string ToString() const
             {
                 std::stringstream sout;
                 sout << "{\n";
                 sout << "\t{ ";
                 if( (m > 0) && (n > 0) )
                 {
-                    sout << Tools::ToString(A[0][0],p);
+                    sout << Tools::ToString(A[0][0]);
                     for( Int j = 1; j < n; ++j )
                     {
-                        sout << ", " << Tools::ToString(A[0][j],p);
+                        sout << ", " << Tools::ToString(A[0][j]);
                     }
                     for( Int i = 1; i < m; ++i )
                     {
                         sout << " },\n\t{ ";
                         
-                        sout << Tools::ToString(A[i][0],p);
+                        sout << Tools::ToString(A[i][0]);
                         
                         for( Int j = 1; j < n; ++j )
                         {
-                            sout << ", " << Tools::ToString(A[i][j],p);
+                            sout << ", " << Tools::ToString(A[i][j]);
                         }
                     }
                 }

@@ -122,27 +122,27 @@ namespace Tensors
                 }
             }
             
-            std::string ToString( const int p = 16) const
+            std::string ToString() const
             {
                 std::stringstream sout;
                 sout << "{\n";
                 sout << "\tdiag  = { ";
                 
-                sout << ToString(diag[0],p);
+                sout << Tools::ToString(diag[0]);
                 for( Int j = 1; j < n; ++j )
                 {
-                    sout << ", " << ToString(diag[j],p);
+                    sout << ", " << Tools::ToString(diag[j]);
                 }
                 
                 sout << " },\n\tupper = { ";
                 
                 if( n > 1 )
                 {
-                    sout << ToString(upper[0],p);
+                    sout << Tools::ToString(upper[0]);
                     
                     for( Int j = 1; j < n-1; ++j )
                     {
-                        sout << ", " << ToString(upper[j],p);
+                        sout << ", " << Tools::ToString(upper[j]);
                     }
                 }
                 sout << " }\n}";

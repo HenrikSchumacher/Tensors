@@ -269,47 +269,6 @@ public:
         return *this;
     }
     
-    
-    force_inline void Transpose( CLASS & B ) const
-    {
-        for( Int j = 0; j < n; ++j )
-        {
-            for( Int i = 0; i < m; ++i )
-            {
-                B.A[j][i] = A[i][j];
-            }
-        }
-    }
-    
-    force_inline CLASS Transpose() const
-    {
-        CLASS B;
-        
-        Transpose(B);
-        
-        return B;
-    }
-
-    force_inline void ConjugateTranspose( CLASS & B ) const
-    {
-        for( Int j = 0; j < n; ++j )
-        {
-            for( Int i = 0; i < m; ++i )
-            {
-                B.A[j][i] = Scalar::Conj(A[i][j]);
-            }
-        }
-    }
-
-    force_inline CLASS ConjugateTranspose() const
-    {
-        CLASS B;
-        
-        ConjugateTranspose(B);
-        
-        return B;
-    }
-    
     force_inline void Conjugate( CLASS & B ) const
     {
         for( Int i = 0; i < m; ++i )
