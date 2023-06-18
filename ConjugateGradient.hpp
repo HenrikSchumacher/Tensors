@@ -207,7 +207,7 @@ namespace Tensors
         void ComputeScalarProducts( ptr<Scal> v, ptr<Scal> w, RealVector_T & dots )
         {
             ParallelDo(
-                [=,&dots]( const Int thread )
+                [this,v,w,&dots]( const Int thread )
                 {
                     RealVector_T sums;
                     
