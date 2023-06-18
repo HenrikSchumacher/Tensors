@@ -391,7 +391,7 @@ namespace Tensors
                     
                     Traverse_DFS_Postordered( worker, LevelIndex(k) );
                 },
-                0, LevelPointer(max_depth+1), 1
+                0, LevelPointer(max_depth+1), 1,
                 std::min( thread_count, LevelPointer(max_depth+1))
             );
             
@@ -414,7 +414,7 @@ namespace Tensors
                     {
                         Worker_T & worker = *workers[thread];
                         
-                        worker(LevelIndex(i));
+                        worker(LevelIndex(k));
                     },
                     k_begin, k_end, 1,
                     use_threads

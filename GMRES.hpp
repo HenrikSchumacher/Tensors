@@ -225,7 +225,7 @@ namespace Tensors
             z.SetZero();
             
             ParallelDo(
-                [&,iter,K]( const Int i )
+                [this]( const Int i )
                 {
                     for( Int j = 0; j < iter; ++j )
                     {
@@ -387,7 +387,7 @@ namespace Tensors
         void ComputeNorms( ptr<Scal> v, RealVector_T & norms )
         {
             ParallelDo(
-                [&,K,v]( const Int i )
+                [this,v,&norms]( const Int thread )
                 {
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
@@ -420,7 +420,7 @@ namespace Tensors
         void ComputeScalarProducts( ptr<Scal> v, ptr<Scal> w, Vector_T & dots )
         {
             ParallelDo(
-                [=,&job_ptr]( const Int thread )
+                [this,v,w,&dots]( const Int thread )
                 {
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
@@ -449,7 +449,7 @@ namespace Tensors
         void MulAdd( mut<Scal> v, ptr<Scal> w, const Vector_T & factors )
         {
             ParallelDo(
-                [&,K,v,w]( const Int i )
+                [this,v,w,&factors]( const Int i )
                 {
                     for( Int k = 0; k < K; ++k )
                     {
@@ -470,7 +470,7 @@ namespace Tensors
         void InverseScale( mut<Scal> q, const RealVector_T & factors )
         {
             ParallelDo(
-                [&,K,q]( const Int thread )
+                [this,q,&factors]( const Int thread )
                 {
                     RealVector_T factors_inv;
                     

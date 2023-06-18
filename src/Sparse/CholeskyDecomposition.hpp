@@ -6,10 +6,10 @@
 #define LAPACK_DISABLE_NAN_CHECK
 
 //#include <Accelerate/Accelerate.h>
-#include <cblas.h>
-#include <lapacke.h>
+//#include <cblas.h>
+//#include <lapacke.h>
 
-#include "../../MyBLAS.hpp"
+//#include "../../MyBLAS.hpp"
 
 #include "CholeskyFactorizer.hpp"
 

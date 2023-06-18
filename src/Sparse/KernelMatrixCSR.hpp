@@ -176,7 +176,7 @@ namespace Tensors
                         Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
                         
                         ptr<LInt> rp = pattern.Outer().data();
-                        ptr<Int>  ci = pattern.Inner().data();
+                        ptr< Int> ci = pattern.Inner().data();
                         
                         // Kernel is supposed the following rows of pattern:
                         const Int i_begin = job_ptr[thread  ];

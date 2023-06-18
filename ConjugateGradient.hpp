@@ -40,6 +40,8 @@ namespace Tensors
         RealVector_T rho;
         RealVector_T rho_old;
         
+        JobPointers<Int> job_ptr;
+        
         Int iter = 0;
         
     public:
@@ -56,6 +58,7 @@ namespace Tensors
         ,   x               ( n, K )
         ,   z               ( n, K )
         ,   reduction_buffer( thread_count, K )
+        ,   job_ptr         ( n, thread_count )
         {}
         
         ~ConjugateGradient() = default;
@@ -103,7 +106,7 @@ namespace Tensors
             // r = b - A.x
             
             ParallelDo(
-                [K,&r,&u]( const Int i )
+                [this]( const Int i )
                 {
                     for( Int k = 0; k < K; ++k )
                     {
@@ -146,7 +149,7 @@ namespace Tensors
                 // r = r - alpha u;
                 
                 ParallelDo(
-                    [&,K]( const Int i )
+                    [this]( const Int i )
                     {
                         for( Int k = 0; k < K; ++k )
                         {
@@ -178,7 +181,7 @@ namespace Tensors
                 // TODO: Put this at the start of the while loop, and only for iter > 0?
                 // p = z + beta p;
                 ParallelDo(
-                    [&,K]( const Int i )
+                    [this]( const Int i )
                     {
                         for( Int k = 0; k < K; ++k )
                         {
@@ -204,11 +207,14 @@ namespace Tensors
         void ComputeScalarProducts( ptr<Scal> v, ptr<Scal> w, RealVector_T & dots )
         {
             ParallelDo(
-                [&,K]( const Int thread )
+                [=,&dots]( const Int thread )
                 {
                     RealVector_T sums;
                     
                     sums.SetZero();
+                    
+                    const Int i_begin = job_ptr[thread    ];
+                    const Int i_end   = job_ptr[thread + 1];
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
