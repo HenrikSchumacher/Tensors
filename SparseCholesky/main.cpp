@@ -4,6 +4,8 @@
 #define TOOLS_ENABLE_PROFILER
 //#define TOOLS_DEBUG
 
+#include "Tensors/Tensors.hpp"
+
 #include "Tensors.hpp"
 #include "Sparse.hpp"
 

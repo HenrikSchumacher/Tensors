@@ -1504,5 +1504,3 @@ namespace Tensors
 // DONE: Parallelized, abstract postorder traversal of Tree
 
 // DONE: Specialization of the cases m_0 = 1 and n_0 = 1.
-
-// DONE: Deactivate OpenMP if thread_count == 1 or if OpenMP is not found.

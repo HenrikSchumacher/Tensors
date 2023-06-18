@@ -8,7 +8,7 @@ namespace Tensors
         // A dynamically growing version of Tensor1 that allows pushing of several elements at once.
         // It also allows decently fast access with the operator[].
         
-        // Setting thread_count higher than 1 can speed up copy operations -- but only if sufficiently many OpenMP are free and only if there is sufficient RAM bandwidth.
+        // Setting thread_count higher than 1 can speed up copy operations -- but only if sufficiently many threads are free and only if there is sufficient RAM bandwidth.
         // Better set thread_count = 1 if you want to use more than one Aggregator at a time.
         
         
