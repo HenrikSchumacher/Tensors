@@ -216,7 +216,7 @@ namespace Tensors
             >
             QRAlgorithm(
                 Vector<n,S,Int> & eigs,
-                const Real tol = MyMath::sqrt(eps),
+                const Real tol = std::sqrt(eps),
                 const Int max_iter = 4
             )
             {

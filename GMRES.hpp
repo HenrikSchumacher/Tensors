@@ -357,7 +357,7 @@ namespace Tensors
                     
                     const Real r = std::sqrt( Scalar::AbsSquared(xi) + Scalar::AbsSquared(eta) );
                     
-                    if( abs(xi) <= Scalar::eps<Scal> * r )
+                    if( std::abs(xi) <= Scalar::eps<Scal> * r )
                     {
                         cos = Scalar::Zero<Scal>;
                         sin = Scalar::One<Scal>;

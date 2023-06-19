@@ -124,7 +124,7 @@ namespace Tensors
             }
             
             // Copy constructor
-            MatrixCSR( const MatrixCSR & other )
+            MatrixCSR( const MatrixCSR & other ) noexcept
             :   Base_T  ( other        )
             ,   values  ( other.values )
             {
@@ -141,7 +141,7 @@ namespace Tensors
             }
             
             // (Copy-)assignment operator
-            MatrixCSR & operator=( MatrixCSR other ) // Pass by value is okay, because we use copy-swap idiom and copy elision.
+            MatrixCSR & operator=( MatrixCSR other ) noexcept // Pass by value is okay, because we use copy-swap idiom and copy elision.
             {
                 // see https://stackoverflow.com/a/3279550/8248900 for details
                 
@@ -177,7 +177,7 @@ namespace Tensors
             }
             
             MatrixCSR(
-                const LInt nonzero_count,
+                const LInt nnz_,
                 const Int  * const i,
                 const Int  * const j,
                 const Scal * const a,
@@ -189,8 +189,6 @@ namespace Tensors
             )
             :   Base_T ( m_, n_, thread_count )
             {
-                JobPointers<LInt> distr ( nonzero_count, thread_count );
-                
                 Tensor1<const Int  *,Int> idx    (thread_count);
                 Tensor1<const Int  *,Int> jdx    (thread_count);
                 Tensor1<const Scal *,Int> val    (thread_count);
@@ -198,12 +196,13 @@ namespace Tensors
                 
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const LInt pos = distr[thread];
+                    const LInt begin = JobPointer<LInt>(nnz_, thread_count, thread    );
+                    const LInt end   = JobPointer<LInt>(nnz_, thread_count, thread + 1);
                     
-                    idx[thread] = &i[pos];
-                    jdx[thread] = &j[pos];
-                    val[thread] = &a[pos];
-                    counts[thread] = distr[thread+1]-pos;
+                    idx[thread] = &i[begin];
+                    jdx[thread] = &j[begin];
+                    val[thread] = &a[begin];
+                    counts[thread] = end-begin;
                 }
                 
                 FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compress, symmetrize );

@@ -301,6 +301,22 @@ Int CountNan() const
     return counter;
 }
 
+
+std::pair<Real,Real> MinMax() const
+{
+    return minmax_buffer( a, Size() );
+}
+
+Real Min() const
+{
+    return MinMax().first;
+}
+
+Real Max() const
+{
+    return MinMax().second;
+}
+
 Real MaxNorm() const
 {
     return norm_max( a, Size() );

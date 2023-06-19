@@ -148,7 +148,7 @@ namespace Tensors
             Dot(
                 const Tiny::Matrix<m,K,R,   Int> & X,
                 const Tiny::Matrix<K,n,S,   Int> & Y,
-                      Tiny::Matrix<m,n,Scal,Int> & Z
+                      CLASS & Z
             )
             {
                 // First pass to overwrite (if desired).
@@ -203,7 +203,7 @@ namespace Tensors
                 void
             >
             Dot(
-                const Tiny::Matrix<m,n,Scal,Int> & M,
+                const CLASS & M,
                 const Tiny::Vector<n,  S,   Int> & x,
                       Tiny::Vector<m,  T,   Int> & y
             )
@@ -631,7 +631,3 @@ namespace Tensors
     
     
 } // namespace Tensors
-
-
-
-
