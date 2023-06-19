@@ -799,7 +799,7 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return "Sparse::CholeskyFactorizer<"+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
+                return std::string("Sparse::CholeskyFactorizer")+"<"+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
             }
             
         }; // class CholeskyFactorizer

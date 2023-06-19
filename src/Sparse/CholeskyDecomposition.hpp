@@ -1468,7 +1468,7 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return "Sparse::CholeskyDecomposition<"+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
+                return std::string("Sparse::CholeskyDecomposition")+"<"+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
             }
             
             

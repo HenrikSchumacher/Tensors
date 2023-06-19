@@ -263,8 +263,7 @@ namespace Tensors
                 },
                 AndReducer(),
                 true,
-                n-1,
-                thread_count
+                Scalar::Zero<Int>, n-1, thread_count
             );
         }
         
@@ -430,7 +429,7 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return "Tree<"+TypeName<Int>+">";
+            return std::string("Tree")+"<"+TypeName<Int>+">";
         }
     };
 }

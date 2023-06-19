@@ -20,8 +20,8 @@ namespace Tensors
 
         using Container_0_T = Tensor1<T_0,LInt>;
 
-        LInt current_size   = static_cast<LInt>(0);
-        LInt capacity       = static_cast<LInt>(1);
+        LInt current_size   = Scalar::Zero<LInt>;
+        LInt capacity       = Scalar::One<LInt>;
         
         Container_0_T container_0 {capacity};
 
@@ -34,17 +34,17 @@ namespace Tensors
         ~Aggregator() = default;
 
         explicit Aggregator( const LInt n )
-        :   current_size ( static_cast<LInt>(0)             )
-        ,   capacity     ( std::max(static_cast<LInt>(1),n) )
-        ,   container_0  ( std::max(static_cast<LInt>(1),n) )
-        ,   thread_count ( 1                                )
+        :   current_size ( Scalar::Zero<LInt>            )
+        ,   capacity     ( std::max(Scalar::One<LInt>,n) )
+        ,   container_0  ( std::max(Scalar::One<LInt>,n) )
+        ,   thread_count ( 1                             )
         {}
         
         explicit Aggregator( const LInt n, const Size_T thread_count_ )
-        :   current_size ( static_cast<LInt>(0)             )
-        ,   capacity     ( std::max(static_cast<LInt>(1),n) )
-        ,   container_0  ( std::max(static_cast<LInt>(1),n) )
-        ,   thread_count ( thread_count_                    )
+        :   current_size ( Scalar::Zero<LInt>            )
+        ,   capacity     ( std::max(Scalar::One<LInt>,n) )
+        ,   container_0  ( std::max(Scalar::One<LInt>,n) )
+        ,   thread_count ( thread_count_                 )
         {}
 
         // Copy contructor
@@ -164,7 +164,8 @@ namespace Tensors
 //            Container_0_T new_container_0 ( container_0.data(), current_size );
             
             Container_0_T new_container_0 ( current_size );
-            new_container_0.Read( container_0.data(), thread_count );
+            
+            new_container_0.ReadParallel( container_0.data(), thread_count );
             
             using std::swap;
             swap( container_0, new_container_0 );
@@ -175,14 +176,14 @@ namespace Tensors
         
         void Expand()
         {
-            RequireCapacity( static_cast<LInt>(2) * capacity );
+            RequireCapacity( Scalar::Two<LInt> * capacity );
         }
         
     public:
         
         std::string ClassName() const
         {
-            return "Aggregator<"+TypeName<T_0>+","+TypeName<LInt>+">";
+            return std::string("Aggregator")+"<"+TypeName<T_0>+","+TypeName<LInt>+">";
         }
     };
     

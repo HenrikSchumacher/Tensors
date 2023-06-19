@@ -180,8 +180,7 @@ namespace Tensors
                 },
                 AndReducer(),
                 true,
-                n,
-                thread_count
+                Scalar::Zero<Int>, n, thread_count
             );
             
             p_computed     = true;
@@ -212,8 +211,7 @@ namespace Tensors
                 },
                 AndReducer(),
                 true,
-                n,
-                thread_count
+                Scalar::Zero<Int>, n, thread_count
             );
             
             p_computed     = true;
@@ -340,8 +338,7 @@ namespace Tensors
                         },
                         AndReducer(),
                         true,
-                        n,
-                        thread_count
+                        Scalar::Zero<Int>, n, thread_count
                     );
                         
                     swap(p,scratch);
@@ -493,8 +490,7 @@ namespace Tensors
                     },
                     AndReducer(),
                     true,
-                    n,
-                    thread_count
+                    Scalar::Zero<Int>, n, thread_count
                 );
             }
             else
@@ -512,8 +508,7 @@ namespace Tensors
                     },
                     AndReducer(),
                     true,
-                    n,
-                    thread_count
+                    Scalar::Zero<Int>, n, thread_count
                 );
             }
 
@@ -609,7 +604,7 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return "Permutation<"+TypeName<Int>+">";
+            return std::string("Permutation")+"<"+TypeName<Int>+">";
         }
 
     }; // class Permutation
