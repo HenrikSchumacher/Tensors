@@ -95,7 +95,7 @@ TENSOR_T & operator=( const TENSOR_T & other )
             safe_free(a);
             allocate();
         }
-        Read( other.data() );
+        Read( other.a );
     }
     return *this;
 }
@@ -304,7 +304,7 @@ Int CountNan() const
 
 std::pair<Real,Real> MinMax() const
 {
-    return minmax_buffer( a, Size() );
+    return minmax_buffer( a, n );
 }
 
 Real Min() const
@@ -319,12 +319,12 @@ Real Max() const
 
 Real MaxNorm() const
 {
-    return norm_max( a, Size() );
+    return norm_max( a, n );
 }
 
 Real FrobeniusNorm() const
 {
-    return norm_2( a, Size() );
+    return norm_2( a, n );
 }
 
 friend Real MaxDistance( const TENSOR_T & x, const TENSOR_T & y )
@@ -353,7 +353,7 @@ inline friend Real RelativeMaxError( const TENSOR_T & x, const TENSOR_T & y )
 template<class T>
 force_inline TENSOR_T & operator*=( const T alpha )
 {
-    scale_buffer( a, Size() );
+    scale_buffer( a, n );
     
     return *this;
 }

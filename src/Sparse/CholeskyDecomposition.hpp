@@ -3,8 +3,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#define LAPACK_DISABLE_NAN_CHECK
-
 //#include <Accelerate/Accelerate.h>
 //#include <cblas.h>
 //#include <lapacke.h>
@@ -81,6 +79,10 @@ namespace Tensors
             friend class CholeskyFactorizer<Scal,Int,LInt>;
             
             using Factorizer = CholeskyFactorizer<Scal,Int,LInt>;
+
+//            using VectorContainer_T = Tensor1<Scal,Int>;
+            using VectorContainer_T = Tensor1<Scal,LInt>;
+
             
         protected:
             
@@ -174,11 +176,11 @@ namespace Tensors
             
             
             // Stores right hand side / solution during the solve phase.
-            Tensor1<Scal,LInt> X;
+            VectorContainer_T X;
             
             // Stores right hand side / solution during the solve phase.
             // Some scratch space to read parts of X that belong to a supernode's rectangular part.
-            Tensor1<Scal,LInt> X_scratch;
+            VectorContainer_T X_scratch;
             // TODO: If I want to parallelize the solve phase, I have to provide each thread with its own X_scratch.
             
         public:
@@ -300,18 +302,20 @@ namespace Tensors
             
         public:
             
+            
             template<Op op = Op::Id, typename ExtScal>
-            void Solve( ptr<Scal> b, mut<ExtScal> x )
+            void Solve( ptr<ExtScal> b, mut<ExtScal> x )
             {
+                ptic(ClassName()+"::Solve");
+
                 static_assert(
                     (!Scalar::IsComplex<Scal>) || op != Op::Trans,
                     "Solve with Op::Trans not implemented for scalar of complex type."
                 );
                 
-                ptic(ClassName()+"::Solve");
                 // No problem if x and b overlap, since we load b into X anyways.
                 ReadRightHandSide(b);
-            
+                
                 if constexpr ( op == Op::Id )
                 {
                     SN_LowerSolve_Sequential();
@@ -322,8 +326,9 @@ namespace Tensors
                     SN_UpperSolve_Sequential();
                     SN_LowerSolve_Sequential();
                 }
-                
+
                 WriteSolution(x);
+
                 ptoc(ClassName()+"::Solve");
             }
             
@@ -971,7 +976,7 @@ namespace Tensors
                             BLAS_Wrappers::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
                                 n_0, n_1,
                                 Scal(-1), U_1, n_1, // XXX n_1 -> n_0
-                                            x_1, 1,
+                                          x_1, 1,
                                 Scal( 1), x_0, 1
                             );
                         }
@@ -1061,7 +1066,7 @@ namespace Tensors
                         >(
                             n_0, nrhs,
                             Scal(1), U_0, n_0,
-                                       X_0, nrhs
+                                     X_0, nrhs
                         );
                         
                         if( n_1 > 0 )
@@ -1071,7 +1076,7 @@ namespace Tensors
                                //XXX Op::ConjTrans -> Op::Id?
                                 n_1, nrhs, n_0, // ???
                                 Scal(-1), U_1, n_1, // n_1 -> n_0
-                                            X_0, nrhs,
+                                          X_0, nrhs,
                                 Scal( 0), X_1, nrhs
                             );
                         }
@@ -1152,7 +1157,7 @@ namespace Tensors
                             BLAS_Wrappers::gemv<Layout::RowMajor, Op::ConjTrans>(
                                 n_0, n_1,             // XXX Op::ConjTrans -> Op::Trans
                                 Scal(-1), U_1, n_1, // XXX n_1 -> n_0
-                                            x_0, 1,
+                                          x_0, 1,
                                 Scal( 0), x_1, 1
                             );
                             
@@ -1199,7 +1204,7 @@ namespace Tensors
                 
                 valprint("nnz",U_rp.Last());
                 
-                Tensor1<Int,LInt>    U_ci  (U_rp.Last());
+                Tensor1< Int,LInt> U_ci  (U_rp.Last());
                 Tensor1<Scal,LInt> U_val (U_rp.Last());
                 
                 JobPointers<LInt> job_ptr ( SN_count, U_rp.data(), thread_count, false );
@@ -1260,12 +1265,15 @@ namespace Tensors
             void ReadRightHandSide( ptr<ExtScal> b )
             {
                 ptic(ClassName()+"::ReadRightHandSide");
-                if( X.Size() < n )
+                
+                if( X.Size() < static_cast<LInt>(n) )
                 {
-                    X         = Tensor1<Scal,LInt>(n);
-                    X_scratch = Tensor1<Scal,LInt>(max_n_1);
+                    X         = VectorContainer_T(static_cast<LInt>(n));
+                    X_scratch = VectorContainer_T(static_cast<LInt>(max_n_1));
                 }
+
                 perm.Permute( b, X.data(), Inverse::False );
+                
                 ptoc(ClassName()+"::ReadRightHandSide");
             }
             
@@ -1273,12 +1281,15 @@ namespace Tensors
             void ReadRightHandSide( ptr<ExtScal> B, const LInt nrhs )
             {
                 ptic(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
-                if( X.Size() < n * nrhs )
+                
+                if( X.Size() < static_cast<LInt>(n) * nrhs )
                 {
-                    X         = Tensor1<Scal,LInt>(n*nrhs);
-                    X_scratch = Tensor1<Scal,LInt>(max_n_1*nrhs);
+                    X         = VectorContainer_T(static_cast<LInt>(n)*nrhs);
+                    X_scratch = VectorContainer_T(static_cast<LInt>(max_n_1)*nrhs);
                 }
+                
                 perm.Permute( B, X.data(), Inverse::False, nrhs );
+                
                 ptoc(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
             }
 

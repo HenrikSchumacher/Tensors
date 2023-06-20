@@ -316,7 +316,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scal U_ii_inv = Scalar::Inv( LU[i][i] );
+                    const Scal U_ii_inv = Scalar::Inv<Scal>( LU[i][i] );
                     
                     LOOP_UNROLL_FULL
                     for( Int k = 0; k < max_rhs; ++k )
@@ -378,7 +378,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scal U_ii_inv = Scalar::Inv( LU[i][i] );
+                    const Scal U_ii_inv = Scalar::Inv<Scal>( LU[i][i] );
                     
                     for( Int k = 0; k < nrhs; ++k )
                     {
@@ -437,7 +437,7 @@ namespace Tensors
                         std::swap_ranges( &LU[r][0], &LU[r+1][0], &LU[k][0] );
                     }
                     
-                    const Scal LU_kk_inv = Scalar::Inv( LU[k][k] );
+                    const Scal LU_kk_inv = Scalar::Inv<Scal>( LU[k][k] );
                     
                     LOOP_UNROLL_FULL
                     for( Int i = k+1; i < n; ++i )

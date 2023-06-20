@@ -200,13 +200,13 @@ namespace Tensors {
         
         inline friend Scal Dot( const TENSOR_T & x, const TENSOR_T & y )
         {
-            if( x.Size() != y.Size() )
+            if( x.n != y.m )
             {
                 eprint(ClassName()+"::Dot: Sizes of vectors differ. Doing nothing.");
                 return 0;
             }
             
-            return dot( x.data(), y.data(), x.Size() );
+            return dot( x.a, y.a, x.n );
         }
         
         void iota( const Int thread_count = 1 )

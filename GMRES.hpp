@@ -225,7 +225,7 @@ namespace Tensors
             z.SetZero();
             
             ParallelDo(
-                [this]( const Int i )
+                [&]( const Int i )
                 {
                     for( Int j = 0; j < iter; ++j )
                     {
@@ -364,7 +364,7 @@ namespace Tensors
                     }
                     else
                     {
-                        const Real r_inv = Scalar::Inv(r);
+                        const Real r_inv = Scalar::Inv<Real>(r);
                         
                         cos =  std::abs(xi) * r_inv;
                         sin = (xi / std::abs(xi)) * Scalar::Conj(eta) * r_inv;
@@ -476,7 +476,7 @@ namespace Tensors
                     
                     for( Int k = 0; k < K; ++k )
                     {
-                        factors_inv[k] = Scalar::Inv( factors[k] );
+                        factors_inv[k] = Scalar::Inv<Real>( factors[k] );
                     }
                     
                     const Int i_begin = job_ptr[thread  ];
