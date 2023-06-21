@@ -64,7 +64,7 @@ namespace Tensors
     namespace Sparse
     {   
         template<typename Scal_, typename Int_, typename LInt_>
-        class CholeskyDecomposition
+        class CholeskyDecomposition : public CachedObject
         {
         public:
             
@@ -103,7 +103,7 @@ namespace Tensors
             Scal reg = 0;
 
             Matrix_T L;
-            Matrix_T U;
+//            Matrix_T U;
             
             // elimination tree
             bool eTree_initialized = false;
@@ -217,7 +217,7 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt, typename ExtInt2>
             CholeskyDecomposition(
-                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, ptr<ExtInt2> p_, Int n_,
+                ptr<ExtLInt> outer_, ptr<ExtInt> inner_,    <ExtInt2> p_, Int n_,
                 Int thread_count_, Int max_depth_
             )
             :   n               ( std::max(static_cast<Int>(0), n_)     )
@@ -1173,89 +1173,6 @@ namespace Tensors
             }
         
         
-            
-//###########################################################################################
-//####          Supernodes to matrix
-//###########################################################################################
-            
-            void SN_ReconstructU()
-            {
-                // TODO: Debug this.
-                
-                Tensor1<LInt,Int> U_rp (n+1);
-                U_rp[0] = 0;
-                
-                for( Int k = 0; k < SN_count; ++k )
-                {
-                    const Int i_begin  = SN_rp[k  ];
-                    const Int i_end    = SN_rp[k+1];
-                    
-                    const LInt l_begin = SN_outer[k  ];
-                    const LInt l_end   = SN_outer[k+1];
-                    
-//                    const Int n_0 = i_end - i_begin;
-                    const Int n_1 = int_cast<Int>(l_end - l_begin);
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
-                    {
-                        U_rp[i+1] = U_rp[i] + (i_end-i) + n_1;
-                    }
-                }
-                
-                valprint("nnz",U_rp.Last());
-                
-                Tensor1< Int,LInt> U_ci  (U_rp.Last());
-                Tensor1<Scal,LInt> U_val (U_rp.Last());
-                
-                JobPointers<LInt> job_ptr ( SN_count, U_rp.data(), thread_count, false );
-                
-                ParallelDo(
-                    [&,this]( const Int k )
-                    {
-                        const Int i_begin  = SN_rp[k  ];
-                        const Int i_end    = SN_rp[k+1];
-                        
-                        const LInt l_begin = SN_outer[k  ];
-                        const LInt l_end   = SN_outer[k+1];
-                        
-                        const Int n_0 = i_end - i_begin;
-                        const Int n_1 = int_cast<Int>(l_end - l_begin);
-
-                        const Int start = U_rp[i_begin];
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
-                        {
-                            const Int delta = i-i_begin;
-
-                            U_ci[start + delta] = i;
-                        }
-                        
-                        copy_buffer( &SN_inner[l_begin], &U_ci[U_rp[i_begin]+n_0], n_1 );
-                        
-                        for( Int i = i_begin+1; i < i_end; ++i )
-                        {
-                            const Int delta = i-i_begin;
-
-                            copy_buffer( &U_ci[start+delta], &U_ci[U_rp[i]], (i_end-i) + n_1 );
-                                                    
-                            copy_buffer(
-                                &SN_tri_val[SN_tri_ptr[k] + n_0 * i + i]
-                                &U_val[U_rp[i]],
-                                i_end-i
-                            );
-
-                            copy_buffer(
-                                &SN_rec_val[SN_rec_ptr[k] + n_1 * i],
-                                &U_val[U_rp[i]+i_end-i],
-                                n_1
-                            );
-                        }
-                    },
-                    job_ptr
-                );
-                
-                U = Matrix_T( std::move(U_rp), std::move(U_ci), std::move(U_val), n, n, thread_count );
-            }
 
 //###########################################################################################
 //####          IO routines
@@ -1314,74 +1231,74 @@ namespace Tensors
 //###########################################################################################
         public:
             
-            void SymbolicFactorization()
-            {
-                // Non-supernodal way to perform symbolic analysis.
-                // Only meant as reference! In practice rather use the supernodal version SN_SymbolicFactorization.
-                
-                // This is Algorithm 4.2 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
-                
-                ptic(ClassName()+"::SymbolicFactorization");
-                
-                Tensor1<Int,Int> row ( n );  // An array to aggregate the rows of U.
-                
-                Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
-                Int row_counter;                // Holds the current number of indices in row.
-
-                // To be filled with the row pointers of U.
-                Tensor1<LInt,Int> U_rp (n+1);
-                U_rp[0] = 0;
-                
-                // To be filled with the column indices of U.
-                Aggregator<Int,LInt> U_ci ( 2 * A.NonzeroCount() );
-                for( Int i = 0; i < n; ++i ) // Traverse rows.
-                {
-                    // The nonzero pattern of upper(A) belongs definitely to the pattern of U.
-                    row_counter = A.Outer(i+1) - A.Diag(i);
-                    copy_buffer( &A.Inner(A.Diag(i)), row.data(), row_counter );
-                    
-                    const Int l_begin = eTree.ChildPointer(i  );
-                    const Int l_end   = eTree.ChildPointer(i+1);
-                    
-                    // Traverse all children of i in the eTree. Most of the time it's a single child or no one at all. Sometimes it's two or more.
-                    for( Int l = l_begin; l < l_end; ++l )
-                    {
-                        const Int j = eTree.ChildIndex(l);
-                        
-                        // Merge row pointers of child j into row
-                        const LInt _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
-                        const LInt _end   = U_rp[j+1];
-                        
-                        if( _end > _begin )
-                        {
-                            row_counter = UniteSortedBuffers(
-                                row.data(),    row_counter,
-                                &U_ci[_begin], int_cast<Int>(_end - _begin),
-                                buffer.data()
-                            );
-                            swap( row, buffer );
-                        }
-                        
-                    }
-                    
-                    // Copy row to i-th row of U.
-                    U_ci.Push( row.data(), row_counter );
-                    U_rp[i+1] = U_ci.Size();
-
-                } // for( Int i = 0; i < n; ++i )
-                
-                Tensor1<Scal,LInt> U_val ( U_ci.Size() );
-
-                U = Matrix_T( std::move(U_rp), std::move(U_ci.Get()), std::move(U_val), n, n, thread_count );
-
-                ptoc(ClassName()+"::SymbolicFactorization");
-            }
-            
-            template< Int RHS_COUNT, bool unitDiag = false>
-            void U_Solve_Sequential_0( ptr<Scal> b,  mut<Scal> x )
-            {
-                U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
-            }
+//            void SymbolicFactorization()
+//            {
+//                // Non-supernodal way to perform symbolic analysis.
+//                // Only meant as reference! In practice rather use the supernodal version SN_SymbolicFactorization.
+//
+//                // This is Algorithm 4.2 from  Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
+//
+//                ptic(ClassName()+"::SymbolicFactorization");
+//
+//                Tensor1<Int,Int> row ( n );  // An array to aggregate the rows of U.
+//
+//                Tensor1<Int,Int> buffer ( n );  // Some scratch space for UniteSortedBuffers.
+//                Int row_counter;                // Holds the current number of indices in row.
+//
+//                // To be filled with the row pointers of U.
+//                Tensor1<LInt,Int> U_rp (n+1);
+//                U_rp[0] = 0;
+//
+//                // To be filled with the column indices of U.
+//                Aggregator<Int,LInt> U_ci ( 2 * A.NonzeroCount() );
+//                for( Int i = 0; i < n; ++i ) // Traverse rows.
+//                {
+//                    // The nonzero pattern of upper(A) belongs definitely to the pattern of U.
+//                    row_counter = A.Outer(i+1) - A.Diag(i);
+//                    copy_buffer( &A.Inner(A.Diag(i)), row.data(), row_counter );
+//
+//                    const Int l_begin = eTree.ChildPointer(i  );
+//                    const Int l_end   = eTree.ChildPointer(i+1);
+//
+//                    // Traverse all children of i in the eTree. Most of the time it's a single child or no one at all. Sometimes it's two or more.
+//                    for( Int l = l_begin; l < l_end; ++l )
+//                    {
+//                        const Int j = eTree.ChildIndex(l);
+//
+//                        // Merge row pointers of child j into row
+//                        const LInt _begin = U_rp[j]+1;  // This excludes U_ci[U_rp[j]] == j.
+//                        const LInt _end   = U_rp[j+1];
+//
+//                        if( _end > _begin )
+//                        {
+//                            row_counter = UniteSortedBuffers(
+//                                row.data(),    row_counter,
+//                                &U_ci[_begin], int_cast<Int>(_end - _begin),
+//                                buffer.data()
+//                            );
+//                            swap( row, buffer );
+//                        }
+//
+//                    }
+//
+//                    // Copy row to i-th row of U.
+//                    U_ci.Push( row.data(), row_counter );
+//                    U_rp[i+1] = U_ci.Size();
+//
+//                } // for( Int i = 0; i < n; ++i )
+//
+//                Tensor1<Scal,LInt> U_val ( U_ci.Size() );
+//
+//                U = Matrix_T( std::move(U_rp), std::move(U_ci.Get()), std::move(U_val), n, n, thread_count );
+//
+//                ptoc(ClassName()+"::SymbolicFactorization");
+//            }
+//
+//            template< Int RHS_COUNT, bool unitDiag = false>
+//            void U_Solve_Sequential_0( ptr<Scal> b,  mut<Scal> x )
+//            {
+//                U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
+//            }
             
 //###########################################################################################
 //####          Get routines
@@ -1401,10 +1318,97 @@ namespace Tensors
 //            {
 //                return L;
 //            }
+
             
             const Matrix_T & GetU() const
             {
-                return U;
+                std::string tag ( "U" );
+                
+                if( !InCacheQ(tag) )
+                {
+                    // TODO: Debug this.
+                    
+                    Tensor1<LInt,Int> U_rp (n+1);
+                    U_rp[0] = 0;
+                    
+                    for( Int k = 0; k < SN_count; ++k )
+                    {
+                        const Int i_begin  = SN_rp[k  ];
+                        const Int i_end    = SN_rp[k+1];
+                        
+                        const LInt l_begin = SN_outer[k  ];
+                        const LInt l_end   = SN_outer[k+1];
+                        
+    //                    const Int n_0 = i_end - i_begin;
+                        const Int n_1 = int_cast<Int>(l_end - l_begin);
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            U_rp[i+1] = U_rp[i] + (i_end-i) + n_1;
+                        }
+                    }
+                    
+                    valprint("nnz",U_rp.Last());
+                    
+                    Tensor1< Int,LInt> U_ci  (U_rp.Last());
+                    Tensor1<Scal,LInt> U_val (U_rp.Last());
+                    
+                    JobPointers<LInt> job_ptr ( SN_count, U_rp.data(), thread_count, false );
+                    
+                    ParallelDo(
+                        [&,this]( const Int k )
+                        {
+                            const Int i_begin  = SN_rp[k  ];
+                            const Int i_end    = SN_rp[k+1];
+                            
+                            const LInt l_begin = SN_outer[k  ];
+                            const LInt l_end   = SN_outer[k+1];
+                            
+                            const Int n_0 = i_end - i_begin;
+                            const Int n_1 = int_cast<Int>(l_end - l_begin);
+
+                            const Int start = U_rp[i_begin];
+                            
+                            for( Int i = i_begin; i < i_end; ++i )
+                            {
+                                const Int delta = i-i_begin;
+
+                                U_ci[start + delta] = i;
+                            }
+                            
+                            copy_buffer( &SN_inner[l_begin], &U_ci[U_rp[i_begin]+n_0], n_1 );
+                            
+                            for( Int i = i_begin+1; i < i_end; ++i )
+                            {
+                                const Int delta = i-i_begin;
+
+                                copy_buffer( &U_ci[start+delta], &U_ci[U_rp[i]], (i_end-i) + n_1 );
+                                                        
+                                copy_buffer(
+                                    &SN_tri_val[SN_tri_ptr[k] + n_0 * i + i]
+                                    &U_val[U_rp[i]],
+                                    i_end-i
+                                );
+
+                                copy_buffer(
+                                    &SN_rec_val[SN_rec_ptr[k] + n_1 * i],
+                                    &U_val[U_rp[i]+i_end-i],
+                                    n_1
+                                );
+                            }
+                        },
+                        job_ptr
+                    );
+                    
+                    this->SetCache( tag,
+                        std::make_any<Matrix_T>(
+                            std::move(U_rp), std::move(U_ci), std::move(U_val),
+                            n, n, thread_count
+                        )
+                    );
+                }
+                
+                return std::any_cast<Matrix_T &>( this->GetCache(tag) );
             }
             
             const Matrix_T & GetA() const
