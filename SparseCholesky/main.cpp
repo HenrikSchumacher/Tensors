@@ -4,9 +4,13 @@
 #define TOOLS_ENABLE_PROFILER
 //#define TOOLS_DEBUG
 
-#include "Tensors/Tensors.hpp"
+#define LAPACK_DISABLE_NAN_CHECK
+//#include <Accelerate/Accelerate.h>
+#include <cblas.h>
+#include <lapacke.h>
 
 #include "Tensors.hpp"
+#include "MyBLAS.hpp"
 #include "Sparse.hpp"
 
 using namespace Tools;
@@ -21,8 +25,12 @@ int main(int argc, const char * argv[])
 {
 //    print("Hello world!");
     constexpr Int thread_count = 8;
-    constexpr Int max_depth = 4;
+    constexpr Int tree_top_depth = 5;
 
+//    dump(openblas_get_num_threads());
+//    openblas_set_num_threads(1);
+//    dump(openblas_get_num_threads());
+    
     const Int n = 49;
 
     Int perm [49] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
@@ -107,7 +115,7 @@ int main(int argc, const char * argv[])
     
     for( Int rep = 0; rep < 1; ++rep )
     {
-        Sparse::CholeskyDecomposition<Scal, Int, LInt> chol ( &rp[0], &ci[0], &perm[0], n, thread_count, max_depth );
+        Sparse::CholeskyDecomposition<Scal, Int, LInt> chol ( &rp[0], &ci[0], &perm[0], n, thread_count, tree_top_depth );
         
         chol.SN_SymbolicFactorization();
         
@@ -126,7 +134,7 @@ int main(int argc, const char * argv[])
     }
     
     
-    print(ToString(Y));
+//    print(ToString(Y));
 
 //    {
 //        Tensor2<Real,Int> ZZ  (3,3, 2.);
