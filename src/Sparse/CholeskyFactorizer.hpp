@@ -382,8 +382,8 @@ namespace Tensors
                             _tic();
                             BLAS_Wrappers::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
                                 IL_len, m_0,
-                                Real(-1), B_0, IL_len,
-                                Real( 0), C_0, IL_len
+                                -Scalar::One<Real>, B_0, IL_len,
+                                Scalar::Zero<Real>, C_0, IL_len
                             );
                             herk_time += _toc();
                             _tic();
@@ -440,9 +440,9 @@ namespace Tensors
                                 {
                                     BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                                         IL_len, JL_len, m_0,
-                                        Scal(-1), B_0, IL_len,
-                                                    B_1, JL_len,
-                                        Scal( 0), C_1, JL_len
+                                        -Scalar::One<Scal>, B_0, IL_len,
+                                                            B_1, JL_len,
+                                        Scalar::Zero<Scal>, C_1, JL_len
                                     );
                                 }
                                 else // IL_len == 1
@@ -451,18 +451,18 @@ namespace Tensors
                                     {
                                         BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans  >(// XXX
                                             m_0, JL_len,
-                                            Scal(-1), B_1, JL_len,
-                                                        B_0, 1,         // TODO: B_0 must be conjugated!
-                                            Scal( 0), C_1, 1
+                                            -Scalar::One<Scal>, B_1, JL_len,
+                                                                B_0, 1,         // TODO: B_0 must be conjugated!
+                                            Scalar::Zero<Scal>, C_1, 1
                                         );
                                     }
                                     else
                                     {
                                         BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                                             IL_len, JL_len, m_0,
-                                            Scal(-1), B_0, IL_len,
-                                                        B_1, JL_len,
-                                            Scal( 0), C_1, JL_len
+                                            -Scalar::One<Scal>, B_0, IL_len,
+                                                                B_1, JL_len,
+                                            Scalar::Zero<Scal>, C_1, JL_len
                                         );
                                     }
                                 }
@@ -475,9 +475,9 @@ namespace Tensors
                                 {
                                     BLAS_Wrappers::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
                                         m_0, IL_len,
-                                        Scal(-1), B_0, IL_len,
-                                                    B_1, 1,
-                                        Scal( 0), C_1, 1
+                                        -Scalar::One<Scal>, B_0, IL_len,
+                                                            B_1, 1,
+                                        Scalar::Zero<Scal>, C_1, 1
                                     );
                                 }
                                 else // IL_len == 1

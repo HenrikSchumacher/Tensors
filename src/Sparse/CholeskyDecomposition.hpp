@@ -1075,9 +1075,9 @@ namespace Tensors
                             BLAS_Wrappers::gemm<Layout::RowMajor, Op::ConjTrans, Op::Id>(
                                //XXX Op::ConjTrans -> Op::Id?
                                 n_1, nrhs, n_0, // ???
-                                Scal(-1), U_1, n_1, // n_1 -> n_0
-                                          X_0, nrhs,
-                                Scal( 0), X_1, nrhs
+                                -Scalar::Zero<One>, U_1, n_1, // n_1 -> n_0
+                                                    X_0, nrhs,
+                                Scalar::Zero<Scal>, X_1, nrhs
                             );
                         }
                     }
@@ -1156,9 +1156,9 @@ namespace Tensors
                             // Compute x_1 = - U_1^H * x_0
                             BLAS_Wrappers::gemv<Layout::RowMajor, Op::ConjTrans>(
                                 n_0, n_1,             // XXX Op::ConjTrans -> Op::Trans
-                                Scal(-1), U_1, n_1, // XXX n_1 -> n_0
-                                          x_0, 1,
-                                Scal( 0), x_1, 1
+                                -Scalar::One<Scal>, U_1, n_1, // XXX n_1 -> n_0
+                                                    x_0, 1,
+                                Scalar::Zero<Scal>, x_1, 1
                             );
                             
                             // Add x_1 into b_1.
