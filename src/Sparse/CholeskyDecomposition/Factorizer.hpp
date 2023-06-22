@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Would be great to allow a CholeskyFactorizer to use more than just one thread, e.g. if it is at the top of the tree...
+
 namespace Tensors
 {
     namespace Sparse
@@ -654,7 +656,6 @@ namespace Tensors
 //                    )
                 )
                 {
-//                    // Debugging
 //                    ++empty_intersec_detected;
                     return;
                 }
@@ -722,7 +723,6 @@ namespace Tensors
                 }
 //                intersec_time += _toc();
 //
-//                // Debugging
 //                if( (IL_len == 0) && (JL_len == 0) )
 //                {
 //                    ++empty_intersec_undetected;
@@ -794,6 +794,7 @@ namespace Tensors
 //                    valprint( "JL_pos", ToString(JL_pos,JL_len,16) );
                 }
             }
+            
             
         public:
             
