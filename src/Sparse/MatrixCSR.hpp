@@ -1263,7 +1263,43 @@ namespace Tensors
             
         }; // MatrixCSR
     
+        
+        template<typename Scal, typename Int, typename LInt>
+        MatrixCSR<Scal,Int,LInt> MatrixCSR_FromFile( std::string filename, const Int thread_count )
+        {
+            std::ifstream s ( filename );
+            
+            Int m;
+            Int n;
+            Int nnz;
+            
+            s >> m;
+            s >> n;
+            s >> nnz;
+            
+            MatrixCSR<Scal,Int,LInt> A( m, n, nnz, thread_count );
+            
+            mut<LInt> rp = A.Outer().data();
+            for( Int i = 0; i < n+1; ++i )
+            {
+                s >> rp[i];
+            }
+            
+            mut<Int> ci = A.Inner().data();
+            for( Int i = 0; i < nnz; ++i )
+            {
+                s >> ci[i];
+            }
+            
+            mut<Scal> a = A.Values().data();
+            for( Int i = 0; i < nnz; ++i )
+            {
+                s >> a[i];
+            }
+            
+            return A;
+        }
+        
     } // namespace Sparse
     
 } // namespace Tensors
-

@@ -11,6 +11,8 @@
 
 #include "CholeskyDecomposition/Factorizer.hpp"
 
+#include "Metis_Wrapper.hpp"
+
 // Priority I+++:
 
 // TODO: Numeric factorization is incorrect when using tree_top_depth > 1!
@@ -89,6 +91,9 @@ namespace Tensors
 
             
         protected:
+            
+            static constexpr Int izero = 0;
+            static constexpr Int ione  = 1;
             
             static constexpr Real zero = 0;
             static constexpr Real one  = 1;
@@ -195,19 +200,59 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, Int n_,
-                Int thread_count_, Int tree_top_depth_
+                ptr<ExtLInt> outer_, ptr<ExtInt> inner_,
+                Int n_, Int thread_count_, Int tree_top_depth_
             )
-            :   n               ( std::max(static_cast<Int>(0), n_)  )
-            ,   thread_count    ( std::max(Int(1), thread_count_)    )
-            ,   tree_top_depth  ( std::max(Int(1), tree_top_depth_)  )
+            :   n               ( std::max( izero, n_)  )
+            ,   thread_count    ( std::max( ione, thread_count_)    )
+            ,   tree_top_depth  ( std::max( ione, tree_top_depth_)  )
             ,   perm            ( n_, thread_count                   ) // use identity permutation
             ,   A               ( outer_, inner_, n, n, thread_count )
             ,   A_inner_perm    ( A.Permute( perm, perm )            )
             ,   A_val           ( outer_[n]                          )
             {
+                Init();
+            }
+            
+            template<typename ExtLInt, typename ExtInt, typename ExtInt2>
+            CholeskyDecomposition(
+                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, ptr<ExtInt2> p_,
+                Int n_, Int thread_count_, Int tree_top_depth_
+            )
+            :   n               ( std::max( izero, n_)     )
+            ,   thread_count    ( std::max( ione, thread_count_)       )
+            ,   tree_top_depth  ( std::max( ione, tree_top_depth_)     )
+            ,   perm            ( p_, n, Inverse::False, thread_count   )
+            ,   A               ( outer_, inner_, n, n, thread_count    )
+            ,   A_inner_perm    ( A.Permute( perm, perm )               )
+            ,   A_val           ( outer_[n]                             )
+            {
+                Init();
+            }
+            
+            template<typename ExtLInt, typename ExtInt>
+            CholeskyDecomposition(
+                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, Permutation<Int> && perm_,
+                Int tree_top_depth_
+            )
+            :   n               ( std::max( izero, perm_.Size() )            )
+            ,   thread_count    ( std::max( ione, perm_.ThreadCount())       )
+            ,   tree_top_depth  ( std::max( ione, tree_top_depth_)           )
+            ,   perm            ( std::move( perm_)                          )
+            ,   A               ( outer_, inner_, n, n, perm.ThreadCount()   )
+            ,   A_inner_perm    ( A.Permute( perm, perm )                    )
+            ,   A_val           ( outer_[n]                                  )
+            {
+                Init();
+            }
+            
+            
+        protected:
+            
+            void Init()
+            {
                 ptic(ClassName());
-                if( n <= 0 )
+                if( n <= izero )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
                 }
@@ -218,33 +263,6 @@ namespace Tensors
                 
                 ptoc(ClassName());
             }
-            
-            template<typename ExtLInt, typename ExtInt, typename ExtInt2>
-            CholeskyDecomposition(
-                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, ptr<ExtInt2> p_, Int n_,
-                Int thread_count_, Int tree_top_depth_
-            )
-            :   n               ( std::max(static_cast<Int>(0), n_)     )
-            ,   thread_count    ( std::max(Int(1), thread_count_)       )
-            ,   tree_top_depth  ( std::max(Int(1), tree_top_depth_)     )
-            ,   perm            ( p_, n, Inverse::False, thread_count   )
-            ,   A               ( outer_, inner_, n, n, thread_count    )
-            ,   A_inner_perm    ( A.Permute( perm, perm )               )
-            ,   A_val           ( outer_[n]                             )
-            {
-                ptic(ClassName());
-                if( n <= 0 )
-                {
-                    eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
-                }
-                
-                A.RequireDiag();
-                
-                CheckDiagonal();
-                
-                ptoc(ClassName());
-            }
-            
             
             
         public:
@@ -378,6 +396,16 @@ namespace Tensors
             
         protected:
             
+            
+        public:
+            
+            const Tree<Int> & AssemblyTree()
+            {
+                SN_SymbolicFactorization();
+                
+                return aTree;
+            }
+            
             void CreateAssemblyTree()
             {
                 ptic(ClassName()+"::CreateAssemblyTree");
@@ -403,92 +431,6 @@ namespace Tensors
 //                aTree = Tree<Int> ( SN_parents, thread_count );
 
                 ptoc(ClassName()+"::CreateAssemblyTree");
-            }
-            
-        public:
-            
-            const Tree<Int> & AssemblyTree()
-            {
-                SN_SymbolicFactorization();
-                
-                return aTree;
-            }
-            
-            
-        protected:
-            
-            void SN_Allocate()
-            {
-                ptic(ClassName()+"::SN_Allocate");
-                SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
-                SN_tri_ptr[0] = 0;
-                
-                SN_rec_ptr = Tensor1<LInt,Int> (SN_count+1);
-                SN_rec_ptr[0] = 0;
-                
-                max_n_0 = 0;
-                max_n_1 = 0;
-                
-                for( Int k = 0; k < SN_count; ++k )
-                {
-                    // Warning: Taking differences of potentially signed numbers.
-                    // Should not be of concern because negative numbers appear here only if something went wrong upstream.
-                    const Int n_0 =                  SN_rp   [k+1] - SN_rp   [k];
-                    const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
-
-                    max_n_0 = std::max( max_n_0, n_0 );
-                    max_n_1 = std::max( max_n_1, n_1 );
-
-                    SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
-                    SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
-                }
-                
-                pdump(max_n_0);
-                pdump(max_n_1);
-                
-                // Allocating memory for the nonzero values of the factorization.
-                
-                SN_tri_val = Tensor1<Scal,LInt> (SN_tri_ptr[SN_count]);
-                SN_rec_val = Tensor1<Scal,LInt> (SN_rec_ptr[SN_count]);
-                
-                logvalprint("triangle_nnz ", SN_tri_val.Size());
-                logvalprint("rectangle_nnz", SN_rec_val.Size());
-                
-                ptoc(ClassName()+"::SN_Allocate");
-            }
-            
-            bool IsFundamental( const Int i, Tensor1<Int,Int> & prev_col_nz )
-            {
-                // Using Theorem 2.3 and Corollary 3.2 in
-                //
-                //     Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
-                //     https://www.osti.gov/servlets/purl/6756314
-                //
-                // to determine whether a new fundamental supernode starts at node u.
-                
-                bool is_fundamental = ( i == n ); // We make virtual root vertes fundamental, so that the main loop finishes off the last nonvirtual supernode correctly.
-                
-                is_fundamental = is_fundamental || ( eTree.ChildCount(i) > 1);
-                
-                if( !is_fundamental )
-                {
-                    const Int threshold = i - eTree.DescendantCount(i) + 1;
-
-                    const LInt k_begin = A.Diag(i)+1; // exclude diagonal entry
-                    const LInt k_end   = A.Outer(i+1);
-                    
-                    for( LInt k = k_begin; k < k_end; ++k )
-                    {
-                        const Int j = A.Inner(k);
-                        const Int l = prev_col_nz[j];
-                        
-                        prev_col_nz[j] = i;
-                        
-                        is_fundamental = is_fundamental || ( l < threshold );
-                    }
-                }
-                
-                return is_fundamental;
             }
         
             

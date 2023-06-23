@@ -39,11 +39,12 @@
             template<Op op = Op::Id, typename ExtScal>
             void Solve( ptr<ExtScal> B, mut<ExtScal> X_, const Int nrhs )
             {
+                std::string tag = ClassName()+"::Solve ("+ToString(nrhs)+")";
                 static_assert(
                     Scalar::IsReal<Scal> || op != Op::Trans,
                     "Solve with Op::Trans not implemented for scalar of complex type."
                 );
-                ptic(ClassName()+"::Solve ("+ToString(nrhs)+")");
+                ptic(tag);
                 // No problem if X_ and B overlap, since we load B into X anyways.
                 
                 ReadRightHandSide( B, nrhs );
@@ -61,7 +62,7 @@
                 
                 WriteSolution( X_, nrhs );
                 
-                ptoc(ClassName()+"::Solve ("+ToString(nrhs)+")");
+                ptoc(tag);
             }
             
 
@@ -117,13 +118,13 @@ protected:
 
     void SN_UpperSolve_Sequential( const Int nrhs )
     {
-        const std::string tag = ClassName() + "SN_UpperSolve_Sequential" + "( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName() + "SN_UpperSolve_Sequential (" + ToString(nrhs)+ ")";
         
         ptic(tag);
         // Solves U * X = B and stores the result back into B.
         // Assumes that B has size n x rhs_count.
         
-        if( nrhs == 1 )
+        if( nrhs == ione )
         {
             SN_UpperSolve_Sequential();
             ptoc(tag);
@@ -167,9 +168,9 @@ protected:
                 copy_buffer( &X[nrhs * SN_inner[l_begin+j]], &X_1[nrhs * j], nrhs );
             }
 
-            if( n_0 == 1 )
+            if( n_0 == ione )
             {
-                if( n_1 > 0 )
+                if( n_1 > izero )
                 {
                     // Compute X_0 -= U_1 * X_1
 
@@ -180,27 +181,27 @@ protected:
                     // Hence we can compute X_0^T -= X_1^T * U_1^T via gemv instead:
                     BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans>(
                         n_1, nrhs,
-                        Scal(-1), X_1, nrhs,
-                                  U_1, 1,        // XXX Problem: We need Scalar::Conj(U_1)!
-                        Scal( 1), X_0, 1
+                        -one, X_1, nrhs,
+                              U_1, 1,        // XXX Problem: We need Scalar::Conj(U_1)!
+                         one, X_0, 1
                     );
                 }
 
                 // Triangle solve U_0 * X_0 = B while overwriting X_0.
                 // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
-                scale_buffer( one / U_0[0], X_0, nrhs );
+                scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
             }
             else // using BLAS3 routines.
             {
-                if( n_1 > 0 )
+                if( n_1 > izero )
                 {
                     // Compute X_0 -= U_1 * X_1
                     BLAS_Wrappers::gemm<Layout::RowMajor,Op::Id,Op::Id>(
                         // XX Op::Id -> Op::ConjugateTranspose
                         n_0, nrhs, n_1,
-                        Scal(-1), U_1, n_1,      // XXX n_1 -> n_0
-                                  X_1, nrhs,
-                        Scal( 1), X_0, nrhs
+                        -one, U_1, n_1,      // XXX n_1 -> n_0
+                              X_1, nrhs,
+                         one, X_0, nrhs
                     );
                 }
                 // Triangle solve U_0 * X_0 = B while overwriting X_0.
@@ -208,11 +209,12 @@ protected:
                     Side::Left, UpLo::Upper, Op::Id, Diag::NonUnit
                 >(
                     n_0, nrhs,
-                    Scal(1), U_0, n_0,
-                             X_0, nrhs
+                    one, U_0, n_0,
+                         X_0, nrhs
                 );
             }
         }
+        
         ptoc(tag);
     }
     
@@ -252,11 +254,11 @@ protected:
             mut<Scal> x_0 = &X[SN_rp[sn]];
 
 
-            if( n_0 == 1 )
+            if( n_0 == one )
             {
                 Scal U_1x_1 = 0;
 
-                if( n_1 > 0 )
+                if( n_1 > izero )
                 {
                     // Compute X_0 -= U_1 * X_1
                     //  U_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
@@ -277,7 +279,7 @@ protected:
             }
             else // using BLAS2 routines.
             {
-                if( n_1 > 0 )
+                if( n_1 > izero )
                 {
                     // x_1 is the part of x that interacts with U_1, size = n_1.
                     mut<Scal> x_1 = X_scratch.data();
@@ -291,9 +293,9 @@ protected:
                     // Compute x_0 -= U_1 * x_1
                     BLAS_Wrappers::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
                         n_0, n_1,
-                        Scal(-1), U_1, n_1, // XXX n_1 -> n_0
-                                  x_1, 1,
-                        Scal( 1), x_0, 1
+                        -one, U_1, n_1, // XXX n_1 -> n_0
+                              x_1, 1,
+                         one, x_0, 1
                     );
                 }
 
@@ -304,19 +306,21 @@ protected:
             }
         }
         
-        ptic(tag);
+        ptoc(tag);
     }
     
     void SN_LowerSolve_Sequential( const Int nrhs )
     {
-        ptic("SN_LowerSolve_Sequential");
+        const std::string tag = ClassName() + "SN_LowerSolve_Sequential (" + ToString(nrhs) + ")";
+        
+        ptic(tag);
         // Solves L * X = X and stores the result back into X.
         // Assumes that X has size n x rhs_count.
      
-        if( nrhs == 1 )
+        if( nrhs == ione )
         {
             SN_LowerSolve_Sequential();
-            ptoc("SN_LowerSolve_Sequential");
+            ptoc(tag);
             return;
         }
         
@@ -324,7 +328,7 @@ protected:
         {
             eprint(ClassName()+"::SN_LowerSolve_Sequential: Nonzero values of matrix have not been passed, yet. Aborting.");
             
-            ptoc("SN_LowerSolve_Sequential");
+            ptoc(tag);
             return;
         }
         
@@ -351,12 +355,12 @@ protected:
             // X_1 is the part of X that interacts with U_1, size = n_1 x rhs_count.
             mut<Scal> X_1 = X_scratch.data();
 
-            if( n_0 == 1 )
+            if( n_0 == ione )
             {
                 // Triangle solve U_0 * X_0 = B while overwriting X_0.
                 // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
-                scale_buffer( one / U_0[0], X_0, nrhs );
-                if( n_1 > 0 )
+                scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                if( n_1 > izero )
                 {
                     // Compute X_1 = - U_1^H * X_0
 
@@ -382,19 +386,19 @@ protected:
                     UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                 >(
                     n_0, nrhs,
-                    Scal(1), U_0, n_0,
-                             X_0, nrhs
+                    one, U_0, n_0,
+                         X_0, nrhs
                 );
                 
-                if( n_1 > 0 )
+                if( n_1 > izero )
                 {
                     // Compute X_1 = - U_1^H * X_0
                     BLAS_Wrappers::gemm<Layout::RowMajor, Op::ConjTrans, Op::Id>(
                        //XXX Op::ConjTrans -> Op::Id?
                         n_1, nrhs, n_0, // ???
-                        Scal(-1), U_1, n_1, // n_1 -> n_0
-                                  X_0, nrhs,
-                        Scal( 0), X_1, nrhs
+                        -one, U_1, n_1, // n_1 -> n_0
+                              X_0, nrhs,
+                        zero, X_1, nrhs
                     );
                 }
             }
@@ -405,14 +409,17 @@ protected:
                 add_to_buffer( &X_1[nrhs * j], &X[nrhs * SN_inner[l_begin+j]], nrhs );
             }
         }
-        ptoc("SN_LowerSolve_Sequential");
+        ptoc(tag);
     }
     
     
     void SN_LowerSolve_Sequential()
     {
+        const std::string tag = ClassName() + "SN_LowerSolve_Sequential";
         // Solves L * x = X and stores the result back into X.
         // Assumes that X has size n.
+        
+        ptic(tag);
         
         if( !SN_factorized )
         {
@@ -438,13 +445,13 @@ protected:
             // x_0 is the part of x that interacts with U_0, size = n_0.
             mut<Scal> x_0 = &X[SN_rp[sn]];
             
-            if( n_0 == 1 )
+            if( n_0 == ione )
             {
                 // Triangle solve U_0 * x_0 = b_0 while overwriting x_0.
                 // Since U_0 is a 1 x 1 matrix, it suffices to just scale x_0.
                 x_0[0] /= U_0[0];
 
-                if( n_1 > 0 )
+                if( n_1 > izero )
                 {
                     // Compute x_1 = - U_1^H * x_0
                     // x_1 is a vector of size n_1.
@@ -465,7 +472,7 @@ protected:
                     Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                 >( n_0, U_0, n_0, x_0, 1 );
                 
-                if( n_1 > 0 )
+                if( n_1 > izero )
                 {
                     // x_1 is the part of x that interacts with U_1, size = n_1.
                     mut<Scal> x_1 = X_scratch.data();
@@ -473,9 +480,9 @@ protected:
                     // Compute x_1 = - U_1^H * x_0
                     BLAS_Wrappers::gemv<Layout::RowMajor, Op::ConjTrans>(
                         n_0, n_1,             // XXX Op::ConjTrans -> Op::Trans
-                        Scal(-1), U_1, n_1, // XXX n_1 -> n_0
-                                  x_0, 1,
-                        Scal( 0), x_1, 1
+                        -one, U_1, n_1, // XXX n_1 -> n_0
+                                            x_0, 1,
+                        zero, x_1, 1
                     );
                     
                     // Add x_1 into b_1.
@@ -485,6 +492,7 @@ protected:
                     }
                 }
             }
-           
         }
+        
+        ptoc(tag);
     }

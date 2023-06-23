@@ -160,3 +160,80 @@ public:
             ptoc(ClassName()+"::SN_SymbolicFactorization");
         }
     }
+
+
+protected:
+    
+    void SN_Allocate()
+    {
+        ptic(ClassName()+"::SN_Allocate");
+        SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
+        SN_tri_ptr[0] = 0;
+        
+        SN_rec_ptr = Tensor1<LInt,Int> (SN_count+1);
+        SN_rec_ptr[0] = 0;
+        
+        max_n_0 = 0;
+        max_n_1 = 0;
+        
+        for( Int k = 0; k < SN_count; ++k )
+        {
+            // Warning: Taking differences of potentially signed numbers.
+            // Should not be of concern because negative numbers appear here only if something went wrong upstream.
+            const Int n_0 =                  SN_rp   [k+1] - SN_rp   [k];
+            const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
+
+            max_n_0 = std::max( max_n_0, n_0 );
+            max_n_1 = std::max( max_n_1, n_1 );
+
+            SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
+            SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
+        }
+        
+        pdump(max_n_0);
+        pdump(max_n_1);
+        
+        // Allocating memory for the nonzero values of the factorization.
+        
+        SN_tri_val = Tensor1<Scal,LInt> (SN_tri_ptr[SN_count]);
+        SN_rec_val = Tensor1<Scal,LInt> (SN_rec_ptr[SN_count]);
+        
+        logvalprint("triangle_nnz ", SN_tri_val.Size());
+        logvalprint("rectangle_nnz", SN_rec_val.Size());
+        
+        ptoc(ClassName()+"::SN_Allocate");
+    }
+    
+    bool IsFundamental( const Int i, Tensor1<Int,Int> & prev_col_nz )
+    {
+        // Using Theorem 2.3 and Corollary 3.2 in
+        //
+        //     Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
+        //     https://www.osti.gov/servlets/purl/6756314
+        //
+        // to determine whether a new fundamental supernode starts at node u.
+        
+        bool is_fundamental = ( i == n ); // We make virtual root vertes fundamental, so that the main loop finishes off the last nonvirtual supernode correctly.
+        
+        is_fundamental = is_fundamental || ( eTree.ChildCount(i) > 1);
+        
+        if( !is_fundamental )
+        {
+            const Int threshold = i - eTree.DescendantCount(i) + 1;
+
+            const LInt k_begin = A.Diag(i)+1; // exclude diagonal entry
+            const LInt k_end   = A.Outer(i+1);
+            
+            for( LInt k = k_begin; k < k_end; ++k )
+            {
+                const Int j = A.Inner(k);
+                const Int l = prev_col_nz[j];
+                
+                prev_col_nz[j] = i;
+                
+                is_fundamental = is_fundamental || ( l < threshold );
+            }
+        }
+        
+        return is_fundamental;
+    }

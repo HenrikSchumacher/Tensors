@@ -590,6 +590,11 @@ namespace Tensors
                 return inner.Size();
             }
             
+            LInt NonzeroCount( const Int i ) const
+            {
+                return outer(i+1) - outer(i);
+            }
+            
             Tensor1<LInt,Int> & Outer()
             {
                 return outer;

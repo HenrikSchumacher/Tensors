@@ -186,6 +186,11 @@ namespace Tensors
             p_computed     = true;
             p_inv_computed = true;
         }
+
+        Tensor1<Int,Int> & GetPermutation()
+        {
+            return p;
+        }
         
         const Tensor1<Int,Int> & GetPermutation() const
         {
@@ -218,10 +223,16 @@ namespace Tensors
             p_inv_computed = true;
         }
         
+        Tensor1<Int,Int> & GetInversePermutation()
+        {
+            return p_inv;
+        }
+        
         const Tensor1<Int,Int> & GetInversePermutation() const
         {
             return p_inv;
         }
+
         
         void Invert( const Inverse inverseQ )
         {
@@ -349,8 +360,7 @@ namespace Tensors
                         {
                             scratch[i] = b_inv[a_inv[i]];
                         },
-                        n,
-                        thread_count
+                        n, thread_count
                     );
                     
                     swap(p_inv,scratch);
@@ -376,8 +386,7 @@ namespace Tensors
                     {
                         b[i] = static_cast<T>(a[r[i]]);
                     },
-                    n,
-                    thread_count
+                    n,thread_count
                 );
 
                 
@@ -425,8 +434,7 @@ namespace Tensors
                     {
                         copy_buffer( &a[chunk * r[i]], &b[chunk * i], chunk );
                     },
-                    n,
-                    thread_count
+                    n, thread_count
                 );
                 
                 Invert( inverseQ );
@@ -488,8 +496,7 @@ namespace Tensors
                         
                         return p_i == i;
                     },
-                    AndReducer(),
-                    true,
+                    AndReducer(), true,
                     Scalar::Zero<Int>, n, thread_count
                 );
             }
@@ -506,8 +513,7 @@ namespace Tensors
                         
                         return p_inv_i == i;
                     },
-                    AndReducer(),
-                    true,
+                    AndReducer(), true,
                     Scalar::Zero<Int>, n, thread_count
                 );
             }
@@ -535,8 +541,7 @@ namespace Tensors
                     {
                         s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
                     },
-                    n,
-                    thread_count
+                    n, thread_count
                 );
                 
                 auto m = minmax_buffer( scratch.data(), n );
@@ -558,8 +563,7 @@ namespace Tensors
                     {
                         s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
                     },
-                    n,
-                    thread_count
+                    n, thread_count
                 );
                 
                 std::pair<Int,Int> m = minmax_buffer( scratch.data(), n );
@@ -583,8 +587,7 @@ namespace Tensors
                     {
                         fails += static_cast<Int>(i != p_inv_[p_[i]]);
                     },
-                    n,
-                    thread_count
+                    n, thread_count
                 );
                 
                 if( fails > 0 )
@@ -655,8 +658,7 @@ namespace Tensors
 
                     new_outer[i+1] = static_cast<LInt>(outer[p_i+1] - outer[p_i]);
                 },
-                m,
-                thread_count
+                m, thread_count
             );
 
             parallel_accumulate( new_outer.data(), m+1, thread_count );

@@ -23,6 +23,9 @@ namespace Tensors
         
         Sparse::BinaryMatrixCSR<Int,Int> levels;       // The adjacency matrix of the directed graph.
 
+        static constexpr Int zero = 0;
+        static constexpr Int one  = 1;
+
     public:
         
         Tree() = default;
@@ -63,7 +66,7 @@ namespace Tensors
             Int counter = 0;
             Int tree_top_depth = 0;
             
-            Tensor1<Int, Int> node_to_depth (n, 1);
+            Tensor1<Int, Int> node_to_depth (n, one);
             
             node_to_depth[Root()] = 0;
 
@@ -261,11 +264,11 @@ namespace Tensors
                 {
                     const Int p_i = parents[i];
                  
-                    return (i < p_i) && (i >= p_i + 1 - DescendantCount(p_i) );
+                    return (i < p_i) && (i >= p_i + one - DescendantCount(p_i) );
                 },
                 AndReducer(),
                 true,
-                Scalar::Zero<Int>, n-1, thread_count
+                zero, n-1, thread_count
             );
         }
         
@@ -300,7 +303,7 @@ namespace Tensors
             }
             
             // post order traversal of the tree
-            while( i >= 0 )
+            while( i >= zero )
             {
                 const Int node    = stack[i];
                 const Int d       = depth[i];
@@ -376,7 +379,26 @@ namespace Tensors
                 return;
             }
             
-            const Int tree_top_depth = std::min( tree_top_depth_, levels.RowCount() );
+            Int tree_top_depth = std::min( zero, tree_top_depth_ );
+            
+            const Int min_subtree_count = 4 * thread_count;
+            
+            dump(min_subtree_count);
+            
+            while(
+                ( tree_top_depth+1 < levels.RowCount() )
+                &&
+                ( levels.NonzeroCount(tree_top_depth) < min_subtree_count )
+            )
+            {
+                dump(levels.NonzeroCount(tree_top_depth));
+                ++tree_top_depth;
+            }
+            
+            dump(tree_top_depth);
+            dump(levels.NonzeroCount(tree_top_depth));
+            
+
             ptic(ClassName()+"::Traverse_DFS_Parallel");
                  
             std::string tag = "Apply " + workers[0]->ClassName() + " to level";
@@ -387,11 +409,6 @@ namespace Tensors
                 const Int k_end   = LevelPointer(tree_top_depth + 1);
                 
                 const Int use_threads = std::min( thread_count, k_end - k_begin );
-                
-//                // DEBUGGING
-//                dump(thread_count);
-//                dump(k_end - k_begin);
-//                dump(use_threads);
                 
                 ParallelDo_Dynamic(
                     [=,&workers]( const Int thread, const Int k )
@@ -422,29 +439,11 @@ namespace Tensors
             for( Int d = tree_top_depth; d --> Scalar::One<Int> ; ) // Don't process the root node!
             {
                 ptic(tag+" = "+ToString(d)+")");
-//
-//                print("level["+ToString(d)+"] = "+ToString(&LevelIndices()[LevelPointer(d)], LevelPointer(d+1)-LevelPointer(d), 16 ) );
                 
                 const Int k_begin = LevelPointer(d  );
                 const Int k_end   = LevelPointer(d+1);
                 
                 const Int use_threads = std::min( thread_count, k_end - k_begin );
-                
-//                // DEBUGGING
-//                dump(thread_count);
-//                dump(k_end - k_begin);
-//                dump(use_threads);
-                
-//                ParallelDo_Dynamic(
-//                    [=,&workers]( const Int thread, const Int k )
-//                    {
-//                        Worker_T & worker = *workers[thread];
-//
-//                        worker(LevelIndex(k));
-//                    },
-//                    k_begin, k_end, Scalar::One<Int>,
-//                    use_threads
-//                );
                 
                 ParallelDo_Dynamic(
                     [=,&workers]( const Int thread, const Int k )

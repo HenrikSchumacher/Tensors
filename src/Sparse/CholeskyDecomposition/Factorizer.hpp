@@ -28,6 +28,9 @@ namespace Tensors
             
         protected:
             
+            static constexpr Int izero = 0;
+            static constexpr Int ione  = 1;
+            
             static constexpr Real zero = 0;
             static constexpr Real one  = 1;
 
@@ -384,8 +387,8 @@ namespace Tensors
                             _tic();
                             BLAS_Wrappers::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
                                 IL_len, m_0,
-                                Real(-1), B_0, IL_len,
-                                Real( 0), C_0, IL_len
+                                -Scalar::One<Real>, B_0, IL_len,
+                                Scalar::Zero<Real>, C_0, IL_len
                             );
                             herk_time += _toc();
                             _tic();
@@ -413,7 +416,7 @@ namespace Tensors
                         }
 
                         // Update rectangular block U_1.
-                        if( (IL_len > 0) && (JL_len > 0) )
+                        if( (IL_len > izero) && (JL_len > izero) )
                         {
                             _tic();
                             // Col-scatter-read t_rec[:,JL_pos] from B_1,
@@ -436,35 +439,35 @@ namespace Tensors
                             // where C_1 is a matrix of size IL_len x JL_len.
 
                             _tic();
-                            if( JL_len > 1)
+                            if( JL_len > ione )
                             {
-                                if( IL_len > 1 )
+                                if( IL_len > ione )
                                 {
                                     BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                                         IL_len, JL_len, m_0,
-                                        Scal(-1), B_0, IL_len,
-                                                    B_1, JL_len,
-                                        Scal( 0), C_1, JL_len
+                                        -one, B_0, IL_len,
+                                              B_1, JL_len,
+                                        zero, C_1, JL_len
                                     );
                                 }
-                                else // IL_len == 1
+                                else // IL_len == ione
                                 {
                                     if constexpr ( !Scalar::IsComplex<Scal> )
                                     {
                                         BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans  >(// XXX
                                             m_0, JL_len,
-                                            Scal(-1), B_1, JL_len,
-                                                        B_0, 1,         // TODO: B_0 must be conjugated!
-                                            Scal( 0), C_1, 1
+                                            -one, B_1, JL_len,
+                                                  B_0, 1,         // TODO: B_0 must be conjugated!
+                                            zero, C_1, 1
                                         );
                                     }
                                     else
                                     {
                                         BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                                             IL_len, JL_len, m_0,
-                                            Scal(-1), B_0, IL_len,
-                                                        B_1, JL_len,
-                                            Scal( 0), C_1, JL_len
+                                            -one, B_0, IL_len,
+                                                  B_1, JL_len,
+                                            zero, C_1, JL_len
                                         );
                                     }
                                 }
@@ -473,13 +476,13 @@ namespace Tensors
                             }
                             else // JL_len == 1 -- But this specialization does not seem to make a big difference.
                             {
-                                if( IL_len > 1 )
+                                if( IL_len > ione )
                                 {
                                     BLAS_Wrappers::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
                                         m_0, IL_len,
-                                        Scal(-1), B_0, IL_len,
-                                                    B_1, 1,
-                                        Scal( 0), C_1, 1
+                                        -one, B_0, IL_len,
+                                              B_1, 1,
+                                        zero, C_1, 1
                                     );
                                 }
                                 else // IL_len == 1
