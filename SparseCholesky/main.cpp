@@ -7,13 +7,17 @@
 //#define TOOLS_DEBUG
 
 #define LAPACK_DISABLE_NAN_CHECK
-//#include <Accelerate/Accelerate.h>
-#include <cblas.h>
-#include <lapacke.h>
+#define ACCELERATE_NEW_LAPACK
+#include <Accelerate/Accelerate.h>
+//#include <cblas.h>
+//#include <lapacke.h>
 
 #include "Tensors.hpp"
 #include "MyBLAS.hpp"
 #include "Sparse.hpp"
+
+//#include "../src/Sparse/Metis_Wrapper.hpp"
+
 
 using namespace Tools;
 using namespace Tensors;
@@ -139,9 +143,9 @@ int main(int argc, const char * argv[])
     
 //    Metis_Wrapper()( &rp[0], &ci[0], perm );
     
-    tic("Metis_Wrapper");
-    Metis_Wrapper()( A.Outer().data(), A.Inner().data(), perm );
-    toc("Metis_Wrapper");
+//    tic("Metis_Wrapper");
+//    Metis_Wrapper()( A.Outer().data(), A.Inner().data(), perm );
+//    toc("Metis_Wrapper");
 //    print( perm.GetPermutation().ToString() );
     
 
