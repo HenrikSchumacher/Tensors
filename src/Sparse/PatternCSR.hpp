@@ -770,7 +770,7 @@ namespace Tensors
                         ParallelDo(
                             [this]( const Int i )
                             {
-                                std::sort( &inner[outer[i]], &inner[outer[i+1]] );
+                                Sort( &inner[outer[i]], &inner[outer[i+1]] );
                             },
                             job_ptr
                         );
