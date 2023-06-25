@@ -312,7 +312,7 @@ namespace Tensors
             }
             
             void FetchFromDescendants(
-                const Int s,                             // the supernode into which to fetch
+                const Int s,                            // the supernode into which to fetch
                 const Int t_begin, const Int t_end,     // the range of descendants
                 const Int n_0, const Int n_1, mut<Scal> U_0, mut<Scal> U_1
             )
@@ -339,8 +339,7 @@ namespace Tensors
                     // t_rec is interpreted as a rectangular matrix of size m_0 x m_1.
 
                     // TODO: Maybe we should transpose U_0 and U_1 etc. to reduce amount of scattered-reads and adds...
-                    // TODO: Then U_0 and U_1 would be ColMajor and we could use BLAS and LAPACK without the C-layers CBLAS or LAPACKE.
-                    // TODO: This is attractive because Apple Accelerate does not ship LAPACKE!
+                    // TODO: Then U_0 and U_1 would be ColMajor and we could use BLAS without the C-layer CBLAS.
                     
 //                    constexpr Int threshold = 16;
 //
@@ -454,7 +453,7 @@ namespace Tensors
                                 {
                                     if constexpr ( !Scalar::IsComplex<Scal> )
                                     {
-                                        BLAS::gemv<Layout::RowMajor,Op::Trans  >(// XXX
+                                        BLAS::gemv<Layout::RowMajor,Op::Trans>(// XXX
                                             m_0, JL_len,
                                             -one, B_1, JL_len,
                                                   B_0, 1,         // TODO: B_0 must be conjugated!

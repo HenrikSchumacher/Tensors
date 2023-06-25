@@ -15,6 +15,9 @@ namespace Tensors
 
         Tensor1<Int,Int> parents;
         
+        Tensor1<double,Int> costs;
+        Tensor1<double,Int> acc_costs;
+        
         Sparse::BinaryMatrixCSR<Int,Int> A;       // The adjacency matrix of the directed graph.
         
         Tensor1<Int,Int> descendant_counts;
@@ -32,15 +35,44 @@ namespace Tensors
         
         ~Tree() = default;
         
-        explicit Tree( Tensor1<Int,Int> && parents_, const Int thread_count_ = 1 )
+        explicit Tree(
+            Tensor1<Int,Int> && parents_,
+            const Int thread_count_ = 1
+        )
         :   n                 ( parents_.Size()+1   )
         // We use an additional virtual vertex as root.
         ,   thread_count      ( thread_count_       )
         ,   parents           ( std::move(parents_) )
+        ,   costs             ( n, 1.               )
         ,   descendant_counts ( n                   )
         {
             ptic(ClassName());
-
+            Init();
+            ptoc(ClassName());
+        }
+        
+        Tree(
+            Tensor1<   Int,Int> && parents_,
+            Tensor1<double,Int> && costs_,
+            const Int thread_count_ = 1
+        )
+        :   n                 ( parents_.Size()+1   )
+        // We use an additional virtual vertex as root.
+        ,   thread_count      ( thread_count_       )
+        ,   parents           ( std::move(parents_) )
+        ,   costs             ( std::move(costs_)   )
+        ,   descendant_counts ( n                   )
+        {
+            ptic(ClassName());
+            Init();
+            ptoc(ClassName());
+        }
+        
+        
+    protected:
+        
+        void Init()
+        {
             // Next we build the adjacency matrix A of the tree.
 
             post = Permutation<Int> ( n-1, thread_count );
@@ -70,9 +102,10 @@ namespace Tensors
             
             node_to_depth[Root()] = 0;
 
+            acc_costs = costs;
             
             Traversal_DFS_Sequential(
-                [this, &node_to_depth, &tree_top_depth](Int node)
+                [this, &node_to_depth, &tree_top_depth]( const Int node )
                 {
                     const Int depth = node_to_depth[node]+1;
                     
@@ -84,28 +117,32 @@ namespace Tensors
                     }
                 }
                 ,
-                [this, &counter, p](Int node)
+                [this, &counter, p]( const Int node )
                 {
                     p[counter++] = node;
 
                     Int sum = 1; // The node itself is also counted as its own descendant.
+                    double cost = 0.; // costs[node] has already been filled.
+                    
                     for( Int k = ChildPointer(node); k < ChildPointer(node+1); ++k )
                     {
-                        sum += descendant_counts[ChildIndex(k)];
+                        const Int child = ChildIndex(k);
+                        sum  += descendant_counts[child];
+                        cost += acc_costs[child];
                     }
-                    descendant_counts[node] = sum;
+                    descendant_counts[node]  = sum;
+                    acc_costs        [node] += cost;
                 }
                 ,
-                [](Int node) {}
+                []( const Int node ) {}
             );
             
             descendant_counts[Root()] = 1;
             
-            
             {
                 Int list_count       = 1;
                 Int entry_counts [1] = {n-1};
-                
+                                
                 const Int * idx_data = node_to_depth.data();
                 const Int * jdx_data = post.GetPermutation().data(); // This is still a iota.
                 
@@ -119,7 +156,9 @@ namespace Tensors
             
             for( Int k = ChildPointer(Root()+1); k --> ChildPointer(Root()); )
             {
-                descendant_counts[Root()] += descendant_counts[ChildIndex(k)];
+                const Int child = ChildIndex(k);
+                descendant_counts[Root()] += descendant_counts[child];
+                acc_costs[Root()]         += acc_costs        [child];
             }
 
             // Now post.Scratch() contains the post ordering.
@@ -128,11 +167,11 @@ namespace Tensors
             
             // Now post.GetPermutation() contains the post ordering.
 
-            ptoc(ClassName());
+//            print( post.GetPermutation().ToString() );
         }
         
+    public:
         
-    
         // Copy constructor
         Tree( const Tree & other )
         :   n                 ( other.n                 )
@@ -141,6 +180,8 @@ namespace Tensors
         ,   parents           ( other.parents           )
         ,   descendant_counts ( other.descendant_counts )
         ,   post              ( other.post              )
+        ,   costs             ( other.costs             )
+        ,   acc_costs         ( other.acc_costs         )
         ,   levels            ( other.levels            )
         {}
         
@@ -157,6 +198,8 @@ namespace Tensors
             swap( X.A,                 Y.A                 );
             swap( X.descendant_counts, Y.descendant_counts );
             swap( X.post,              Y.post              );
+            swap( X.costs,             Y.costs             );
+            swap( X.acc_costs,         Y.acc_costs         );
             swap( X.levels,            Y.levels            );
         }
         
@@ -193,7 +236,7 @@ namespace Tensors
             return descendant_counts;
         }
         
-        Int DescendantCount( const Int i ) const
+        force_inline Int DescendantCount( const Int i ) const
         {
             return descendant_counts[i];
         }
@@ -203,7 +246,7 @@ namespace Tensors
             return A.Outer();
         }
         
-        Int ChildPointer( const Int i ) const
+        force_inline Int ChildPointer( const Int i ) const
         {
             return A.Outer(i);
         }
@@ -223,7 +266,7 @@ namespace Tensors
             return levels.Outer();
         }
         
-        Int LevelPointer( const Int i ) const
+        force_inline Int LevelPointer( const Int i ) const
         {
             return levels.Outer(i);
         }
@@ -256,6 +299,15 @@ namespace Tensors
             return A.ChildIndex(ChildPointer(i)+k);
         }
 
+        const Tensor1<double,Int> & Costs() const
+        {
+            return costs;
+        }
+        
+        const Tensor1<double,Int> & AccumulatedCosts() const
+        {
+            return acc_costs;
+        }
         
         bool PostOrderedQ() const
         {
@@ -263,7 +315,7 @@ namespace Tensors
                 [=]( const Int i ) -> bool
                 {
                     const Int p_i = parents[i];
-                 
+
                     return (i < p_i) && (i >= p_i + one - DescendantCount(p_i) );
                 },
                 AndReducer(),
@@ -383,7 +435,7 @@ namespace Tensors
             
             const Int min_subtree_count = 4 * thread_count;
             
-            dump(min_subtree_count);
+//            dump(min_subtree_count);
             
             while(
                 ( tree_top_depth+1 < levels.RowCount() )
@@ -391,12 +443,12 @@ namespace Tensors
                 ( levels.NonzeroCount(tree_top_depth) < min_subtree_count )
             )
             {
-                dump(levels.NonzeroCount(tree_top_depth));
+//                dump(levels.NonzeroCount(tree_top_depth));
                 ++tree_top_depth;
             }
             
-            dump(tree_top_depth);
-            dump(levels.NonzeroCount(tree_top_depth));
+//            dump(tree_top_depth);
+//            dump(levels.NonzeroCount(tree_top_depth));
             
 
             ptic(ClassName()+"::Traverse_DFS_Parallel");
