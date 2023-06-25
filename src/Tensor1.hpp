@@ -222,7 +222,7 @@ namespace Tensors {
             {
                 return ToString(
                     &a[i_begin],
-                    {std::max(int_cast<size_t>(0),int_cast<size_t>(i_end-i_begin))}
+                    {std::max(int_cast<Size_T>(0),int_cast<Size_T>(i_end-i_begin))}
                 );
             }
             else
