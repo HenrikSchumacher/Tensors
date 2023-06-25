@@ -4,7 +4,7 @@
 
 namespace Tensors
 {
-    template<size_t eq_count_, typename Scal_, typename Int_>
+    template<Size_T eq_count_, typename Scal_, typename Int_>
     class ConjugateGradient
     {
         

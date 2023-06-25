@@ -4,7 +4,7 @@
 
 namespace Tensors
 {
-    template<size_t eq_count_, typename Scal_, typename Int_, Side side>
+    template<Size_T eq_count_, typename Scal_, typename Int_, Side side>
     class GMRES
     {
         
@@ -208,7 +208,7 @@ namespace Tensors
                 }
                 
                 // Solve H_mat.y = beta_vec.
-                BLAS_Wrappers::trsv<
+                BLAS::trsv<
                     Layout::RowMajor, UpLo::Upper, Op::Id, Diag::NonUnit
                 >( iter, H_mat.data(), iter, beta_vec.data(), static_cast<Int>(1) );
                 
