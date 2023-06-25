@@ -255,7 +255,7 @@ namespace Tensors
                     this->outer.data(), this->inner.data(), p, q, nnz, true
                 );
 
-                if( !p.IsTrivial() || !q.IsTrivial() )
+                if( !p.TrivialQ() || !q.TrivialQ() )
                 {
                     ptr<Scal> u = this->new_values.data();
                     mut<Scal> v = this->values.data();
