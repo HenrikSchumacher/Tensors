@@ -36,7 +36,7 @@ namespace Tensors
                 }
                 else
                 {
-                    Tensors::BLAS_Wrappers::trsm<
+                    Tensors::BLAS::trsm<
                         Layout::RowMajor, side, uplo, op, diag
                     >( n,nrhs,alpha,A,ldA,B,ldB );
                 }
