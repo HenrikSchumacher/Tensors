@@ -113,14 +113,14 @@ Int Size() const
 template<typename S>
 void Read( ptr<S> a_ )
 {
-    copy_buffer( a_, a, static_cast<size_t>(n) );
+    copy_buffer( a_, a, static_cast<Size_T>(n) );
 }
 
 //// Parallelized version.
 template<typename S>
-void ReadParallel( ptr<S> a_, const Int thread_count )
+void ReadParallel( ptr<S> a_, const Size_T thread_count )
 {
-    copy_buffer( a_, a, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
+    copy_buffer( a_, a, static_cast<Size_T>(n), thread_count );
 }
 
 template<typename R>
@@ -137,12 +137,12 @@ Read( ptr<R> re, ptr<R> im )
 template<typename S>
 void Write( mut<S> a_ ) const
 {
-    copy_buffer( a, a_, static_cast<size_t>(n) );
+    copy_buffer( a, a_, static_cast<Size_T>(n) );
 }
 template<typename S>
-void WriteParallel( mut<S> a_, const Int thread_count ) const
+void WriteParallel( mut<S> a_, const Size_T thread_count ) const
 {
-    copy_buffer( a, a_, static_cast<size_t>(n), static_cast<size_t>(thread_count) );
+    copy_buffer( a, a_, static_cast<Size_T>(n), thread_count );
 }
 
 template<typename R>
@@ -158,12 +158,12 @@ Write( mut<R> re, mut<R> im ) const
 
 void Fill( const Scal init )
 {
-    fill_buffer( a, static_cast<size_t>(n), init );
+    fill_buffer( a, static_cast<Size_T>(n), init );
 }
 
-void Fill( const Scal init, const Int thread_count )
+void Fill( const Scal init, const Size_T thread_count )
 {
-    fill_buffer( a, static_cast<size_t>(n), init, static_cast<size_t>(thread_count) );
+    fill_buffer( a, static_cast<Size_T>(n), init, thread_count );
 }
 
 void SetZero()
@@ -171,9 +171,9 @@ void SetZero()
     zerofy_buffer( a, n );
 }
 
-void SetZero( const Int thread_count )
+void SetZero( const Size_T thread_count )
 {
-    zerofy_buffer( a, n, static_cast<size_t>(thread_count) );
+    zerofy_buffer( a, n, thread_count );
 }
 
 void Random( Int thread_count = 1 )
@@ -226,7 +226,7 @@ protected:
 
 force_inline void allocate()
 {
-    safe_alloc( a, std::max( static_cast<size_t>(0), static_cast<size_t>(n) ) );
+    safe_alloc( a, std::max( static_cast<Size_T>(0), static_cast<Size_T>(n) ) );
 }
 
 public:
@@ -263,7 +263,7 @@ force_inline const Int * Dimensions() const
 
 force_inline Int Dimension( const Int i ) const
 {
-    return ( i < Rank() ) ? dims[static_cast<size_t>(i)] : static_cast<Int>(0);
+    return ( i < Rank() ) ? dims[static_cast<Size_T>(i)] : static_cast<Int>(0);
 }
 
 public:
