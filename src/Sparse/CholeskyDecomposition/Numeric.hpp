@@ -7,18 +7,18 @@
 public:
     
     template<typename ExtScal>
-    void SN_NumericFactorization(
+    void NumericFactorization(
         ptr<ExtScal> A_val_,
         const ExtScal reg_  = 0 // Regularization parameter for the diagonal.
     )
     {
-        ptic(ClassName()+"::SN_NumericFactorization");
+        ptic(ClassName()+"::NumericFactorization");
         
 //        dump(openblas_get_num_threads());
 //        openblas_set_num_threads(1);
 //        dump(openblas_get_num_threads());
         
-        SN_SymbolicFactorization();
+        SymbolicFactorization();
 
         reg = reg_;
         A_inner_perm.Permute( A_val_, A_val.data(), Inverse::False );
@@ -46,6 +46,6 @@ public:
         
         SN_factorized = true;
         
-        ptoc(ClassName()+"::SN_NumericFactorization");
+        ptoc(ClassName()+"::NumericFactorization");
         
     }
