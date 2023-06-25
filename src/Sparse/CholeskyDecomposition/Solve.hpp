@@ -179,7 +179,7 @@ protected:
                     //  X_0 is a matrix of size 1 x nrhs; we can interpret it as vector of size nrhs.
 
                     // Hence we can compute X_0^T -= X_1^T * U_1^T via gemv instead:
-                    BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans>(
+                    BLAS::gemv<Layout::RowMajor,Op::Trans>(
                         n_1, nrhs,
                         -one, X_1, nrhs,
                               U_1, 1,        // XXX Problem: We need Scalar::Conj(U_1)!
@@ -196,7 +196,7 @@ protected:
                 if( n_1 > izero )
                 {
                     // Compute X_0 -= U_1 * X_1
-                    BLAS_Wrappers::gemm<Layout::RowMajor,Op::Id,Op::Id>(
+                    BLAS::gemm<Layout::RowMajor,Op::Id,Op::Id>(
                         // XX Op::Id -> Op::ConjugateTranspose
                         n_0, nrhs, n_1,
                         -one, U_1, n_1,      // XXX n_1 -> n_0
@@ -205,7 +205,7 @@ protected:
                     );
                 }
                 // Triangle solve U_0 * X_0 = B while overwriting X_0.
-                BLAS_Wrappers::trsm<Layout::RowMajor,
+                BLAS::trsm<Layout::RowMajor,
                     Side::Left, UpLo::Upper, Op::Id, Diag::NonUnit
                 >(
                     n_0, nrhs,
@@ -291,7 +291,7 @@ protected:
                     }
 
                     // Compute x_0 -= U_1 * x_1
-                    BLAS_Wrappers::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
+                    BLAS::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
                         n_0, n_1,
                         -one, U_1, n_1, // XXX n_1 -> n_0
                               x_1, 1,
@@ -300,7 +300,7 @@ protected:
                 }
 
                 // Triangle solve U_0 * x_0 = B while overwriting x_0.
-                BLAS_Wrappers::trsv<Layout::RowMajor,UpLo::Upper,Op::Id,Diag::NonUnit>(
+                BLAS::trsv<Layout::RowMajor,UpLo::Upper,Op::Id,Diag::NonUnit>(
                     n_0, U_0, n_0, x_0, 1
                 );
             }
@@ -381,7 +381,7 @@ protected:
             else // using BLAS3 routines.
             {
                 // Triangle solve U_0^H * X_0 = B_0 while overwriting X_0.
-                BLAS_Wrappers::trsm<
+                BLAS::trsm<
                     Layout::RowMajor, Side::Left,
                     UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                 >(
@@ -393,7 +393,7 @@ protected:
                 if( n_1 > izero )
                 {
                     // Compute X_1 = - U_1^H * X_0
-                    BLAS_Wrappers::gemm<Layout::RowMajor, Op::ConjTrans, Op::Id>(
+                    BLAS::gemm<Layout::RowMajor, Op::ConjTrans, Op::Id>(
                        //XXX Op::ConjTrans -> Op::Id?
                         n_1, nrhs, n_0, // ???
                         -one, U_1, n_1, // n_1 -> n_0
@@ -468,7 +468,7 @@ protected:
             else // using BLAS2 routines.
             {
                 // Triangle solve U_0^H * x_0 = b_0 while overwriting x_0.
-                BLAS_Wrappers::trsv<
+                BLAS::trsv<
                     Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                 >( n_0, U_0, n_0, x_0, 1 );
                 
@@ -478,7 +478,7 @@ protected:
                     mut<Scal> x_1 = X_scratch.data();
                     
                     // Compute x_1 = - U_1^H * x_0
-                    BLAS_Wrappers::gemv<Layout::RowMajor, Op::ConjTrans>(
+                    BLAS::gemv<Layout::RowMajor, Op::ConjTrans>(
                         n_0, n_1,             // XXX Op::ConjTrans -> Op::Trans
                         -one, U_1, n_1, // XXX n_1 -> n_0
                                             x_0, 1,
