@@ -294,7 +294,7 @@ namespace Tensors
             {
                 auto & post = EliminationTree().PostOrdering();
                 
-                if( !EliminationTree().PostOrdered() )
+                if( !EliminationTree().PostOrderedQ() )
                 {
                     ptic(ClassName()+"::PostOrdering");
                     
@@ -401,7 +401,7 @@ namespace Tensors
             
             const Tree<Int> & AssemblyTree()
             {
-                SN_SymbolicFactorization();
+                SymbolicFactorization();
                 
                 return aTree;
             }
@@ -465,7 +465,7 @@ namespace Tensors
 
 // DONE: Load A + eps * Id during factorization.
 
-// DONE:Call SN_SymbolicFactorization, SN_NumericFactorization,... when dependent routines are called.
+// DONE:Call SymbolicFactorization, NumericFactorization,... when dependent routines are called.
 
 // DONE: Currently, EliminationTree breaks down if the matrix is reducible.
 //           --> What we need is an EliminationForest!
