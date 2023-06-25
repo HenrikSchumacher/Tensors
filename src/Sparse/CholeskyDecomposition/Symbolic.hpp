@@ -6,7 +6,7 @@
         
 public:
     
-    void SN_SymbolicFactorization()
+    void SymbolicFactorization()
     {
         // Compute supernodal symbolic factorization with so-called _fundamental supernodes_.
         // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
@@ -16,7 +16,7 @@ public:
 
         if( !SN_initialized )
         {
-            ptic(ClassName()+"::SN_SymbolicFactorization");
+            ptic(ClassName()+"::SymbolicFactorization");
 
             (void)PostOrdering();
 
@@ -157,7 +157,7 @@ public:
             
             SN_initialized = true;
             
-            ptoc(ClassName()+"::SN_SymbolicFactorization");
+            ptoc(ClassName()+"::SymbolicFactorization");
         }
     }
 
