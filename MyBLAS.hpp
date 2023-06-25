@@ -15,8 +15,8 @@ namespace Tensors
 //#define lapack_complex_double std::complex<double>
 
 //#include "Tiny.hpp"
-#include "src/BLAS_Wrappers.hpp"
-#include "src/LAPACK_Wrappers.hpp"
+#include "src/BLAS.hpp"
+#include "src/LAPACK.hpp"
 
 #include "src/MyBLAS/GEMM.hpp"
 #include "src/MyBLAS/TRSM.hpp"
