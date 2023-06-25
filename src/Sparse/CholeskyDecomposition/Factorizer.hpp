@@ -385,7 +385,7 @@ namespace Tensors
                             // where C_0 is an upper triangular matrix of size IL_len x IL_len.
                             
                             _tic();
-                            BLAS_Wrappers::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
+                            BLAS::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
                                 IL_len, m_0,
                                 -Scalar::One<Real>, B_0, IL_len,
                                 Scalar::Zero<Real>, C_0, IL_len
@@ -443,7 +443,7 @@ namespace Tensors
                             {
                                 if( IL_len > ione )
                                 {
-                                    BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
+                                    BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                                         IL_len, JL_len, m_0,
                                         -one, B_0, IL_len,
                                               B_1, JL_len,
@@ -454,7 +454,7 @@ namespace Tensors
                                 {
                                     if constexpr ( !Scalar::IsComplex<Scal> )
                                     {
-                                        BLAS_Wrappers::gemv<Layout::RowMajor,Op::Trans  >(// XXX
+                                        BLAS::gemv<Layout::RowMajor,Op::Trans  >(// XXX
                                             m_0, JL_len,
                                             -one, B_1, JL_len,
                                                   B_0, 1,         // TODO: B_0 must be conjugated!
@@ -463,7 +463,7 @@ namespace Tensors
                                     }
                                     else
                                     {
-                                        BLAS_Wrappers::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
+                                        BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
                                             IL_len, JL_len, m_0,
                                             -one, B_0, IL_len,
                                                   B_1, JL_len,
@@ -478,7 +478,7 @@ namespace Tensors
                             {
                                 if( IL_len > ione )
                                 {
-                                    BLAS_Wrappers::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
+                                    BLAS::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
                                         m_0, IL_len,
                                         -one, B_0, IL_len,
                                               B_1, 1,
@@ -575,12 +575,12 @@ namespace Tensors
                 if( n_0 > 1 )
                 {
                     // Cholesky factorization of U_0
-                    (void)LAPACK_Wrappers::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
+                    (void)LAPACK::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
 
                     // Triangular solve U_1 = U_0^{-H} U_1.
                     if( n_1 > 1 )
                     {
-                        BLAS_Wrappers::trsm<Layout::RowMajor,
+                        BLAS::trsm<Layout::RowMajor,
                             Side::Left, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
                         >(
                             n_0, n_1, Scal(1), U_0, n_0, U_1, n_1
@@ -588,7 +588,7 @@ namespace Tensors
                     }
                     else if( n_1 == 1 )
                     {
-                        BLAS_Wrappers::trsv<Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit>(
+                        BLAS::trsv<Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit>(
                             n_0, U_0, n_0, U_1, 1
                         );
                     }
