@@ -38,21 +38,26 @@ namespace Tensors
         mutable bool is_trivial     = true;
         mutable bool p_computed     = true;
         mutable bool p_inv_computed = true;
+        mutable bool is_valid       = false;
+        
+        static constexpr Int zero = Scalar::Zero<Int>;
+        static constexpr Int one  = Scalar::One<Int>;
         
     public:
         
         Permutation()
-        :   n              ( 0     )
+        :   n              ( zero  )
         ,   p              ( n     )
         ,   p_inv          ( n     )
         ,   scratch        ( n     )
-        ,   thread_count   ( 1     )
+        ,   thread_count   ( one   )
         ,   is_trivial     ( true  )
         ,   p_computed     ( true  )
         ,   p_inv_computed ( true  )
+        ,   is_valid       ( true  )    // Yeah, we say that an empty permutation is valid! ^^
         {}
         
-        explicit Permutation( const Int n_, const Int thread_count_ )
+        Permutation( const Int n_, const Int thread_count_ )
         :   n              ( n_               )
         ,   p              ( iota<Int,Int>(n) )
         ,   p_inv          ( iota<Int,Int>(n) )
@@ -61,7 +66,49 @@ namespace Tensors
         ,   is_trivial     ( true             )
         ,   p_computed     ( true             )
         ,   p_inv_computed ( true             )
+        ,   is_valid       ( n_ > zero        )
         {}
+        
+        
+        Permutation( Tensor1<Int,Int> && p_, const Inverse inverseQ, const Int thread_count_ )
+        :   n              ( p_.Size()        )
+        ,   scratch        ( n                )
+        ,   thread_count   ( thread_count_    )
+        ,   is_trivial     ( false            )
+        ,   p_computed     ( false            )
+        ,   p_inv_computed ( false            )
+        {
+            if( inverseQ == Inverse::True )
+            {
+                p_inv = std::move(p_);
+                
+                if( !PermutationQ(p_inv.data()) )
+                {
+                    eprint(ClassName()+"() input is not a permutation.");
+                    is_valid = false;
+                    return;
+                }
+                p_inv_computed = true;
+                
+                RequirePermutation();
+                is_valid = true;
+            }
+            else
+            {
+                p = std::move(p_);
+                
+                if( !PermutationQ(p_.data()) )
+                {
+                    eprint(ClassName()+"() input is not a permutation.");
+                    is_valid = false;
+                    return;
+                }
+                
+                p_computed = true;
+                RequireInversePermutation();
+                is_valid = true;
+            }
+        }
         
         template<typename J, IS_INT(J)>
         Permutation( ptr<J> p_, const Int n_, const Inverse inverseQ, const Int thread_count_ )
@@ -71,6 +118,14 @@ namespace Tensors
         ,   scratch        ( n                )
         ,   thread_count   ( thread_count_    )
         {
+            if( !PermutationQ(p_) )
+            {
+                eprint(ClassName()+"() input is not a permutation.");
+                is_valid = false;
+                return;
+            }
+            is_valid = true;
+            
             if( inverseQ == Inverse::True )
             {
                 SetInversePermutation(p_);
@@ -94,6 +149,7 @@ namespace Tensors
         ,   is_trivial        ( other.is_trivial        )
         ,   p_computed        ( other.p_computed        )
         ,   p_inv_computed    ( other.p_inv_computed    )
+        ,   is_valid          ( other.valid             )
         {}
         
         // We could also simply use the implicitly created copy constructor.
@@ -111,6 +167,7 @@ namespace Tensors
             swap( A.is_trivial,        B.is_trivial        );
             swap( A.p_computed,        B.p_computed        );
             swap( A.p_inv_computed,    B.p_inv_computed    );
+            swap( A.is_valid,          B.is_valid          );
         }
         
         // Copy assignment operator
@@ -133,8 +190,13 @@ namespace Tensors
         
         
     public:
+
+        bool IsValid() const
+        {
+            return is_valid;
+        }
         
-        bool IsTrivial() const
+        bool TrivialQ() const
         {
             return is_trivial;
         }
@@ -171,7 +233,7 @@ namespace Tensors
             is_trivial = ParallelDoReduce(
                 [=]( const Int i ) -> bool
                 {
-                    const Int p_i = static_cast<Int>(p_[i]);
+                    const Int p_i = int_cast<Int>(p_[i]);
                     
                     p[i] = p_i;
                     p_inv[p_i] = i;
@@ -180,18 +242,15 @@ namespace Tensors
                 },
                 AndReducer(),
                 true,
-                Scalar::Zero<Int>, n, thread_count
+                zero, n, thread_count
             );
             
             p_computed     = true;
             p_inv_computed = true;
         }
 
-        Tensor1<Int,Int> & GetPermutation()
-        {
-            return p;
-        }
         
+        // There is no nonconstant GetPermutation() because we want the error-free execution of the constructors to be a certificate.
         const Tensor1<Int,Int> & GetPermutation() const
         {
             return p;
@@ -200,7 +259,7 @@ namespace Tensors
         template<typename J>
         void SetInversePermutation( ptr<J> p_inv_ )
         {
-            print("SetInversePermutation");
+//            print("SetInversePermutation");
             // TODO: check p_inv_ for triviality during copy.
 //            p_inv.Read(p_inv_);
 
@@ -216,18 +275,15 @@ namespace Tensors
                 },
                 AndReducer(),
                 true,
-                Scalar::Zero<Int>, n, thread_count
+                zero, n, thread_count
             );
             
             p_computed     = true;
             p_inv_computed = true;
         }
         
-        Tensor1<Int,Int> & GetInversePermutation()
-        {
-            return p_inv;
-        }
-        
+
+        // There is no nonconstant GetPermutation() because we want the error-free execution of the constructors to be a certificate.
         const Tensor1<Int,Int> & GetInversePermutation() const
         {
             return p_inv;
@@ -251,6 +307,11 @@ namespace Tensors
         {
             if( !p_computed )
             {
+                if ( p.Size() != n )
+                {
+                    p = Tensor1<Int,Int>(n);
+                }
+                
                 ParallelDo(
                     [=]( const Int i )
                     {
@@ -264,8 +325,12 @@ namespace Tensors
         
         void RequireInversePermutation()
         {
-            if( !p_inv_computed )
+            if( !p_inv_computed  )
             {
+                if ( p_inv.Size() != n )
+                {
+                    p_inv = Tensor1<Int,Int>(n);
+                }
                 ParallelDo(
                     [=]( const Int i )
                     {
@@ -293,7 +358,7 @@ namespace Tensors
                     p.Read( q.GetPermutation().data() );
                     p_inv.Read( q.GetInversePermutation().data() );
 
-                    is_trivial     = q.IsTrivial();
+                    is_trivial     = q.TrivialQ();
                     p_computed     = true;
                     p_inv_computed = true;
                 }
@@ -349,7 +414,7 @@ namespace Tensors
                         },
                         AndReducer(),
                         true,
-                        Scalar::Zero<Int>, n, thread_count
+                        zero, n, thread_count
                     );
                         
                     swap(p,scratch);
@@ -497,7 +562,7 @@ namespace Tensors
                         return p_i == i;
                     },
                     AndReducer(), true,
-                    Scalar::Zero<Int>, n, thread_count
+                    zero, n, thread_count
                 );
             }
             else
@@ -514,7 +579,7 @@ namespace Tensors
                         return p_inv_i == i;
                     },
                     AndReducer(), true,
-                    Scalar::Zero<Int>, n, thread_count
+                    zero, n, thread_count
                 );
             }
 
@@ -522,86 +587,72 @@ namespace Tensors
             p_inv_computed = true;
         }
         
-        bool IsValidPermutation() const
+        
+        template<typename J>
+        bool PermutationQ( ptr<J> p_ ) const
         {
-            if( (n == 0) )
+            ptic("PermutationQ");
+            if( (n == zero) || (n == one ) )
             {
+                ptoc("PermutationQ");
                 return true;
             }
             
-            mut<Int> s = scratch.data();
-
+            scratch.SetZero();
+            
+            for( Int i = 0; i < n; ++i )
             {
-                scratch.SetZero();
+                const Int p_i = int_cast<Int>(p_[i]);
                 
-                ptr<Int> r = GetPermutation().data();
-                
-                ParallelDo(
-                    [=]( const Int i )
-                    {
-                        s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
-                    },
-                    n, thread_count
-                );
-                
-                auto m = minmax_buffer( scratch.data(), n );
-                
-                if( !( (m.first == Int(1)) && (m.second == Int(1)) ) )
+                if( (p_i < zero) || (p_i >= n) )
                 {
-                    eprint(ClassName()+"::IsValidPermutation: field p is not a permutation!");
+                    wprint(ClassName()+"::PermutationQ: Input list p has value p["+ToString(i)+"] = "+ToString(p_i)+" out of range [0,"+ToString(n)+"[!");
+                    ptoc("PermutationQ");
                     return false;
                 }
-            }
-
-            {
-                scratch.SetZero();
-                
-                ptr<Int> r = GetInversePermutation().data();
-                
-                ParallelDo(
-                    [=]( const Int i )
-                    {
-                        s[r[i]] += static_cast<Int>((Int(0) <= r[i]) && (r[i] < n));
-                    },
-                    n, thread_count
-                );
-                
-                std::pair<Int,Int> m = minmax_buffer( scratch.data(), n );
-                
-                if( !( (m.first == Int(1)) && (m.second == Int(1)) ) )
+                else
                 {
-                    eprint(ClassName()+"::IsValidPermutation: field p_inv is not a permutation!");
-                    return false;
+                    ++scratch[p_i];
                 }
             }
+            
+            std::pair<Int,Int> m = minmax_buffer( scratch.data(), n );
 
-            // We may run this final test only if the other two are passed because they guarantee
-            // that we won't get a segfault.
+            if( m.first != one )
             {
-                Int fails = 0;
-                ptr<Int> p_     = GetPermutation().data();
-                ptr<Int> p_inv_ = GetInversePermutation().data();
-                
-                ParallelDo(
-                    [=]( const Int i )
-                    {
-                        fails += static_cast<Int>(i != p_inv_[p_[i]]);
-                    },
-                    n, thread_count
-                );
-                
-                if( fails > 0 )
-                {
-                    eprint(ClassName()+"::Check: field p_inv is not the inverseQ of p!");
-                    
-                    return false;
-                }
+                eprint(ClassName()+"::PermutationQ: Input does not attain all values in range!");
             }
-
-            return true;
+            
+            if( m.second != one )
+            {
+                eprint(ClassName()+"::PermutationQ: Input has duplicates!");
+            }
+            
+            ptoc("PermutationQ");
+            
+            return ( m.first == one ) && ( m.second == one );
         }
-    
         
+        bool PermutationQ() const
+        {
+            if( PermutationQ(p.data()) )
+            {
+                if( PermutationQ(p_inv.data()) )
+                {
+                    return true;
+                }
+                else
+                {
+                    eprint(ClassName()+"::PermutationQ: field p_inv is not a permutation!");
+                    return false;
+                }
+            }
+            else
+            {
+                eprint(ClassName()+"::PermutationQ: field p is not a permutation!");
+                return false;
+            }
+        }
                        
     public:
         

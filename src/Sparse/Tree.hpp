@@ -20,8 +20,6 @@ namespace Tensors
         Tensor1<Int,Int> descendant_counts;
         
         Permutation<Int> post;                  // To store the postordering.
-
-        Tensor1<double,Int> costs;
         
         Sparse::BinaryMatrixCSR<Int,Int> levels;       // The adjacency matrix of the directed graph.
 
@@ -47,15 +45,11 @@ namespace Tensors
 
             post = Permutation<Int> ( n-1, thread_count );
 
-            dump( post.TrivialQ() );
-            
             mut<Int> p = post.Scratch().data();
             
             {
                 Int list_count       = 1;
                 Int entry_counts [1] = {n-1};
-                
-                dump( post.TrivialQ() );
                 
                 const Int * idx_data = parents.data();
                 const Int * jdx_data = post.GetPermutation().data(); // This is a iota.
@@ -78,7 +72,7 @@ namespace Tensors
 
             
             Traversal_DFS_Sequential(
-                [this, &node_to_depth, &tree_top_depth]( const Int node )
+                [this, &node_to_depth, &tree_top_depth](Int node)
                 {
                     const Int depth = node_to_depth[node]+1;
                     
@@ -90,7 +84,7 @@ namespace Tensors
                     }
                 }
                 ,
-                [this, &counter, p]( const Int node )
+                [this, &counter, p](Int node)
                 {
                     p[counter++] = node;
 
@@ -107,11 +101,10 @@ namespace Tensors
             
             descendant_counts[Root()] = 1;
             
+            
             {
                 Int list_count       = 1;
                 Int entry_counts [1] = {n-1};
-                
-                dump( post.TrivialQ() );
                 
                 const Int * idx_data = node_to_depth.data();
                 const Int * jdx_data = post.GetPermutation().data(); // This is still a iota.
@@ -122,24 +115,19 @@ namespace Tensors
                     &entry_counts[0],
                     list_count, tree_top_depth+1, n, thread_count, true, 0
                 );
-                
-                dump( post.TrivialQ() );
             }
             
             for( Int k = ChildPointer(Root()+1); k --> ChildPointer(Root()); )
             {
                 descendant_counts[Root()] += descendant_counts[ChildIndex(k)];
             }
-            dump( post.TrivialQ() );
+
             // Now post.Scratch() contains the post ordering.
             
             post.SwapScratch( Inverse::False );
             
             // Now post.GetPermutation() contains the post ordering.
 
-            dump( post.TrivialQ() );
-//            print( post.GetPermutation().ToString() );
-            
             ptoc(ClassName());
         }
         
@@ -153,7 +141,6 @@ namespace Tensors
         ,   parents           ( other.parents           )
         ,   descendant_counts ( other.descendant_counts )
         ,   post              ( other.post              )
-        ,   costs             ( other.costs             )
         ,   levels            ( other.levels            )
         {}
         
@@ -170,7 +157,6 @@ namespace Tensors
             swap( X.A,                 Y.A                 );
             swap( X.descendant_counts, Y.descendant_counts );
             swap( X.post,              Y.post              );
-            swap( X.costs,             Y.costs             );
             swap( X.levels,            Y.levels            );
         }
         
@@ -207,7 +193,7 @@ namespace Tensors
             return descendant_counts;
         }
         
-        force_inline Int DescendantCount( const Int i ) const
+        Int DescendantCount( const Int i ) const
         {
             return descendant_counts[i];
         }
@@ -217,7 +203,7 @@ namespace Tensors
             return A.Outer();
         }
         
-        force_inline Int ChildPointer( const Int i ) const
+        Int ChildPointer( const Int i ) const
         {
             return A.Outer(i);
         }
@@ -237,7 +223,7 @@ namespace Tensors
             return levels.Outer();
         }
         
-        force_inline Int LevelPointer( const Int i ) const
+        Int LevelPointer( const Int i ) const
         {
             return levels.Outer(i);
         }
@@ -270,25 +256,6 @@ namespace Tensors
             return A.ChildIndex(ChildPointer(i)+k);
         }
 
-        const Tensor1<double,Int> & Costs() const
-        {
-            return costs;
-        }
-        
-//        bool PostOrderedQ() const
-//        {
-//            return ParallelDoReduce(
-//                [=]( const Int i ) -> bool
-//                {
-//                    const Int p_i = parents[i];
-//
-//                    return (i < p_i) && (i >= p_i + one - DescendantCount(p_i) );
-//                },
-//                AndReducer(),
-//                true,
-//                zero, n-1, thread_count
-//            );
-//        }
         
         bool PostOrderedQ() const
         {
@@ -297,7 +264,7 @@ namespace Tensors
                 {
                     const Int p_i = parents[i];
                  
-                    return (i < p_i);
+                    return (i < p_i) && (i >= p_i + one - DescendantCount(p_i) );
                 },
                 AndReducer(),
                 true,
