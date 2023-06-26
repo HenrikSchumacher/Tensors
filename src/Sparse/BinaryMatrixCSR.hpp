@@ -176,10 +176,10 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compress   = true,
+                  const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
-            :   Base_T ( idx, jdx, entry_counts, list_count, m_, n_, final_thread_count, compress, symmetrize )
+            :   Base_T ( idx, jdx, entry_counts, list_count, m_, n_, final_thread_count, compressQ, symmetrize )
             {}
             
             BinaryMatrixCSR(
@@ -188,10 +188,10 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compress   = true,
+                  const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
-            :   Base_T( idx, jdx, m_, n_, final_thread_count, compress, symmetrize )
+            :   Base_T( idx, jdx, m_, n_, final_thread_count, compressQ, symmetrize )
             {}
             
             BinaryMatrixCSR(
@@ -200,10 +200,10 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compress   = true,
+                  const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
-            :   Base_T( idx, jdx, m_, n_, final_thread_count, compress, symmetrize )
+            :   Base_T( idx, jdx, m_, n_, final_thread_count, compressQ, symmetrize )
             {}
             
             BinaryMatrixCSR(
@@ -211,10 +211,10 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compress   = true,
+                  const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
-            :   Base_T( idx, m_, n_, final_thread_count, compress, symmetrize )
+            :   Base_T( idx, m_, n_, final_thread_count, compressQ, symmetrize )
             {}
             
             virtual ~BinaryMatrixCSR() = default;

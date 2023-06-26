@@ -215,12 +215,12 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
-                const bool compress   = true,
+                const bool compressQ   = true,
                 const int  symmetrize = 0
             )
             :   PatternCSR ( m_, n_, list_count )
             {
-                FromPairs( idx, jdx, entry_counts, list_count, final_thread_count, compress, symmetrize );
+                FromPairs( idx, jdx, entry_counts, list_count, final_thread_count, compressQ, symmetrize );
             }
             
             PatternCSR(
@@ -229,7 +229,7 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
-                const bool compress   = true,
+                const bool compressQ   = true,
                 const int  symmetrize = 0
             )
             :   PatternCSR ( m_, n_, static_cast<Int>(1) )
@@ -239,7 +239,7 @@ namespace Tensors
                 
                 Tensor1<LInt,Int> entry_counts (1, static_cast<LInt>(idx.size()));
                 
-                FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compress, symmetrize );
+                FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compressQ, symmetrize );
             }
             
             PatternCSR(
@@ -248,7 +248,7 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
-                const bool compress   = true,
+                const bool compressQ   = true,
                 const int  symmetrize = 0
             )
             :   PatternCSR ( m_, n_, static_cast<Int>(idx.size()) )
@@ -266,7 +266,7 @@ namespace Tensors
                     entry_counts[thread] = static_cast<LInt>(idx[thread].size());
                 }
                 
-                FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compress, symmetrize );
+                FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compressQ, symmetrize );
             }
             
             PatternCSR(
@@ -274,7 +274,7 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
-                const bool compress   = true,
+                const bool compressQ   = true,
                 const int  symmetrize = 0
             )
             :   PatternCSR ( m_, n_, static_cast<Int>(idx.size()) )
@@ -293,7 +293,7 @@ namespace Tensors
                     entry_counts[thread] = static_cast<LInt>(idx[thread].Size());
                 }
                 
-                FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compress, symmetrize );
+                FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compressQ, symmetrize );
             }
             
             virtual ~PatternCSR() = default;
@@ -326,7 +326,7 @@ namespace Tensors
                 const LInt * entry_counts,
                 const  Int list_count,
                 const  Int final_thread_count,
-                const bool compress   = true,
+                const bool compressQ   = true,
                 const int  symmetrize = 0
             )
             {
@@ -413,7 +413,7 @@ namespace Tensors
                     // We have to sort b_inner to be compatible with the CSR format.
                     SortInner();
                     
-                    if( compress )
+                    if( compressQ )
                     {
                         Compress();
                     }

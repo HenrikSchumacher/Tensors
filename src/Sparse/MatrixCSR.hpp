@@ -168,12 +168,12 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compress   = true,
+                  const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
             :   Base_T ( m_, n_, list_count )
             {
-                FromTriples( idx, jdx, val, entry_counts, list_count, final_thread_count, compress, symmetrize );
+                FromTriples( idx, jdx, val, entry_counts, list_count, final_thread_count, compressQ, symmetrize );
             }
             
             MatrixCSR(
@@ -184,7 +184,7 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int thread_count,
-                const bool compress   = true,
+                const bool compressQ   = true,
                 const int  symmetrize = 0
             )
             :   Base_T ( m_, n_, thread_count )
@@ -205,7 +205,7 @@ namespace Tensors
                     counts[thread] = end-begin;
                 }
                 
-                FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compress, symmetrize );
+                FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compressQ, symmetrize );
             }
             
             MatrixCSR(
@@ -215,7 +215,7 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compress   = true,
+                  const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
             :   Base_T ( m_, n_, static_cast<Int>(idx.size()) )
@@ -235,7 +235,7 @@ namespace Tensors
                 }
                 
                 FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
-                            list_count, final_thread_count, compress, symmetrize );
+                            list_count, final_thread_count, compressQ, symmetrize );
             }
             
             MatrixCSR(
@@ -243,7 +243,7 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compress   = true,
+                  const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
             :   Base_T ( m_, n_, static_cast<Int>(triples.size()) )
@@ -264,7 +264,7 @@ namespace Tensors
                 }
                 
                 FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
-                            list_count, final_thread_count, compress, symmetrize );
+                            list_count, final_thread_count, compressQ, symmetrize );
             }
             
             virtual ~MatrixCSR() override = default;
@@ -278,7 +278,7 @@ namespace Tensors
                 const LInt         * const entry_counts,      // list of lengths of the lists above
                 const Int list_count,                         // number of lists
                 const Int final_thread_count,                 // number of threads that the matrix shall use
-                const bool compress   = true,                 // whether to do additive assembly or not
+                const bool compressQ   = true,                 // whether to do additive assembly or not
                 const int  symmetrize = 0                     // whether to symmetrize the matrix
             )
             {
@@ -301,13 +301,13 @@ namespace Tensors
                     logprint(ClassName()+"::FromTriples no symmetrize");
                 }
                 
-                if( compress )
+                if( compressQ )
                 {
-                    logprint(ClassName()+"::FromTriples compress");
+                    logprint(ClassName()+"::FromTriples compressQ");
                 }
                 else
                 {
-                    logprint(ClassName()+"::FromTriples no compress");
+                    logprint(ClassName()+"::FromTriples no compressQ");
                 }
                 
                 Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
@@ -382,7 +382,7 @@ namespace Tensors
                     SortInner();
                     
                     // Deal with duplicated {i,j}-pairs (additive assembly).
-                    if( compress )
+                    if( compressQ )
                     {
                         Compress();
                     }
@@ -1055,7 +1055,7 @@ namespace Tensors
                     
                     // Finished expansion phase (counting sort).
                     
-                    // Finally we row-sort inner and compress duplicates in inner and values.
+                    // Finally we row-sort inner and compressQ duplicates in inner and values.
                     C.Compress();
                     
                     ptoc(ClassName()+"::Dot");

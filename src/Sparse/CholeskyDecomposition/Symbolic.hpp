@@ -56,7 +56,7 @@ public:
             ptic("Main loop");
             for( Int i = 1; i < n+1; ++i ) // Traverse rows.
             {
-                if( IsFundamental( i, prev_col_nz ) )
+                if( FundamentalQ( i, prev_col_nz ) )
                 {
                     // i is going to be the first node of the newly created fundamental supernode.
                     // However, we do not now at the moment how long the supernode is going to be.
@@ -204,7 +204,7 @@ protected:
         ptoc(ClassName()+"::SN_Allocate");
     }
     
-    bool IsFundamental( const Int i, Tensor1<Int,Int> & prev_col_nz )
+    bool FundamentalQ( const Int i, Tensor1<Int,Int> & prev_col_nz )
     {
         // Using Theorem 2.3 and Corollary 3.2 in
         //
