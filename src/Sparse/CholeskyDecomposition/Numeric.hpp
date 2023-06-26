@@ -42,7 +42,7 @@ public:
         ptoc("Initialize factorizers");
         
         // Parallel traversal in postorder
-        aTree.Traverse_DFS_Parallel( SN_list, tree_top_depth );
+        aTree.Traverse_Postorder_Parallel( SN_list, tree_top_depth );
         
         SN_factorized = true;
         

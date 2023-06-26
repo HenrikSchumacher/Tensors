@@ -7,51 +7,47 @@
 public:
 
     template<typename ExtScal>
-    void ReadRightHandSide( ptr<ExtScal> b )
+    void ReadRightHandSide( ptr<ExtScal> B, Int nrhs = ione )
     {
-        ptic(ClassName()+"::ReadRightHandSide");
+        const std::string tag = ClassName() + "ReadRightHandSide (" + ToString(nrhs)+ ")";
         
-        if( X.Size() < static_cast<LInt>(n) )
-        {
-            X         = VectorContainer_T(static_cast<LInt>(n));
-            X_scratch = VectorContainer_T(static_cast<LInt>(max_n_1));
-        }
-
-        perm.Permute( b, X.data(), Inverse::False );
-        
-        ptoc(ClassName()+"::ReadRightHandSide");
-    }
-    
-    template<typename ExtScal>
-    void ReadRightHandSide( ptr<ExtScal> B, const LInt nrhs )
-    {
-        ptic(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
+        ptic(tag);
         
         if( X.Size() < static_cast<LInt>(n) * nrhs )
         {
             X         = VectorContainer_T(static_cast<LInt>(n)*nrhs);
             X_scratch = VectorContainer_T(static_cast<LInt>(max_n_1)*nrhs);
         }
+
+        if ( nrhs == ione )
+        {
+            perm.Permute( B, X.data(), Inverse::False );
+        }
+        else
+        {
+            perm.Permute( B, X.data(), Inverse::False, nrhs );
+        }
         
-        perm.Permute( B, X.data(), Inverse::False, nrhs );
-        
-        ptoc(ClassName()+"::ReadRightHandSide ("+ToString(nrhs)+")");
+        ptoc(tag);
     }
 
     template<typename ExtScal>
-    void WriteSolution( mut<ExtScal> x )
+    void WriteSolution( mut<ExtScal> X_, Int nrhs = ione )
     {
-        ptic(ClassName()+"::WriteSolution");
-        perm.Permute( X.data(), x, Inverse::True );
-        ptoc(ClassName()+"::WriteSolution");
-    }
-    
-    template<typename ExtScal>
-    void WriteSolution( mut<ExtScal> X_, const LInt nrhs )
-    {
-        ptic(ClassName()+"::WriteSolution ("+ToString(nrhs)+")");
-        perm.Permute( X.data(), X_, Inverse::True, nrhs );
-        ptoc(ClassName()+"::WriteSolution ("+ToString(nrhs)+")");
+        const std::string tag = ClassName() + "WriteSolution (" + ToString(nrhs)+ ")";
+        
+        ptic(tag);
+        
+        if ( nrhs == ione )
+        {
+            perm.Permute( X.data(), X_, Inverse::True );
+        }
+        else
+        {
+            perm.Permute( X.data(), X_, Inverse::True, nrhs );
+        }
+        
+        ptoc(tag);
     }
 
 

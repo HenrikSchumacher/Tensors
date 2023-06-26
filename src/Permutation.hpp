@@ -292,7 +292,7 @@ namespace Tensors
         
         void Invert( const Inverse inverseQ )
         {
-            ptic(ClassName()+"::Invert");
+//            ptic(ClassName()+"::Invert");
             if( inverseQ == Inverse::True )
             {
                 using std::swap;
@@ -300,7 +300,7 @@ namespace Tensors
                 swap( p, p_inv );
                 swap( p_computed, p_inv_computed );
             }
-            ptoc(ClassName()+"::Invert");
+//            ptoc(ClassName()+"::Invert");
         }
         
         void RequirePermutation()
@@ -537,13 +537,13 @@ namespace Tensors
         }
         
         
-        // Somewhat dangereous. Use this only if you know what you are doing!
+        // Somewhat dangerous. Use this only if you know what you are doing!
         Tensor1<Int,Int> & Scratch()
         {
             return scratch;
         }
         
-        // Somewhat dangerrous. Use this only if you know what you are doing!
+        // Somewhat dangerous. Use this only if you know what you are doing!
         void SwapScratch( Inverse inverseQ )
         {
             is_trivial = true;

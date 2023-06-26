@@ -10,12 +10,9 @@
 //#include "../../MyBLAS.hpp"
 
 #include "CholeskyDecomposition/Factorizer.hpp"
+#include "CholeskyDecomposition/UpperSolver.hpp"
+#include "CholeskyDecomposition/LowerSolver.hpp"
 
-//#include "Metis_Wrapper.hpp"
-
-// Priority I+++:
-
-// TODO: Numeric factorization is incorrect when using tree_top_depth > 1!
 
 // Priority I:
 
@@ -79,13 +76,18 @@ namespace Tensors
             using Int  = Int_;
             using LInt = LInt_;
             
-            using BinaryMatrix_T = Sparse::BinaryMatrixCSR<Int,LInt>;
-            using Matrix_T       = Sparse::MatrixCSR<Scal,Int,LInt>;
-
-            friend class CholeskyFactorizer<Scal,Int,LInt>;
+            using BinaryMatrix_T     = Sparse::BinaryMatrixCSR<Int,LInt>;
+            using Matrix_T           = Sparse::MatrixCSR<Scal,Int,LInt>;
             
-            using Factorizer = CholeskyFactorizer<Scal,Int,LInt>;
-
+            using Factorizer         = CholeskyFactorizer<Scal,Int,LInt>;
+            
+            friend Factorizer;
+            friend class UpperSolver<false,Scal,Int,LInt>;
+            friend class UpperSolver<true, Scal,Int,LInt>;
+            friend class LowerSolver<false,Scal,Int,LInt>;
+            friend class LowerSolver<true, Scal,Int,LInt>;
+            
+            
 //            using VectorContainer_T = Tensor1<Scal,Int>;
             using VectorContainer_T = Tensor1<Scal,LInt>;
 
@@ -429,8 +431,8 @@ namespace Tensors
                     
                     SN_parents[k] = parent;
                     
-                    const Int n_0 = SN_rp   [k+1] - SN_rp   [k];
-                    const Int n_1 = SN_outer[k+1] - SN_outer[k];
+                    const Int n_0 =               SN_rp   [k+1] - SN_rp   [k];
+                    const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
                     
                     // This is just the cost for `trsm` and `potrf` in `FactorizeSupernode`!
                     
@@ -445,9 +447,11 @@ namespace Tensors
                     
                     SN_parents[SN_count-1] = SN_count;
                     
-                    const Int n_0 = SN_rp   [k+1] - SN_rp   [k];
-                    const Int n_1 = SN_outer[k+1] - SN_outer[k];
+                    const Int n_0 =               SN_rp   [k+1] - SN_rp   [k];
+                    const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
+                    
                     SN_costs[k] = ( n_0 * ( n_0 + 1 ) ) * ( ( n_0 + 2 ) * factor + 0.5 * n_1 );
+                    
                 }
                 
                 SN_costs[SN_count] = 0.;

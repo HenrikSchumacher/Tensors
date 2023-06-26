@@ -1,0 +1,248 @@
+#pragma once
+
+namespace Tensors
+{
+    namespace Sparse
+    {
+        
+        template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
+        
+        template<bool mult_rhs, typename Scal_, typename Int_, typename LInt_>
+        class alignas(OBJECT_ALIGNMENT) UpperSolver
+        {
+            ASSERT_INT(Int_);
+            ASSERT_INT(LInt_)
+            
+        public:
+            
+            using Scal = Scal_;
+            using Real = typename Scalar::Real<Scal_>;
+            using Int  = Int_;
+            using LInt = LInt_;
+            
+        protected:
+            
+            static constexpr Int izero = 0;
+            static constexpr Int ione  = 1;
+            
+            static constexpr Real zero = 0;
+            static constexpr Real one  = 1;
+
+            const Int nrhs    = 0;
+            const Int max_n_1 = 0;
+            
+            ptr<Int>  SN_rp;
+            ptr<LInt> SN_outer;
+            ptr<Int>  SN_inner;
+            
+            ptr<LInt> SN_tri_ptr;
+            mut<Scal> SN_tri_val;
+            ptr<LInt> SN_rec_ptr;
+            mut<Scal> SN_rec_val;
+            
+            // On in put: the right hand side; on output: the solution.
+            mut<Scal> X;
+            
+            // Working space for BLAS3 routines.
+            Tensor1<Scal,Int> X_1_buffer;
+            
+            // X_1 is the part of X that interacts with U_1, size = n_0 x n_1.
+            mut<Scal> X_1;
+            
+            // x_1 is the part of x that interacts with U_1, size = n_1.
+            mut<Scal> x_1;
+            
+        public:
+            
+            ~UpperSolver() = default;
+            
+            UpperSolver(
+                CholeskyDecomposition<Scal,Int,LInt> & chol, const Int nrhs_
+            )
+            :   nrhs            ( nrhs_                  )
+            ,   max_n_1         ( chol.max_n_1           )
+            ,   SN_rp           ( chol.SN_rp.data()      )
+            ,   SN_outer        ( chol.SN_outer.data()   )
+            ,   SN_inner        ( chol.SN_inner.data()   )
+            ,   SN_tri_ptr      ( chol.SN_tri_ptr.data() )
+            ,   SN_tri_val      ( chol.SN_tri_val.data() )
+            ,   SN_rec_ptr      ( chol.SN_rec_ptr.data() )
+            ,   SN_rec_val      ( chol.SN_rec_val.data() )
+            ,   X               ( chol.X.data()          )
+            ,   X_1_buffer      ( max_n_1 * nrhs         )
+            ,   X_1             ( X_1_buffer.data()      )
+            ,   x_1             ( X_1_buffer.data()      )
+            {}
+            
+        protected:
+            
+//            void _tic()
+//            {
+//                start_time = Clock::now();
+//            }
+//
+//            float _toc()
+//            {
+//                return Duration( start_time, Clock::now() );
+//            }
+            
+            void _tic()
+            {
+            }
+
+            float _toc()
+            {
+                return 0;
+            }
+            
+            
+            
+        public:
+                
+            // Solver routine.
+            void operator()( const Int s )
+            {   
+                const Int n_0 = SN_rp[s+1] - SN_rp[s];
+            
+                assert_positive(n_0);
+                
+                const LInt l_begin = SN_outer[s  ];
+                const LInt l_end   = SN_outer[s+1];
+                
+                const Int n_1 = int_cast<Int>(l_end - l_begin);
+                
+                // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                ptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                
+                // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                ptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
+
+                
+                if constexpr ( mult_rhs )
+                {
+                    // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
+                    mut<Scal> X_0 = &X[nrhs * SN_rp[s]];
+                    
+                    // Load the already computed values into X_1.
+                    for( Int j = 0; j < n_1; ++j )
+                    {
+                        copy_buffer( &X[nrhs * SN_inner[l_begin+j]], &X_1[nrhs * j], nrhs );
+                    }
+
+                    if( n_0 == ione )
+                    {
+                        if( n_1 > izero )
+                        {
+                            // Compute X_0 -= U_1 * X_1
+
+                            //  U_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
+                            //  X_1 is a matrix of size n_1 x nrhs.
+                            //  X_0 is a matrix of size 1 x nrhs; we can interpret it as vector of size nrhs.
+
+                            // Hence we can compute X_0^T -= X_1^T * U_1^T via gemv instead:
+                            BLAS::gemv<Layout::RowMajor,Op::Trans>(
+                                n_1, nrhs,
+                                -one, X_1, nrhs,
+                                      U_1, 1,        // XXX Problem: We need Scalar::Conj(U_1)!
+                                 one, X_0, 1
+                            );
+                        }
+
+                        // Triangle solve U_0 * X_0 = B while overwriting X_0.
+                        // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
+                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                    }
+                    else // using BLAS3 routines.
+                    {
+                        if( n_1 > izero )
+                        {
+                            // Compute X_0 -= U_1 * X_1
+                            BLAS::gemm<Layout::RowMajor,Op::Id,Op::Id>(
+                                // XX Op::Id -> Op::ConjugateTranspose
+                                n_0, nrhs, n_1,
+                                -one, U_1, n_1,      // XXX n_1 -> n_0
+                                      X_1, nrhs,
+                                 one, X_0, nrhs
+                            );
+                        }
+                        // Triangle solve U_0 * X_0 = B while overwriting X_0.
+                        BLAS::trsm<Layout::RowMajor,
+                            Side::Left, UpLo::Upper, Op::Id, Diag::NonUnit
+                        >(
+                            n_0, nrhs,
+                            one, U_0, n_0,
+                                 X_0, nrhs
+                        );
+                    }
+                }
+                else // mult_rhs == false
+                {
+                    // x_0 is the part of x that interacts with U_0, size = n_0.
+                    mut<Scal> x_0 = &X[SN_rp[s]];
+
+                    if( n_0 == one )
+                    {
+                        Scal U_1x_1 = 0;
+
+                        if( n_1 > izero )
+                        {
+                            // Compute X_0 -= U_1 * X_1
+                            //  U_1 is a matrix of size 1 x n_1; we can interpret it as vector of size n_1.
+                            //  x_1 is a vector of size n_1.
+                            //  x_0 is a matrix of size 1 x 1; we can interpret it as vector of size 1.
+
+                            // Hence we can compute X_0 -= U_1 * X_1 via a simple dot product.
+
+                            for( Int j = 0; j < n_1; ++j )
+                            {
+                                U_1x_1 += U_1[j] * X[SN_inner[l_begin+j]]; // XXX Scalar::Conj(U_1[j])
+                            }
+                        }
+
+                        // Triangle solve U_0 * X_0 = B while overwriting X_0.
+                        // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
+                        x_0[0] = (x_0[0] - U_1x_1) / U_0[0];
+                    }
+                    else // using BLAS2 routines.
+                    {
+                        if( n_1 > izero )
+                        {
+                            // Load the already computed values into x_1.
+                            for( Int j = 0; j < n_1; ++j )
+                            {
+                                x_1[j] = X[SN_inner[l_begin+j]];
+                            }
+
+                            // Compute x_0 -= U_1 * x_1
+                            BLAS::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
+                                n_0, n_1,
+                                -one, U_1, n_1, // XXX n_1 -> n_0
+                                      x_1, 1,
+                                 one, x_0, 1
+                            );
+                        }
+
+                        // Triangle solve U_0 * x_0 = B while overwriting x_0.
+                        BLAS::trsv<Layout::RowMajor,UpLo::Upper,Op::Id,Diag::NonUnit>(
+                            n_0, U_0, n_0, x_0, 1
+                        );
+                    }
+                }
+            }
+
+    
+        public:
+            
+            std::string ClassName() const
+            {
+                return std::string("Sparse::UpperSolver")+"<"+ToString(mult_rhs)+
+                ","+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
+            }
+            
+        }; // class UpperSolve
+        
+        
+    } // namespace Sparse
+    
+} // namespace Tensors
+

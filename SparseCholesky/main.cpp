@@ -4,7 +4,7 @@
 #include <pwd.h>
 
 #define TOOLS_ENABLE_PROFILER
-//#define TOOLS_DEBUG
+#define TOOLS_DEBUG
 
 #define LAPACK_DISABLE_NAN_CHECK
 #define ACCELERATE_NEW_LAPACK
