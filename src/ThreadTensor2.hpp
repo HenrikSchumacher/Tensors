@@ -86,10 +86,12 @@ namespace Tensors {
         }
         
         // Copy constructor
-        template<typename S, typename J, IS_INT(J)>
+        template<typename S, typename J>
         explicit ThreadTensor2( const ThreadTensor2<S,J> & other )
         :   ThreadTensor2( other.dims[0], other.dims[1] )
         {
+            ASSERT_INT(J);
+            
             print(ClassName()+" copy constructor");
             
             const Int thread_count = dims[0];

@@ -63,7 +63,7 @@ namespace Tensors
             
             PatternCSR() {}
             
-            template<typename I_0, typename I_1, typename I_3, IS_INT(I_0), IS_INT(I_1), IS_INT(I_3)>
+            template<typename I_0, typename I_1, typename I_3>
             PatternCSR(
                 const I_0 m_,
                 const I_1 n_,
@@ -74,6 +74,9 @@ namespace Tensors
             ,   n           ( static_cast<Int>(n_)                        )
             ,   thread_count( static_cast<Int>(thread_count_)             )
             {
+                ASSERT_INT(I_0);
+                ASSERT_INT(I_1);
+                ASSERT_INT(I_3);
                 Init();
             }
             

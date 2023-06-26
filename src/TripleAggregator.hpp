@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename T_0, typename T_1, typename T_2, typename LInt, int BUFFER_CAPACITY = 128>
+    template<typename T_0, typename T_1, typename T_2, typename LInt, int BUFFER_CAP = 128>
     class alignas(OBJECT_ALIGNMENT) TripleAggregator
     {
         ASSERT_INT(LInt);
@@ -17,13 +17,13 @@ namespace Tensors
         LInt capacity     = static_cast<LInt>(1);
 
         LInt current_buffer_size = static_cast<LInt>(0);
-        std::array<T_0,BUFFER_CAPACITY> buffer_0;
-        std::array<T_0,BUFFER_CAPACITY> buffer_1;
-        std::array<T_2,BUFFER_CAPACITY> buffer_2;
+        std::array<T_0,BUFFER_CAP> buffer_0;
+        std::array<T_0,BUFFER_CAP> buffer_1;
+        std::array<T_2,BUFFER_CAP> buffer_2;
         
-        Container_0_T container_0 {static_cast<LInt>(BUFFER_CAPACITY)};
-        Container_1_T container_1 {static_cast<LInt>(BUFFER_CAPACITY)};
-        Container_2_T container_2 {static_cast<LInt>(BUFFER_CAPACITY)};
+        Container_0_T container_0 {static_cast<LInt>(BUFFER_CAP)};
+        Container_1_T container_1 {static_cast<LInt>(BUFFER_CAP)};
+        Container_2_T container_2 {static_cast<LInt>(BUFFER_CAP)};
 
     public:
 
@@ -33,7 +33,7 @@ namespace Tensors
 
         explicit TripleAggregator( const LInt n )
         :   current_size ( static_cast<LInt>(0)             )
-        ,   capacity     ( std::max(static_cast<LInt>(BUFFER_CAPACITY),n) )
+        ,   capacity     ( std::max(static_cast<LInt>(BUFFER_CAP),n) )
         ,   container_0  ( capacity )
         ,   container_1  ( capacity )
         ,   container_2  ( capacity )
@@ -91,7 +91,7 @@ namespace Tensors
 
         void Push( const T_0 a, const T_1 b, const T_2 c )
         {
-            if( current_buffer_size >= BUFFER_CAPACITY )
+            if( current_buffer_size >= BUFFER_CAP )
             {
                 FlushBuffer();
             }
@@ -179,16 +179,16 @@ namespace Tensors
         
         void FlushBuffer()
         {
-            if( capacity < current_size + BUFFER_CAPACITY )
+            if( capacity < current_size + BUFFER_CAP )
             {
                 Expand();
             }
             
-            copy_buffer( buffer_0.data(), &container_0.data()[current_size], BUFFER_CAPACITY );
-            copy_buffer( buffer_1.data(), &container_1.data()[current_size], BUFFER_CAPACITY );
-            copy_buffer( buffer_2.data(), &container_2.data()[current_size], BUFFER_CAPACITY );
+            copy_buffer( buffer_0.data(), &container_0.data()[current_size], BUFFER_CAP );
+            copy_buffer( buffer_1.data(), &container_1.data()[current_size], BUFFER_CAP );
+            copy_buffer( buffer_2.data(), &container_2.data()[current_size], BUFFER_CAP );
             
-            current_size += BUFFER_CAPACITY;
+            current_size += BUFFER_CAP;
             current_buffer_size = 0;
         }
         

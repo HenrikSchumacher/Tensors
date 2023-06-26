@@ -36,11 +36,12 @@ TENSOR_T( const TENSOR_T & other )
 }
 
 // Copy-cast constructor
-template<typename S, typename J, IS_INT(J)>
+template<typename S, typename J>
 explicit TENSOR_T( const TENSOR_T<S,J> & other )
 :   n    ( other.n    )
 ,   dims ( other.dims )
 {
+    ASSERT_INT(J)
     logprint("Copy-cast of "+ClassName()+" of size "+Tools::ToString(other.Size()) );
     
     allocate();

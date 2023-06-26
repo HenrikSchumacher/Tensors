@@ -373,9 +373,10 @@ namespace Tensors {
         return A;
     }
     
-    template<typename J, typename Int, IS_INT(J)>
+    template<typename J, typename Int>
     mma::MatrixRef<mint> to_transposed_MTensorRef( const Tensor2<J,Int> & B )
     {
+        ASSERT_INT(J)
         Int rows = B.Dimension(0);
         Int cols = B.Dimension(1);
         auto A = mma::makeMatrix<mint>( cols, rows );
@@ -404,9 +405,6 @@ namespace Tensors {
               Tensor1<Scal,I3> & y
     )
     {
-        ASSERT_INT (I1);
-        ASSERT_INT (I2);
-        ASSERT_INT (I3);
         
         I3 m = A.Dimension(0);
         I3 n = std::min(A.Dimension(1),x.Dimension(0));

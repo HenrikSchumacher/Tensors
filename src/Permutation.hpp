@@ -23,9 +23,17 @@ namespace Tensors
         False = false
     };
     
-    template<typename Int>
+    template<typename Int_>
     class Permutation
     {
+        ASSERT_INT(Int_);
+     
+    public:
+        
+        using Int = Int_;
+        
+    protected:
+        
         Int n;
         
         mutable Tensor1<Int,Int> p;
@@ -107,7 +115,7 @@ namespace Tensors
             }
         }
         
-        template<typename J, IS_INT(J)>
+        template<typename J>
         Permutation( ptr<J> p_, const Int n_, const Inverse inverseQ, const Int thread_count_ )
         :   n              ( n_               )
         ,   p              ( n                )
@@ -115,6 +123,7 @@ namespace Tensors
         ,   scratch        ( n                )
         ,   thread_count   ( thread_count_    )
         {
+            ASSERT_INT(J)
             if( !PermutationQ(p_) )
             {
                 eprint(ClassName()+"() input is not a permutation.");
