@@ -80,14 +80,13 @@ namespace Tensors
         {
             if( inverseQ == Inverse::True )
             {
-                p_inv = std::move(p_);
-                
-                if( !PermutationQ(p_inv.data()) )
+                if( !PermutationQ(p_.data()) )
                 {
                     eprint(ClassName()+"() input is not a permutation.");
                     is_valid = false;
                     return;
                 }
+                p_inv = std::move(p_);
                 p_inv_computed = true;
                 
                 RequirePermutation();
@@ -95,15 +94,13 @@ namespace Tensors
             }
             else
             {
-                p = std::move(p_);
-                
                 if( !PermutationQ(p_.data()) )
                 {
                     eprint(ClassName()+"() input is not a permutation.");
                     is_valid = false;
                     return;
                 }
-                
+                p = std::move(p_);
                 p_computed = true;
                 RequireInversePermutation();
                 is_valid = true;
@@ -599,7 +596,7 @@ namespace Tensors
                     ++scratch[p_i];
                 }
             }
-            
+
             std::pair<Int,Int> m = minmax_buffer( scratch.data(), n );
 
             if( m.first != one )
