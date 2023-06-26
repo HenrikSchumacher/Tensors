@@ -368,7 +368,7 @@ namespace Tensors
                         
                         const Scal rho (
                             COND(
-                                Scalar::IsComplex<Scal>
+                                Scalar::ComplexQ<Scal>
                                 ,
                                 ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
                                 ,
@@ -464,12 +464,12 @@ namespace Tensors
                     for( Int i = 0; i < n-1; ++i )
                     {
                         T.Diag(i)  = Scalar::Re(B[i][i]);
-                        T.Upper(i) = COND( Scalar::IsComplex<Scal>, std::abs(B[i][i+1]), B[i][i+1] );
+                        T.Upper(i) = COND( Scalar::ComplexQ<Scal>, std::abs(B[i][i+1]), B[i][i+1] );
                     }
                     T.Diag(n-1)  = Scalar::Re(B[n-1][n-1]);
                     
                     // ... hence we put appropriate unimodular numbers on the diagonal of U.
-                    if constexpr ( Scalar::IsComplex<Scal> )
+                    if constexpr ( Scalar::ComplexQ<Scal> )
                     {
                         U.SetZero();
                         U[0][0] = 1;
@@ -568,7 +568,7 @@ namespace Tensors
                         
                         const Scal rho (
                             COND(
-                                Scalar::IsComplex<Scal>
+                                Scalar::ComplexQ<Scal>
                                  ,
                                 ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
                                 ,
@@ -664,7 +664,7 @@ namespace Tensors
                     for( Int i = 0; i < n-1; ++i )
                     {
                         T.Diag(i)  = Scalar::Re(B[i][i]);
-                        T.Upper(i) = COND( Scalar::IsComplex<Scal>, std::abs(B[i][i+1]), B[i][i+1] );
+                        T.Upper(i) = COND( Scalar::ComplexQ<Scal>, std::abs(B[i][i+1]), B[i][i+1] );
                     }
                     T.Diag(n-1)  = Scalar::Re(B[n-1][n-1]);
                 }

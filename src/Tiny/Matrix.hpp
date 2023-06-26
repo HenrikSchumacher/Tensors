@@ -48,7 +48,7 @@ namespace Tensors
             template<class T>
             force_inline
             typename std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator+=( const CLASS<m,n,T,Int> & B )
@@ -67,7 +67,7 @@ namespace Tensors
             template<class T>
             force_inline
             typename std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator-=( const CLASS<m,n,T,Int> & B )
@@ -86,7 +86,7 @@ namespace Tensors
             template<class T>
             force_inline
             typename std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator*=( const CLASS<m,n,T,Int> & B )
@@ -105,7 +105,7 @@ namespace Tensors
             template<class T>
             force_inline
             typename std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
+                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
             operator/=( const CLASS<m,n,T,Int> & B )
@@ -134,13 +134,13 @@ namespace Tensors
                 (
                     std::is_same_v<R,Scal>
                     ||
-                    (IsComplex && std::is_same_v<R,Real>)
+                    (ComplexQ && std::is_same_v<R,Real>)
                 )
                 &&
                 (
                     std::is_same_v<S,Scal>
                     ||
-                    (IsComplex && std::is_same_v<S,Real>)
+                    (ComplexQ && std::is_same_v<S,Real>)
                 )
                 ,
                 void
@@ -191,13 +191,13 @@ namespace Tensors
                 (
                     std::is_same_v<Scal,T>
                     ||
-                    (Scalar::IsComplex<T> && std::is_same_v<Scal,typename Scalar::Real<T>>)
+                    (Scalar::ComplexQ<T> && std::is_same_v<Scal,typename Scalar::Real<T>>)
                 )
                 &&
                 (
                     std::is_same_v<S,T>
                     ||
-                    (Scalar::IsComplex<T> && std::is_same_v<Scal,typename Scalar::Real<T>>)
+                    (Scalar::ComplexQ<T> && std::is_same_v<Scal,typename Scalar::Real<T>>)
                 )
                 ,
                 void

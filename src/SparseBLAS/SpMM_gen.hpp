@@ -169,7 +169,7 @@ private:
         // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
         
         using T = typename std::conditional_t<
-            Scalar::IsComplex<Scal> || Scalar::IsComplex<T_in>,
+            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<T_in>,
             typename Scalar::Complex<Scal>,
             typename Scalar::Real<Scal>
         >;

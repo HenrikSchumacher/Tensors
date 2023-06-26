@@ -124,7 +124,7 @@ void ReadParallel( ptr<S> a_, const Size_T thread_count )
 }
 
 template<typename R>
-std::enable_if_t<Scalar::IsComplex<Scal> && !Scalar::IsComplex<R>,void>
+std::enable_if_t<Scalar::ComplexQ<Scal> && !Scalar::ComplexQ<R>,void>
 Read( ptr<R> re, ptr<R> im )
 {
     for( Int i = 0; i < n; ++i )
@@ -146,7 +146,7 @@ void WriteParallel( mut<S> a_, const Size_T thread_count ) const
 }
 
 template<typename R>
-std::enable_if_t<Scalar::IsComplex<Scal> && !Scalar::IsComplex<R>,void>
+std::enable_if_t<Scalar::ComplexQ<Scal> && !Scalar::ComplexQ<R>,void>
 Write( mut<R> re, mut<R> im ) const
 {
     for( Int i = 0; i < n; ++i )
@@ -178,7 +178,7 @@ void SetZero( const Size_T thread_count )
 
 void Random( Int thread_count = 1 )
 {
-    if constexpr (Scalar::IsReal<Scal> )
+    if constexpr (Scalar::RealQ<Scal> )
     {
         ParallelDo(
             [=]( const Int thread )

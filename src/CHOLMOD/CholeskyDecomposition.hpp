@@ -27,7 +27,7 @@ namespace Tensors
             
             using Scal = Scal_;
             static constexpr int dtype = Scalar::Prec<Scal> == 64u ? CHOLMOD_DOUBLE : CHOLMOD_SINGLE;
-            static constexpr int xtype = Scalar::IsReal<Scal>      ? CHOLMOD_REAL   : CHOLMOD_COMPLEX;
+            static constexpr int xtype = Scalar::RealQ<Scal>       ? CHOLMOD_REAL   : CHOLMOD_COMPLEX;
             
             
             static_assert(

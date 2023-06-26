@@ -172,7 +172,7 @@ namespace Tensors
             
             template<typename S>
             force_inline std::enable_if_t<
-                std::is_same_v<S, Scal> && !Scalar::IsComplex<Scal>,
+                std::is_same_v<S, Scal> && !Scalar::ComplexQ<Scal>,
                 void
             >
             QRAlgorithm(
@@ -211,7 +211,7 @@ namespace Tensors
             
             template<typename S>
             force_inline std::enable_if_t<
-                std::is_same_v<S, Scal> && !Scalar::IsComplex<Scal>,
+                std::is_same_v<S, Scal> && !Scalar::ComplexQ<Scal>,
                 void
             >
             QRAlgorithm(
@@ -247,7 +247,7 @@ namespace Tensors
         public:
             
 
-            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
+            force_inline std::enable_if_t< !Scalar::ComplexQ<Scal>, void >
             qr_algorithm_2x2( Matrix<n,n,Real,Int> & Q )
             {
                 const Real a_0 = diag[0];
@@ -282,7 +282,7 @@ namespace Tensors
                 }
             }
             
-            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
+            force_inline std::enable_if_t< !Scalar::ComplexQ<Scal>, void >
             qr_algorithm_2x2()
             {
                 const Real a_0 = diag[0];
@@ -308,7 +308,7 @@ namespace Tensors
                 }
             }
 //
-            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
+            force_inline std::enable_if_t< !Scalar::ComplexQ<Scal>, void >
             qr_algorithm(
                 Matrix<n,n,Real,Int> & Q,
                 const Int m,
@@ -469,7 +469,7 @@ namespace Tensors
             }
             
             
-            force_inline std::enable_if_t< !Scalar::IsComplex<Scal>, void >
+            force_inline std::enable_if_t< !Scalar::ComplexQ<Scal>, void >
             qr_algorithm(
                 const Int m,
                 const Real tol,

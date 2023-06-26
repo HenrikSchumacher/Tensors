@@ -212,7 +212,7 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
 
     if constexpr ( Scalar::Prec<Scal> == 32 )
     {
-        if constexpr ( Scalar::IsReal<Scal> )
+        if constexpr ( Scalar::RealQ<Scal> )
         {
             test_SpMM<Real32   ,Real32   ,Real32   ,Real32   >(A, cols);
         }
@@ -223,7 +223,7 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
     
     if constexpr ( Scalar::Prec<Scal> == 64 )
     {
-        if constexpr ( Scalar::IsReal<Scal> )
+        if constexpr ( Scalar::RealQ<Scal> )
         {
             test_SpMM<Real64   ,Real64   ,Real64   ,Real64   >(A, cols);
         }
@@ -234,7 +234,7 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
     
     if constexpr ( Scalar::Prec<Scal> == 128 )
     {
-        if constexpr ( Scalar::IsReal<Scal> )
+        if constexpr ( Scalar::RealQ<Scal> )
         {
             test_SpMM<Real128   ,Real128   ,Real128   ,Real128   >(A, cols);
         }

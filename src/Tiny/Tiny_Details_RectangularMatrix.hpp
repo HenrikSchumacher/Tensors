@@ -214,7 +214,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator+=( const T lambda )
@@ -234,7 +234,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator-=( const T lambda )
@@ -253,7 +253,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::IsComplex<Scal> && std::is_same_v<T,Real>),
+        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
     operator*=( const T lambda )

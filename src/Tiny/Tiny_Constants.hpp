@@ -6,7 +6,7 @@ public:
     using Real    = typename Scalar::Real<Scal_>;
     using Int     = Int_;
 
-    static constexpr bool IsComplex   = Scalar::IsComplex<Scal>;
+    static constexpr bool ComplexQ   = Scalar::ComplexQ<Scal>;
 
     static constexpr Real zero        = 0;
     static constexpr Real half        = 0.5;

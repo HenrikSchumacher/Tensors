@@ -4,7 +4,7 @@
 #include <pwd.h>
 
 #define TOOLS_ENABLE_PROFILER
-#define TOOLS_DEBUG
+//#define TOOLS_DEBUG
 
 #define LAPACK_DISABLE_NAN_CHECK
 #define ACCELERATE_NEW_LAPACK
@@ -27,9 +27,6 @@ using namespace Tensors;
 
 using Scal   = double;
 using Real   = Scalar::Real<Scal>;
-//using LInt   = int64_t;
-//using LInt   = int64_t;
-//using Int    = int64_t;
 
 using LInt   = long;
 using Int    = int32_t;
@@ -37,7 +34,7 @@ using Int    = int32_t;
 int main(int argc, const char * argv[])
 {
 //    print("Hello world!");
-    constexpr Int thread_count = 8;
+    constexpr Int thread_count   = 8;
     constexpr Int tree_top_depth = 5;
     
     const char * homedir = getenv("HOME");
@@ -46,29 +43,53 @@ int main(int argc, const char * argv[])
     {
         homedir = getpwuid(getuid())->pw_dir;
     }
-    std::string path ( homedir );
+    std::string home_path ( homedir );
     
-    Profiler::Clear( path );
+    Profiler::Clear( home_path );
     
-    std::string filename = path + "/github/Tensors/SparseMatrices/Spot_0.txt";
+    print("");
+    print("###############################################################");
+    print("###     Test program for Sparse::CholeskyDecomposition     ####");
+    print("###############################################################");
+    print("");
     
-    const Int nrhs = 3;
+    std::string path = home_path + "/github/Tensors/SparseMatrices/";
+    std::string name = "Spot_3";
     
-//    Sparse::MatrixCSR<Scal, Int, LInt> A ( &rp[0], &ci[0], &a[0], n, n, thread_count );
+    const Int nrhs = 32;
     
-    Sparse::MatrixCSR<Scal, Int, LInt> A = Sparse::MatrixCSR_FromFile<Scal,Int,LInt>(filename, thread_count);
+    Sparse::MatrixCSR<Scal, Int, LInt> A = Sparse::MatrixCSR_FromFile<Scal,Int,LInt>(
+        path + name + "_Matrix.txt", thread_count
+    );
+    
+    dump(A.RowCount());
+    dump(A.NonzeroCount());
     
     const Int n = A.RowCount();
     
-    Tensor2<Scal,Int> B (n,nrhs);
-    Tensor2<Scal,Int> X (n,nrhs,0);
+    Tensor1<Int,Int> p ( n );
+    
+    p.ReadFromFile(path + name + "_Permutation.txt");
+    
+    
+    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
 
+
+    
+    Tensor1<Scal,Int> b (n);
+    Tensor2<Scal,Int> B (n,nrhs);
+    Tensor1<Scal,Int> x (n,0.);
+    Tensor2<Scal,Int> X (n,nrhs,0.);
+
+    b.Random();
     B.Random();
     
+    Tensor1<Scal,Int> y;
     Tensor2<Scal,Int> Y;
     
     
     Scal reg = 0;
+    
     
 //    Permutation<Int> perm ( perm_array, n, Inverse::False, thread_count );
     
@@ -87,32 +108,75 @@ int main(int argc, const char * argv[])
 //    );
 //    toc("CHOLMOD::ApproximateMinimumDegree");
     
-    tic("CHOLMOD::NestedDissection");
-    Permutation<Int> perm = CHOLMOD::NestedDissection<int>()(
-        A.Outer().data(), A.Inner().data(), n, thread_count
+//    print("");
+//
+//    tic("CHOLMOD::NestedDissection");
+//    Permutation<Int> perm = CHOLMOD::NestedDissection<int>()(
+//        A.Outer().data(), A.Inner().data(), n, thread_count
+//    );
+//    toc("CHOLMOD::NestedDissection");
+
+
+    print("");
+    print("");
+    
+    
+    tic("Cholesky constructor");
+    Sparse::CholeskyDecomposition<Scal,Int,LInt> S (
+        A.Outer().data(), A.Inner().data(), std::move(perm), tree_top_depth
     );
-    toc("CHOLMOD::NestedDissection");
-
-
-    Sparse::CholeskyDecomposition<Scal,Int,LInt> S ( A.Outer().data(), A.Inner().data(), std::move(perm), tree_top_depth );
-
-    tic("My Cholesky factorization");
+    toc("Cholesky constructor");
+    
+    print("");
+    
+    tic("Cholesky symbolic");
     S.SymbolicFactorization();
-
+    toc("Cholesky symbolic");
+    
+    print("");
+    
+    tic("Cholesky numeric factorization");
     S.NumericFactorization(A.Values().data(), reg);
-    toc("My Cholesky factorization");
+    toc("Cholesky numeric factorization");
     
-    tic("My Cholesky solve");
-    S.Solve(B.data(), X.data(), nrhs);
-    toc("My Cholesky solve");
+    print("");
     
+    x.SetZero();
+    tic("Cholesky vector solve");
+    S.Solve<false>(b.data(), x.data() );
+    toc("Cholesky vector solve");
+    y = b;
+    A.Dot(Scal(-1), x, Scal(1), y);
+    dump(y.MaxNorm());
+    
+    print("");
+    
+    X.SetZero();
+    tic("Cholesky matrix solve");
+    S.Solve<false>(B.data(), X.data(), nrhs);
+    toc("Cholesky matrix solve");
     Y = B;
-    
-    dump(X.Size());
-    dump(X.CountNan());
-    
     A.Dot(Scal(-1), X, Scal(1), Y);
+    dump(Y.MaxNorm());
     
+    print("");
+    
+    x.SetZero();
+    tic("Cholesky parallel vector solve");
+    S.Solve<true>(b.data(), x.data() );
+    toc("Cholesky parallel vector solve");
+    y = b;
+    A.Dot(Scal(-1), x, Scal(1), y);
+    dump(y.MaxNorm());
+    
+    print("");
+    
+    X.SetZero();
+    tic("Cholesky parallel matrix solve");
+    S.Solve<true>(B.data(), X.data(), nrhs );
+    toc("Cholesky parallel matrix solve");
+    Y = B;
+    A.Dot(Scal(-1), X, Scal(1), Y);
     dump(Y.MaxNorm());
     
     
@@ -147,14 +211,14 @@ int main(int argc, const char * argv[])
 //    }
 //
     
-
+    
+    print("");
+    print("");
     
     {
         SparseMatrixStructure pat = {
             A.RowCount(), A.ColCount(), A.Outer().data(), A.Inner().data(),
-            SparseAttributes_t{
-                false, SparseUpperTriangle, SparseSymmetric, 0, false
-            },
+            SparseAttributes_t{ false, SparseUpperTriangle, SparseSymmetric, 0, false },
             1
         };
         
@@ -175,28 +239,42 @@ int main(int argc, const char * argv[])
         toc("Accelerate symbolic factorization");
         
 //        int * bla = reinterpret_cast<int*>(Lsym.factorization) + 46;
-//        
+//
 //        int dims [1] = {n};
-//        
+//
 //        print( ArrayToString(bla, &dims[0], 1) );
+        print("");
         
         tic("Accelerate numeric factorization");
         SparseOpaqueFactorization_Double L = SparseFactor( Lsym, AA );
         toc("Accelerate numeric factorization");
+
+        print("");
         
-        tic("Accelerate Cholesky solve");
+        tic("Accelerate Cholesky vector solve");
         SparseSolve(
             L,
-            DenseMatrix_Double{ B.Dimension(0), B.Dimension(1), B.Dimension(0), SparseAttributes_t(), BT.data() }
+            DenseVector_Double{ b.Dimension(0), b.data() },
+            DenseVector_Double{ x.Dimension(0), x.data() }
         );
-        toc("Accelerate Cholesky solve");
+        toc("Accelerate Cholesky vector solve");
+        y = b;
+        A.Dot(Scal(-1), x, Scal(1), y);
+        dump(y.MaxNorm());
         
+        print("");
+        
+        tic("Accelerate Cholesky matrix solve");
+        SparseSolve(
+            L,
+            DenseMatrix_Double{
+                B.Dimension(0), B.Dimension(1), B.Dimension(0), SparseAttributes_t(), BT.data()
+            }
+        );
         BT.WriteTransposed(X.data());
-        
+        toc("Accelerate Cholesky matrix solve");
         Y = B;
-
         A.Dot(Scal(-1), X, Scal(1), Y);
-
         dump(Y.MaxNorm());
     }
     

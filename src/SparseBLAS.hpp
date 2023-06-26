@@ -34,19 +34,19 @@ namespace Tensors
         static constexpr void StaticParameterCheck()
         {
             static_assert(
-                Scalar::IsComplex<T_out> || Scalar::IsReal<Scal>,
+                Scalar::ComplexQ<T_out> || Scalar::RealQ<Scal>,
                 "Template argument T_out is real, but Scalar is complex."
             );
             static_assert(
-                Scalar::IsComplex<T_out> || Scalar::IsReal<R_out>,
+                Scalar::ComplexQ<T_out> || Scalar::RealQ<R_out>,
                 "Template argument T_out is real, but R_out is complex."
             );
             static_assert(
-                Scalar::IsComplex<T_out> || Scalar::IsReal<T_in>,
+                Scalar::ComplexQ<T_out> || Scalar::RealQ<T_in>,
                 "Template argument T_out is real, but T_in is complex."
             );
             static_assert(
-                Scalar::IsComplex<T_out> || Scalar::IsReal<S_out>,
+                Scalar::ComplexQ<T_out> || Scalar::RealQ<S_out>,
                 "Template argument T_out is real, but S_out is complex."
             );
                           
