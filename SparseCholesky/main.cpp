@@ -9,11 +9,11 @@
 #define LAPACK_DISABLE_NAN_CHECK
 #define ACCELERATE_NEW_LAPACK
 #include <Accelerate/Accelerate.h>
+
 //#include <cblas.h>
 //#include <lapacke.h>
 
 #include "Tensors.hpp"
-#include "MyBLAS.hpp"
 #include "Sparse.hpp"
 
 #include "../src/Sparse/Metis.hpp"

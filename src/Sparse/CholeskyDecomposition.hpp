@@ -1,27 +1,44 @@
 #pragma once
 
-#include <unordered_map>
-#include <unordered_set>
+//How to use:
 
-//#include <Accelerate/Accelerate.h>
-//#include <cblas.h>
-//#include <lapacke.h>
+// Under macos simply include the following and link `-framework Accelerate`:
+//
+//  #define LAPACK_DISABLE_NAN_CHECK
+//  #define ACCELERATE_NEW_LAPACK
+//  #include <Accelerate/Accelerate.h>
+//
+// Alternatively (and on other operating systems), include the following and link `-lcblas -llapack`:
+//
+//  #include <cblas.h>
+//  #include <lapack.h>
+//
 
-//#include "../../MyBLAS.hpp"
+#include "../BLAS.hpp"
+#include "../LAPACK.hpp"
 
 #include "CholeskyDecomposition/Factorizer.hpp"
 #include "CholeskyDecomposition/UpperSolver.hpp"
 #include "CholeskyDecomposition/LowerSolver.hpp"
 
-
 // Priority I:
+
+
+// TODO: Improve scheduling for parallel factorization.
+// TODO: - What to do if top of the tree is not a binary tree?
+// TODO: - What to do in case of a forest?
+// TODO: - Estimate work to do in subtrees.
 
 // TODO: Parallelize symbolic factorization.
 // TODO:     --> Build aTree first and traverse it in parallel to determine SN_inner.
 
-// TODO: Parallelize solve phases.
+// TODO: Parallelize lower solve phase.
 
 // Priority II:
+
+// TODO: Add arguments for leading dimensions.
+
+// TODO: User interface for lower/upper solves.
 
 // TODO: Compute nested dissection --> Metis, Scotch. Parallel versions? MT-Metis?
 
@@ -30,18 +47,11 @@
 //           --> employ Tiny::BLAS kernels. --> Does not seem to be helpful...
 //           --> is there a way to skip unrelevant descendants?
 
-// TODO: Return permutation and factors (as sparse matrices) so that they can be checked.
-
-// TODO: incomplete factorization?
-
 
 // Priority III:
 // TODO: hierarchical low-rank factorization of supernodes?
 
-// TODO: Improve scheduling for parallel factorization.
-// TODO: - What to do if top of the tree is not a binary tree?
-// TODO: - What to do in case of a forest?
-// TODO: - Estimate work to do in subtrees.
+// TODO: incomplete factorization?
 
 // Priority IV:
 // TODO: Maybe load linear combination of matrices A (with sub-pattern, of course) during factorization?
@@ -51,6 +61,7 @@
 
 // TODO: parallelize potrf + trsm of large supernodes.
 //           --> fetching updates from descendants can be done in parallel
+//           --> not a good idea if Apple Accelerate is used?!?
 
 
 // Super helpful literature:
@@ -467,6 +478,7 @@ namespace Tensors
 #include "CholeskyDecomposition/Symbolic.hpp"
 #include "CholeskyDecomposition/Numeric.hpp"
 #include "CholeskyDecomposition/Solve.hpp"
+#include "CholeskyDecomposition/SolveParallel.hpp"
     
         public:
             
@@ -509,3 +521,11 @@ namespace Tensors
 // DONE: Parallelized, abstract postorder traversal of Tree
 
 // DONE: Specialization of the cases m_0 = 1 and n_0 = 1.
+
+// DONE: Return permutation (as sparse matrices) so that they can be checked. (< 2023-06-25)
+
+// DONE: Return factors (as sparse matrices) so that they can be checked. (< 2023-06-25)
+
+// DONE: Parallelize upper solve phase. (2023-06-26)
+
+

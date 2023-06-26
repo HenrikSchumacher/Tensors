@@ -238,10 +238,9 @@ namespace Tensors
                     p[i] = p_i;
                     p_inv[p_i] = i;
                     
-                    return p_i == i;
+                    return (p_i == i);
                 },
-                AndReducer(),
-                true,
+                AndReducer(), true,
                 zero, n, thread_count
             );
             
@@ -271,10 +270,9 @@ namespace Tensors
                     p_inv[i] = p_inv_i;
                     p[p_inv_i] = i;
                     
-                    return p_inv_i == i;
+                    return (p_inv_i == i);
                 },
-                AndReducer(),
-                true,
+                AndReducer(), true,
                 zero, n, thread_count
             );
             
@@ -410,10 +408,9 @@ namespace Tensors
                         {
                             scratch[i] = a[b[i]];
                             
-                            return scratch[i] == i;
+                            return (scratch[i] == i);
                         },
-                        AndReducer(),
-                        true,
+                        AndReducer(), true,
                         zero, n, thread_count
                     );
                         
@@ -434,35 +431,51 @@ namespace Tensors
             ptoc(ClassName()+"::Compose");
         }
         
+        // TODO: We could add a leading dimension argument...
         template<typename S, typename T>
-        void Permute( ptr<S> a, mut<T> b, const Inverse inverseQ )
+        void Permute( ptr<S> a, mut<T> b, const Inverse inverseQ, Size_T chunk = Scalar::One<Size_T> )
         {
-            // Permute a into b, i.e., b[i] <- a[p[i]];
-            ptic(ClassName()+"::Permute");
+            // Permute a chunkwise into b, i.e., b[size*i+k] <- a[size*p[i]+k];
+            
+            std::string tag = ClassName()+"::Permute ( " + (inverseQ == Inverse::True ? "inv, " : "id, " ) + ToString(chunk) + ")";
+            
+            ptic(tag);
             
             if( !is_trivial )
             {
                 Invert( inverseQ );
                 
                 ptr<Int> r = GetPermutation().data();
-                
-                ParallelDo(
-                    [=]( const Int i )
-                    {
-                        b[i] = static_cast<T>(a[r[i]]);
-                    },
-                    n,thread_count
-                );
 
+                if( chunk == Scalar::One<Size_T> )
+                {
+                    ParallelDo(
+                        [=]( const Int i )
+                        {
+                            b[i] = static_cast<T>(a[r[i]]);
+                        },
+                        n, thread_count
+                    );
+                }
+                else
+                {
+                    ParallelDo(
+                        [=]( const Int i )
+                        {
+                            copy_buffer( &a[chunk * r[i]], &b[chunk * i], chunk );
+                        },
+                        n, thread_count
+                    );
+                }
                 
                 Invert( inverseQ );
             }
             else
             {
-                copy_buffer(a, b, n, thread_count );
+                copy_buffer(a, b, n*chunk, thread_count );
             }
             
-            ptoc(ClassName()+"::Permute");
+            ptoc(tag);
         }
         
         template<typename S, typename T>
@@ -481,35 +494,6 @@ namespace Tensors
             }
             
             Permute( a.data(), b.data(), inverseQ );
-        }
-        
-        template<typename S, typename T>
-        void Permute( ptr<S> a, mut<T> b, const Inverse inverseQ, Size_T chunk )
-        {
-            // Permute a chunkwise into b, i.e., b[size*i+k] <- a[size*p[i]+k];
-            ptic(ClassName()+"::Permute ("+ToString(chunk)+")");
-            if( !is_trivial )
-            {
-                Invert( inverseQ );
-                
-                ptr<Int> r = GetPermutation().data();
-
-                ParallelDo(
-                    [=]( const Int i )
-                    {
-                        copy_buffer( &a[chunk * r[i]], &b[chunk * i], chunk );
-                    },
-                    n, thread_count
-                );
-                
-                Invert( inverseQ );
-            }
-            else
-            {
-                copy_buffer(a, b, n*chunk, thread_count );
-            }
-            
-            ptoc(ClassName()+"::Permute ("+ToString(chunk)+")");
         }
         
         template<typename S, typename T>
@@ -559,7 +543,7 @@ namespace Tensors
                         
                         p_inv[p_i] = i;
                         
-                        return p_i == i;
+                        return (p_i == i);
                     },
                     AndReducer(), true,
                     zero, n, thread_count
@@ -576,7 +560,7 @@ namespace Tensors
                         
                         p[p_inv_i] = i;
                         
-                        return p_inv_i == i;
+                        return (p_inv_i == i);
                     },
                     AndReducer(), true,
                     zero, n, thread_count

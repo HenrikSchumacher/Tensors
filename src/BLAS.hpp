@@ -4,6 +4,9 @@ namespace Tensors
 {
     namespace BLAS
     {
+        // This namespace is to provide wrappers for some BLAS routines.
+        
+        
         constexpr CBLAS_ORDER to_BLAS( Layout layout )
         {
             if ( layout == Layout::RowMajor )

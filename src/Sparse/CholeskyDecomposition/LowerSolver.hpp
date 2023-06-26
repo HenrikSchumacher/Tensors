@@ -4,6 +4,7 @@ namespace Tensors
 {
     namespace Sparse
     {
+        // TODO: The `LowerSolver` does not seem to work correctly in parallel. Why is that? Running it single-thread does work.
         
         template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
         

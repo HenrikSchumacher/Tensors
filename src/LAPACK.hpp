@@ -4,6 +4,8 @@ namespace Tensors
 {
     namespace LAPACK
     {
+        // This namespace is to provide wrappers for some LAPACK routines.
+        
         constexpr int to_LAPACK( Layout layout )
         {
             if ( layout == Layout::RowMajor )
