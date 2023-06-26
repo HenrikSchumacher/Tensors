@@ -272,11 +272,9 @@ namespace Tensors
     #ifdef LTEMPLATE_H
         
         
-        template<int m, int n, typename T, typename I>
+        template<int m, int n, typename T, typename I, IS_FLOAT(T)>
         inline mma::TensorRef<mreal> to_MTensorRef( const Tiny::MatrixList<m,n,T,I> & A )
         {
-            ASSERT_FLOAT(T);
-            
             const mint N = A.Dimension(2);
             
             const T * restrict p [m][n];
@@ -307,11 +305,9 @@ namespace Tensors
             return B;
         }
         
-        template<int m, int n, typename J, typename I>
+        template<int m, int n, typename J, typename I, IS_INT(J)>
         inline mma::TensorRef<mint> to_MTensorRef( const Tiny::MatrixList<m,n,J,I> & A )
         {
-            ASSERT_INT(J);
-            
             const mint N = A.Dimension(2);
             
             const J * restrict p [m][n];

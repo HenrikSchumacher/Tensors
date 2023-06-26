@@ -1,10 +1,9 @@
 #ifdef LTEMPLATE_H
 
     
-    template<typename Scal, typename Int>
+    template<typename Scal, typename Int, IS_FLOAT(Scal)>
     inline mma::TensorRef<mreal> to_MTensorRef( const TENSOR_T<Scal,Int> & A )
     {
-        ASSERT_FLOAT(Scal);
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
         dims_.Read(A.Dimensions());
@@ -14,10 +13,9 @@
         return B;
     }
     
-    template<typename J, typename Int>
+    template<typename J, typename Int, IS_INT(J)>
     inline mma::TensorRef<mint> to_MTensorRef( const TENSOR_T<J,Int> & A )
     {
-        ASSERT_INT(J);
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
         dims_.Read(A.Dimensions());
