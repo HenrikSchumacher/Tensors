@@ -23,7 +23,6 @@
 
 // Priority I:
 
-
 // TODO: Improve scheduling for parallel factorization.
 // TODO: - What to do if top of the tree is not a binary tree?
 // TODO: - What to do in case of a forest?
@@ -46,21 +45,25 @@
 //           --> transpose U_0 and U_1 to reduce scatter_reads/scatter_adds.
 //           --> employ Tiny::BLAS kernels. --> Does not seem to be helpful...
 //           --> is there a way to skip unrelevant descendants?
+//           --> fetching updates from descendants can be done in parallel
 
+// TODO: Do we really have to build _two_ EliminationTrees?
 
 // Priority III:
 // TODO: hierarchical low-rank factorization of supernodes?
 
-// TODO: incomplete factorization?
+// TODO: Allow the user to supply only upper or lower triangle of matrix.
+
+// TODO: Optional iterative refinement?
 
 // Priority IV:
+// TODO: hierarchical low-rank factorization of supernodes?
+
+// TODO: incomplete factorization?
+
 // TODO: Maybe load linear combination of matrices A (with sub-pattern, of course) during factorization?
 
-// TODO: parallelize update of supernodes with many descendants.
-//           --> fetching updates from descendants can be done in parallel
-
 // TODO: parallelize potrf + trsm of large supernodes.
-//           --> fetching updates from descendants can be done in parallel
 //           --> not a good idea if Apple Accelerate is used?!?
 
 
@@ -98,8 +101,6 @@ namespace Tensors
             friend class LowerSolver<false,Scal,Int,LInt>;
             friend class LowerSolver<true, Scal,Int,LInt>;
             
-            
-//            using VectorContainer_T = Tensor1<Scal,Int>;
             using VectorContainer_T = Tensor1<Scal,LInt>;
 
             
@@ -124,7 +125,7 @@ namespace Tensors
             Tensor1<Scal,LInt> A_val;
             Scal reg = 0;
 
-            Matrix_T L;
+//            Matrix_T L;
 //            Matrix_T U;
             
             // elimination tree
@@ -363,7 +364,7 @@ namespace Tensors
                     
                     ptr<LInt> A_diag  = A.Diag().data();
                     ptr<LInt> A_outer = A.Outer().data();
-                    ptr<Int>  A_inner = A.Inner().data();
+                    ptr< Int> A_inner = A.Inner().data();
 
                     for( Int k = 1; k < n; ++k )
                     {
