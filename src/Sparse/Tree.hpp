@@ -1,6 +1,6 @@
 #pragma once
 
-// TODO: Traverse_Preorder_Parallel.
+// TODO: Traverse_Preordered_Parallel.
 
 // TODO: Improve load balancing.
 
@@ -108,7 +108,7 @@ namespace Tensors
 
             acc_costs = costs;
             
-            Traversal_Postorder_Sequential(
+            Traversal_Postordered_Sequential(
                 [this, &node_to_depth, &tree_top_depth]( const Int node )
                 {
                     const Int depth = node_to_depth[node]+1;
@@ -334,20 +334,16 @@ namespace Tensors
             return n-1;
         }
         
-        
-//###########################################################################################
-//####          Traversal_Postorder
-//###########################################################################################
-        
+        // Sequential postorder traversal. Meant to be used only for initialization and for reference purposes.
         template<class Lambda_PreVisit, class Lambda_PostVisit, class Lambda_LeafVisit>
-        void Traversal_Postorder_Sequential(
+        void Traversal_Postordered_Sequential(
             Lambda_PreVisit  pre_visit,
             Lambda_PostVisit post_visit,
             Lambda_LeafVisit leaf_visit,
             const Int tree_top_depth = std::numeric_limits<Int>::max()
         )
         {
-            ptic(ClassName()+"::Traversal_Postorder_Sequential");
+            ptic(ClassName()+"::Traversal_Postordered_Sequential");
             
             Tensor1<Int, Int> stack   ( n );
             Tensor1<Int, Int> depth   ( n );
@@ -393,7 +389,7 @@ namespace Tensors
                     
                     // Popping current node from the stack.
                     visited[i--] = false;
-  
+
                     // things to be done when node is a leaf.
                     if (k_begin == k_end)
                     {
@@ -403,256 +399,11 @@ namespace Tensors
                     post_visit(node);
                 }
             }
-            
-            ptoc(ClassName()+"::Traversal_Postorder_Sequential");
-        }
-
-        
-        template<class Worker_T>
-        void Traverse_Postordered( Worker_T & worker, Int node )
-        {
-            // Applies ker to node and its descendants in postorder.
-            // Worker can be a class that has operator( Int node ) defined or simply a lambda.
-            
-            // This routine assumes that PostOrderedQ() evaluates to true so that the decendants lie contiguously directly before node.
-            
-            const Int desc_begin = (node+1) - DescendantCount(node);
-            const Int desc_end   = (node+1);  // Apply worker also to yourself.
-            
-            for( Int desc = desc_begin; desc < desc_end; ++desc )
-            {
-                worker(desc);
-            }
+            ptoc(ClassName()+"::Traversal_Postordered_Sequential");
         }
         
-        
-        template<class Worker_T>
-        void Traverse_Postorder_Parallel(
-            std::vector<std::unique_ptr<Worker_T>> & workers,
-            Int tree_top_depth_
-        )
-        {
-            if( !PostOrderedQ() )
-            {
-                eprint(ClassName()+"::Traverse_Postorder_Parallel requires postordered tree! Doing nothing.");
-                return;
-            }
-            
-            Int tree_top_depth = std::min( zero, tree_top_depth_ );
-            
-            const Int min_subtree_count = 4 * thread_count;
-            
-//            dump(min_subtree_count);
-            
-            while(
-                ( tree_top_depth+1 < levels.RowCount() )
-                &&
-                ( levels.NonzeroCount(tree_top_depth) < min_subtree_count )
-            )
-            {
-//                dump(levels.NonzeroCount(tree_top_depth));
-                ++tree_top_depth;
-            }
-            
-//            dump(tree_top_depth);
-//            dump(levels.NonzeroCount(tree_top_depth));
-            
-
-            ptic(ClassName()+"::Traverse_Postorder_Parallel");
-                 
-            std::string tag = "Apply " + workers[0]->ClassName() + " to level";
-            
-            ptic(tag+" <= "+ToString(tree_top_depth)+")");
-            {
-                const Int k_begin = LevelPointer(tree_top_depth    );
-                const Int k_end   = LevelPointer(tree_top_depth + 1);
-                
-                const Int use_threads = std::min( thread_count, k_end - k_begin );
-                
-                ParallelDo_Dynamic(
-                    [=,&workers]( const Int thread, const Int k )
-                    {
-                        const Time start_time = Clock::now();
-                        
-                        Worker_T & worker = *workers[thread];
-                        
-                        const Int node = LevelIndex(k);
-                        
-                        Traverse_Postordered( worker, node );
-                        
-                        const Time stop_time = Clock::now();
-                        logprint(
-                            ClassName()+"::Traverse_Postorder_Parallel: Worker " + ToString(thread) + " required " +
-                                 ToString(Tools::Duration(start_time,stop_time)) +
-                                " s for traversing the subtree at node " + ToString(node) + "."
-                        );
-                    },
-                    k_begin, k_end, Scalar::One<Int>,
-                    use_threads
-                );
-            }
-            
-            ptoc(tag+" <= "+ToString(tree_top_depth)+")");
-
-            
-            for( Int d = tree_top_depth; d --> Scalar::One<Int> ; ) // Don't process the root node!
-            {
-                ptic(tag+" = "+ToString(d)+")");
-                
-                const Int k_begin = LevelPointer(d  );
-                const Int k_end   = LevelPointer(d+1);
-                
-                const Int use_threads = std::min( thread_count, k_end - k_begin );
-                
-                ParallelDo_Dynamic(
-                    [=,&workers]( const Int thread, const Int k )
-                    {
-                        const Time start_time = Clock::now();
-                        
-                        Worker_T & worker = *workers[thread];
-                        
-                        const Int node = LevelIndex(k);
-                        
-                        worker(node);
-                        
-                        const Time stop_time = Clock::now();
-                        logprint(
-                            ClassName()+"::Traverse_Postorder_Parallel: Worker " + ToString(thread) + " required " +
-                                 ToString(Tools::Duration(start_time,stop_time)) +
-                                " s for completing node " + ToString(node) + "."
-                        );
-                    },
-                    k_begin, k_end, Scalar::One<Int>,
-                    use_threads
-                );
-                
-                ptoc(tag+" = "+ToString(d)+")");
-            }
-            
-            ptoc(ClassName()+"::Traverse_Postorder_Parallel");
-        }
-   
-//###########################################################################################
-//####          Traversal_Postorder
-//###########################################################################################
-
-        // TODO: Test this!
-        template<class Worker_T>
-        void Traverse_Preordered( Worker_T & worker, Int node )
-        {
-            // Applies ker to node and its descendants in preorder.
-            // Worker can be a class that has operator( Int node ) defined or simply a lambda.
-            
-            // This routine assumes that PostOrderedQ() evaluates to true so that the decendants lie contiguously directly before node.
-            
-            const Int desc_begin = (node+1) - DescendantCount(node);
-            const Int desc_end   = (node+1);  // Apply worker also to yourself.
-            
-            for( Int desc = desc_end; desc --> desc_begin; )
-            {
-                worker(desc);
-            }
-        }
-        
-        // TODO: Test this!
-        template<class Worker_T>
-        void Traverse_Preorder_Parallel(
-            std::vector<std::unique_ptr<Worker_T>> & workers,
-            Int tree_top_depth_
-        )
-        {
-            if( !PostOrderedQ() )
-            {
-                eprint(ClassName()+"::Traverse_Preorder_Parallel requires postordered tree! Doing nothing.");
-                return;
-            }
-            
-            Int tree_top_depth = std::min( zero, tree_top_depth_ );
-            
-            const Int min_subtree_count = 4 * thread_count;
-            
-            while(
-                ( tree_top_depth+1 < levels.RowCount() )
-                &&
-                ( levels.NonzeroCount(tree_top_depth) < min_subtree_count )
-            )
-            {
-                ++tree_top_depth;
-            }
-            
-
-            ptic(ClassName()+"::Traverse_Preorder_Parallel");
-                 
-            std::string tag = "Apply " + workers[0]->ClassName() + " to level";
-            
-            for( Int d = Scalar::One<Int>; d < tree_top_depth; ++d ) // Don't process the root node!
-            {
-                ptic(tag+" = "+ToString(d)+")");
-                
-                const Int k_begin = LevelPointer(d  );
-                const Int k_end   = LevelPointer(d+1);
-                
-                const Int use_threads = std::min( thread_count, k_end - k_begin );
-                
-                ParallelDo_Dynamic(
-                    [=,&workers]( const Int thread, const Int k )
-                    {
-                        const Time start_time = Clock::now();
-                        
-                        Worker_T & worker = *workers[thread];
-                        
-                        const Int node = LevelIndex(k);
-                        
-                        worker(node);
-                        
-                        const Time stop_time = Clock::now();
-                        logprint(
-                            ClassName()+"::Traverse_Preorder_Parallel: Worker " + ToString(thread) + " required " +
-                                 ToString(Tools::Duration(start_time,stop_time)) +
-                                " s for completing node " + ToString(node) + "."
-                        );
-                    },
-                    k_begin, k_end, Scalar::One<Int>,
-                    use_threads
-                );
-                
-                ptoc(tag+" = "+ToString(d)+")");
-            }
-            
-            ptic(tag+" <= "+ToString(tree_top_depth)+")");
-            {
-                const Int k_begin = LevelPointer(tree_top_depth    );
-                const Int k_end   = LevelPointer(tree_top_depth + 1);
-                
-                const Int use_threads = std::min( thread_count, k_end - k_begin );
-                
-                ParallelDo_Dynamic(
-                    [=,&workers]( const Int thread, const Int k )
-                    {
-                        const Time start_time = Clock::now();
-                        
-                        Worker_T & worker = *workers[thread];
-                        
-                        const Int node = LevelIndex(k);
-                        
-                        Traverse_Preordered( worker, node );
-                        
-                        const Time stop_time = Clock::now();
-                        logprint(
-                            ClassName()+"::Traverse_Preorder_Parallel: Worker " + ToString(thread) + " required " +
-                                 ToString(Tools::Duration(start_time,stop_time)) +
-                                " s for traversing the subtree at node " + ToString(node) + "."
-                        );
-                    },
-                    k_begin, k_end, Scalar::One<Int>,
-                    use_threads
-                );
-            }
-            
-            ptoc(tag+" <= "+ToString(tree_top_depth)+")");
-            
-            ptoc(ClassName()+"::Traverse_Preorder_Parallel");
-        }
+#include "Tree/Traverse_Preordered.hpp"
+#include "Tree/Traverse_Postordered.hpp"
         
                  
     public:

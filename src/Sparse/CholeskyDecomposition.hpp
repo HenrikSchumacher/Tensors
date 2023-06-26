@@ -36,6 +36,7 @@
 // Priority II:
 
 // TODO: Add arguments for leading dimensions.
+// TODO: Add multiplication and add-into possibilities.
 
 // TODO: User interface for lower/upper solves.
 
@@ -197,6 +198,7 @@ namespace Tensors
             // Maximal size of rectangular part of supernodes.
             Int max_n_1 = 0;
             
+            Int nrhs = 1;
             
             // Stores right hand side / solution during the solve phase.
             VectorContainer_T X;
@@ -479,7 +481,6 @@ namespace Tensors
 #include "CholeskyDecomposition/Symbolic.hpp"
 #include "CholeskyDecomposition/Numeric.hpp"
 #include "CholeskyDecomposition/Solve.hpp"
-#include "CholeskyDecomposition/SolveParallel.hpp"
     
         public:
             

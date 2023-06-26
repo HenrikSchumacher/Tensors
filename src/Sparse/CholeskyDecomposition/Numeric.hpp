@@ -12,7 +12,9 @@ public:
         const ExtScal reg_  = 0 // Regularization parameter for the diagonal.
     )
     {
-        ptic(ClassName()+"::NumericFactorization");
+        std::string tag = ClassName()+"::NumericFactorization<" + TypeName<ExtScal> + ">";
+       
+        ptic(tag);
         
 //        dump(openblas_get_num_threads());
 //        openblas_set_num_threads(1);
@@ -42,10 +44,10 @@ public:
         ptoc("Initialize factorizers");
         
         // Parallel traversal in postorder
-        aTree.Traverse_Postorder_Parallel( SN_list, tree_top_depth );
+        aTree.template Traverse_Postordered<true>( SN_list, tree_top_depth );
         
         SN_factorized = true;
         
-        ptoc(ClassName()+"::NumericFactorization");
+        ptoc(tag);
         
     }

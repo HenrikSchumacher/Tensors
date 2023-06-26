@@ -1120,7 +1120,7 @@ namespace Tensors
                 {
                     const Int one = static_cast<Int>(1);
                     
-                    Dot_<1>( values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
+                    this->template Dot_<1>( values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
                 }
                 else
                 {

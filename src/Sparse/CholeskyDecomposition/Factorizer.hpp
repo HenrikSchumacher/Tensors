@@ -220,7 +220,7 @@ namespace Tensors
                 
                 assert_positive(n_0);
                 
-                if( n_0 <= 0 )
+                if( n_0 <= izero )
                 {
                     eprint("n_0<=0");
                     dump(s);
@@ -359,10 +359,10 @@ namespace Tensors
 //                    }
                     
                     
-                    if( m_0 > 1 )
+                    if( m_0 > ione )
                     {
                         // Update triangular block U_0.
-                        if( IL_len > 0 )
+                        if( IL_len > izero )
                         {
                             _tic();
                             // Col-scatter-read t_rec[:,IL_pos] into B_0,
@@ -451,7 +451,7 @@ namespace Tensors
                                 }
                                 else // IL_len == ione
                                 {
-                                    if constexpr ( !Scalar::IsComplex<Scal> )
+                                    if constexpr ( !Scalar::ComplexQ<Scal> )
                                     {
                                         BLAS::gemv<Layout::RowMajor,Op::Trans>(// XXX
                                             m_0, JL_len,
@@ -473,7 +473,7 @@ namespace Tensors
                                 
 
                             }
-                            else // JL_len == 1 -- But this specialization does not seem to make a big difference.
+                            else // JL_len == ione -- But this specialization does not seem to make a big difference.
                             {
                                 if( IL_len > ione )
                                 {
@@ -484,7 +484,7 @@ namespace Tensors
                                         zero, C_1, 1
                                     );
                                 }
-                                else // IL_len == 1
+                                else // IL_len == ione
                                 {
                                     C_1[0] = 0;
                                     for( Int i = 0; i < m_0; ++i )
@@ -511,7 +511,7 @@ namespace Tensors
                             scatter_time += _toc();
                         }
                     }
-                    else // m_0 == 1
+                    else // m_0 == ione
                     {
                         // In this case we have to form only (scattered) outer products of vectors, which are basically BLAS2 routines. Unfortunately, ?ger, ?syr, ?her, etc. add into the target matrix without the option to zero it out first. Hence we simply write these double loops ourselves. Since this is BLAS2 and not BLAS3, and since IL_len and JL_len are often not particularly long, there isn't that much room for optimization anyways. And since we cannot use ?ger / ?her, we fuse the scattered read/write operations directly into these loops.
                         
@@ -520,7 +520,7 @@ namespace Tensors
                             B_0[j] = t_rec[IL_pos[j]];
                         }
                         
-                        if( JL_len > 0 )
+                        if( JL_len > izero )
                         {
                             for( Int j = 0; j < JL_len; ++j )
                             {
@@ -562,7 +562,7 @@ namespace Tensors
                             }
                         }
                         
-                    } // if( m_0 > 1 )
+                    } // if( m_0 > ione )
                         
                 } // for( Int t = t_begin; t < t_end; ++t )
             }
@@ -571,27 +571,25 @@ namespace Tensors
             {
                 _tic();
                 
-                if( n_0 > 1 )
+                if( n_0 > ione )
                 {
                     // Cholesky factorization of U_0
                     (void)LAPACK::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
 
                     // Triangular solve U_1 = U_0^{-H} U_1.
-                    if( n_1 > 1 )
+                    if( n_1 > ione )
                     {
-                        BLAS::trsm<Layout::RowMajor,
-                            Side::Left, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
-                        >(
-                            n_0, n_1, Scal(1), U_0, n_0, U_1, n_1
+                        BLAS::trsm<Layout::RowMajor,Side::Left,UpLo::Upper,Op::ConjTrans,Diag::NonUnit>(
+                            n_0, n_1, one, U_0, n_0, U_1, n_1
                         );
                     }
-                    else if( n_1 == 1 )
+                    else if( n_1 == ione )
                     {
                         BLAS::trsv<Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit>(
                             n_0, U_0, n_0, U_1, 1
                         );
                     }
-                    else // n_1 == 0
+                    else // n_1 == izero
                     {
                         // Do nothing.
                     }
@@ -609,12 +607,12 @@ namespace Tensors
             
             force_inline void scatter_read( ptr<Scal> x, mut<Scal> y, ptr<Int> idx, Int N )
             {
-                for( ; N --> 0; ) { y[N] = x[idx[N]]; }
+                for( ; N --> izero; ) { y[N] = x[idx[N]]; }
             }
             
             force_inline void scatter_add( ptr<Scal> x, mut<Scal> y, ptr<Int> idx, Int N )
             {
-                for( ; N --> 0; ) { y[idx[N]] += x[N]; }
+                for( ; N --> izero; ) { y[idx[N]] += x[N]; }
             }
             
             void ComputeIntersection( const Int s, const Int t )
@@ -725,7 +723,7 @@ namespace Tensors
                 }
 //                intersec_time += _toc();
 //
-//                if( (IL_len == 0) && (JL_len == 0) )
+//                if( (IL_len == izero) && (JL_len == izero) )
 //                {
 //                    ++empty_intersec_undetected;
 //                }

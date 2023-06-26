@@ -7,9 +7,11 @@
 public:
 
     template<typename ExtScal>
-    void ReadRightHandSide( ptr<ExtScal> B, Int nrhs = ione )
+    void ReadRightHandSide( ptr<ExtScal> B, Int nrhs_ = ione )
     {
-        const std::string tag = ClassName() + "ReadRightHandSide (" + ToString(nrhs)+ ")";
+        nrhs = std::max( ione, nrhs_ );
+        
+        const std::string tag = ClassName() + "::ReadRightHandSide<" + TypeName<ExtScal> + "> (" + ToString(nrhs)+ ")";
         
         ptic(tag);
         
@@ -32,9 +34,9 @@ public:
     }
 
     template<typename ExtScal>
-    void WriteSolution( mut<ExtScal> X_, Int nrhs = ione )
+    void WriteSolution( mut<ExtScal> X_ )
     {
-        const std::string tag = ClassName() + "WriteSolution (" + ToString(nrhs)+ ")";
+        const std::string tag = ClassName() + "::WriteSolution<" + TypeName<ExtScal> + "> (" + ToString(nrhs)+ ")";
         
         ptic(tag);
         
@@ -68,6 +70,11 @@ public:
     Int ColCount() const
     {
         return n;
+    }
+
+    Int RightHandSideCount() const
+    {
+        return nrhs;
     }
 
     //            const Matrix_T & GetL() const

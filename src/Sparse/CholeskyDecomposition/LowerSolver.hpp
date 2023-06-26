@@ -4,7 +4,8 @@ namespace Tensors
 {
     namespace Sparse
     {
-        // TODO: The `LowerSolver` does not seem to work correctly in parallel. Why is that? Running it single-thread does work.
+        // TODO: The `LowerSolver` does not seem to work correctly in parallel.
+        // TODO: Why is that? Running it single-thread does work!
         
         template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
         
@@ -103,9 +104,6 @@ namespace Tensors
             // Solver routine.
             void operator()( const Int s )
             {
-                // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
-                mut<Scal> X_0 = &X[nrhs * SN_rp[s]];
-                
                 const Int n_0 = SN_rp[s+1] - SN_rp[s];
             
                 assert_positive(n_0);
@@ -124,6 +122,9 @@ namespace Tensors
                 
                 if constexpr ( mult_rhs )
                 {
+                    // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
+                    mut<Scal> X_0 = &X[nrhs * SN_rp[s]];
+                    
                     if( n_0 == ione )
                     {
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
@@ -150,10 +151,7 @@ namespace Tensors
                     else // using BLAS3 routines.
                     {
                         // Triangle solve U_0^H * X_0 = B_0 while overwriting X_0.
-                        BLAS::trsm<
-                            Layout::RowMajor, Side::Left,
-                            UpLo::Upper, Op::ConjTrans, Diag::NonUnit
-                        >(
+                        BLAS::trsm<Layout::RowMajor,Side::Left,UpLo::Upper,Op::ConjTrans,Diag::NonUnit>(
                             n_0, nrhs,
                             one, U_0, n_0,
                                  X_0, nrhs
@@ -162,8 +160,8 @@ namespace Tensors
                         if( n_1 > izero )
                         {
                             // Compute X_1 = - U_1^H * X_0
-                            BLAS::gemm<Layout::RowMajor, Op::ConjTrans, Op::Id>(
-                               //XXX Op::ConjTrans -> Op::Id?
+                            BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(
+                                //XXX Op::ConjTrans -> Op::Id?
                                 n_1, nrhs, n_0, // ???
                                 -one, U_1, n_1, // n_1 -> n_0
                                       X_0, nrhs,
@@ -172,7 +170,7 @@ namespace Tensors
                         }
                     }
 
-                    // Add X_1 into B_1
+                    // Scatter-add X_1 into B_1.
                     for( Int j = 0; j < n_1; ++j )
                     {
                         add_to_buffer( &X_1[nrhs * j], &X[nrhs * SN_inner[l_begin+j]], nrhs );
@@ -206,21 +204,21 @@ namespace Tensors
                     else // using BLAS2 routines.
                     {
                         // Triangle solve U_0^H * x_0 = b_0 while overwriting x_0.
-                        BLAS::trsv<
-                            Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit
-                        >( n_0, U_0, n_0, x_0, 1 );
+                        BLAS::trsv<Layout::RowMajor, UpLo::Upper,Op::ConjTrans,Diag::NonUnit>(
+                            n_0, U_0, n_0, x_0, 1
+                        );
                         
                         if( n_1 > izero )
                         {
                             // Compute x_1 = - U_1^H * x_0
-                            BLAS::gemv<Layout::RowMajor, Op::ConjTrans>(
+                            BLAS::gemv<Layout::RowMajor,Op::ConjTrans>(
                                 n_0, n_1,             // XXX Op::ConjTrans -> Op::Trans
-                                -one, U_1, n_1, // XXX n_1 -> n_0
-                                                    x_0, 1,
+                                -one, U_1, n_1,       // XXX n_1 -> n_0
+                                      x_0, 1,
                                 zero, x_1, 1
                             );
                             
-                            // Add x_1 into b_1.
+                            // Scatter-add x_1 into b_1.
                             for( Int j = 0; j < n_1; ++j )
                             {
                                 X[SN_inner[l_begin+j]] += x_1[j];
