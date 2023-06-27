@@ -7,8 +7,8 @@ namespace Tensors
     {
         Id           = 111,
         Trans        = 112,
-        ConjTrans    = 113
-//        Conj         = 114
+        ConjTrans    = 113,
+        Conj         = 114
     };
     
     // cf. CBLAS_LAYOUT
