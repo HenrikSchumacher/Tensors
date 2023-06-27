@@ -43,32 +43,58 @@ namespace Tensors {
             return static_cast<Int>(2);
         }
         
-        template< typename S>
+        template<bool row_first = false, typename S>
         void WriteTransposed( mut<S> b )
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
             
-            for( Int j = 0; j < d_1; ++j )
+            if constexpr ( row_first )
             {
                 for( Int i = 0; i < d_0; ++i )
                 {
-                    b[d_0 * j + i] = static_cast<S>( a[d_1 * i + j ] );
+                    for(Int j = 0; j < d_1; ++j )
+                    {
+                        b[d_0 * j + i] = static_cast<S>( a[d_1 * i + j ] );
+                    }
+                }
+            }
+            else
+            {
+                for( Int j = 0; j < d_1; ++j )
+                {
+                    for( Int i = 0; i < d_0; ++i )
+                    {
+                        b[d_0 * j + i] = static_cast<S>( a[d_1 * i + j ] );
+                    }
                 }
             }
         }
         
-        template< typename S>
+        template<bool row_first = false, typename S>
         void ReadTransposed( ptr<S> b )
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
-                        
-            for( Int i = 0; i < d_0; ++i )
+              
+            if constexpr ( row_first )
+            {
+                for( Int i = 0; i < d_0; ++i )
+                {
+                    for(Int j = 0; j < d_1; ++j )
+                    {
+                        a[d_1 * i + j ] = static_cast<Scal>( b[ d_0 * j + i ] );
+                    }
+                }
+            }
+            else
             {
                 for( Int j = 0; j < d_1; ++j )
                 {
-                    a[d_1 * i + j ] = static_cast<Scal>( b[ d_0 * j + i ] );
+                    for( Int i = 0; i < d_0; ++i )
+                    {
+                        a[d_1 * i + j ] = static_cast<Scal>( b[ d_0 * j + i ] );
+                    }
                 }
             }
         }
