@@ -54,6 +54,9 @@ namespace Tensors
             // x_1 is the part of x that interacts with U_1, size = n_1.
             mut<Scal> x_1;
             
+            Tensor1<Scal,Int> Zero_buffer;
+            ptr<Scal> Zero;
+            
         public:
             
             ~LowerSolver() = default;
@@ -74,6 +77,8 @@ namespace Tensors
             ,   X_1_buffer      ( max_n_1 * nrhs         )
             ,   X_1             ( X_1_buffer.data()      )
             ,   x_1             ( X_1_buffer.data()      )
+            ,   Zero_buffer     ( max_n_1 * nrhs, zero   )
+            ,   Zero            ( Zero_buffer.data()     )
             {}
             
         protected:
@@ -130,9 +135,9 @@ namespace Tensors
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
                         
-//                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
                         
-                        BLAS::scal( nrhs, Scalar::Inv<Scal>(U_0[0]), X_0, 1 );
+//                        BLAS::scal( nrhs, Scalar::Inv<Scal>(U_0[0]), X_0, 1 );
                         
                         if( n_1 > izero )
                         {
@@ -142,21 +147,28 @@ namespace Tensors
                             //  X_1 is a matrix of size n_1 x nrhs.
                             //  X_0 is a matrix of size 1   x nrhs.
 
+                            // TODO: It is really a shame, that we have to zerofy X_1 and cannot overwrite it.
+                            
+//                            zerofy_buffer(X_1, n_1 * nrhs );
+                            
+                            // Most curiously, copying is faster than zeroing out - just because we can use BLAS.
+//                            BLAS::copy( n_1 * nrhs, Zero, 1, X_1, 1 );
+                            
+//                            BLAS::scal( n_1 * nrhs, zero, X_1, 1 );
+//
+//                            BLAS::ger<Layout::RowMajor,Op::Conj,Op::Id>(
+//                                n_1, nrhs, -one, U_1, 1, X_0, 1, X_1, nrhs
+//                            );
+                            
                             for( LInt i = 0; i < int_cast<LInt>(n_1); ++i )
                             {
                                 combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Zero>(
                                     - Scalar::Conj(U_1[i]), X_0, Scalar::Zero<Scal>, &X_1[nrhs*i], nrhs
                                 );
-                                
-                                
-//                                for( LInt j = 0; j < int_cast<LInt>(nrhs); ++j )
-//                                {
-//                                    X_1[nrhs*i+j] = factor * X_0[j];
-//                                }
                             }
                         }
                     }
-                    else // using BLAS3 routines.
+                    else // n_0 > ione; using BLAS3 routines.
                     {
                         // Triangle solve U_0^H * X_0 = B_0 while overwriting X_0.
                         BLAS::trsm<Layout::RowMajor,Side::Left,UpLo::Upper,Op::ConjTrans,Diag::NonUnit>(
@@ -179,11 +191,14 @@ namespace Tensors
                     }
 
                     // Scatter-add X_1 into B_1.
+//                    for( Int j = 0; j < n_1; ++j )
+//                    {
+//                        BLAS::axpy( nrhs, one, &X_1[nrhs * j], 1, &X[nrhs * SN_inner[l_begin+j]], 1 );
+//                    }
+                    
                     for( Int j = 0; j < n_1; ++j )
                     {
-//                        add_to_buffer( &X_1[nrhs * j], &X[nrhs * SN_inner[l_begin+j]], nrhs );
-                        
-                        BLAS::axpy( nrhs, one, &X_1[nrhs * j], 1, &X[nrhs * SN_inner[l_begin+j]], 1 );
+                        add_to_buffer( &X_1[nrhs * j], &X[nrhs * SN_inner[l_begin+j]], nrhs );
                     }
                 }
                 else // mult_rhs == false
