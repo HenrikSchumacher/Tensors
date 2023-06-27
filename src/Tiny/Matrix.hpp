@@ -203,7 +203,7 @@ namespace Tensors
                 void
             >
             Dot(
-                const Tiny::Matrix<m,n,Scal,Int> & M,
+                const CLASS & M,
                 const Tiny::Vector<n,  S,   Int> & x,
                       Tiny::Vector<m,  T,   Int> & y
             )
