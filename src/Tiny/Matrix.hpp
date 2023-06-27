@@ -51,7 +51,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator+=( const CLASS<m,n,T,Int> & B )
+            operator+=( const Tiny::Matrix<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -70,7 +70,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator-=( const CLASS<m,n,T,Int> & B )
+            operator-=( const Tiny::Matrix<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -89,7 +89,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator*=( const CLASS<m,n,T,Int> & B )
+            operator*=( const Tiny::Matrix<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -108,7 +108,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator/=( const CLASS<m,n,T,Int> & B )
+            operator/=( const Tiny::Matrix<m,n,T,Int> & B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -148,7 +148,7 @@ namespace Tensors
             Dot(
                 const Tiny::Matrix<m,K,R,   Int> & X,
                 const Tiny::Matrix<K,n,S,   Int> & Y,
-                      CLASS & Z
+                      Tiny::Matrix<m,n,Scal,Int> & Z
             )
             {
                 // First pass to overwrite (if desired).
@@ -203,7 +203,7 @@ namespace Tensors
                 void
             >
             Dot(
-                const CLASS & M,
+                const Tiny::Matrix<m,n,Scal,Int> & M,
                 const Tiny::Vector<n,  S,   Int> & x,
                       Tiny::Vector<m,  T,   Int> & y
             )
