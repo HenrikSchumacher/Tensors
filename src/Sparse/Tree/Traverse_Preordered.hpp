@@ -60,7 +60,7 @@ public:
             const Int k_begin = LevelPointer(d  );
             const Int k_end   = LevelPointer(d+1);
             
-            const Int use_threads = std::min( thread_count, k_end - k_begin );
+            const Int use_threads = parallelQ ? std::min( thread_count, k_end - k_begin ) : one;
             
             ptic(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
             
@@ -94,7 +94,7 @@ public:
             const Int k_begin = LevelPointer(tree_top_depth    );
             const Int k_end   = LevelPointer(tree_top_depth + 1);
             
-            const Int use_threads = std::min( thread_count, k_end - k_begin );
+            const Int use_threads = parallelQ ? std::min( thread_count, k_end - k_begin ) : one;
             
             ptic(tag_1 + " <= "+ToString(tree_top_depth)+"; using " + ToString(use_threads) + " threads.");
             
