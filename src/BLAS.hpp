@@ -84,5 +84,6 @@ namespace Tensors
 #include "BLAS/trsv.hpp"
 #include "BLAS/trsm.hpp"
 
+#include "BLAS/ger.hpp"
 #include "BLAS/her.hpp"
 #include "BLAS/herk.hpp"
