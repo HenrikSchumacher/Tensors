@@ -54,11 +54,11 @@ int main(int argc, const char * argv[])
     print("");
     
     std::string path = home_path + "/github/Tensors/SparseMatrices/";
-    std::string name = "Spot_3";
+    std::string name = "Spot_4";
     
     const Int nrhs = 32;
     
-    Sparse::MatrixCSR<Scal, Int, LInt> A = Sparse::MatrixCSR_FromFile<Scal,Int,LInt>(
+    Sparse::MatrixCSR<Scal,Int,LInt> A = Sparse::MatrixCSR_FromFile<Scal,Int,LInt>(
         path + name + "_Matrix.txt", thread_count
     );
     

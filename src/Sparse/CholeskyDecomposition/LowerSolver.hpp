@@ -129,7 +129,11 @@ namespace Tensors
                     {
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
-                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                        
+//                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                        
+                        BLAS::scal( nrhs, Scalar::Inv<Scal>(U_0[0]), X_0, 1 );
+                        
                         if( n_1 > izero )
                         {
                             // Compute X_1 = - U_1^H * X_0
@@ -140,11 +144,15 @@ namespace Tensors
 
                             for( LInt i = 0; i < int_cast<LInt>(n_1); ++i )
                             {
-                                const Scal factor = - Scalar::Conj(U_1[i]); // XXX Scalar::Conj(U_1[i])-> U_1[i]
-                                for( LInt j = 0; j < int_cast<LInt>(nrhs); ++j )
-                                {
-                                    X_1[nrhs*i+j] = factor * X_0[j];
-                                }
+                                combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Zero>(
+                                    - Scalar::Conj(U_1[i]), X_0, Scalar::Zero<Scal>, &X_1[nrhs*i], nrhs
+                                );
+                                
+                                
+//                                for( LInt j = 0; j < int_cast<LInt>(nrhs); ++j )
+//                                {
+//                                    X_1[nrhs*i+j] = factor * X_0[j];
+//                                }
                             }
                         }
                     }
@@ -173,7 +181,9 @@ namespace Tensors
                     // Scatter-add X_1 into B_1.
                     for( Int j = 0; j < n_1; ++j )
                     {
-                        add_to_buffer( &X_1[nrhs * j], &X[nrhs * SN_inner[l_begin+j]], nrhs );
+//                        add_to_buffer( &X_1[nrhs * j], &X[nrhs * SN_inner[l_begin+j]], nrhs );
+                        
+                        BLAS::axpy( nrhs, one, &X_1[nrhs * j], 1, &X[nrhs * SN_inner[l_begin+j]], 1 );
                     }
                 }
                 else // mult_rhs == false

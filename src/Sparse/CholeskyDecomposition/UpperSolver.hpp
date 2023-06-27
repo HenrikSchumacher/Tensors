@@ -126,7 +126,9 @@ namespace Tensors
                     // Load the already computed values into X_1.
                     for( Int j = 0; j < n_1; ++j )
                     {
-                        copy_buffer( &X[nrhs * SN_inner[l_begin+j]], &X_1[nrhs * j], nrhs );
+//                        copy_buffer( &X[nrhs * SN_inner[l_begin+j]], &X_1[nrhs * j], nrhs );
+                        
+                        BLAS::copy( nrhs, &X[nrhs * SN_inner[l_begin+j]], 1, &X_1[nrhs * j], 1 );
                     }
 
                     if( n_0 == ione )
@@ -150,7 +152,10 @@ namespace Tensors
 
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
-                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                        
+//                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                        
+                        BLAS::scal( nrhs, Scalar::Inv<Scal>(U_0[0]), X_0, 1 );
                     }
                     else // using BLAS3 routines.
                     {
@@ -192,11 +197,12 @@ namespace Tensors
                             //  x_0 is a matrix of size 1 x 1; we can interpret it as vector of size 1.
 
                             // Hence we can compute X_0 -= U_1 * X_1 via a simple dot product.
-
+                            // Beware: Scattered read.
                             for( Int j = 0; j < n_1; ++j )
                             {
-                                U_1x_1 += U_1[j] * X[SN_inner[l_begin+j]]; // XXX Scalar::Conj(U_1[j])
+                                U_1x_1 += U_1[j] * X[SN_inner[l_begin+j]];
                             }
+                            
                         }
 
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.

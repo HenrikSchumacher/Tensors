@@ -30,7 +30,7 @@
     #include "src/Sorting/TwoArrayQuickSort.hpp"
 //    #include "src/Sorting/TimSort.hpp"
 
-    #include "src/Permutation.hpp"
+    
 
     #include "Tiny.hpp"
 
@@ -40,7 +40,7 @@
     #include "src/TripleAggregator.hpp"
 
 
-
+    #include "src/Sparse/Permutation.hpp"
     #include "src/SparseBLAS.hpp"
     #include "src/Sparse/PatternCSR.hpp"
     #include "src/Sparse/BinaryMatrixCSR.hpp"
