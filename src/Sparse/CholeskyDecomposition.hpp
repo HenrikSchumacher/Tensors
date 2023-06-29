@@ -97,10 +97,12 @@ namespace Tensors
             using Factorizer         = CholeskyFactorizer<Scal,Int,LInt>;
             
             friend Factorizer;
-            friend class UpperSolver<false,Scal,Int,LInt>;
-            friend class UpperSolver<true, Scal,Int,LInt>;
-            friend class LowerSolver<false,Scal,Int,LInt>;
-            friend class LowerSolver<true, Scal,Int,LInt>;
+            friend class UpperSolver<false,      Scal,Int,LInt>;
+            friend class UpperSolver<true,       Scal,Int,LInt>;
+            friend class LowerSolver<false,true, Scal,Int,LInt>;
+            friend class LowerSolver<true, true, Scal,Int,LInt>;
+            friend class LowerSolver<false,false,Scal,Int,LInt>;
+            friend class LowerSolver<true, false,Scal,Int,LInt>;
             
             using VectorContainer_T = Tensor1<Scal,LInt>;
 
@@ -208,6 +210,8 @@ namespace Tensors
             VectorContainer_T X_scratch;
             // TODO: If I want to parallelize the solve phase, I have to provide each thread with its own X_scratch.
             
+            std::vector<std::mutex> row_mutexes;
+            
         public:
             
             CholeskyDecomposition() = default;
@@ -276,6 +280,9 @@ namespace Tensors
                 A.RequireDiag();
                 
                 CheckDiagonal();
+                
+                
+                row_mutexes = std::vector<std::mutex> ( n );
                 
                 ptoc(ClassName());
             }

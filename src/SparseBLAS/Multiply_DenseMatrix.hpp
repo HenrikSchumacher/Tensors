@@ -19,33 +19,21 @@ public:
     {
         StaticParameterCheck<R_out,T_in,S_out,T_out>();
         
-        if( nrhs == 1 )
+        if( nrhs == Scalar::One<Int> )
         {
-            if( ldX == 1 && ldY == 1)
+            if( ldX == Scalar::One<Int> && ldY == Scalar::One<Int> )
             {
                 SpMV(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
             }
             else
             {
-                SpMM_fixed<1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+                SpMM<1>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
             }
             
             return;
         }
-        
-        if ( NRHS > 0 )
-        {
-            if( NRHS == nrhs )
-            {
-                SpMM_fixed<NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
-            }
-            else
-            {
-                SpMM_gen(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
-            }
-        }
         else
         {
-            SpMM_gen(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,job_ptr);
+            SpMM<NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs );
         }
     }

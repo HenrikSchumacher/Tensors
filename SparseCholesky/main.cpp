@@ -54,7 +54,8 @@ int main(int argc, const char * argv[])
     print("");
     
     std::string path = home_path + "/github/Tensors/SparseMatrices/";
-    std::string name = "Spot_4";
+//    std::string name = "Spot_4";
+    std::string name = "Spot_0";
     
     const Int nrhs = 32;
     

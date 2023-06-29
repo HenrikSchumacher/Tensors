@@ -9,7 +9,7 @@ namespace Tensors
         
         template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
         
-        template<bool mult_rhs, typename Scal_, typename Int_, typename LInt_>
+        template<bool mult_rhs, bool lockedQ, typename Scal_, typename Int_, typename LInt_>
         class alignas(OBJECT_ALIGNMENT) LowerSolver
         {
             ASSERT_INT(Int_);
@@ -57,6 +57,8 @@ namespace Tensors
             Tensor1<Scal,Int> Zero_buffer;
             ptr<Scal> Zero;
             
+            std::vector<std::mutex> & row_mutexes;
+            
         public:
             
             ~LowerSolver() = default;
@@ -79,6 +81,7 @@ namespace Tensors
             ,   x_1             ( X_1_buffer.data()      )
             ,   Zero_buffer     ( max_n_1 * nrhs, zero   )
             ,   Zero            ( Zero_buffer.data()     )
+            ,   row_mutexes     ( chol.row_mutexes       )
             {}
             
         protected:
@@ -125,6 +128,19 @@ namespace Tensors
                 ptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
 
                 
+                // TODO: In combination with Traverse_Postordered I seem to have some write conflicts just ine the rectangular part.
+                // DEBUGGING
+                std::vector<std::unique_lock<std::mutex>> locks;
+                
+                if constexpr ( lockedQ )
+                {
+                    // Locking the rows belonging to the rectangular part.
+                    for( LInt l = l_begin; l < l_end; ++l )
+                    {
+                        locks.emplace_back( row_mutexes[SN_inner[l]]);
+                    }
+                }
+                
                 if constexpr ( mult_rhs )
                 {
                     // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
@@ -135,6 +151,7 @@ namespace Tensors
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
                         
+                        // Read-write access to X_0.
                         scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
                         
 //                        BLAS::scal( nrhs, Scalar::Inv<Scal>(U_0[0]), X_0, 1 );
@@ -160,6 +177,7 @@ namespace Tensors
 //                                n_1, nrhs, -one, U_1, 1, X_0, 1, X_1, nrhs
 //                            );
                             
+                            // Write access to X_0.
                             for( LInt i = 0; i < int_cast<LInt>(n_1); ++i )
                             {
                                 combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Zero>(
@@ -203,6 +221,7 @@ namespace Tensors
                 }
                 else // mult_rhs == false
                 {
+                    
                     // x_0 is the part of x that interacts with U_0, size = n_0.
                     mut<Scal> x_0 = &X[SN_rp[s]];
                     

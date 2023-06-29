@@ -61,8 +61,7 @@ namespace Tensors
         }
         
 #include "SparseBLAS/SpMV.hpp"
-#include "SparseBLAS/SpMM_fixed.hpp"
-#include "SparseBLAS/SpMM_gen.hpp"
+#include "SparseBLAS/SpMM.hpp"
 #include "SparseBLAS/Multiply_Vector.hpp"
 #include "SparseBLAS/Multiply_DenseMatrix.hpp"
         
