@@ -194,7 +194,7 @@ namespace Tensors
                     {
                         if constexpr ( fixed )
                         {
-                            copy_buffer( x_from, &x[0][0], ColsSize() );
+                            copy_buffer<VarSize,Sequential>( x_from, &x[0][0], ColsSize() );
                         }
                         else
                         {
@@ -239,7 +239,7 @@ namespace Tensors
                     else
                     {
                         // Here we are allowed to copy the full slice because internal x is column major.
-                        copy_buffer( x_from, &x[0][0], ColsSize() );
+                        copy_buffer<VarSize,Sequential>( x_from, &x[0][0], ColsSize() );
                     }
                 }
             }
@@ -354,7 +354,7 @@ namespace Tensors
                             }
                             else
                             {
-                                copy_buffer( &y[0][0], y_to, RowsSize() );
+                                copy_buffer<VarSize,Sequential>( &y[0][0], y_to, RowsSize() );
                             }
                         }
                         else
@@ -391,7 +391,7 @@ namespace Tensors
                             }
                             else
                             {
-                                copy_buffer( &y[0][0], y_to, rhs_count );
+                                copy_buffer<VarSize,Sequential>( &y[0][0], y_to, rhs_count );
                             }
                         }
                     }
@@ -557,7 +557,7 @@ namespace Tensors
                 }
                 else
                 {
-                    zerofy_buffer( y_to, RowsSize() );
+                    zerofy_buffer<VarSize,Sequential>( y_to, RowsSize() );
                 }
             }
             else if constexpr ( beta_flag == 1 )

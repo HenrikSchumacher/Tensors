@@ -151,7 +151,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < COLS; ++j )
                     {
-                        copy_buffer( &x_from[RhsCount()*j], x.data(j), ColsSize() );
+                        copy_buffer<VarSize,Sequential>( &x_from[RhsCount()*j], x.data(j), ColsSize() );
                     }
                 }
                 else
@@ -249,7 +249,7 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            copy_buffer( y.data(i), &y_to[RhsCount()*i], RhsCount() );
+                            copy_buffer<VarSize,Sequential>( y.data(i), &y_to[RhsCount()*i], RhsCount() );
                         }
                     }
                     else
@@ -320,7 +320,7 @@ namespace Tensors
                     }
                     else
                     {
-                        zerofy_buffer( y_to, RowsSize() );
+                        zerofy_buffer<VarSize,Sequential>( y_to, RowsSize() );
                     }
                 }
                 else if constexpr ( beta_flag == 1 )
@@ -425,7 +425,7 @@ namespace Tensors
                 }
                 else
                 {
-                    zerofy_buffer( y_to, RowsSize() );
+                    zerofy_buffer<VarSize,Sequential>( y_to, RowsSize() );
                 }
             }
             else if constexpr ( beta_flag == 1 )
@@ -440,7 +440,7 @@ namespace Tensors
                 }
                 else
                 {
-                    scale_buffer( beta, y_to, RowsSize() );
+                    scale_buffer<VarSize,Sequential>( beta, y_to, RowsSize() );
                 }
             }
         }

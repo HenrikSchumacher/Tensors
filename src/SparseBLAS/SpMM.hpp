@@ -66,15 +66,15 @@ public:
             {
                 if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_impl<Generic,One,Zero,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,Zero   ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_impl<Generic,One,One,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,One    ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<Generic,One,Generic,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,Generic,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
             else
@@ -82,11 +82,11 @@ public:
                 // general alpha
                 if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_impl<Generic,Generic,One,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,One    ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_impl<Generic,Generic,Zero,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Zero   ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
@@ -94,21 +94,21 @@ public:
                 }
             }
         }
-        else
+        else // a == nullptr
         {
             if( alpha == static_cast<R_out>(1) )
             {
                 if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_impl<One,One,Zero,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<One    ,One    ,Zero   ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_impl<One,One,One,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<One    ,One    ,One    ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<One,One,Generic,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<One    ,One    ,Generic,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
             else
@@ -116,11 +116,11 @@ public:
                 // general alpha
                 if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_impl<Generic,Generic,One,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,One    ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == static_cast<S_out>(0) )
                 {
-                    SpMM_impl<Generic,Generic,Zero,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Zero   ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
@@ -150,7 +150,9 @@ private:
             +TypeName<R_out>+","
             +TypeName<T_in >+","
             +TypeName<S_out>+","
-            +TypeName<T_out>+">("+ToString(nrhs)+")";
+            +TypeName<T_out>+ ","
+            + ( ( NRHS == VarSize ) ? std::string("VarSize") : ToString(NRHS) )
+            +">("+ToString(nrhs)+")";
         
         ptic(tag);
         

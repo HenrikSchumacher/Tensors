@@ -3,7 +3,7 @@
 #define CLASS ArrowheadBlockKernel_fixed
 #define BASE  BlockKernel_fixed<                            \
     ROWS_,COLS_,RHS_COUNT_,fixed,                           \
-    Scal_,Scal_in_,Scal_out_,                         \
+    Scal_,Scal_in_,Scal_out_,                               \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
     x_RM, x_intRM, x_copy, x_prefetch,                      \
