@@ -351,10 +351,21 @@ inline friend Real RelativeMaxError( const TENSOR_T & x, const TENSOR_T & y )
 }
 
 
+template<typename T, typename I>
+force_inline TENSOR_T & operator+=( const TENSOR_T<T,I> & b )
+{
+    const Size_T m = std::min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
+    combine_buffers<Scalar::Flag::Plus, Scalar::Flag::Plus>(
+        Scalar::One<T>, b.data(), Scalar::One<T>, a, m
+    );
+    
+    return *this;
+}
+
 template<class T>
 force_inline TENSOR_T & operator*=( const T alpha )
 {
-    scale_buffer( a, n );
+    scale_buffer( alpha, a, n );
     
     return *this;
 }
