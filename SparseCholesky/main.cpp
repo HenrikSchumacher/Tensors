@@ -143,7 +143,7 @@ int main(int argc, const char * argv[])
     
     x.SetZero();
     tic("Cholesky vector solve");
-    S.Solve<false>(b.data(), x.data() );
+    S.Solve<Sequential>(b.data(), x.data() );
     toc("Cholesky vector solve");
     y = b;
     A.Dot(Scal(-1), x, Scal(1), y);
@@ -153,7 +153,7 @@ int main(int argc, const char * argv[])
     
     X.SetZero();
     tic("Cholesky matrix solve");
-    S.Solve<false>(B.data(), X.data(), nrhs);
+    S.Solve<Sequential>(B.data(), X.data(), nrhs);
     toc("Cholesky matrix solve");
     Y = B;
     A.Dot(Scal(-1), X, Scal(1), Y);
@@ -163,7 +163,7 @@ int main(int argc, const char * argv[])
     
     x.SetZero();
     tic("Cholesky parallel vector solve");
-    S.Solve<true>(b.data(), x.data() );
+    S.Solve<Parallel>(b.data(), x.data() );
     toc("Cholesky parallel vector solve");
     y = b;
     A.Dot(Scal(-1), x, Scal(1), y);
@@ -173,7 +173,7 @@ int main(int argc, const char * argv[])
     
     X.SetZero();
     tic("Cholesky parallel matrix solve");
-    S.Solve<true>(B.data(), X.data(), nrhs );
+    S.Solve<Parallel>(B.data(), X.data(), nrhs );
     toc("Cholesky parallel matrix solve");
     Y = B;
     A.Dot(Scal(-1), X, Scal(1), Y);

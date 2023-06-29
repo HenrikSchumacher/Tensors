@@ -1088,7 +1088,7 @@ namespace Tensors
             
             
             // Use own nonzero values.
-            template<Int NRHS = 0, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                 const R_out alpha, ptr<T_in>  X, const Int ldX,
                 const S_out beta,  mut<T_out> Y, const Int ldY,
@@ -1099,7 +1099,7 @@ namespace Tensors
             }
             
             // Use own nonzero values.
-            template<Int NRHS = 0, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                 const R_out alpha, ptr<T_in>  X,
                 const S_out beta,  mut<T_out> Y,
@@ -1129,7 +1129,7 @@ namespace Tensors
             }
             
             // Use own nonzero values.
-            template<Int NRHS = 0, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                  const R_out alpha, const Tensor2<T_in, Int> & X,
                  const S_out beta,        Tensor2<T_out,Int> & Y
@@ -1150,7 +1150,7 @@ namespace Tensors
             
             
             // Use external list of values.
-            template<Int NRHS = 0, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                 ptr<T_ext>  ext_values,
                 const R_out alpha, ptr<T_ext> X, const Int ldX,
@@ -1162,7 +1162,7 @@ namespace Tensors
             }
             
             // Use external list of values.
-            template<Int NRHS = 0, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                 ptr<T_ext>  ext_values,
                 const R_out alpha, ptr<T_ext> X,
@@ -1192,7 +1192,7 @@ namespace Tensors
                 }
             }
             
-            template<Int NRHS = 0, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
                  const Tensor1<T_ext,Int> & ext_values,
                  const R_out alpha, const Tensor2<T_in, Int> & X,
@@ -1221,20 +1221,6 @@ namespace Tensors
                 FillUpperTriangleFromLowerTriangle( values.data() );
             }
             
-            
-        public:
-
-            template< Int RHS_COUNT, bool unitDiag = false>
-            void SolveUpperTriangular_Sequential_0( ptr<Scal> b, mut<Scal> x )
-            {
-                this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,Scal,unitDiag>(values.data(),b,x);
-            }
-            
-            template< Int RHS_COUNT, bool unitDiag = false>
-            void SolveUpperTriangular_Sequential_0( ptr<Scal> values_, ptr<Scal> b, mut<Scal> x )
-            {
-                this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,Scal,unitDiag>(values_,b,x);
-            }
             
         public:
             

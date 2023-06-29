@@ -442,17 +442,6 @@ namespace Tensors
                 }
             }
             
-//###########################################################################################
-//####          Triangular solve
-//###########################################################################################
-            
-        public:
-            
-            template< Int RHS_COUNT, typename Scal, bool unitDiag = false>
-            void SolveUpperTriangular_Sequential_0( ptr<Scal> values, ptr<Scal> b, mut<Scal> x )
-            {
-                this->template SolveUpperTriangular_Sequential_0_<RHS_COUNT,unitDiag>(values,b,x);
-            }
             
         public:
             

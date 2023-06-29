@@ -38,4 +38,14 @@ namespace Tensors
         Left  = 141,
         Right = 142
     };
+    
+
+    enum class AddTo_T : bool
+    {
+        True  = true,
+        False = false
+    };
+    
+    static constexpr AddTo_T AddTo     = AddTo_T::True;
+    static constexpr AddTo_T Overwrite = AddTo_T::False;
 }

@@ -186,14 +186,14 @@ private:
                         
                         if constexpr ( a_flag == Generic )
                         {
-                            combine_buffers<nrhs,Generic,One>(
+                            combine_buffers<Generic,One,nrhs>(
                                 a[k],           &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
                         }
                         else
                         {
-                            combine_buffers<nrhs,One,One>(
+                            combine_buffers<One,One,nrhs>(
                                 Scalar::One<T>, &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
@@ -208,14 +208,14 @@ private:
                         
                         if constexpr ( a_flag == Generic )
                         {
-                            combine_buffers<nrhs,Generic,One>(
+                            combine_buffers<Generic,One,nrhs>(
                                 a[k],           &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
                         }
                         else
                         {
-                            combine_buffers<nrhs,One,One>(
+                            combine_buffers<One,One,nrhs>(
                                 Scalar::One<T>, &X[ldX * j],
                                 Scalar::One<T>, &z[0]
                             );
@@ -223,7 +223,7 @@ private:
                     }
                     
                     // incorporate the local updates into Y-buffer
-                    combine_buffers<nrhs,alpha_flag,beta_flag>(
+                    combine_buffers<alpha_flag,beta_flag,nrhs>(
                         alpha, &z[0],
                         beta,  &Y[ldY * i]
                     );

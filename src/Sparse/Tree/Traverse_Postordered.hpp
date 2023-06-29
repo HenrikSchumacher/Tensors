@@ -22,13 +22,13 @@ void Traverse_Children_Postordered( Worker_T & worker, Int node )
 }
 
 
-template<bool parallelQ, class Worker_T>
+template<Parallel_T parQ = Parallel, class Worker_T>
 void Traverse_Postordered(
     std::vector<std::unique_ptr<Worker_T>> & workers,
     Int tree_top_depth_
 )
 {
-    std::string tag = ClassName() + "::Traverse_Postordered<" + (parallelQ ? "par" : "seq") + ">";
+    std::string tag = ClassName() + "::Traverse_Postordered<" + (parQ == Parallel ? "par" : "seq") + ">";
     if( !PostOrderedQ() )
     {
         eprint(tag+" requires postordered tree! Doing nothing.");
@@ -65,7 +65,7 @@ void Traverse_Postordered(
         const Int k_begin = LevelPointer(tree_top_depth    );
         const Int k_end   = LevelPointer(tree_top_depth + 1);
         
-        const Int use_threads = parallelQ ? std::min( thread_count, k_end - k_begin ) : 1;
+        const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : 1;
         
         ptic(tag_1 + " <= "+ToString(tree_top_depth)+"; using " + ToString(use_threads) + " threads.");
         
@@ -102,7 +102,7 @@ void Traverse_Postordered(
         const Int k_begin = LevelPointer(d  );
         const Int k_end   = LevelPointer(d+1);
         
-        const Int use_threads = parallelQ ? std::min( thread_count, k_end - k_begin ) : one;
+        const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : one;
         
         ptic(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
         

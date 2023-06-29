@@ -121,7 +121,7 @@ void Read( ptr<S> a_ )
 template<typename S>
 void ReadParallel( ptr<S> a_, const Size_T thread_count )
 {
-    copy_buffer( a_, a, static_cast<Size_T>(n), thread_count );
+    copy_buffer<VarSize,Parallel>( a_, a, static_cast<Size_T>(n), thread_count );
 }
 
 template<typename R>
@@ -143,7 +143,7 @@ void Write( mut<S> a_ ) const
 template<typename S>
 void WriteParallel( mut<S> a_, const Size_T thread_count ) const
 {
-    copy_buffer( a, a_, static_cast<Size_T>(n), thread_count );
+    copy_buffer<VarSize,Parallel>( a, a_, static_cast<Size_T>(n), thread_count );
 }
 
 template<typename R>
@@ -159,12 +159,12 @@ Write( mut<R> re, mut<R> im ) const
 
 void Fill( const Scal init )
 {
-    fill_buffer( a, static_cast<Size_T>(n), init );
+    fill_buffer( a, init, static_cast<Size_T>(n) );
 }
 
 void Fill( const Scal init, const Size_T thread_count )
 {
-    fill_buffer( a, static_cast<Size_T>(n), init, thread_count );
+    fill_buffer<VarSize,Parallel>( a, init, static_cast<Size_T>(n), thread_count );
 }
 
 void SetZero()
@@ -174,7 +174,7 @@ void SetZero()
 
 void SetZero( const Size_T thread_count )
 {
-    zerofy_buffer( a, n, thread_count );
+    zerofy_buffer<VarSize,Parallel>( a, n, thread_count );
 }
 
 void Random( Int thread_count = 1 )

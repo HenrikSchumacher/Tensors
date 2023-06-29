@@ -23,13 +23,13 @@ public:
     }
     
     // TODO: Test this!
-    template<bool parallelQ, class Worker_T>
+    template<Parallel_T parQ = Parallel, class Worker_T>
     void Traverse_Preordered(
         std::vector<std::unique_ptr<Worker_T>> & workers,
         Int tree_top_depth_
     )
     {
-        std::string tag = ClassName() + "::Traverse_Preordered<" + (parallelQ ? "par" : "seq") + ">";
+        std::string tag = ClassName() + "::Traverse_Preordered<" + (parQ == Parallel ? "par" : "seq") + ">";
         
         if( !PostOrderedQ() )
         {
@@ -60,7 +60,7 @@ public:
             const Int k_begin = LevelPointer(d  );
             const Int k_end   = LevelPointer(d+1);
             
-            const Int use_threads = parallelQ ? std::min( thread_count, k_end - k_begin ) : one;
+            const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : one;
             
             ptic(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
             
@@ -94,7 +94,7 @@ public:
             const Int k_begin = LevelPointer(tree_top_depth    );
             const Int k_end   = LevelPointer(tree_top_depth + 1);
             
-            const Int use_threads = parallelQ ? std::min( thread_count, k_end - k_begin ) : one;
+            const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : one;
             
             ptic(tag_1 + " <= "+ToString(tree_top_depth)+"; using " + ToString(use_threads) + " threads.");
             

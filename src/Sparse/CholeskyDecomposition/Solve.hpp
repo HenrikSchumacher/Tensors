@@ -6,11 +6,11 @@
     
 public:
     
-    template<bool parallelQ = false, Op op = Op::Id, typename ExtScal>
+    template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
     void Solve( ptr<ExtScal> B, mut<ExtScal> X_, const Int nrhs_ = ione )
     {
         const std::string tag = ClassName() + "::Solve<"
-            + (parallelQ ? "par" : "seq") + ","
+            + (parQ == Parallel ? "par" : "seq") + ","
             + ( op==Op::Id ? "N" : (op==Op::Trans ? "T" : (op==Op::ConjTrans ? "H" : "N/A" ) ) ) + ","
             + TypeName<ExtScal>
             + "> ( " + ToString(nrhs_) + " )";
@@ -28,11 +28,11 @@ public:
         
         if( nrhs == ione )
         {
-            SN_Solve<false,parallelQ,op>();
+            SN_Solve<false,parQ,op>();
         }
         else
         {
-            SN_Solve<true, parallelQ,op>();
+            SN_Solve<true, parQ,op>();
         }
         
         WriteSolution( X_ );
@@ -48,23 +48,23 @@ public:
 protected:
 
 
-    template<bool mult_rhsQ, bool parallelQ, Op op = Op::Id>
+    template<bool mult_rhsQ, Parallel_T parQ = Sequential, Op op = Op::Id>
     void SN_Solve()
     {
         if constexpr ( op == Op::Id )
         {
-            SN_LowerSolve<mult_rhsQ,parallelQ>();
-            SN_UpperSolve<mult_rhsQ,parallelQ>();
+            SN_LowerSolve<mult_rhsQ,parQ>();
+            SN_UpperSolve<mult_rhsQ,parQ>();
         }
         else if constexpr ( op == Op::ConjTrans )
         {
-            SN_UpperSolve<mult_rhsQ,parallelQ>();
-            SN_LowerSolve<mult_rhsQ,parallelQ>();
+            SN_UpperSolve<mult_rhsQ,parQ>();
+            SN_LowerSolve<mult_rhsQ,parQ>();
         }
     }
 
 
-    template<bool mult_rhsQ, bool parallelQ>
+    template<bool mult_rhsQ, Parallel_T parQ = Sequential>
     void SN_UpperSolve()
     {
         // Solves U * X = B and stores the result back into B.
@@ -72,7 +72,7 @@ protected:
         
         using Solver_T = UpperSolver<mult_rhsQ,Scal,Int,LInt>;
         
-        const std::string tag = ClassName() + "::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parallelQ ? "par" : "seq") + "> ( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName() + "::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "par" : "seq") + "> ( " + ToString(nrhs)+ " )";
         
         ptic(tag);
         
@@ -87,23 +87,23 @@ protected:
         ptic("Initialize solvers");
         std::vector<std::unique_ptr<Solver_T>> F_list (thread_count);
         
-        ParallelDo(
+        Do<VarSize,parQ>(
             [&F_list,this]( const Int thread )
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );
             },
-            thread_count
+            thread_count, thread_count
         );
         ptoc("Initialize solvers");
         
         // Parallel traversal in preorder
         
-        aTree.template Traverse_Preordered<parallelQ>( F_list, tree_top_depth );
+        aTree.template Traverse_Preordered<parQ>( F_list, tree_top_depth );
         
         ptoc(tag);
     }
 
-    template<bool mult_rhsQ, bool parallelQ>
+    template<bool mult_rhsQ, Parallel_T parQ = Sequential>
     void SN_LowerSolve()
     {
         // Solves L * X = B and stores the result back into B.
@@ -111,7 +111,7 @@ protected:
         
         using Solver_T = LowerSolver<mult_rhsQ,Scal,Int,LInt>;
         
-        const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parallelQ ? "par" : "seq") + "> ( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "par" : "seq") + "> ( " + ToString(nrhs)+ " )";
         
         ptic(tag);
 
@@ -127,17 +127,17 @@ protected:
         ptic("Initialize solvers");
         std::vector<std::unique_ptr<Solver_T>> F_list (thread_count);
         
-        ParallelDo(
+        Do<VarSize,parQ>(
             [&F_list,this]( const Int thread )
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );
             },
-            thread_count
+            thread_count, thread_count
         );
         ptoc("Initialize solvers");
         
         // Parallel traversal in postorder
-        aTree.template Traverse_Postordered<parallelQ>( F_list, tree_top_depth );
+        aTree.template Traverse_Postordered<parQ>( F_list, tree_top_depth );
         
         ptoc(tag);
     }

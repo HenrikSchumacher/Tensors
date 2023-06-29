@@ -77,11 +77,11 @@ namespace Tensors
             
             if( beta == static_cast<Scal_out>(0) )
             {
-                zerofy_buffer( Y, size, thread_count );
+                zerofy_buffer<VarSize,Parallel>( Y, size, thread_count );
             }
             else
             {
-                scale_buffer( beta, Y, size, thread_count );
+                scale_buffer<VarSize,Parallel>( beta, Y, size, thread_count );
             }
         }
         

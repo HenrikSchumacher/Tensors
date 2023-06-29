@@ -50,7 +50,7 @@ namespace Tensors
             Tiny::Matrix<M,N,Scal_C,Int> C;
             A.template Read<opA>(A_,ldA);
             B.template Read<opB>(B_,ldB);
-            Dot<0>(A,B,C);
+            Dot<Overwrite>(A,B,C);
             C.template Write<alpha_flag,beta_flag>(alpha,beta,C_,ldC);
         }
         
@@ -77,7 +77,7 @@ namespace Tensors
             
             A.template Read<opA>(A_,ldA);
             B.template Read<opB>(B_,ldB,idx);
-            Dot<0>(A,B,C);
+            Dot<Overwrite>(A,B,C);
             C.template Write<alpha_flag,beta_flag>(alpha,beta,C_,ldC);
         }
         
@@ -103,7 +103,7 @@ namespace Tensors
             Tiny::Matrix<M,N,Scal_C,Int> C;
             A.template Read<opA>(A_,ldA);
             B.template Read<opB>(B_,ldB);
-            Dot<0>(A,B,C);
+            Dot<Overwrite>(A,B,C);
             C.template Write<alpha_flag,beta_flag>(alpha,beta,C_,ldC,idx);
         }
         

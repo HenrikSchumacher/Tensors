@@ -44,7 +44,7 @@ public:
         ptoc("Initialize factorizers");
         
         // Parallel traversal in postorder
-        aTree.template Traverse_Postordered<true>( SN_list, tree_top_depth );
+        aTree.template Traverse_Postordered<Parallel>( SN_list, tree_top_depth );
         
         SN_factorized = true;
         
