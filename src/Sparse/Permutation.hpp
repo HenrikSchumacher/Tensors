@@ -9,14 +9,6 @@ namespace Tensors
         Pre  = false
     };
     
-#ifdef True
-    #undef True
-#endif
-    
-#ifdef False
-    #undef False
-#endif
-    
     enum class Inverse : bool
     {
         True  = true,
