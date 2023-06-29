@@ -138,7 +138,9 @@ namespace Tensors
             {
                 Container_0_T new_container_0 (new_capacity);
                 
-                copy_buffer( container_0.data(), new_container_0.data(), capacity, thread_count );
+                copy_buffer<VarSize,Parallel>(
+                    container_0.data(), new_container_0.data(), capacity, thread_count
+                );
                 
                 using std::swap;
                 swap( container_0, new_container_0 );

@@ -192,8 +192,8 @@ int main(int argc, const char * argv[])
     Tiny::Matrix<n,n,Scal,Int> W;
     
     // W = U . T_mat . UH
-    Dot<0>( T_mat, UH, V );
-    Dot<0>( U, V, W );
+    Dot<Overwrite>( T_mat, UH, V );
+    Dot<Overwrite>( U, V, W );
     
     
     W -= A_mat;
@@ -219,8 +219,8 @@ int main(int argc, const char * argv[])
 //            Tiny::Matrix<n,n,Scal,Int> W;
 //
 //            // W = U . T_mat . UH
-//            Dot<0>( T_mat, UH, V );
-//            Dot<0>( U, V, W );
+//            Dot<Overwrite>( T_mat, UH, V );
+//            Dot<Overwrite>( U, V, W );
 //
 //            W -= A_mat;
 //
@@ -256,19 +256,19 @@ int main(int argc, const char * argv[])
             U.ConjugateTranspose(UH);
             D.SetDiagonal(eigs);
             
-            Dot<0>(U,D,B);
-            Dot<0>(B,UH,C);
+            Dot<Overwrite>(U,D,B);
+            Dot<Overwrite>(B,UH,C);
             
             C -= A_mat;
             
             error_0 = std::max( error_0, C.MaxNorm() );
             
-            Dot<0>(UH,A_mat,B);
-            Dot<0>(B,U,C);
+            Dot<Overwrite>(UH,A_mat,B);
+            Dot<Overwrite>(B,U,C);
             C -= D;
             error_1 = std::max( error_1, C.MaxNorm() );
             
-            Dot<0>(U,UH,C);
+            Dot<Overwrite>(U,UH,C);
             C-=Id;
             error_2 = std::max( error_2, C.MaxNorm() );
             
@@ -308,14 +308,14 @@ int main(int argc, const char * argv[])
 
         dump(U);
         
-        Dot<0>(U,D,B);
-        Dot<0>(B,UH,C);
+        Dot<Overwrite>(U,D,B);
+        Dot<Overwrite>(B,UH,C);
         
         C -= A_mat;
         dump(C.MaxNorm());
         
-        Dot<0>(UH,A_mat,B);
-        Dot<0>(B,U,C);
+        Dot<Overwrite>(UH,A_mat,B);
+        Dot<Overwrite>(B,U,C);
         C -= D;
         dump(C.MaxNorm());
         
@@ -325,7 +325,7 @@ int main(int argc, const char * argv[])
         
         
         D.SetIdentity();
-        Dot<0>(U,UH,B);
+        Dot<Overwrite>(U,UH,B);
         B -= D;
     
         valprint("orthogonality error",B.MaxNorm());

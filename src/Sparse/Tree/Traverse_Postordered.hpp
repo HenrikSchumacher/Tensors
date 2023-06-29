@@ -22,13 +22,13 @@ void Traverse_Children_Postordered( Worker_T & worker, Int node )
 }
 
 
-template<bool parallelQ, class Worker_T>
+template<Parallel_T parQ = Parallel, class Worker_T>
 void Traverse_Postordered(
     std::vector<std::unique_ptr<Worker_T>> & workers,
     Int tree_top_depth_
 )
 {
-    std::string tag = ClassName() + "::Traverse_Postordered<" + (parallelQ ? "par" : "seq") + ">";
+    std::string tag = ClassName() + "::Traverse_Postordered<" + (parQ == Parallel ? "par" : "seq") + ">";
     if( !PostOrderedQ() )
     {
         eprint(tag+" requires postordered tree! Doing nothing.");
@@ -57,14 +57,17 @@ void Traverse_Postordered(
 
     ptic(tag);
          
+    
+    
     std::string tag_1 = "Apply " + workers[0]->ClassName() + " to level";
     
-    ptic(tag_1+" <= "+ToString(tree_top_depth)+")");
     {
         const Int k_begin = LevelPointer(tree_top_depth    );
         const Int k_end   = LevelPointer(tree_top_depth + 1);
         
-        const Int use_threads = parallelQ ? std::min( thread_count, k_end - k_begin ) : 1;
+        const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : 1;
+        
+        ptic(tag_1 + " <= "+ToString(tree_top_depth)+"; using " + ToString(use_threads) + " threads.");
         
         ParallelDo_Dynamic(
             [=,&workers]( const Int thread, const Int k )
@@ -87,19 +90,21 @@ void Traverse_Postordered(
             k_begin, k_end, Scalar::One<Int>,
             use_threads
         );
+        
+        ptoc(tag_1 + " <= "+ToString(tree_top_depth)+"; using " + ToString(use_threads) + " threads.");
     }
     
-    ptoc(tag_1+" <= "+ToString(tree_top_depth)+")");
+    
 
     
     for( Int d = tree_top_depth; d --> Scalar::One<Int> ; ) // Don't process the root node!
     {
-        ptic(tag_1+" = "+ToString(d)+")");
-        
         const Int k_begin = LevelPointer(d  );
         const Int k_end   = LevelPointer(d+1);
         
-        const Int use_threads = parallelQ ? std::min( thread_count, k_end - k_begin ) : 1;
+        const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : one;
+        
+        ptic(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
         
         ParallelDo_Dynamic(
             [=,&workers]( const Int thread, const Int k )
@@ -123,7 +128,7 @@ void Traverse_Postordered(
             use_threads
         );
         
-        ptoc(tag_1 + " = "+ToString(d)+")");
+        ptoc(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
     }
     
     ptoc(tag);

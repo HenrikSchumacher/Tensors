@@ -306,7 +306,6 @@ namespace Tensors
                             col_l = SN_inner[++l];
                         }
                         U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scal>(A_val[k]);
-                        // XXX conj-transpose here.
                     }
                 }
             }
@@ -341,23 +340,6 @@ namespace Tensors
                     // TODO: Maybe we should transpose U_0 and U_1 etc. to reduce amount of scattered-reads and adds...
                     // TODO: Then U_0 and U_1 would be ColMajor and we could use BLAS without the C-layer CBLAS.
                     
-//                    constexpr Int threshold = 16;
-//
-//                    if( (0 < IL_len) && (IL_len <= threshold) )
-//                    {
-//                        ++IL_len_small;
-//                    }
-//
-//                    if( (0< JL_len) && (JL_len <= threshold) )
-//                    {
-//                        ++JL_len_small;
-//                    }
-//
-//                    if( (0 < IL_len) && (IL_len <= threshold) && (0< JL_len) && (JL_len <= threshold) )
-//                    {
-//                        ++IL_len_and_JL_len_small;
-//                    }
-                    
                     
                     if( m_0 > ione )
                     {
@@ -370,13 +352,12 @@ namespace Tensors
                             
                             for( Int i = 0; i < m_0; ++i )
                             {
-                                scatter_read( &t_rec[m_1 * i], &B_0[IL_len * i], IL_pos, IL_len );
+                                // scatter-read t_rec[i,IL_pos] into B_0[i,:].
+                                scatter_read_combine<Scalar::Flag::Generic,Scalar::Flag::Generic>(
+                                    one,  &t_rec[m_1 * i],  IL_pos,
+                                    zero, &B_0[IL_len * i], IL_len
+                                );
                             }
-                            
-    //                        for( Int i = 0; i < IL_len; ++i )
-    //                        {
-    //                            copy_buffer( &t_rec[m_0 * IL_pos[i]], &B_0[m_0 * i], m_0 );
-    //                        }
                             
                             scatter_time += _toc();
                             
@@ -401,14 +382,6 @@ namespace Tensors
                                 {
                                     U_0[ n_0 * II_pos[i] + II_pos[j] ] += C_0[ IL_len * i + j ];
                                 }
-                                
-//                                mut<Scal> U_0_i = &U_0[n_0 * II_pos[i]];
-//                                ptr<Scal> C_0_i = &C_0[IL_len * i];
-//
-//                                for( Int j = i; j < IL_len; ++j )
-//                                {
-//                                    U_0_i[II_pos[j]] += C_0_i[j]; // XXX
-//                                }
                             }
                             
                             scatter_time += _toc();
@@ -418,19 +391,17 @@ namespace Tensors
                         if( (IL_len > izero) && (JL_len > izero) )
                         {
                             _tic();
-                            // Col-scatter-read t_rec[:,JL_pos] from B_1,
+                            // Col-scatter-read t_rec[:,JL_pos] into B_1,
                             // where B_1 is a matrix of size m_0 x JL_len.
-                            
                             for( Int i = 0; i < m_0; ++i )
                             {
-                                scatter_read( &t_rec[m_1 * i], &B_1[JL_len * i], JL_pos, JL_len ); // XXX
+                                // scatter-read t_rec[i,JL_pos] into B_1[i,:],
+                                scatter_read_combine<Scalar::Flag::Generic,Scalar::Flag::Generic>(
+                                    one,  &t_rec[m_1 * i],  JL_pos,
+                                    zero, &B_1[JL_len * i], JL_len
+                                );
+                                
                             }
-                            
-                            // This is how the "transposed" version would look like.
-    //                        for( Int j = 0; j < JL_len; ++j )
-    //                        {
-    //                            copy_buffer( &t_rec[m_0 * JL_pos[j]], &B_1[m_0 * j], m_0 );
-    //                        }
                             
                             scatter_time += _toc();
                             
@@ -442,7 +413,7 @@ namespace Tensors
                             {
                                 if( IL_len > ione )
                                 {
-                                    BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
+                                    BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(
                                         IL_len, JL_len, m_0,
                                         -one, B_0, IL_len,
                                               B_1, JL_len,
@@ -453,7 +424,7 @@ namespace Tensors
                                 {
                                     if constexpr ( !Scalar::ComplexQ<Scal> )
                                     {
-                                        BLAS::gemv<Layout::RowMajor,Op::Trans>(// XXX
+                                        BLAS::gemv<Layout::RowMajor,Op::Trans>(
                                             m_0, JL_len,
                                             -one, B_1, JL_len,
                                                   B_0, 1,         // TODO: B_0 must be conjugated!
@@ -462,7 +433,7 @@ namespace Tensors
                                     }
                                     else
                                     {
-                                        BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(// XXX
+                                        BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(
                                             IL_len, JL_len, m_0,
                                             -one, B_0, IL_len,
                                                   B_1, JL_len,
@@ -477,7 +448,7 @@ namespace Tensors
                             {
                                 if( IL_len > ione )
                                 {
-                                    BLAS::gemv<Layout::RowMajor,Op::ConjTrans>(// XXX
+                                    BLAS::gemv<Layout::RowMajor,Op::ConjTrans>(
                                         m_0, IL_len,
                                         -one, B_0, IL_len,
                                               B_1, 1,
@@ -503,10 +474,10 @@ namespace Tensors
                                 mut<Scal> U_1_i = &U_1[n_1 * II_pos[i]];
                                 ptr<Scal> C_1_i = &C_1[JL_len * i];
                                 
-                                for( Int j = 0; j < JL_len; ++j )
-                                {
-                                    U_1_i[JJ_pos[j]] += C_1_i[j]; // XXX
-                                }
+                                combine_scatter_write<Scalar::Flag::Plus,Scalar::Flag::Plus>(
+                                    one, C_1_i,
+                                    one, U_1_i, JJ_pos, JL_len
+                                );
                             }
                             scatter_time += _toc();
                         }
@@ -515,50 +486,50 @@ namespace Tensors
                     {
                         // In this case we have to form only (scattered) outer products of vectors, which are basically BLAS2 routines. Unfortunately, ?ger, ?syr, ?her, etc. add into the target matrix without the option to zero it out first. Hence we simply write these double loops ourselves. Since this is BLAS2 and not BLAS3, and since IL_len and JL_len are often not particularly long, there isn't that much room for optimization anyways. And since we cannot use ?ger / ?her, we fuse the scattered read/write operations directly into these loops.
                         
-                        for( Int j = 0; j < IL_len; ++j )
-                        {
-                            B_0[j] = t_rec[IL_pos[j]];
-                        }
+//                        for( Int j = 0; j < IL_len; ++j )
+//                        {
+//                            B_0[j] = t_rec[IL_pos[j]];
+//                        }
+//
+                        scatter_read_combine<Scalar::Flag::Plus,Scalar::Flag::Zero>(
+                            one,  t_rec, IL_pos,
+                            zero, B_0,            IL_len
+                        );
                         
                         if( JL_len > izero )
                         {
-                            for( Int j = 0; j < JL_len; ++j )
-                            {
-                                B_1[j] = t_rec[JL_pos[j]];
-                            }
+                            
+                            scatter_read_combine<Scalar::Flag::Plus,Scalar::Flag::Zero>(
+                                one,  t_rec, JL_pos,
+                                zero, B_1,            JL_len
+                            );
+                            
                             
                             for( Int i = 0; i < IL_len; ++i )
                             {
                                 const Scal factor = - Scalar::Conj(t_rec[IL_pos[i]]);
-
-                                const Int i_ = II_pos[i];
-                                mut<Scal> U_0_i = &U_0[n_0 * i_];
-                                mut<Scal> U_1_i = &U_1[n_1 * i_];
                                 
-                                for( Int j = i; j < IL_len; ++j )
-                                {
-                                    U_0_i[II_pos[j]] += factor * B_0[j];
-                                }
-
-                                for( Int j = 0; j < JL_len; ++j )
-                                {
-                                    U_1_i[JJ_pos[j]] += factor * B_1[j];
-                                }
+                                combine_scatter_write<Scalar::Flag::Generic,Scalar::Flag::Plus>(
+                                    factor, B_0,
+                                    one,    &U_0[n_0 * II_pos[i]], II_pos, IL_len
+                                );
+                                
+                                combine_scatter_write<Scalar::Flag::Generic,Scalar::Flag::Plus>(
+                                    factor, B_1,
+                                    one,    &U_1[n_1 * II_pos[i]], JJ_pos, JL_len
+                                );
                             }
                         }
-                        else
+                        else // JL_len == izero
                         {
                             for( Int i = 0; i < IL_len; ++i )
                             {
                                 const Scal factor = - Scalar::Conj(t_rec[IL_pos[i]]);
-
-                                const Int i_ = II_pos[i];
-                                mut<Scal> U_0_i = &U_0[n_0 * i_];
-
-                                for( Int j = i; j < IL_len; ++j )
-                                {
-                                    U_0_i[II_pos[j]] += factor * B_0[j];
-                                }
+                                
+                                combine_scatter_write<Scalar::Flag::Generic,Scalar::Flag::Plus>(
+                                    factor, B_0,
+                                    one,    &U_0[n_0 * II_pos[i]], II_pos, IL_len
+                                );
                             }
                         }
                         
@@ -585,7 +556,7 @@ namespace Tensors
                     }
                     else if( n_1 == ione )
                     {
-                        BLAS::trsv<Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit>(
+                        BLAS::trsv<Layout::RowMajor,UpLo::Upper,Op::ConjTrans,Diag::NonUnit>(
                             n_0, U_0, n_0, U_1, 1
                         );
                     }
@@ -596,23 +567,15 @@ namespace Tensors
                 }
                 else
                 {
-                    U_0[0] = std::sqrt(std::abs(U_0[0]));
-                    scale_buffer(static_cast<Scal>(1)/U_0[0], U_1, n_1);
+                    U_0[0] = std::sqrt( std::abs(U_0[0]) );
+                    
+                    scale_buffer( Scalar::Inv<Scal>(U_0[0]), U_1, n_1 );
+                    
+//                    BLAS::scal( n_1, Scalar::Inv<Scal>(U_0[0]), 1, U_1, 1);
                 }
                 
+                
                 chol_time += _toc();
-            }
-            
-        protected:
-            
-            force_inline void scatter_read( ptr<Scal> x, mut<Scal> y, ptr<Int> idx, Int N )
-            {
-                for( ; N --> izero; ) { y[N] = x[idx[N]]; }
-            }
-            
-            force_inline void scatter_add( ptr<Scal> x, mut<Scal> y, ptr<Int> idx, Int N )
-            {
-                for( ; N --> izero; ) { y[idx[N]] += x[N]; }
             }
             
             void ComputeIntersection( const Int s, const Int t )

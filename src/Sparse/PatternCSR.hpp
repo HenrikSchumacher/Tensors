@@ -1024,7 +1024,7 @@ namespace Tensors
         protected:
             
             // Assume all nonzeros are equal to 1.
-            template<Int NRHS = 0, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot_(
                 const R_out alpha, ptr<T_in>  X, const Int ldX,
                 const S_out beta,  mut<T_out> Y, const Int ldY,
@@ -1046,7 +1046,7 @@ namespace Tensors
             }
             
             // Supply an external list of values.
-            template<Int NRHS = 0, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot_(
                       ptr<T_ext>  values,
                       const R_out alpha, ptr<T_in>  X, const Int ldX,
@@ -1065,81 +1065,6 @@ namespace Tensors
                 else
                 {
                     wprint(ClassName()+"::Dot_: Not WellFormed(). Doing nothing.");
-                }
-            }
-            
-            
-//###########################################################################################
-//####          Triangular solve
-//###########################################################################################
-            
-        protected:
-            
-            template< Int RHS_COUNT, typename Scal, bool unitDiag = false>
-            void SolveUpperTriangular_Sequential_0_( ptr<Scal> values, ptr<Scal> b, mut<Scal> x )
-            {
-                if( m != n )
-                {
-                    eprint(ClassName()+"::SolveUpper: Matrix is not square.");
-                    return;
-                }
-                
-                if( x != b )
-                {
-                    copy_buffer( b, x, n * RHS_COUNT );
-                }
-                
-                SortInner();
-                
-                RequireDiag();
-                
-                ptr<LInt> diag_ptr__ = diag_ptr.data();
-                ptr<LInt> outer__    = outer.data();
-                ptr<Int>  inner__    = inner.data();
-                
-                for( Int i = m; i --> 0; )
-                {
-                    const LInt diag = diag_ptr__[i];
-                    
-                    if constexpr ( !unitDiag )
-                    {
-                        if( inner__[diag] != i )
-                        {
-                            eprint(ClassName()+"::SolveUpper: Row "+ToString(i)+" is missing a diagonal entry.");
-                            return;
-                        }
-                    }
-                    
-                    // We implicitly assume correct ordering of inner__.
-                    const LInt l_begin = ( inner__[diag] > i ) ? diag : diag+1;
-                    const LInt l_end   = outer__[i+1];
-                    
-                    mut<Scal> x_i = &x[RHS_COUNT * i];
-                    
-                    // We do this in reverse order so that the value of a_ii will be likely hot after this loop.
-                    for( LInt l = l_end; l --> l_begin; )
-                    {
-                        const Int j = inner__[l];
-                        
-                        const Scal a_ij = values[l];
-                        
-                        ptr<Scal> x_j = &x[RHS_COUNT*j];
-                        
-                        for( Int k = RHS_COUNT; k --> 0; )
-                        {
-                            x_i[k] -= a_ij * x_j[k];
-                        }
-                    }
-                    
-                    if constexpr ( !unitDiag )
-                    {
-                        const Scal a_ii_inv = static_cast<Scal>(1) / values[diag];
-                        
-                        for( Int k = RHS_COUNT; k --> 0;  )
-                        {
-                            x_i[k] *= a_ii_inv;
-                        }
-                    }
                 }
             }
             

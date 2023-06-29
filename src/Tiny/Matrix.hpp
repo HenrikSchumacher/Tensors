@@ -124,7 +124,7 @@ namespace Tensors
         public:
             
             template<
-                bool add_to,
+                AddTo_T addto,
                 int K,
                 typename R, typename S
             >
@@ -156,7 +156,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        if constexpr ( add_to )
+                        if constexpr ( addto == AddTo )
                         {
                             Z[i][j] += X[i][0] * Y[0][j];
                         }
@@ -182,8 +182,8 @@ namespace Tensors
             }
             
             template<
-                bool add_to,
-                typename Scal, typename S, typename T
+                AddTo_T addto,
+                typename S, typename T
             >
             friend
             force_inline
@@ -203,7 +203,7 @@ namespace Tensors
                 void
             >
             Dot(
-                const CLASS & M,
+                const Tiny::Matrix<m,n,Scal,Int> & M,
                 const Tiny::Vector<n,  S,   Int> & x,
                       Tiny::Vector<m,  T,   Int> & y
             )
@@ -217,7 +217,7 @@ namespace Tensors
                         y_i += M[i][j] * x[j];
                     }
                     
-                    if constexpr ( add_to )
+                    if constexpr ( addto == AddTo )
                     {
                         y[i] += y_i;
                     }

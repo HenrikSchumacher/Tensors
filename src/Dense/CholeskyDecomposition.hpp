@@ -328,7 +328,7 @@ namespace Tensors
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
-                    copy_buffer( &Y[i][0],  &X[i*ldX], nrhs);
+                    copy_buffer( &Y[i][0], &X[i*ldX], nrhs);
                 }
             }
             

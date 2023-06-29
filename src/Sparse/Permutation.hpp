@@ -478,7 +478,7 @@ namespace Tensors
             }
             else
             {
-                copy_buffer(a, b, n*chunk, thread_count );
+                copy_buffer<VarSize,Parallel>( a, b, n*chunk, thread_count );
             }
             
             ptoc(tag);
