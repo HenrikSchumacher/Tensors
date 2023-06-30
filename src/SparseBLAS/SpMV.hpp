@@ -151,12 +151,12 @@ private:
                 const LInt l_begin = rp[i  ];
                 const LInt l_end   = rp[i+1];
                 
-                __builtin_prefetch( &ci[l_end] );
-                
-                if constexpr( a_flag == Generic )
-                {
-                    __builtin_prefetch( &a[l_end] );
-                }
+//                __builtin_prefetch( &ci[l_end] );
+//                
+//                if constexpr( a_flag == Generic )
+//                {
+//                    __builtin_prefetch( &a[l_end] );
+//                }
             
                 for( LInt l = l_begin; l < l_end; ++l )
                 {
