@@ -24,21 +24,17 @@
 // Priority I:
 
 // TODO: Improve scheduling for parallel factorization.
-// TODO: - What to do if top of the tree is not a binary tree?
-// TODO: - What to do in case of a forest?
+// DONE: - What to do if top of the tree is not a binary tree?
+// DONE: - What to do in case of a forest?
 // TODO: - Estimate work to do in subtrees.
 
 // TODO: Parallelize symbolic factorization.
 // TODO:     --> Build aTree first and traverse it in parallel to determine SN_inner.
 
-// TODO: Parallelize lower solve phase.
-
 // Priority II:
 
 // TODO: Add arguments for leading dimensions.
 // TODO: Add multiplication and add-into possibilities.
-
-// TODO: User interface for lower/upper solves.
 
 // TODO: Compute nested dissection --> Metis, Scotch. Parallel versions? MT-Metis?
 
@@ -123,7 +119,7 @@ namespace Tensors
             
             BinaryMatrix_T A;
             
-            Permutation<LInt> A_inner_perm;   // permutation of the nonzero values. Needed for reading in
+            Tensor1<LInt,LInt> A_inner_perm; // permutation of the nonzero values. Needed for reading in.
             
             Tensor1<Scal,LInt> A_val;
             Scal reg = 0;
@@ -323,7 +319,29 @@ namespace Tensors
                     
                     perm.Compose( post, Compose::Post );
                     
-                    A_inner_perm.Compose( std::move(A.Permute( post, post )), Compose::Post );
+                    
+                    // `post` will reorder the inner indices; hence, we have to reorder also `A_inner_perm`;
+                    // Otherwise, `Factorizer` will read the wrong nonzero values.
+                    {
+                        Tensor1<LInt,LInt> inner_perm_perm = A.Permute( post, post );
+                        
+                        
+                        // A_inner_perm.Compose( std::move(A.Permute( post, post )), Compose::Post );
+                        
+                        ptr<LInt> p = A_inner_perm.data();
+                        mut<LInt> q = inner_perm_perm.data();
+                        
+                        ParallelDo(
+                            [p,q]( const LInt i )
+                            {
+                               q[i] = p[q[i]];
+                            },
+                            A_inner_perm.Size(), static_cast<LInt>(thread_count)
+                        );
+                        
+                        swap(A_inner_perm,inner_perm_perm);
+                    }
+                    
                     
                     A.RequireDiag();
                     
@@ -343,147 +361,8 @@ namespace Tensors
                 return EliminationTree().PostOrdering().GetPermutation();
             }
             
-//###########################################################################################
-//####          Elimination tree
-//###########################################################################################
-            
-        public:
-            
-            const Tree<Int> & EliminationTree()
-            {
-                // TODO: How can this be parallelized?
-                
-                // TODO: read Kumar, Kumar, Basu - A parallel algorithm for elimination tree computation and symbolic factorization
-                
-                if( ! eTree_initialized )
-                {
-                    ptic(ClassName()+"::EliminationTree");
-                    
-                    // See Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
-                    
-                    // I want to make it possible to use unsigned integer types for Int.
-                    // Hence using -1 as "no_element" is not an option.
-                    // We have to use something else instead of 0 to mark empty places.
-                    const Int no_element = n;
-
-                    Tensor1<Int,Int> parents ( n, no_element );
-                    
-                    // A vector for path compression.
-                    Tensor1<Int,Int> a ( n, no_element );
-                    
-                    ptr<LInt> A_diag  = A.Diag().data();
-                    ptr<LInt> A_outer = A.Outer().data();
-                    ptr< Int> A_inner = A.Inner().data();
-
-                    for( Int k = 1; k < n; ++k )
-                    {
-                        // We need visit all i < k with A_ik != 0.
-                        const LInt l_begin = A_outer[k];
-                        const LInt l_end   = A_diag [k];
-//                        const LInt l_end   = A_diag[k+1]-1;
-                        
-                        for( LInt l = l_begin; l < l_end; ++l )
-                        {
-                            Int i = A_inner[l];
-                            
-                            while( ( i != no_element ) && ( i < k ) )
-                            {
-                                Int j = a[i];
-                                
-                                a[i] = k;
-                                
-                                if( j == no_element )
-                                {
-                                    parents[i] = k;
-                                }
-                                i = j;
-                            }
-                        }
-                    }
-
-                    eTree = Tree<Int> ( std::move(parents), thread_count );
-                    
-//                    eTree = Tree<Int> ( parents, thread_count );
-
-                    eTree_initialized = true;
-                    
-                    ptoc(ClassName()+"::EliminationTree");
-                }
-                
-                return eTree;
-            }
-
-//###########################################################################################
-//####          Assembly tree
-//###########################################################################################
-            
-        protected:
-            
-            
-        public:
-            
-            const Tree<Int> & AssemblyTree()
-            {
-                SymbolicFactorization();
-                
-                return aTree;
-            }
-            
-            void CreateAssemblyTree()
-            {
-                ptic(ClassName()+"::CreateAssemblyTree");
-
-                const Tensor1<Int,Int> & parents = EliminationTree().Parents();
-
-                Tensor1<Int,Int> SN_parents ( SN_count );
-                
-                Tensor1<double,Int> SN_costs ( SN_count + 1 );
-
-                constexpr double factor = 1./6.;
-                
-                for( Int k = 0; k < SN_count-1; ++k )
-                {
-                    // Thus subtraction is safe as each supernode has at least one row.
-                    const Int last_row = SN_rp[k+1]-1;
-
-                    const Int last_rows_parent = parents[last_row];
-
-                    const Int parent = (last_rows_parent<n) ? row_to_SN[last_rows_parent] : SN_count;
-                    
-                    SN_parents[k] = parent;
-                    
-                    const Int n_0 =               SN_rp   [k+1] - SN_rp   [k];
-                    const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
-                    
-                    // This is just the cost for `trsm` and `potrf` in `FactorizeSupernode`!
-                    
-                    SN_costs[k] = ( n_0 * ( n_0 + 1 ) ) * ( ( n_0 + 2 ) * factor + 0.5 * n_1 );
-                    
-                    // TODO: Add estimate for costs for `herk` and `gemm` in `FetchFromDescendants`!
-                    // TODO: Add estimate for costs for `ComputeIntersection`!
-                }
-                
-                {
-                    const Int k = SN_count-1;
-                    
-                    SN_parents[SN_count-1] = SN_count;
-                    
-                    const Int n_0 =               SN_rp   [k+1] - SN_rp   [k];
-                    const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
-                    
-                    SN_costs[k] = ( n_0 * ( n_0 + 1 ) ) * ( ( n_0 + 2 ) * factor + 0.5 * n_1 );
-                    
-                }
-                
-                SN_costs[SN_count] = 0.;
-
-                aTree = Tree<Int> ( std::move(SN_parents), std::move(SN_costs), thread_count );
-//                aTree = Tree<Int> ( SN_parents, thread_count );
-
-                ptoc(ClassName()+"::CreateAssemblyTree");
-            }
-        
-            
+#include "CholeskyDecomposition/EliminationTree.hpp"
+#include "CholeskyDecomposition/AssemblyTree.hpp"
 #include "CholeskyDecomposition/InputOutput.hpp"
 #include "CholeskyDecomposition/Symbolic.hpp"
 #include "CholeskyDecomposition/Numeric.hpp"
@@ -537,4 +416,8 @@ namespace Tensors
 
 // DONE: Parallelize upper solve phase. (2023-06-26)
 
+// DONE: Parallelize lower solve phase. (2032-07-30)
 
+// DONE: User interface for lower/upper solves. (2032-07-30)
+
+// DONE: A_inner_perm seems to be a bit wasteful; we neither need the inverse permutation nor scratch. (2032-07-30)

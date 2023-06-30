@@ -573,10 +573,12 @@ namespace Tensors
         template<typename J>
         bool PermutationQ( ptr<J> p_ ) const
         {
-            ptic("PermutationQ");
+            std::string tag = ClassName() + "::PermutationQ";
+            
+            ptic(tag);
             if( (n == zero) || (n == one ) )
             {
-                ptoc("PermutationQ");
+                ptoc(tag);
                 return true;
             }
             
@@ -588,8 +590,8 @@ namespace Tensors
                 
                 if( (p_i < zero) || (p_i >= n) )
                 {
-                    wprint(ClassName()+"::PermutationQ: Input list p has value p["+ToString(i)+"] = "+ToString(p_i)+" out of range [0,"+ToString(n)+"[!");
-                    ptoc("PermutationQ");
+                    wprint(tag + ": Input list p has value p["+ToString(i)+"] = "+ToString(p_i)+" out of range [0,"+ToString(n)+"[!");
+                    ptoc(tag);
                     return false;
                 }
                 else
@@ -602,15 +604,15 @@ namespace Tensors
 
             if( m.first != one )
             {
-                eprint(ClassName()+"::PermutationQ: Input does not attain all values in range!");
+                eprint(tag + ": Input does not attain all values in range!");
             }
             
             if( m.second != one )
             {
-                eprint(ClassName()+"::PermutationQ: Input has duplicates!");
+                eprint(tag + ": Input has duplicates!");
             }
             
-            ptoc("PermutationQ");
+            ptoc(tag);
             
             return ( m.first == one ) && ( m.second == one );
         }
@@ -647,8 +649,8 @@ namespace Tensors
     
     
     
-    template<bool P_Trivial, bool Q_Trivial, bool Sort, typename LInt, typename Int>
-    Permutation<LInt> permutePatternCSR(
+    template<bool P_TrivialQ, bool Q_TrivialQ, bool SortQ, typename LInt, typename Int>
+    Tensor1<LInt,LInt> permutePatternCSR(
         Tensor1<LInt,Int> & outer,
         Tensor1<Int,LInt> & inner,
         const Permutation<Int> & P,  // row    permutation
@@ -657,7 +659,9 @@ namespace Tensors
         bool sort = true
     )
     {
-        ptic("PermutePatternCSR");
+        std::string tag = std::string("PermutePatternCSR<") + TypeName<LInt> + "," + TypeName<Int> + ">";
+        
+        ptic(tag);
         
         const Int m = P.Size();
 
@@ -668,15 +672,17 @@ namespace Tensors
 
         Tensor1<LInt, Int> new_outer ( m+1 );
         Tensor1< Int,LInt> new_inner ( nnz );
-        Permutation<LInt>  perm      ( nnz, thread_count );
+        
+        Tensor1<LInt,LInt> perm ( nnz );
 
-        if constexpr ( P_Trivial && Q_Trivial )
+        if constexpr ( P_TrivialQ && Q_TrivialQ )
         {
-            ptoc("PermutePatternCSR");
+            ptoc(tag);
+            perm.iota();
             return perm;
         }
             
-        if constexpr ( P_Trivial )
+        if constexpr ( P_TrivialQ )
         {
             swap( outer, new_outer );
         }
@@ -696,29 +702,29 @@ namespace Tensors
 
             parallel_accumulate( new_outer.data(), m+1, thread_count );
         }
-
-        mut<LInt> scratch = perm.Scratch().data();
+        
+        mut<LInt> scratch = perm.data();
 
         JobPointers<Int> job_ptr ( m, new_outer.data(), thread_count );
         
         ParallelDo(
             [&,scratch]( const Int thread )
             {
-                TwoArrayQuickSort<Int,LInt,Int> quick_sort;
+                TwoArraySort<Int,LInt,Int> S;
                 
                 const Int i_begin = job_ptr[thread  ];
                 const Int i_end   = job_ptr[thread+1];
                 
                 for( Int i = i_begin; i < i_end; ++i )
                 {
-                    const LInt begin = outer[ COND( P_Trivial, i, p[i] ) ];
+                    const LInt begin = outer[ COND( P_TrivialQ, i, p[i] ) ];
                     
                     const LInt new_begin = new_outer[i  ];
                     const LInt new_end   = new_outer[i+1];
                     
                     const LInt k_max = new_end - new_begin;
                     
-                    if constexpr ( Q_Trivial )
+                    if constexpr ( Q_TrivialQ )
                     {
                         copy_buffer( &inner[begin], &new_inner[new_begin], k_max );
                         
@@ -735,9 +741,9 @@ namespace Tensors
                             scratch  [new_begin+k] = begin+k;
                         }
                         
-                        if constexpr ( Sort )
+                        if constexpr ( SortQ )
                         {
-                            quick_sort( &new_inner[new_begin], &scratch [new_begin], static_cast<Int>(k_max) );
+                            S( &new_inner[new_begin], &scratch [new_begin], static_cast<Int>(k_max) );
                         }
                     }
                 }
@@ -748,15 +754,13 @@ namespace Tensors
         swap( outer, new_outer );
         swap( inner, new_inner );
         
-        perm.SwapScratch( Inverse::False );
-        
-        ptoc("PermutePatternCSR");
+        ptoc(tag);
 
         return perm;
     }
     
     template<typename Int, typename LInt>
-    Permutation<LInt> PermutePatternCSR(
+    Tensor1<LInt,LInt> PermutePatternCSR(
         Tensor1<LInt,Int> & outer,
         Tensor1<Int,LInt> & inner,
         const Permutation<Int> & P,  // row    permutation

@@ -19,14 +19,22 @@ public:
         SymbolicFactorization();
 
         reg = reg_;
-        A_inner_perm.Permute( A_val_, A_val.data(), Inverse::False );
+//        A_inner_perm.Permute( A_val_, A_val.data(), Inverse::False );
         
-        ptic("Zerofy buffers.");
+        ParallelDo(
+            [&]( const LInt i )
+            {
+                A_val[i] = static_cast<Scal>(A_val_[A_inner_perm[i]]);
+            },
+            A_inner_perm.Size(), static_cast<LInt>(thread_count)
+        );
+        
+        ptic(tag + ": Zerofy buffers.");
         SN_tri_val.SetZero( thread_count );
         SN_rec_val.SetZero( thread_count );
-        ptoc("Zerofy buffers.");
+        ptoc(tag + ": Zerofy buffers.");
         
-        ptic("Initialize factorizers");
+        ptic(tag + ": Initialize factorizers");
         
         std::vector<std::unique_ptr<Factorizer>> SN_list (thread_count);
         
@@ -38,7 +46,7 @@ public:
             thread_count
         );
         
-        ptoc("Initialize factorizers");
+        ptoc(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
         aTree.template Traverse_Postordered<Parallel>( SN_list  );

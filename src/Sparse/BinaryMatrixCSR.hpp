@@ -274,9 +274,9 @@ namespace Tensors
             
         public:
             
-            Permutation<LInt> Permute(
-                const Permutation<Int> & p,  // row    permutation
-                const Permutation<Int> & q   // column permutation
+            Tensor1<LInt,LInt> Permute(
+                const Permutation<Int> & p,     // row    permutation
+                const Permutation<Int> & q      // column permutation
             )
             {
                 ptic(ClassName()+"::Permute");
@@ -289,7 +289,7 @@ namespace Tensors
                 this->upper_triangular_job_ptr_initialized = false;
                 this->lower_triangular_job_ptr_initialized = false;
                 
-                Permutation<LInt> perm = PermutePatternCSR( outer, inner, p, q, inner.Size(), true );
+                Tensor1<LInt,LInt> perm = PermutePatternCSR( outer, inner, p, q, inner.Size(), true );
                 
                 ptoc(ClassName()+"::Permute");
                 

@@ -540,7 +540,7 @@ namespace Tensors
                         ParallelDo(
                             [=]( const Int thread )
                             {
-                                TwoArrayQuickSort<Int,Scal,LInt> quick_sort;
+                                TwoArraySort<Int,Scal,LInt> S;
                                 
                                 const Int i_begin = job_ptr[thread  ];
                                 const Int i_end   = job_ptr[thread+1];
@@ -549,7 +549,7 @@ namespace Tensors
                                 {
                                     const LInt begin = outer[i  ];
                                     const LInt end   = outer[i+1];
-                                    quick_sort( inner.data(begin), values.data(begin), end - begin );
+                                    S( inner.data(begin), values.data(begin), end - begin );
                                 }
                             },
                             thread_count
@@ -707,7 +707,7 @@ namespace Tensors
             MatrixCSR Permute(
                 const Tensor1<Int,Int> & p,
                 const Tensor1<Int,Int> & q,
-                bool sort = true
+                bool sortQ = true
             )
             {
                 if( p.Dimension(0) != m )
@@ -722,10 +722,10 @@ namespace Tensors
                     return MatrixCSR();
                 }
                 
-                Permute( p.data(), q.data(), sort );
+                Permute( p.data(), q.data(), sortQ );
             }
             
-            MatrixCSR Permute( ptr<Int> p, ptr<Int> q, bool sort = true )
+            MatrixCSR Permute( ptr<Int> p, ptr<Int> q, bool sortQ = true )
             {
                 if( p == nullptr )
                 {
@@ -736,7 +736,7 @@ namespace Tensors
                     }
                     else
                     {
-                        return PermuteCols(q,sort);
+                        return PermuteCols(q,sortQ);
                     }
                 }
                 else
@@ -746,7 +746,7 @@ namespace Tensors
                     }
                     else
                     {
-                        return PermuteRowsCols(p,q,sort);
+                        return PermuteRowsCols(p,q,sortQ);
                     }
             }
             
@@ -811,7 +811,7 @@ namespace Tensors
                 return B;
             }
             
-            MatrixCSR PermuteCols( ptr<Int> q, bool sort = true )
+            MatrixCSR PermuteCols( ptr<Int> q, bool sortQ = true )
             {
                 MatrixCSR B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
                 
@@ -833,7 +833,7 @@ namespace Tensors
                 ParallelDo(
                     [=,&B]( const Int thread )
                     {
-                        TwoArrayQuickSort<Int,Scal,LInt> quick_sort;
+                        TwoArraySort<Int,Scal,LInt> S;
                         
 //                            ptr<LInt> A_outer  = outer.data();
                         ptr<Int > A_inner  = inner.data();
@@ -860,9 +860,9 @@ namespace Tensors
                             
                             copy_buffer( &A_values[B_begin], &B_values[B_begin], k_max );
                             
-                            if( sort )
+                            if( sortQ )
                             {
-                                quick_sort( &B_inner[B_begin], &B_values[B_begin], k_max );
+                                S( &B_inner[B_begin], &B_values[B_begin], k_max );
                                 B.inner_sorted = true;
                             }
                         }
@@ -873,7 +873,7 @@ namespace Tensors
                 return B;
             }
             
-            MatrixCSR PermuteRowsCols( ptr<Int> p, ptr<Int> q, bool sort = true )
+            MatrixCSR PermuteRowsCols( ptr<Int> p, ptr<Int> q, bool sortQ = true )
             {
                 MatrixCSR B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
                 
@@ -920,7 +920,7 @@ namespace Tensors
                         mut<Int > B_inner  = B.Inner().data();
                         mut<Scal> B_values = B.Values().data();
                         
-                        TwoArrayQuickSort<Int,Scal,LInt> quick_sort;
+                        TwoArraySort<Int,Scal,LInt> S;
                         
                         const Int i_begin = B.JobPtr()[thread  ];
                         const Int i_end   = B.JobPtr()[thread+1];
@@ -943,9 +943,9 @@ namespace Tensors
                             
                             copy_buffer( &A_values[A_begin], &B_values[B_begin], k_max );
                             
-                            if( sort )
+                            if( sortQ )
                             {
-                                quick_sort( &B_inner[B_begin], &B_values[B_begin], k_max );
+                                S( &B_inner[B_begin], &B_values[B_begin], k_max );
                                 B.inner_sorted = true;
                             }
                         }

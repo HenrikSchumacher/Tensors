@@ -773,7 +773,7 @@ namespace Tensors
                         ParallelDo(
                             [this]( const Int i )
                             {
-                                Sort( &inner[outer[i]], &inner[outer[i+1]] );
+                                Sort( &inner[outer[i]], &inner[outer[i+1]], std::less<LInt>() );
                             },
                             job_ptr
                         );

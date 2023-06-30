@@ -16,7 +16,9 @@ public:
 
         if( !SN_initialized )
         {
-            ptic(ClassName()+"::SymbolicFactorization");
+            
+            std::string tag = ClassName()+"::SymbolicFactorization";
+            ptic(tag);
 
             (void)PostOrdering();
 
@@ -25,7 +27,7 @@ public:
             Tensor1<Int,Int> row_scratch (n); // Some scratch space for UniteSortedBuffers.
             Int n_1;  // Holds the current number of indices in row.
 
-            // TODO: Fix this to work with singed integers.
+            // TODO: Fix this to work with unsinged integers.
             Tensor1<Int,Int> prev_col_nz(n,-1);
 
             // i-th row of U belongs to supernode row_to_SN[i].
@@ -50,10 +52,10 @@ public:
             SN_count     = 0;
             
             // TODO: Should be parallelizable by processing subtrees of elimination tree in parallel.
-            // TODO: Even better: Build aTree first (we need only to knoe the fundamental rows for that). Then collect SN_inner by tranversing aTree in parellel.
+            // TODO: Even better: Build aTree first (we need only to know the fundamental rows for that). Then collect SN_inner by tranversing aTree in parellel.
             // TODO: --> Can we precompute somehow the size of SN_inner_agg? That would greatly help to reduce copy ops and to schedule its generation.
             
-            ptic("Main loop");
+            ptic(tag + ": Main loop");
             for( Int i = 1; i < n+1; ++i ) // Traverse rows.
             {
                 if( FundamentalQ( i, prev_col_nz ) )
@@ -133,28 +135,26 @@ public:
                 }
                 
             } // for( Int i = 0; i < n+1; ++i )
-            ptoc("Main loop");
+            ptoc(tag + ": Main loop");
 
-            ptic("Finalization");
+            ptic(tag + ": Finalization");
             
             SN_rp.Resize( SN_count+1 );
             SN_outer.Resize( SN_count+1 );
             
-            ptic("SN_inner_agg.Get()");
             SN_inner = std::move(SN_inner_agg.Get());
 
             SN_inner_agg = Aggregator<Int, LInt>(0);
-            ptoc("SN_inner_agg.Get()");
 
             SN_Allocate();
 
             CreateAssemblyTree();
             
-            ptoc("Finalization");
+            ptoc(tag + ": Finalization");
             
             SN_initialized = true;
             
-            ptoc(ClassName()+"::SymbolicFactorization");
+            ptoc(tag);
         }
     }
 
@@ -177,7 +177,7 @@ protected:
         {
             // Warning: Taking differences of potentially signed numbers.
             // Should not be of concern because negative numbers appear here only if something went wrong upstream.
-            const Int n_0 =                  SN_rp   [k+1] - SN_rp   [k];
+            const Int n_0 =               SN_rp   [k+1] - SN_rp   [k];
             const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
 
             max_n_0 = std::max( max_n_0, n_0 );

@@ -487,6 +487,8 @@ namespace Tensors
                                 else // IL_len == ione
                                 {
                                     C_1[0] = 0;
+                                    
+
                                     for( Int i = 0; i < m_0; ++i )
                                     {
                                         C_1[0] -= Scalar::Conj(B_0[i]) * B_1[i];

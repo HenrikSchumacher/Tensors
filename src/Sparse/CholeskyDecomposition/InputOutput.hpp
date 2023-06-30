@@ -197,7 +197,7 @@ public:
         return perm;
     }
 
-    const Permutation<LInt> & GetValuePermutation() const
+    const Tensor1<LInt,LInt> & GetValuePermutation() const
     {
         return A_inner_perm;
     }
