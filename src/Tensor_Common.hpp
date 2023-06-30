@@ -362,6 +362,17 @@ force_inline TENSOR_T & operator+=( const TENSOR_T<T,I> & b )
     return *this;
 }
 
+template<typename T, typename I>
+force_inline TENSOR_T & operator-=( const TENSOR_T<T,I> & b )
+{
+    const Size_T m = std::min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
+    combine_buffers<Scalar::Flag::Minus, Scalar::Flag::Plus>(
+        -Scalar::One<T>, b.data(), Scalar::One<T>, a, m
+    );
+    
+    return *this;
+}
+
 template<class T>
 force_inline TENSOR_T & operator*=( const T alpha )
 {
