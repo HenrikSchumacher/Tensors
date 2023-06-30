@@ -16,10 +16,6 @@ public:
        
         ptic(tag);
         
-//        dump(openblas_get_num_threads());
-//        openblas_set_num_threads(1);
-//        dump(openblas_get_num_threads());
-        
         SymbolicFactorization();
 
         reg = reg_;
@@ -31,6 +27,7 @@ public:
         ptoc("Zerofy buffers.");
         
         ptic("Initialize factorizers");
+        
         std::vector<std::unique_ptr<Factorizer>> SN_list (thread_count);
         
         ParallelDo(
@@ -44,7 +41,7 @@ public:
         ptoc("Initialize factorizers");
         
         // Parallel traversal in postorder
-        aTree.template Traverse_Postordered<Parallel>( SN_list, tree_top_depth );
+        aTree.template Traverse_Postordered<Parallel>( SN_list  );
         
         SN_factorized = true;
         

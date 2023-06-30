@@ -56,7 +56,7 @@ namespace Tensors
             ptr<LInt>       SN_rec_ptr;
             mut<Scal>       SN_rec_val;
             
-            ptr<Int>         desc_counts;
+            ptr<Int>        desc_counts;
             
             
             // local data
@@ -218,15 +218,11 @@ namespace Tensors
                 const  Int n_0     = i_end - i_begin;
                 const  Int n_1     = int_cast<Int>(l_end - l_begin);
                 
-                assert_positive(n_0);
                 
-                if( n_0 <= izero )
-                {
-                    eprint("n_0<=0");
-                    dump(s);
-                    dump(SN_rp[s  ]);
-                    dump(SN_rp[s+1]);
-                }
+                debug_assert(
+                    n_0 > izero,
+                    ClassName()+": Empty supernode " + ToString(s)+ " detected."
+                );
                 
                 // U_0 is interpreted as an upper triangular matrix of size n_0 x n_0.
                 // U_1 is interpreted as a  rectangular      matrix of size n_0 x n_1.
@@ -239,12 +235,13 @@ namespace Tensors
                 // We assume that the descendants of s are already factorized.
                 // Since aTree is postordered, we can exploit that all descendants of s lie
                 // contiguously in memory directly before s.
-                const Int t_begin = (s + 1) - desc_counts[s] ;
+                const Int t_begin = s - desc_counts[s];
                 const Int t_end   = s;
                 
                 // TODO: This could be parallelized by adding into local buffers V_0 and V_1 and reducing them into U_0 and U_1.
-                FetchFromDescendants( s, t_begin, t_end, n_0, n_1, U_0, U_1 );
                 
+                FetchFromDescendants( s, t_begin, t_end, n_0, n_1, U_0, U_1 );
+//
                 FactorizeSupernode( n_0, n_1, U_0, U_1 );
             }
             
@@ -305,6 +302,7 @@ namespace Tensors
                         {
                             col_l = SN_inner[++l];
                         }
+                        
                         U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scal>(A_val[k]);
                     }
                 }
@@ -355,7 +353,7 @@ namespace Tensors
                                 // scatter-read t_rec[i,IL_pos] into B_0[i,:].
                                 scatter_read_combine<Scalar::Flag::Generic,Scalar::Flag::Generic>(
                                     one,  &t_rec[m_1 * i],  IL_pos,
-                                    zero, &B_0[IL_len * i], IL_len
+                                    zero, &B_0[IL_len * i],         IL_len
                                 );
                             }
                             
@@ -398,7 +396,7 @@ namespace Tensors
                                 // scatter-read t_rec[i,JL_pos] into B_1[i,:],
                                 scatter_read_combine<Scalar::Flag::Generic,Scalar::Flag::Generic>(
                                     one,  &t_rec[m_1 * i],  JL_pos,
-                                    zero, &B_1[JL_len * i], JL_len
+                                    zero, &B_1[JL_len * i],         JL_len
                                 );
                                 
                             }
@@ -469,15 +467,18 @@ namespace Tensors
                             _tic();
                             // Row-col-scatter-add C_1 into U_1,
                             // where U_1 is a matrix of size n_0 x n_1.
-                            for( Int i = 0; i < IL_len; ++i )
+                            if( JL_len > izero )
                             {
-                                mut<Scal> U_1_i = &U_1[n_1 * II_pos[i]];
-                                ptr<Scal> C_1_i = &C_1[JL_len * i];
-                                
-                                combine_scatter_write<Scalar::Flag::Plus,Scalar::Flag::Plus>(
-                                    one, C_1_i,
-                                    one, U_1_i, JJ_pos, JL_len
-                                );
+                                for( Int i = 0; i < IL_len; ++i )
+                                {
+                                    mut<Scal> U_1_i = &U_1[n_1 * II_pos[i]];
+                                    ptr<Scal> C_1_i = &C_1[JL_len * i];
+                                    
+                                    combine_scatter_write<Scalar::Flag::Plus,Scalar::Flag::Plus>(
+                                        one, C_1_i,
+                                        one, U_1_i, JJ_pos, JL_len
+                                    );
+                                }
                             }
                             scatter_time += _toc();
                         }
@@ -490,15 +491,17 @@ namespace Tensors
 //                        {
 //                            B_0[j] = t_rec[IL_pos[j]];
 //                        }
-//
-                        scatter_read_combine<Scalar::Flag::Plus,Scalar::Flag::Zero>(
-                            one,  t_rec, IL_pos,
-                            zero, B_0,            IL_len
-                        );
+                        
+                        if( IL_len > izero )
+                        {
+                            scatter_read_combine<Scalar::Flag::Plus,Scalar::Flag::Zero>(
+                                one,  t_rec, IL_pos,
+                                zero, B_0,            IL_len
+                            );
+                        }
                         
                         if( JL_len > izero )
                         {
-                            
                             scatter_read_combine<Scalar::Flag::Plus,Scalar::Flag::Zero>(
                                 one,  t_rec, JL_pos,
                                 zero, B_1,            JL_len
@@ -542,6 +545,11 @@ namespace Tensors
             {
                 _tic();
                 
+                debug_assert(
+                    n_0 > izero,
+                    ClassName()+"::FactorizeSupernode: Empty supernode detected."
+                );
+                
                 if( n_0 > ione )
                 {
                     // Cholesky factorization of U_0
@@ -569,7 +577,10 @@ namespace Tensors
                 {
                     U_0[0] = std::sqrt( std::abs(U_0[0]) );
                     
-                    scale_buffer( Scalar::Inv<Scal>(U_0[0]), U_1, n_1 );
+                    if( n_1 > izero )
+                    {
+                        scale_buffer<VarSize,Sequential>( Scalar::Inv<Scal>(U_0[0]), U_1, n_1 );
+                    }
                     
 //                    BLAS::scal( n_1, Scalar::Inv<Scal>(U_0[0]), 1, U_1, 1);
                 }

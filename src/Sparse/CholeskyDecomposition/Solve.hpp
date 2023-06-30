@@ -5,12 +5,12 @@
 //###########################################################################################
     
 public:
-    
+
     template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
-    void Solve( ptr<ExtScal> B, mut<ExtScal> X_, const Int nrhs_ = ione )
+    void Solve( ptr<ExtScal> B, mut<ExtScal> X_out, const Int nrhs_ = ione )
     {
         const std::string tag = ClassName() + "::Solve<"
-            + (parQ == Parallel ? "par" : "seq") + ","
+            + (parQ == Parallel ? "Parallel" : "Sequential") + ","
             + ( op==Op::Id ? "N" : (op==Op::Trans ? "T" : (op==Op::ConjTrans ? "H" : "N/A" ) ) ) + ","
             + TypeName<ExtScal>
             + "> ( " + ToString(nrhs_) + " )";
@@ -24,8 +24,6 @@ public:
         
         ReadRightHandSide( B, nrhs_ );
         
-        // TODO: The `LowerSolver` does not seem to work correctly. Why is that?
-        
         if( nrhs == ione )
         {
             SN_Solve<false,parQ,op>();
@@ -35,11 +33,67 @@ public:
             SN_Solve<true, parQ,op>();
         }
         
-        WriteSolution( X_ );
+        WriteSolution( X_out );
         
         ptoc(tag);
     }
 
+
+    template<Parallel_T parQ = Sequential, typename ExtScal>
+    void UpperSolve( ptr<ExtScal> B, mut<ExtScal> X_out, const Int nrhs_ = ione )
+    {
+        const std::string tag = ClassName() + "::UpperSolve<"
+            + (parQ == Parallel ? "Parallel" : "Sequential") + ","
+            + TypeName<ExtScal>
+            + "> ( " + ToString(nrhs_) + " )";
+
+        ptic(tag);
+        // No problem if X_ and B overlap, since we load B into X anyways.
+        
+        ReadRightHandSide( B, nrhs_ );
+        
+        if( nrhs == ione )
+        {
+            SN_UpperSolve<false,parQ>();
+        }
+        else
+        {
+            SN_UpperSolve<true, parQ>();
+        }
+        
+        WriteSolution( X_out );
+        
+        ptoc(tag);
+    }
+
+template<Parallel_T parQ = Sequential, typename ExtScal>
+void LowerSolve( ptr<ExtScal> B, mut<ExtScal> X_out, const Int nrhs_ = ione )
+{
+    const std::string tag = ClassName() + "::LowerSolve<"
+        + (parQ == Parallel ? "Parallel" : "Sequential") + ","
+        + TypeName<ExtScal>
+        + "> ( " + ToString(nrhs_) + " )";
+    
+    ptic(tag);
+    // No problem if X_ and B overlap, since we load B into X anyways.
+    
+    ReadRightHandSide( B, nrhs_ );
+    
+    if( nrhs == ione )
+    {
+        SN_LowerSolve<false,parQ>();
+    }
+    else
+    {
+        SN_LowerSolve<true, parQ>();
+    }
+    
+    WriteSolution( X_out );
+    
+    
+    
+    ptoc(tag);
+}
 
 //###########################################################################################
 //####          Supernodal back substitution, both parallel and sequential
@@ -72,7 +126,7 @@ protected:
         
         using Solver_T = UpperSolver<mult_rhsQ,Scal,Int,LInt>;
         
-        const std::string tag = ClassName() + "::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "par" : "seq") + "> ( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName() + "::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
         ptic(tag);
         
@@ -84,21 +138,23 @@ protected:
             return;
         }
         
+        const Int use_threads = ( parQ== Parallel) ? thread_count : 1;
+        
         ptic("Initialize solvers");
-        std::vector<std::unique_ptr<Solver_T>> F_list (thread_count);
+        std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
         
         Do<VarSize,parQ>(
             [&F_list,this]( const Int thread )
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );
             },
-            thread_count, thread_count
+                         use_threads, use_threads
         );
         ptoc("Initialize solvers");
         
         // Parallel traversal in preorder
         
-        aTree.template Traverse_Preordered<parQ>( F_list, tree_top_depth );
+        aTree.template Traverse_Preordered<parQ>( F_list );
         
         ptoc(tag);
     }
@@ -109,10 +165,9 @@ protected:
         // Solves L * X = B and stores the result back into B.
         // Assumes that B has size n x rhs_count.
         
-//        using Solver_T = LowerSolver<mult_rhsQ,COND(parQ == Parallel,true,false),Scal,Int,LInt>;
-        using Solver_T = LowerSolver<mult_rhsQ,false,Scal,Int,LInt>;
+        using Solver_T = LowerSolver<mult_rhsQ,COND( parQ == Parallel,true,false),Scal,Int,LInt>;
         
-        const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "par" : "seq") + "> ( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
         ptic(tag);
 
@@ -125,20 +180,22 @@ protected:
             return;
         }
         
+        const Int use_threads = ( parQ== Parallel) ? thread_count : 1;
+        
         ptic("Initialize solvers");
-        std::vector<std::unique_ptr<Solver_T>> F_list (thread_count);
+        std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
         
         Do<VarSize,parQ>(
             [&F_list,this]( const Int thread )
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );
             },
-            thread_count, thread_count
+            use_threads, use_threads
         );
         ptoc("Initialize solvers");
         
         // Parallel traversal in postorder
-        aTree.template Traverse_Postordered<parQ>( F_list, tree_top_depth );
+        aTree.template Traverse_Postordered<parQ>( F_list );
         
         ptoc(tag);
     }

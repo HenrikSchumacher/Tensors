@@ -147,7 +147,7 @@ namespace Tensors
         ,   is_trivial        ( other.is_trivial        )
         ,   p_computed        ( other.p_computed        )
         ,   p_inv_computed    ( other.p_inv_computed    )
-        ,   is_valid          ( other.valid             )
+        ,   is_valid          ( other.is_valid          )
         {}
         
         // We could also simply use the implicitly created copy constructor.
@@ -435,7 +435,7 @@ namespace Tensors
         {
             // Permute a chunkwise into b, i.e., b[size*i+k] <- a[size*p[i]+k];
             
-            std::string tag = ClassName()+"::Permute ( " + (inverseQ == Inverse::True ? "inv, " : "id, " ) + ToString(chunk) + ")";
+            std::string tag = ClassName()+"::Permute ( " + (inverseQ == Inverse::True ? "inv, " : "id, " ) + ToString(chunk) + " )";
             
             ptic(tag);
             

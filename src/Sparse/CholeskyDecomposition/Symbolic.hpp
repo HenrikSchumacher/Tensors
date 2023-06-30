@@ -137,9 +137,6 @@ public:
 
             ptic("Finalization");
             
-
-            pdump(SN_count);
-            
             SN_rp.Resize( SN_count+1 );
             SN_outer.Resize( SN_count+1 );
             
@@ -213,7 +210,7 @@ protected:
         //
         // to determine whether a new fundamental supernode starts at node u.
         
-        bool is_fundamental = ( i == n ); // We make virtual root vertes fundamental, so that the main loop finishes off the last nonvirtual supernode correctly.
+        bool is_fundamental = ( i == n ); // We make virtual root vertex fundamental, so that the main loop finishes off the last nonvirtual supernode correctly.
         
         is_fundamental = is_fundamental || ( eTree.ChildCount(i) > 1);
         

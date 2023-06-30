@@ -97,12 +97,12 @@ namespace Tensors
             using Factorizer         = CholeskyFactorizer<Scal,Int,LInt>;
             
             friend Factorizer;
-            friend class UpperSolver<false,      Scal,Int,LInt>;
-            friend class UpperSolver<true,       Scal,Int,LInt>;
-            friend class LowerSolver<false,true, Scal,Int,LInt>;
-            friend class LowerSolver<true, true, Scal,Int,LInt>;
+            friend class UpperSolver<false,Scal,Int,LInt>;
+            friend class UpperSolver<true, Scal,Int,LInt>;
             friend class LowerSolver<false,false,Scal,Int,LInt>;
             friend class LowerSolver<true, false,Scal,Int,LInt>;
+            friend class LowerSolver<false,true, Scal,Int,LInt>;
+            friend class LowerSolver<true, true, Scal,Int,LInt>;
             
             using VectorContainer_T = Tensor1<Scal,LInt>;
 

@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Correct move and copy constructors...
+
 // TODO: Traverse_Preordered_Parallel.
 
 // TODO: Improve load balancing.
@@ -11,6 +13,7 @@ namespace Tensors
     template<typename Int>
     class Tree
     {
+        
     protected:
         
         Int n; // The number of vertices, _including_ the virtual root vertex.
@@ -18,13 +21,15 @@ namespace Tensors
         Int thread_count;
 
         Tensor1<Int,Int> parents;
+        Tensor1<Int,Int> node_to_level;
+        Tensor1<Int,Int> node_to_split_level;
         
         Tensor1<double,Int> costs;
-        Tensor1<double,Int> acc_costs;
+        Tensor1<double,Int> desc_costs;
         
         Sparse::BinaryMatrixCSR<Int,Int> A;       // The adjacency matrix of the directed graph.
         
-        Tensor1<Int,Int> descendant_counts;
+        Tensor1<Int,Int> desc_counts;
         
         Permutation<Int> post;                  // To store the postordering.
         
@@ -32,7 +37,19 @@ namespace Tensors
 
         static constexpr Int zero = 0;
         static constexpr Int one  = 1;
+        
+        
+        std::vector<std::vector<Int>> tree_top_levels;
+        
+        std::vector<Int> tree_top_vertices;
+        
+        std::vector<Int> subtrees;
+        
+        mutable Tensor1<Int,Int> check_list;
 
+        Int max_depth = 0;
+        Int max_split_depth = 0;
+        
     public:
         
         Tree() = default;
@@ -48,7 +65,6 @@ namespace Tensors
         ,   thread_count      ( thread_count_       )
         ,   parents           ( std::move(parents_) )
         ,   costs             ( n, 1.               )
-        ,   descendant_counts ( n                   )
         {
             ptic(ClassName());
             Init();
@@ -65,113 +81,10 @@ namespace Tensors
         ,   thread_count      ( thread_count_       )
         ,   parents           ( std::move(parents_) )
         ,   costs             ( std::move(costs_)   )
-        ,   descendant_counts ( n                   )
         {
             ptic(ClassName());
             Init();
             ptoc(ClassName());
-        }
-        
-        
-    protected:
-        
-        void Init()
-        {
-            // Next we build the adjacency matrix A of the tree.
-
-            post = Permutation<Int> ( n-1, thread_count );
-
-            mut<Int> p = post.Scratch().data();
-            
-            {
-                Int list_count       = 1;
-                Int entry_counts [1] = {n-1};
-                
-                const Int * idx_data = parents.data();
-                const Int * jdx_data = post.GetPermutation().data(); // This is a iota.
-                
-                A = Sparse::BinaryMatrixCSR<Int,Int> (
-                    &idx_data,
-                    &jdx_data,
-                    &entry_counts[0],
-                    list_count, n, n, thread_count, false, 0
-                );
-            }
-            
-            // Compute postordering and descendant counts.
-            Int counter = 0;
-            Int tree_top_depth = 0;
-            
-            Tensor1<Int, Int> node_to_depth (n, one);
-            
-            node_to_depth[Root()] = 0;
-
-            acc_costs = costs;
-            
-            Traversal_Postordered_Sequential(
-                [this, &node_to_depth, &tree_top_depth]( const Int node )
-                {
-                    const Int depth = node_to_depth[node]+1;
-                    
-                    tree_top_depth = std::max(tree_top_depth, depth);
-
-                    for( Int k = ChildPointer(node); k < ChildPointer(node+1); ++k )
-                    {
-                        node_to_depth[ChildIndex(k)] = depth;
-                    }
-                }
-                ,
-                [this, &counter, p]( const Int node )
-                {
-                    p[counter++] = node;
-
-                    Int sum = 1; // The node itself is also counted as its own descendant.
-                    double cost = 0.; // costs[node] has already been filled.
-                    
-                    for( Int k = ChildPointer(node); k < ChildPointer(node+1); ++k )
-                    {
-                        const Int child = ChildIndex(k);
-                        sum  += descendant_counts[child];
-                        cost += acc_costs[child];
-                    }
-                    descendant_counts[node]  = sum;
-                    acc_costs        [node] += cost;
-                }
-                ,
-                []( const Int node ) {}
-            );
-            
-            descendant_counts[Root()] = 1;
-            
-            {
-                Int list_count       = 1;
-                Int entry_counts [1] = {n-1};
-                                
-                const Int * idx_data = node_to_depth.data();
-                const Int * jdx_data = post.GetPermutation().data(); // This is still a iota.
-                
-                levels = Sparse::BinaryMatrixCSR<Int,Int> (
-                    &idx_data,
-                    &jdx_data,
-                    &entry_counts[0],
-                    list_count, tree_top_depth+1, n, thread_count, true, 0
-                );
-            }
-            
-            for( Int k = ChildPointer(Root()+1); k --> ChildPointer(Root()); )
-            {
-                const Int child = ChildIndex(k);
-                descendant_counts[Root()] += descendant_counts[child];
-                acc_costs[Root()]         += acc_costs        [child];
-            }
-
-            // Now post.Scratch() contains the post ordering.
-            
-            post.SwapScratch( Inverse::False );
-            
-            // Now post.GetPermutation() contains the post ordering.
-
-//            print( post.GetPermutation().ToString() );
         }
         
     public:
@@ -182,15 +95,18 @@ namespace Tensors
         ,   thread_count      ( other.thread_count      )
         ,   A                 ( other.A                 )
         ,   parents           ( other.parents           )
-        ,   descendant_counts ( other.descendant_counts )
+        ,   desc_counts       ( other.desc_counts )
         ,   post              ( other.post              )
         ,   costs             ( other.costs             )
-        ,   acc_costs         ( other.acc_costs         )
+        ,   desc_costs        ( other.desc_costs  )
         ,   levels            ( other.levels            )
+        ,   tree_top_vertices ( other.tree_top_vertices )
+        ,   subtrees          ( other.subtrees          )
+        ,   tree_top_levels   ( other.tree_top_levels   )
         {}
-        
+
         // We could also simply use the implicitly created copy constructor.
-        
+
         friend void swap (Tree &X, Tree &Y ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
@@ -200,13 +116,16 @@ namespace Tensors
             swap( X.thread_count,      Y.thread_count      );
             swap( X.parents,           Y.parents           );
             swap( X.A,                 Y.A                 );
-            swap( X.descendant_counts, Y.descendant_counts );
+            swap( X.desc_counts, Y.desc_counts );
             swap( X.post,              Y.post              );
             swap( X.costs,             Y.costs             );
-            swap( X.acc_costs,         Y.acc_costs         );
+            swap( X.desc_costs,  Y.desc_costs  );
             swap( X.levels,            Y.levels            );
+            swap( X.tree_top_vertices, Y.tree_top_vertices );
+            swap( X.subtrees,          Y.subtrees          );
+            swap( X.tree_top_levels,   Y.tree_top_levels   );
         }
-        
+
         // Copy assignment operator
         Tree & operator=(Tree other)
         {
@@ -237,12 +156,12 @@ namespace Tensors
         
         const Tensor1<Int,Int> & DescendantCounts() const
         {
-            return descendant_counts;
+            return desc_counts;
         }
         
         force_inline Int DescendantCount( const Int i ) const
         {
-            return descendant_counts[i];
+            return desc_counts[i];
         }
         
         const Tensor1<Int,Int> & ChildPointers() const
@@ -308,9 +227,19 @@ namespace Tensors
             return costs;
         }
         
-        const Tensor1<double,Int> & AccumulatedCosts() const
+        const Tensor1<double,Int> & DescendantCosts() const
         {
-            return acc_costs;
+            return desc_costs;
+        }
+        
+        const std::vector<Int> & TreeTopVertices() const
+        {
+            return tree_top_vertices;
+        }
+        
+        const std::vector<Int> & SubtreeRoots() const
+        {
+            return subtrees;
         }
         
         bool PostOrderedQ() const
@@ -320,11 +249,11 @@ namespace Tensors
                 {
                     const Int p_i = parents[i];
 
-                    return (i < p_i) && (i >= p_i + one - DescendantCount(p_i) );
+                    return (i < p_i) && (i >= p_i - DescendantCount(p_i) );
                 },
                 AndReducer(),
                 true,
-                zero, n-1, thread_count
+                zero, Root(), thread_count
             );
         }
         
@@ -334,77 +263,30 @@ namespace Tensors
             return n-1;
         }
         
-        // Sequential postorder traversal. Meant to be used only for initialization and for reference purposes.
-        template<class Lambda_PreVisit, class Lambda_PostVisit, class Lambda_LeafVisit>
-        void Traversal_Postordered_Sequential(
-            Lambda_PreVisit  pre_visit,
-            Lambda_PostVisit post_visit,
-            Lambda_LeafVisit leaf_visit,
-            const Int tree_top_depth = std::numeric_limits<Int>::max()
-        )
-        {
-            ptic(ClassName()+"::Traversal_Postordered_Sequential");
-            
-            Tensor1<Int, Int> stack   ( n );
-            Tensor1<Int, Int> depth   ( n );
-            Tensor1<bool,Int> visited ( n, false );
-            
-            Int i = -1; // stack pointer
-
-            // Push the children of the root onto stack. The root itself is not to be processed.
-            for( Int k = ChildPointer(Root()+1); k --> ChildPointer(Root()); )
-            {
-                ++i;
-                stack[i]   = ChildIndex(k);
-                depth[i]   = 0;
-            }
-            
-            // post order traversal of the tree
-            while( i >= zero )
-            {
-                const Int node    = stack[i];
-                const Int d       = depth[i];
-                const Int k_begin = ChildPointer(node  );
-                const Int k_end   = ChildPointer(node+1);
-                
-                if( !visited[i] && (d < tree_top_depth) && (k_begin < k_end) )
-                {
-                    // We visit this node for the first time.
-                    pre_visit(node);
-                    
-                    visited[i] = true;
-                    
-                    // Pushing the children in reverse order onto the stack.
-                    for( Int k = k_end; k --> k_begin; )
-                    {
-                        stack[++i] = ChildIndex(k);
-                        depth[i]   = d+1;
-                    }
-                }
-                else
-                {
-                    // Visiting the node for the second time.
-                    // We are moving in direction towards the root.
-                    // Hence all children have already been visited.
-                    
-                    // Popping current node from the stack.
-                    visited[i--] = false;
-
-                    // things to be done when node is a leaf.
-                    if (k_begin == k_end)
-                    {
-                        leaf_visit(node);
-                    }
-                    
-                    post_visit(node);
-                }
-            }
-            ptoc(ClassName()+"::Traversal_Postordered_Sequential");
-        }
+        
+#include "Tree/Init.hpp"
+#include "Tree/Traverse_Postordered_Sequential.hpp"
+#include "Tree/Debugging.hpp"
         
 #include "Tree/Traverse_Preordered.hpp"
 #include "Tree/Traverse_Postordered.hpp"
         
+    public:
+    
+//        void PrintLevels()
+//        {
+//            for( Int level = 0; level < levels.RowCount(); ++level )
+//            {
+//                print("Level " + ToString(level) + ":" );
+//
+//
+//                Int row_size = levels.Outer(level+1) - levels.Outer(level);
+//
+//                dump(row_size);
+//
+//                print( ArrayToString( levels.Inner().data(levels.Outer(level)), &row_size, 1) );
+//            }
+//        }
                  
     public:
         
