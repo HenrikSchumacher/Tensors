@@ -33,12 +33,12 @@ using Int    = int32_t;
 
 int main(int argc, const char * argv[])
 {
-//    print("Hello world!");
+    //    print("Hello world!");
     constexpr Int thread_count   = 8;
     constexpr Int tree_top_depth = 5;
     
     const char * homedir = getenv("HOME");
-
+    
     if( homedir == nullptr)
     {
         homedir = getpwuid(getuid())->pw_dir;
@@ -53,6 +53,7 @@ int main(int argc, const char * argv[])
     print("###############################################################");
     print("");
     
+    
     std::string path = home_path + "/github/Tensors/SparseMatrices/";
     std::string name = "Spot_4";
 //    std::string name = "Spot_0";
@@ -62,21 +63,21 @@ int main(int argc, const char * argv[])
     Sparse::MatrixCSR<Scal,Int,LInt> A = Sparse::MatrixCSR_FromFile<Scal,Int,LInt>(
         path + name + "_Matrix.txt", thread_count
     );
-    
+
     dump(A.RowCount());
     dump(A.NonzeroCount());
-    
+
     const Int n = A.RowCount();
-    
+
     Tensor1<Int,Int> p ( n );
-    
+
     p.ReadFromFile(path + name + "_Permutation.txt");
-    
-    
+
+
     Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
 
 
-    
+
     Tensor1<Scal,Int> b (n);
     Tensor2<Scal,Int> B (n,nrhs);
     Tensor1<Scal,Int> x (n,0.);
@@ -84,31 +85,31 @@ int main(int argc, const char * argv[])
 
     b.Random();
     B.Random();
-    
+
     Tensor1<Scal,Int> y;
     Tensor2<Scal,Int> Y;
-    
-    
+
+
     Scal reg = 0;
-    
-    
+
+
 //    Permutation<Int> perm ( perm_array, n, Inverse::False, thread_count );
-    
+
 //    Permutation<Int> perm ( n, thread_count );
-    
+
 //    Metis_Wrapper()( &rp[0], &ci[0], perm );
-    
+
 //    ptic("Metis");
 //    Metis()( A.Outer().data(), A.Inner().data(), perm );
 //    ptoc("Metis");
 //    print( perm.GetPermutation().ToString() );
-    
+
 //    tic("CHOLMOD::ApproximateMinimumDegree");
 //    Permutation<Int> perm = CHOLMOD::ApproximateMinimumDegree<Int>()(
 //        A.Outer().data(), A.Inner().data(), n, thread_count
 //    );
 //    toc("CHOLMOD::ApproximateMinimumDegree");
-    
+
 //    print("");
 //
 //    tic("CHOLMOD::NestedDissection");
@@ -120,36 +121,36 @@ int main(int argc, const char * argv[])
 
     print("");
     print("");
-    
-    
+
+
     tic("Cholesky constructor");
     Sparse::CholeskyDecomposition<Scal,Int,LInt> S (
         A.Outer().data(), A.Inner().data(), std::move(perm), tree_top_depth
     );
     toc("Cholesky constructor");
-    
+
     print("");
-    
+
     tic("Cholesky symbolic");
     S.SymbolicFactorization();
     toc("Cholesky symbolic");
-    
+
     print("");
-    
+
     S.AssemblyTree().Traverse_Postordered_Test();
-    
+
     print("");
-    
+
     S.AssemblyTree().Traverse_Preordered_Test();
-    
+
     print("");
-    
+
     tic("Cholesky numeric factorization");
     S.NumericFactorization(A.Values().data(), reg);
     toc("Cholesky numeric factorization");
-    
+
     print("");
-    
+
     x.SetZero();
     tic("Cholesky vector solve");
     S.Solve<Sequential>(b.data(), x.data() );

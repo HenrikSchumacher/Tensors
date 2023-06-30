@@ -28,6 +28,7 @@
     #include "src/ThreadTensor3.hpp"
 
     #include "src/Sorting/TwoArrayQuickSort.hpp"
+    #include "src/Sorting/TwoArraySort.hpp"
 //    #include "src/Sorting/TimSort.hpp"
 
     
