@@ -1,7 +1,19 @@
 #pragma once
 
 #ifndef LAPACK_dpotrf
-#define LAPACK_dpotrf dpotrf_
+    #define LAPACK_dpotrf dpotrf_
+#endif
+
+#ifndef LAPACK_spotrf
+    #define LAPACK_spotrf spotrf_
+#endif
+
+#ifndef LAPACK_zpotrf
+    #define LAPACK_zpotrf zpotrf_
+#endif
+
+#ifndef LAPACK_cpotrf
+    #define LAPACK_cpotrf cpotrf_
 #endif
 
 namespace Tensors
