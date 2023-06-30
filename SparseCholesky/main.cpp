@@ -4,7 +4,7 @@
 #include <pwd.h>
 
 #define TOOLS_ENABLE_PROFILER
-#define TOOLS_DEBUG
+//#define TOOLS_DEBUG
 
 #define LAPACK_DISABLE_NAN_CHECK
 #define ACCELERATE_NEW_LAPACK
@@ -34,7 +34,7 @@ using Int    = int32_t;
 int main(int argc, const char * argv[])
 {
 //    print("Hello world!");
-    constexpr Int thread_count   = 1;
+    constexpr Int thread_count   = 8;
     constexpr Int tree_top_depth = 5;
     
     const char * homedir = getenv("HOME");
@@ -54,8 +54,8 @@ int main(int argc, const char * argv[])
     print("");
     
     std::string path = home_path + "/github/Tensors/SparseMatrices/";
-//    std::string name = "Spot_4";
-    std::string name = "Spot_0";
+    std::string name = "Spot_4";
+//    std::string name = "Spot_0";
     
     const Int nrhs = 32;
     
@@ -138,7 +138,11 @@ int main(int argc, const char * argv[])
     
     S.AssemblyTree().Traverse_Postordered_Test();
     
+    print("");
+    
     S.AssemblyTree().Traverse_Preordered_Test();
+    
+    print("");
     
     tic("Cholesky numeric factorization");
     S.NumericFactorization(A.Values().data(), reg);
@@ -154,35 +158,35 @@ int main(int argc, const char * argv[])
     A.Dot(Scal(-1), x, Scal(1), y);
     dump(y.MaxNorm());
 
-//    print("");
-//
-//    X.SetZero();
-//    tic("Cholesky matrix solve");
-//    S.Solve<Sequential>(B.data(), X.data(), nrhs);
-//    toc("Cholesky matrix solve");
-//    Y = B;
-//    A.Dot(Scal(-1), X, Scal(1), Y);
-//    dump(Y.MaxNorm());
-//
-//    print("");
-//
-//    x.SetZero();
-//    tic("Cholesky parallel vector solve");
-//    S.Solve<Parallel>(b.data(), x.data() );
-//    toc("Cholesky parallel vector solve");
-//    y = b;
-//    A.Dot(Scal(-1), x, Scal(1), y);
-//    dump(y.MaxNorm());
-//
-//    print("");
-//
-//    X.SetZero();
-//    tic("Cholesky parallel matrix solve");
-//    S.Solve<Parallel>(B.data(), X.data(), nrhs );
-//    toc("Cholesky parallel matrix solve");
-//    Y = B;
-//    A.Dot(Scal(-1), X, Scal(1), Y);
-//    dump(Y.MaxNorm());
+    print("");
+
+    X.SetZero();
+    tic("Cholesky matrix solve");
+    S.Solve<Sequential>(B.data(), X.data(), nrhs);
+    toc("Cholesky matrix solve");
+    Y = B;
+    A.Dot(Scal(-1), X, Scal(1), Y);
+    dump(Y.MaxNorm());
+
+    print("");
+
+    x.SetZero();
+    tic("Cholesky parallel vector solve");
+    S.Solve<Parallel>(b.data(), x.data() );
+    toc("Cholesky parallel vector solve");
+    y = b;
+    A.Dot(Scal(-1), x, Scal(1), y);
+    dump(y.MaxNorm());
+
+    print("");
+
+    X.SetZero();
+    tic("Cholesky parallel matrix solve");
+    S.Solve<Parallel>(B.data(), X.data(), nrhs );
+    toc("Cholesky parallel matrix solve");
+    Y = B;
+    A.Dot(Scal(-1), X, Scal(1), Y);
+    dump(Y.MaxNorm());
 //
 //
 ////    CHOLMOD::CholeskyDecomposition<Scal,Int,LInt> cholmod ( A.Outer().data(), A.Inner().data(), n );
@@ -215,73 +219,73 @@ int main(int argc, const char * argv[])
 ////
 ////    }
 ////
+
+
+    print("");
+    print("");
+
+    {
+        SparseMatrixStructure pat = {
+            A.RowCount(), A.ColCount(), A.Outer().data(), A.Inner().data(),
+            SparseAttributes_t{ false, SparseUpperTriangle, SparseSymmetric, 0, false },
+            1
+        };
+
+        SparseMatrix_Double AA = { pat, A.Values().data() };
+
+        Tensor2<Scal,Int> BT ( B.Dimension(1), B.Dimension(0));
+//        Tensor2<Scal,Int> XT ( X.Dimension(1), X.Dimension(0));
+
+        BT.ReadTransposed(B.data());
+
+//        unc SparseFactor(
+//            _ type: SparseFactorization_t,
+//            _ Matrix: SparseMatrixStructure
+//        ) -> SparseOpaqueSymbolicFactorization
+
+        tic("Accelerate symbolic factorization");
+        SparseOpaqueSymbolicFactorization Lsym = SparseFactor( SparseFactorizationCholesky, pat );
+        toc("Accelerate symbolic factorization");
+
+//        int * bla = reinterpret_cast<int*>(Lsym.factorization) + 46;
 //
+//        int dims [1] = {n};
 //
-//    print("");
-//    print("");
-//
-//    {
-//        SparseMatrixStructure pat = {
-//            A.RowCount(), A.ColCount(), A.Outer().data(), A.Inner().data(),
-//            SparseAttributes_t{ false, SparseUpperTriangle, SparseSymmetric, 0, false },
-//            1
-//        };
-//
-//        SparseMatrix_Double AA = { pat, A.Values().data() };
-//
-//        Tensor2<Scal,Int> BT ( B.Dimension(1), B.Dimension(0));
-////        Tensor2<Scal,Int> XT ( X.Dimension(1), X.Dimension(0));
-//
-//        BT.ReadTransposed(B.data());
-//
-////        unc SparseFactor(
-////            _ type: SparseFactorization_t,
-////            _ Matrix: SparseMatrixStructure
-////        ) -> SparseOpaqueSymbolicFactorization
-//
-//        tic("Accelerate symbolic factorization");
-//        SparseOpaqueSymbolicFactorization Lsym = SparseFactor( SparseFactorizationCholesky, pat );
-//        toc("Accelerate symbolic factorization");
-//
-////        int * bla = reinterpret_cast<int*>(Lsym.factorization) + 46;
-////
-////        int dims [1] = {n};
-////
-////        print( ArrayToString(bla, &dims[0], 1) );
-//        print("");
-//
-//        tic("Accelerate numeric factorization");
-//        SparseOpaqueFactorization_Double L = SparseFactor( Lsym, AA );
-//        toc("Accelerate numeric factorization");
-//
-//        print("");
-//
-//        tic("Accelerate Cholesky vector solve");
-//        SparseSolve(
-//            L,
-//            DenseVector_Double{ b.Dimension(0), b.data() },
-//            DenseVector_Double{ x.Dimension(0), x.data() }
-//        );
-//        toc("Accelerate Cholesky vector solve");
-//        y = b;
-//        A.Dot(Scal(-1), x, Scal(1), y);
-//        dump(y.MaxNorm());
-//
-//        print("");
-//
-//        tic("Accelerate Cholesky matrix solve");
-//        SparseSolve(
-//            L,
-//            DenseMatrix_Double{
-//                B.Dimension(0), B.Dimension(1), B.Dimension(0), SparseAttributes_t(), BT.data()
-//            }
-//        );
-//        BT.WriteTransposed(X.data());
-//        toc("Accelerate Cholesky matrix solve");
-//        Y = B;
-//        A.Dot(Scal(-1), X, Scal(1), Y);
-//        dump(Y.MaxNorm());
-//    }
+//        print( ArrayToString(bla, &dims[0], 1) );
+        print("");
+
+        tic("Accelerate numeric factorization");
+        SparseOpaqueFactorization_Double L = SparseFactor( Lsym, AA );
+        toc("Accelerate numeric factorization");
+
+        print("");
+
+        tic("Accelerate Cholesky vector solve");
+        SparseSolve(
+            L,
+            DenseVector_Double{ b.Dimension(0), b.data() },
+            DenseVector_Double{ x.Dimension(0), x.data() }
+        );
+        toc("Accelerate Cholesky vector solve");
+        y = b;
+        A.Dot(Scal(-1), x, Scal(1), y);
+        dump(y.MaxNorm());
+
+        print("");
+
+        tic("Accelerate Cholesky matrix solve");
+        SparseSolve(
+            L,
+            DenseMatrix_Double{
+                B.Dimension(0), B.Dimension(1), B.Dimension(0), SparseAttributes_t(), BT.data()
+            }
+        );
+        BT.WriteTransposed(X.data());
+        toc("Accelerate Cholesky matrix solve");
+        Y = B;
+        A.Dot(Scal(-1), X, Scal(1), Y);
+        dump(Y.MaxNorm());
+    }
     
     return 0;
 }

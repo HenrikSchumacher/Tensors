@@ -187,38 +187,3 @@ public:
 
         ptoc(tag);
     }
-
-
-    bool Traverse_Postordered_Test() const
-    {
-        ptic(ClassName()+"::Traverse_Postordered_Test");
-        AllocateCheckList();
-
-        std::vector<std::unique_ptr<DebugWorker>> workers (thread_count );
-        
-        ParallelDo(
-            [this,&workers]( const Int thread )
-            {
-                workers[thread] = std::make_unique<DebugWorker>( *this );
-            },
-            thread_count
-        );
-        
-        Traverse_Postordered( workers );
-        
-        bool succeededQ = PrintCheckList();
-        
-        if( succeededQ )
-        {
-            print(ClassName()+"::Traverse_Postordered_Test succeeded.");
-            logprint(ClassName()+"::Traverse_Postordered_Test succeeded.");
-        }
-        else
-        {
-            eprint(ClassName()+"::Traverse_Postordered_Test failed.");
-        }
-        
-        ptoc(ClassName()+"::Traverse_Postordered_Test");
-        
-        return succeededQ;
-    }
