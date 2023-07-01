@@ -201,6 +201,7 @@ private:
                             const LInt l = l_begin;
                             const Int  j = ci[l];
 
+                            // This pretech frequently caused segfaults!
 //                            __builtin_prefetch( &X[ldX * ci[l+1]] );
 
                             if constexpr ( a_flag == Generic )
@@ -227,6 +228,7 @@ private:
                         {
                             const Int j = ci[l];
 
+                            // This pretech frequently caused segfaults!
 //                            __builtin_prefetch( &X[ldX * ci[l+1]] );
 
                             if constexpr ( a_flag == Generic )

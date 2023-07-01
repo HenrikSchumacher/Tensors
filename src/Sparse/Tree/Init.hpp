@@ -49,7 +49,6 @@ protected:
         desc_costs  = Tensor1<double,Int> ( n );
         desc_counts = Tensor1<Int,Int>    ( n );
         
-        
         mut<Int> p = post.Scratch().data();
         
         Traverse_Postordered_Sequential(
@@ -59,7 +58,6 @@ protected:
                 const Int k_end   = ChildPointer( node + 1 );
                 
                 const Int next_level = node_to_level[node] + 1;
-                
 
                 max_depth = std::max(max_depth, next_level);
 
@@ -81,7 +79,11 @@ protected:
             ,
             [=,&counter]( const Int node )
             {
-                p[counter++] = node;
+                if( counter < Root() )
+                {
+                    p[counter] = node;
+                }
+                ++counter;
                 
                 const Int split_level = node_to_split_level [node];
                 
@@ -112,7 +114,6 @@ protected:
                     else if (child_split_level < target_split_level )
                     {
                         tree_top_vertices.push_back(child);
-                        
                         
                         while( child_level >= static_cast<Int>(tree_top_levels.size()) )
                         {
