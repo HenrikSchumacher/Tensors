@@ -56,7 +56,7 @@ namespace Tensors
             ptr<LInt>       SN_rec_ptr;
             mut<Scal>       SN_rec_val;
             
-            ptr<Int>         desc_counts;
+            ptr<Int>        desc_counts;
             
             
             // local data
@@ -296,7 +296,7 @@ namespace Tensors
                     
                     // From now on any further insertion position must be in the rectangular part.
                     
-                    if( k < k_end ) // Not all entry of A sorted in, yet.
+                    if( k < k_end ) // Not all entries of A sorted in, yet.
                     {
                         LInt l = l_begin;
                         
