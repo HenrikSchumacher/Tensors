@@ -4,7 +4,7 @@ public:
     {
     public:
      
-        const Tree<Int> & tree = nullptr;
+        const Tree<Int> & restrict tree = nullptr;
         
         DebugWorker( const Tree<Int> & tree_ )
         :   tree( tree_ )

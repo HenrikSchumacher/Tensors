@@ -311,7 +311,7 @@ namespace Tensors
             
             const Tensor1<Int,Int> & PostOrdering()
             {
-                auto & post = EliminationTree().PostOrdering();
+                auto & restrict post = EliminationTree().PostOrdering();
                 
                 if( !EliminationTree().PostOrderedQ() )
                 {

@@ -34,6 +34,7 @@
     
 
     #include "Tiny.hpp"
+    #include "src/TriangleIndexing.hpp"
 
     #include "src/AssemblyCounters.hpp"
     #include "src/Aggregator.hpp"
@@ -59,6 +60,4 @@
 
 //    #include "src/BlockKernels/BlockKernel_RM.hpp"
 //    #include "src/BlockKernels/DenseBlockKernel_RM.hpp"
-
-
 #endif

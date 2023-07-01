@@ -6,7 +6,7 @@
 public:
 
     template<class Worker_T>
-    void Traverse_Descendants_Postordered( Worker_T & worker, const Int node ) const
+    void Traverse_Descendants_Postordered( Worker_T & restrict worker, const Int node ) const
     {
         debug_print(ClassName() + "::Traverse_Descendants_Postordered ( node = " + ToString(node) + " ) begins.");
 
@@ -60,7 +60,7 @@ public:
 //    }
 
     template<Parallel_T parQ = Parallel, class Worker_T>
-    void Traverse_Postordered( std::vector<std::unique_ptr<Worker_T>> & workers ) const
+    void Traverse_Postordered( std::vector<std::unique_ptr<Worker_T>> & restrict workers ) const
     {
         std::string tag = ClassName() + "::Traverse_Postordered<" + (parQ == Parallel ? "Parallel" : "Sequential") + ">";
         if( !PostOrderedQ() )
@@ -90,7 +90,7 @@ public:
                 {
                     const Time start_time = Clock::now();
 
-                    Worker_T & worker = *workers[thread];
+                    Worker_T & restrict worker = *workers[thread];
 
                     const Int node = subtrees[k];
 
@@ -125,7 +125,7 @@ public:
                 {
                     const Time start_time = Clock::now();
 
-                    Worker_T & worker = *workers[thread];
+                    Worker_T & restrict worker = *workers[thread];
 
                     const Int node = tree_top_levels[d][k];
 
@@ -165,7 +165,7 @@ public:
 //                {
 //                    const Time start_time = Clock::now();
 //    
-//                    Worker_T & worker = *workers[thread];
+//                    Worker_T & restrict worker = *workers[thread];
 //    
 //                    const Int node = ChildIndex(k);
 //    

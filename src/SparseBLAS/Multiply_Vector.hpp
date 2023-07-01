@@ -6,7 +6,7 @@ public:
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha, ptr<T_in>  X,
         const S_out beta,  mut<T_out> Y,
-        const JobPointers<Int> & job_ptr
+        const JobPointers<Int> & restrict job_ptr
     )
     {
         SpMV(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
@@ -18,7 +18,7 @@ public:
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha, ptr<T_in>  X, const Int incX,
         const S_out beta,  mut<T_out> Y, const Int incY,
-        const JobPointers<Int> & job_ptr
+        const JobPointers<Int> & restrict job_ptr
     )
     {
         if( incX == 1 && incY == 1)

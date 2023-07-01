@@ -148,7 +148,7 @@ protected:
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );
             },
-                         use_threads, use_threads
+            use_threads, use_threads
         );
         ptoc("Initialize solvers");
         

@@ -18,7 +18,7 @@ protected:
     {
         ptic(ClassName()+"::CreateAssemblyTree");
 
-        const Tensor1<Int,Int> & parents = EliminationTree().Parents();
+        const Tensor1<Int,Int> & restrict parents = EliminationTree().Parents();
 
         Tensor1<Int,Int> SN_parents ( SN_count );
         

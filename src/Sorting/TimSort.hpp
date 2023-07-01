@@ -37,7 +37,7 @@ namespace Tensors
         }
          
         // Merge function merges the sorted runs
-        void Merge( mut<T>  a, const I l, const I m, const I r )
+        void Merge( mut<T> a, const I l, const I m, const I r )
         {
             // Original array is broken in two parts L and R array.
             I L_size = m - l + 1;

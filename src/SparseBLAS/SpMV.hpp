@@ -5,7 +5,7 @@ public:
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha_, ptr<T_in>  X,
         const S_out beta,   mut<T_out> Y,
-        const JobPointers<Int> & job_ptr
+        const JobPointers<Int> & restrict job_ptr
     )
     {
         StaticParameterCheck<R_out,T_in,S_out,T_out>();
@@ -110,7 +110,7 @@ private:
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha, ptr<T_in>  x,
         const S_out beta,  mut<T_out> y,
-        const JobPointers<Int> & job_ptr
+        const JobPointers<Int> & restrict job_ptr
     )
     {
         std::string tag = std::string(ClassName()+"::SpMV_impl<")

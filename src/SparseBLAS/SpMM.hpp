@@ -5,7 +5,7 @@ public:
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha_, ptr<T_in>  X, const Int ldX,
         const S_out beta,   mut<T_out> Y, const Int ldY,
-        const JobPointers<Int> & job_ptr,
+        const JobPointers<Int> & restrict job_ptr,
         const Int nrhs = NRHS
     )
     {
@@ -139,7 +139,7 @@ private:
         ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
         const R_out alpha,  ptr<T_in>  X, const Int ldX,
         const S_out beta,   mut<T_out> Y, const Int ldY,
-        const JobPointers<Int> & job_ptr,
+        const JobPointers<Int> & restrict job_ptr,
         const Int nrhs
     )
     {

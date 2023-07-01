@@ -169,7 +169,7 @@ namespace Tensors
         }
         
         
-        force_inline void FMA( const Scal a, const Scal b, Scal & c ) const
+        force_inline void FMA( const Scal a, const Scal b, Scal & restrict c ) const
         {
             if constexpr ( use_fma )
             {

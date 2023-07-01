@@ -13,7 +13,7 @@ public:
 //        const R_out alpha, ptr<T_in>  X, const Int ldX,
 //        const S_out beta,  mut<T_out> Y, const Int ldY,
 //        const Int   nrhs,
-//        const JobPointers<Int> & job_ptr
+//        const JobPointers<Int> & restrict job_ptr
 //    )
 //    {
 //        StaticParameterCheck<R_out,T_in,S_out,T_out>();
@@ -60,7 +60,7 @@ public:
         const R_out alpha, ptr<T_in>  X, const Int ldX,
         const S_out beta,  mut<T_out> Y, const Int ldY,
         const Int   nrhs,
-        const JobPointers<Int> & job_ptr
+        const JobPointers<Int> & restrict job_ptr
     )
     {
         StaticParameterCheck<R_out,T_in,S_out,T_out>();
