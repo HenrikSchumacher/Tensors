@@ -256,7 +256,7 @@ namespace Tensors
             {
                 // Read the values of A into U_0 and U_1.
 
-                const  Int n_0 = i_end - i_begin;
+                const  Int n_0 =               i_end - i_begin;
                 const  Int n_1 = int_cast<Int>(l_end - l_begin);
                 
                 for( Int i = i_begin; i < i_end; ++i )
@@ -266,15 +266,19 @@ namespace Tensors
                     
                     LInt k;
                     
+                    // The diagonal entry _must_ be there; so this step is relatively safe.
                     {
                         k = k_begin;
                         
-                        const Int j = A_ci [k];
+                        const Int j = A_ci[k];
+                        
+                        debug_assert( j == i, "Row " + ToString(i) + " has no diagonal entry.");
                         
                         U_0[n_0 * (i-i_begin) + (j-i_begin)] = static_cast<Scal>(A_val[k]+reg);
                         
                         ++k;
                     }
+                    
                     for( ; k < k_end; ++k )
                     {
                         const Int j = A_ci [k];
@@ -290,23 +294,29 @@ namespace Tensors
                         }
                     }
                     
-                    // From now on the insertion position must be in the rectangular part.
-                    LInt l    = l_begin;
-                    Int col_l = SN_inner[l];
+                    // From now on any further insertion position must be in the rectangular part.
                     
-                    // Continue the loop where the previous one was aborted.
-                    for( ; k < k_end; ++k )
+                    if( k < k_end ) // Not all entry of A sorted in, yet.
                     {
-                        const Int j = A_ci [k];
+                        LInt l = l_begin;
                         
-                        // Find the position l of j in SN_inner, then write into U_1[l - l_begin].
-                        // Remark: We don't need a check l < l_end here, because we know that we find an l.
-                        while( col_l < j )
+                        debug_assert( l < l_end, "Not all entries of A found by not columns in rectangular part of supernode!");
+                        
+                        Int col_l = SN_inner[l];
+                        
+                        // Continue the loop where the previous one was aborted.
+                        for( ; k < k_end; ++k )
                         {
-                            col_l = SN_inner[++l];
+                            const Int j = A_ci [k];
+                            
+                            // Find the position l of j in SN_inner, then write into U_1[l - l_begin].
+                            // Remark: We don't need a check l < l_end here, because we know that we find an l.
+                            while( col_l < j )
+                            {
+                                col_l = SN_inner[++l];
+                            }
+                            U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scal>(A_val[k]);
                         }
-                        U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scal>(A_val[k]);
-                        // XXX conj-transpose here.
                     }
                 }
             }
@@ -621,12 +631,12 @@ namespace Tensors
             {
 //                _tic();
                 
-                // Compute the intersecting column indices of s-th and t-th supernode.
+                // Compute the intersecting column indices of supernode s and supernode t.
                 // We assume that t < s.
-                
-                // s-th supernode has triangular part I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
+
+                // Supernode s has triangular part I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
                 // and rectangular part J = [SN_inner[SN_outer[s]],[SN_inner[SN_outer[s]+1],...,[
-                // t-th supernode has triangular part K = [SN_rp[t],SN_rp[t]+1,...,SN_rp[t+1][
+                // Supernode t has triangular part K = [SN_rp[t],SN_rp[t]+1,...,SN_rp[t+1][
                 // and rectangular part L = [SN_inner[SN_outer[t]],[SN_inner[SN_outer[t]+1],...,[
                 
                 // We have to compute
@@ -634,7 +644,42 @@ namespace Tensors
                 // - the positions IL_pos of I \cap L in L,
                 // - the positions JJ_pos of J \cap L in J,
                 // - the positions JL_pos of J \cap L in L.
+                
+                
+//          k_begin   k_end  SN_inner[l_begin]           SN_inner[l_end-1]
+//              |       |   /                                   |
+//              V       V  V                                    V                    __
+// k_begin ---> XXXXXXXX  X      X                 X            X                      \
+//               XXXXXXX  X      X                 X            X                       |
+//                XXXXXX  X      X                 X            X                       |
+//                 XXXXX  X      X                 X            X                        \ t
+//                  XXXX  X      X                 X            X                        /
+//                   XXX  X      X                 X            X                       |
+//                    XX  X      X                 X            X                       |
+//                     X  X      X                 X            X                    __/
+//                      .
+//                       . i_begin  i_end  SN_inner[j_begin]        SN_inner[j_end-1]
+//                        . |         |         |                        |
+//                         .V         V         V                        V           __
+//               i_begin -->XXXXXXXXXX          XXXXX           X        X             \
+//                           XXXXXXXXX          XXXXX           X        X              |
+//                            XXXXXXXX          XXXXX           X        X              |
+//                             XXXXXXX          XXXXX           X        X              |
+//                              XXXXXX          XXXXX           X        X               \ s
+//                               XXXXX          XXXXX           X        X               /
+//                                XXXX          XXXXX           X        X              |
+//                                 XXX          XXXXX           X        X              |
+//                                  XX          XXXXX           X        X              |
+//                                   X          XXXXX           X        X           __/
+                
+                
+//  We know:
+//            - Every entry in L must be found either in I or in J.
+//            ? l_begin < l_end; otherwise, t would not be a descendant of s.
+//            - Typically, there will be much less element in L then in I and L.
 
+                
+                
                 // On return the numbers IL_len, JL_len contain the lengths of the respective lists.
 
                 IL_len = 0;
@@ -643,48 +688,59 @@ namespace Tensors
                 ++intersec;
                 
                 const  Int i_begin = SN_rp[s  ];
-                const LInt l_end   = SN_outer[t+1];
-                
-                // quick check whether the convex hulls of index ranges overlap.
-                if(
-                    (
-                       (SN_inner[l_end-1] < i_begin) // l_end > l_begin, bc. s would not be a child of t otherwise.
-                    )
-//                    ||
-//                    (
-//                        (j_begin < j_end)
-//                        &&
-//                        (SN_inner[j_end-1] < SN_inner[l_begin]) // Impossible due to postordering?
-//                    )
-                )
-                {
-//                    ++empty_intersec_detected;
-                    return;
-                }
-                
-                // Go through I and L in ascending order and collect intersection indices.
-
                 const  Int i_end   = SN_rp[s+1];
                 
                 const LInt j_begin = SN_outer[s  ];
                 const LInt j_end   = SN_outer[s+1];
                 
                 const LInt l_begin = SN_outer[t  ];
+                const LInt l_end   = SN_outer[t+1];
                 
-                 Int i = i_begin;
+            // Quick check whether the convex hulls of index ranges overlap.
+                
+                debug_assert( l_begin < l_end, "Set L is empty." );
+                
+                if( SN_inner[l_end-1] < i_begin )
+                {
+                    return;
+                }
+                
+            // Go through I and L in ascending order and collect intersection indices.
+
+                
+                Int  i = i_begin;
                 LInt l = l_begin;
                 
-                Int L_l = SN_inner[l];
+                Int L_l = SN_inner[l]; // This is safe.
                 
-                while( (i < i_end) && (l < l_end) )
+                // Entry in while loop is safe:
+                //   - We have i_begin < i_end node i_begin is certainly a member of s.
+                //   - We have l_begin < l_end by the avove assertion.
+                
+                while( true )
                 {
                     if( i < L_l )
                     {
                         ++i;
+                        
+                        if( i == i_end )
+                        {
+                            break;
+                        }
                     }
                     else if( L_l < i )
                     {
-                        L_l = SN_inner[++l];
+                        ++l;
+                        
+                        if( l == l_end )
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            L_l = SN_inner[l];
+                        }
+                        
                     }
                     else // i == L_l
                     {
@@ -692,37 +748,83 @@ namespace Tensors
                         IL_pos[IL_len] = int_cast<Int>(l-l_begin);
                         ++IL_len;
                         ++i;
-                        L_l = SN_inner[++l];
+                        ++l;
+                        
+                        if( i == i_end )
+                        {
+                            break;
+                        }
+                        else if( l == l_end )
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            L_l = SN_inner[l];
+                        }
                     }
                 }
+
+                // If we arrive here then l < l_end.
                 
-                // Go through J and L in ascending order and collect intersection indices.
+            // Go through J and L in ascending order and collect intersection indices.
                 
-                LInt j = j_begin;
-//                LInt l = l_begin;         // We can continue with l where it were before...
-                
-                Int J_j = SN_inner[j];
-//                Int L_l = SN_inner[l];    // ... and thus, we can keep the old L_l, too.
-                
-                while( (j < j_end) && (l < l_end) )
+                if( j_begin < j_end )
                 {
-                    if( J_j < L_l )
+                    
+                    LInt j = j_begin;
+                    Int J_j = SN_inner[j];
+                    
+                    while( true )
                     {
-                        J_j = SN_inner[++j];
-                    }
-                    else if( L_l < J_j )
-                    {
-                        L_l = SN_inner[++l];
-                    }
-                    else // J_j == L_l
-                    {
-                        JJ_pos[JL_len] = int_cast<Int>(j-j_begin);
-                        JL_pos[JL_len] = int_cast<Int>(l-l_begin);
-                        ++JL_len;
-                        J_j = SN_inner[++j];
-                        L_l = SN_inner[++l];
+                        if( L_l < J_j )
+                        {
+                            ++l;
+                            
+                            if( l == l_end )
+                            {
+                                return;
+                            }
+                            else
+                            {
+                                L_l = SN_inner[l];
+                            }
+                        }
+                        else if( J_j < L_l )
+                        {
+                            ++j;
+                            
+                            if( j == j_end )
+                            {
+                                return;
+                            }
+                            else
+                            {
+                                J_j = SN_inner[j];
+                            }
+                        }
+                        else // J_j == L_l
+                        {
+                            JJ_pos[JL_len] = int_cast<Int>(j-j_begin);
+                            JL_pos[JL_len] = int_cast<Int>(l-l_begin);
+                            ++JL_len;
+                            ++j;
+                            ++l;
+                            
+                            if( (l == l_end) || (j == j_end) )
+                            {
+                                return;
+                            }
+                            else
+                            {
+                                L_l = SN_inner[l];
+                                J_j = SN_inner[j];
+                            }
+                        }
                     }
                 }
+                
+                
 //                intersec_time += _toc();
 //
 //                if( (IL_len == izero) && (JL_len == izero) )
