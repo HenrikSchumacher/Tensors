@@ -290,7 +290,14 @@ namespace Tensors
                         }
                     }
                     
+                    if( k >= k_end )
+                    {
+                        return;
+                    }
+                    
+                    // If we arrive here, then there are still a few entries of A to be sorted in.
                     // From now on the insertion position must be in the rectangular part.
+                    
                     LInt l    = l_begin;
                     Int col_l = SN_inner[l];
                     
