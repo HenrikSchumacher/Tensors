@@ -250,7 +250,7 @@ namespace Tensors
             }
             
             //x_inout -= x
-            combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus,VarSize,Parallel>(
+            combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus,Op::Id,Op::Id,VarSize,Parallel>(
                 -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * K, thread_count
             );
             
