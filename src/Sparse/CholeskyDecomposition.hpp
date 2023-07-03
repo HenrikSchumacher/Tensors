@@ -27,6 +27,7 @@
 // DONE: - What to do if top of the tree is not a binary tree?
 // DONE: - What to do in case of a forest?
 // TODO: - Estimate work to do in subtrees.
+// TODO: - Reorder `subrees` in `Tree` based on this cost estimate.
 
 // TODO: Parallelize symbolic factorization.
 // TODO:     --> Build aTree first and traverse it in parallel to determine SN_inner.
@@ -113,7 +114,6 @@ namespace Tensors
             
             const Int n = 0;
             const Int thread_count = 1;
-            const Int tree_top_depth = 0;
             
             Permutation<Int>  perm;           // row and column permutation the nonzeros of the matrix.
             
@@ -217,11 +217,10 @@ namespace Tensors
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
                 ptr<ExtLInt> outer_, ptr<ExtInt> inner_,
-                Int n_, Int thread_count_, Int tree_top_depth_
+                Int n_, Int thread_count_
             )
-            :   n               ( std::max( izero, n_)  )
-            ,   thread_count    ( std::max( ione, thread_count_)    )
-            ,   tree_top_depth  ( std::max( ione, tree_top_depth_)  )
+            :   n               ( std::max( izero, n_)               )
+            ,   thread_count    ( std::max( ione, thread_count_)     )
             ,   perm            ( n_, thread_count                   ) // use identity permutation
             ,   A               ( outer_, inner_, n, n, thread_count )
             ,   A_inner_perm    ( A.Permute( perm, perm )            )
@@ -233,11 +232,10 @@ namespace Tensors
             template<typename ExtLInt, typename ExtInt, typename ExtInt2>
             CholeskyDecomposition(
                 ptr<ExtLInt> outer_, ptr<ExtInt> inner_, ptr<ExtInt2> p_,
-                Int n_, Int thread_count_, Int tree_top_depth_
+                Int n_, Int thread_count_
             )
-            :   n               ( std::max( izero, n_)     )
-            ,   thread_count    ( std::max( ione, thread_count_)       )
-            ,   tree_top_depth  ( std::max( ione, tree_top_depth_)     )
+            :   n               ( std::max( izero, n_)                  )
+            ,   thread_count    ( std::max( ione, thread_count_)        )
             ,   perm            ( p_, n, Inverse::False, thread_count   )
             ,   A               ( outer_, inner_, n, n, thread_count    )
             ,   A_inner_perm    ( A.Permute( perm, perm )               )
@@ -248,12 +246,10 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, Permutation<Int> && perm_,
-                Int tree_top_depth_
+                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, Permutation<Int> && perm_
             )
             :   n               ( std::max( izero, perm_.Size() )            )
             ,   thread_count    ( std::max( ione, perm_.ThreadCount())       )
-            ,   tree_top_depth  ( std::max( ione, tree_top_depth_)           )
             ,   perm            ( std::move( perm_)                          )
             ,   A               ( outer_, inner_, n, n, perm.ThreadCount()   )
             ,   A_inner_perm    ( A.Permute( perm, perm )                    )
