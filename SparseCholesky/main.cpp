@@ -11,7 +11,7 @@
 #include <Accelerate/Accelerate.h>
 
 //#include <cblas.h>
-//#include <lapacke.h>
+//#include <lapack.h>
 
 #include "Tensors.hpp"
 #include "Sparse.hpp"
