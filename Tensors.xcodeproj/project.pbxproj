@@ -504,13 +504,12 @@
 					"-ffast-math",
 					"-fno-math-errno",
 					"-flto",
+					"-pthread",
 				);
 				OTHER_LDFLAGS = (
 					"-lm",
 					"-ldl",
-					"-lcblas",
-					"-llapacke",
-					"-lopenblas",
+					"-pthread",
 					"-lmetis",
 					"-lcholmod",
 					"-lamd",
@@ -593,13 +592,12 @@
 					"-ffast-math",
 					"-fno-math-errno",
 					"-flto",
+					"-pthread",
 				);
 				OTHER_LDFLAGS = (
 					"-lm",
 					"-ldl",
-					"-lcblas",
-					"-llapacke",
-					"-lopenblas",
+					"-pthread",
 					"-lmetis",
 					"-lcholmod",
 					"-lamd",
