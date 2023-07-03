@@ -277,7 +277,7 @@ namespace Tensors
                         // The eigenvalues are ordered this way: eig2 <= eig1 <= eig0.
                         
                         //                    Scal eig0 ( q + two * p * cos( phi ) );
-                        //                    Scal eig2 ( q + two * p * cos( phi + two * M_PI/ three ) );
+                        //                    Scal eig2 ( q + two * p * cos( phi + two * pi/ three ) );
                         //                    Scal eig1 ( three * q - eig0 - eig2 );
                         
                         lambda_min = q + two * p * cos( phi + two * Scalar::Pi<Scal> / three );
