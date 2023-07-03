@@ -361,7 +361,7 @@ namespace Tensors
                     b += Scalar::Re( Scalar::Conj(u[i]+w[i]) * (u[i]+w[i]) );
                 }
                 
-                return static_cast<Real>(2) * atan( std::sqrt(a/b) );
+                return Scalar::Two<Real> * atan( std::sqrt(a/b) );
             }
             
             force_inline friend Real Angle( const CLASS & x, const CLASS & y )

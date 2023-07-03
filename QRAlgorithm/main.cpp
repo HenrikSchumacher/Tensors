@@ -239,7 +239,7 @@ int main(int argc, const char * argv[])
         Tiny::Matrix<n,n,Scal,Int> UH;
         Tiny::Matrix<n,n,Scal,Int> B;
         Tiny::Matrix<n,n,Scal,Int> C;
-        Tiny::Matrix<n,n,Real,  Int> D ( static_cast<Real>(0));
+        Tiny::Matrix<n,n,Real,  Int> D ( Scalar::Zero<Real> );
         Real error_0 = 0;
         Real error_1 = 0;
         Real error_2 = 0;

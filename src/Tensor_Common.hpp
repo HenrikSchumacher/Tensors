@@ -190,7 +190,7 @@ void Random( Int thread_count = 1 )
                 std::random_device r;
                 std::default_random_engine engine ( r() );
                 
-                std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
+                std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
                 
                 for( Int i = i_begin; i < i_end; ++i )
                 {
@@ -211,7 +211,7 @@ void Random( Int thread_count = 1 )
                 std::random_device r;
                 std::default_random_engine engine ( r() );
                 
-                std::uniform_real_distribution<Real> unif(static_cast<Real>(-1),static_cast<Real>(1));
+                std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
                 
                 for( Int i = i_begin; i < i_end; ++i )
                 {
