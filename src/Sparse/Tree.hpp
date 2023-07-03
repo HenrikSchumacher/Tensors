@@ -1,12 +1,12 @@
 #pragma once
 
+// TODO: Improve load balancing.
+// TODO: - Reorder `subrees` in `Tree` based on this cost estimate.
+
+
 // TODO: Correct move and copy constructors...
 
-// TODO: Traverse_Preordered_Parallel.
-
-// TODO: Improve load balancing.
-
-// TODO: Would be great to have allow nodes in the top levels of the tree to use more than one thread...
+// TODO: Would be great to allow nodes in the top levels of the tree to use more than one thread...
 
 namespace Tensors
 {
