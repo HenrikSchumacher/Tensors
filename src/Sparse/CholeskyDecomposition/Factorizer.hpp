@@ -292,7 +292,7 @@ namespace Tensors
                     
                     if( k >= k_end )
                     {
-                        return;
+                        continue;
                     }
                     
                     // If we arrive here, then there are still a few entries of A to be sorted in.
