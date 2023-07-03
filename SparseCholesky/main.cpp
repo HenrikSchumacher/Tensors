@@ -35,7 +35,6 @@ int main(int argc, const char * argv[])
 {
     //    print("Hello world!");
     constexpr Int thread_count   = 8;
-    constexpr Int tree_top_depth = 5;
     
     const char * homedir = getenv("HOME");
     
@@ -125,7 +124,7 @@ int main(int argc, const char * argv[])
 
     tic("Cholesky constructor");
     Sparse::CholeskyDecomposition<Scal,Int,LInt> S (
-        A.Outer().data(), A.Inner().data(), std::move(perm), tree_top_depth
+        A.Outer().data(), A.Inner().data(), std::move(perm)
     );
     toc("Cholesky constructor");
 
