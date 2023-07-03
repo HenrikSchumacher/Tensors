@@ -113,8 +113,7 @@ namespace Tensors
                         r[i][k] -= u[i][k];
                     }
                 },
-                n,
-                thread_count
+                n, thread_count
             );
             
             // z = P.r
@@ -130,7 +129,6 @@ namespace Tensors
             iter = 0;
             bool succeeded = CheckResiduals();
 
-            
             while( !succeeded && (iter < max_iter ) )
             {
                 // u = A.p
@@ -157,8 +155,7 @@ namespace Tensors
                             r[i][k] -= alpha[k] * u[i][k];
                         }
                     },
-                    n,
-                    thread_count
+                    n, thread_count
                 );
                 
                 // z = P.r;
@@ -188,8 +185,7 @@ namespace Tensors
                             p[i][k] = z[i][k] + beta[k] * p[i][k];
                         }
                     },
-                    n,
-                    thread_count
+                    n, thread_count
                 );
                 
                 succeeded = CheckResiduals();
