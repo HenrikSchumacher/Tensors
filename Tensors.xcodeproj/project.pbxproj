@@ -509,7 +509,6 @@
 				OTHER_LDFLAGS = (
 					"-lm",
 					"-ldl",
-					"-pthread",
 					"-lmetis",
 					"-lcholmod",
 					"-lamd",
@@ -597,7 +596,6 @@
 				OTHER_LDFLAGS = (
 					"-lm",
 					"-ldl",
-					"-pthread",
 					"-lmetis",
 					"-lcholmod",
 					"-lamd",
