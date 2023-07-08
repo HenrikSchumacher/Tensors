@@ -24,9 +24,15 @@ namespace Tensors
             }
             
             template<typename S>
-            CLASS( const S * buffer, const Int k )
+            CLASS( const Tensor2<S,Int> & matrix, const Int k )
             {
-                Read( buffer[n * k], k );
+                Read(matrix.data(k));
+            }
+            
+            template<typename S>
+            CLASS( ptr<S> matrix, const Int k )
+            {
+                Read( &matrix[n *k ] );
             }
             
             template<typename S>
@@ -117,12 +123,24 @@ namespace Tensors
             }
             
             template<typename S>
+            void Read( const Tensor1<S,Int> & source, const Int k )
+            {
+                Real( source.data(k) );
+            }
+            
+            template<typename S>
             void Write( VectorList<n,S,Int> & target, const Int k ) const
             {
                 for( Int i = 0; i < n; ++i )
                 {
                     target[i][k] = static_cast<S>(v[i]);
                 }
+            }
+            
+            template<typename S>
+            void Write( Tensor1<S,Int> & source, const Int k ) const
+            {
+                Write( source.data(k) );
             }
             
 //######################################################

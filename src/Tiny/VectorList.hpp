@@ -247,7 +247,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Write( mut<S> a )
+            void Write( mut<S> a ) const
             {
                 //Assuming that a is a list of size Dimension(1) x n of vectors in interleaved form.
                 
