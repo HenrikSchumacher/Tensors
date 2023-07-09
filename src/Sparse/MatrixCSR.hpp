@@ -137,7 +137,7 @@ namespace Tensors
                 using std::swap;
                 
                 swap( static_cast<Base_T&>(A), static_cast<Base_T&>(B) );
-                swap( A.values,              B.values              );
+                swap( A.values,                B.values                );
             }
             
             // (Copy-)assignment operator

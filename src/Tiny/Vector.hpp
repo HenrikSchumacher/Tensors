@@ -123,7 +123,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Read( const Tensor1<S,Int> & source, const Int k )
+            void Read( const Tensor2<S,Int> & source, const Int k )
             {
                 Real( source.data(k) );
             }
@@ -138,7 +138,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Write( Tensor1<S,Int> & source, const Int k ) const
+            void Write( Tensor2<S,Int> & source, const Int k ) const
             {
                 Write( source.data(k) );
             }

@@ -218,17 +218,17 @@ namespace Tensors
                 //Assuming that a is a list of n pointers pointing to memory of at least size Dimension(1).
                 for( Int i = 0; i < n; ++i )
                 {
-                    copy_buffer( a[i], &v[i], length );
+                    copy_buffer<VarSize,Sequential>( a[i], &v[i], length );
                 }
             }
             
             template<typename S>
-            void Write( S * restrict const * restrict const a )
+            void Write( S * restrict const * restrict const a ) const
             {
                 //Assuming that a is a list of n pointers pointing to memory of at least size Dimension(1).
                 for( Int i = 0; i < n; ++i )
                 {
-                    copy_buffer( &v[i], a[i], length );
+                    copy_buffer<VarSize,Sequential>( &v[i], a[i], length );
                 }
             }
             
@@ -288,7 +288,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "VectorList<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("VectorList")+"<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
         };
         
