@@ -209,9 +209,9 @@ namespace Tensors
             }
             
             MatrixCSR(
-                  const std::vector<std::vector<Int>>  & idx,
-                  const std::vector<std::vector<Int>>  & jdx,
-                  const std::vector<std::vector<Scal>> & val,
+                  cref<std::vector<std::vector<Int>>>  idx,
+                  cref<std::vector<std::vector<Int>>>  jdx,
+                  cref<std::vector<std::vector<Scal>>> val,
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
@@ -835,7 +835,7 @@ namespace Tensors
                     {
                         TwoArraySort<Int,Scal,LInt> S;
                         
-//                            ptr<LInt> A_outer  = outer.data();
+//                        cptr<LInt> A_outer  = outer.data();
                         cptr<Int > A_inner  = inner.data();
                         cptr<Scal> A_values = values.data();
                         

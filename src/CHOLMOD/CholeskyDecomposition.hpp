@@ -76,7 +76,7 @@ namespace Tensors
         public:
             
             template<typename Int1, typename LInt1, typename Int2>
-            CholeskyDecomposition( ptr<LInt1> rp, ptr<Int1> ci, const Int2 n_ )
+            CholeskyDecomposition( cptr<LInt1> rp, cptr<Int1> ci, const Int2 n_ )
             {
                 ptic(ClassName()+"()");
                 if constexpr( long_version  )
@@ -217,7 +217,7 @@ namespace Tensors
             }
             
             template<typename ExtScal>
-            void NumericFactorization( ptr<ExtScal> A_val_ )
+            void NumericFactorization( cptr<ExtScal> A_val_ )
             {
                 std::string tag = ClassName()+"::NumericFactorization";
                 
@@ -363,7 +363,7 @@ namespace Tensors
                         // And have to transpose the outputs.
                         
                         ptic(tag+": transpose output");
-                        ptr<Scal> x_ptr = reinterpret_cast<Scal *>(x_->x);
+                        cptr<Scal> x_ptr = reinterpret_cast<Scal *>(x_->x);
                         
                         for( Size_T i = 0; i < n; ++i )
                         {
@@ -415,7 +415,7 @@ namespace Tensors
                         // And have to transpose the outputs.
                         
                         ptic(tag+": transpose output");
-                        ptr<Scal> x_ptr = reinterpret_cast<Scal *>(x_->x);
+                        cptr<Scal> x_ptr = reinterpret_cast<Scal *>(x_->x);
                         
                         for( Size_T i = 0; i < n; ++i )
                         {

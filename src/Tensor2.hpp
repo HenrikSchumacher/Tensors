@@ -386,7 +386,7 @@ namespace Tensors {
         Int cols = B.Dimension(1);
         auto A = mma::makeMatrix<mreal>( cols, rows );
 
-        ptr<double> a_out = A.data();
+        cptr<double> a_out = A.data();
 
         for( Int i = 0; i < rows; ++i )
         {
@@ -407,7 +407,7 @@ namespace Tensors {
         Int cols = B.Dimension(1);
         auto A = mma::makeMatrix<mint>( cols, rows );
 
-        ptr<double> a_out = A.data();
+        cptr<double> a_out = A.data();
 
         for( Int i = 0; i < rows; ++i )
         {

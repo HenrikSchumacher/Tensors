@@ -14,6 +14,13 @@ public:
         fill_buffer<m*n>( &A[0][0], init );
     }
 
+
+    template<typename T>
+    void AddTo( mptr<T> target ) const
+    {
+        add_to_buffer<m*n>( &A[0][0], target );
+    }
+
 //######################################################
 //##              Writing to raw buffers              ##
 //######################################################

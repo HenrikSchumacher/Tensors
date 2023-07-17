@@ -21,7 +21,7 @@ namespace Tensors
             CholeskyDecomposition() = default;
             
             template<typename T>
-            CholeskyDecomposition( ptr<T> A_, const Int ldA )
+            CholeskyDecomposition( cptr<T> A_, const Int ldA )
             {
                 Factorize( A_, ldA );
             }
@@ -400,7 +400,7 @@ namespace Tensors
             
             
             template<typename T>
-            void Factorize( ptr<T> A_, const Int ldA )
+            void Factorize( cptr<T> A_, const Int ldA )
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )

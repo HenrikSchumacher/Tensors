@@ -372,8 +372,8 @@ namespace Tensors
                     p_computed     = true;
                     p_inv_computed = true;
                     
-//                    ptr<Int> q_    = q.GetPermutation().data();
-//                    ptr<Int> q_inv = q.GetInversePermutation().data();
+//                    cptr<Int> q_    = q.GetPermutation().data();
+//                    cptr<Int> q_inv = q.GetInversePermutation().data();
                     
                     const Int * restrict a     = nullptr;
                     const Int * restrict b     = nullptr;

@@ -18,13 +18,13 @@ namespace Tensors
             static constexpr Int n = n_;
 
             template<typename S>
-            CLASS( const VectorList<n,S,Int> & v_list, const Int k )
+            CLASS( cref<VectorList<n,S,Int>> v_list, const Int k )
             {
                 Read(v_list, k);
             }
             
             template<typename S>
-            CLASS( const Tensor2<S,Int> & matrix, const Int k )
+            CLASS( cref<Tensor2<S,Int>> matrix, const Int k )
             {
                 Read(matrix.data(k));
             }
@@ -36,7 +36,7 @@ namespace Tensors
             }
             
             template<typename S>
-            CLASS( const std::initializer_list<S> & w )
+            CLASS( cref<std::initializer_list<S>> w )
             {
                 const Int m = int_cast<Int>(w.size());
                 
@@ -96,25 +96,25 @@ namespace Tensors
                 zerofy_buffer<n>( &v[0] );
             }
             
-            void Fill( const Scal init )
+            void Fill( cref<Scal> init )
             {
                 fill_buffer<n>( &v[0], init );
             }
             
             template<typename T>
-            void Write( T * const target ) const
+            void Write( mptr<T> target ) const
             {
                 copy_buffer<n>( &v[0], target );
             }
             
             template<typename T>
-            void Read( T const * const source )
+            void Read( cptr<T> source )
             {
                 copy_buffer<n>( source, &v[0] );
             }
             
             template<typename S>
-            void Read( const VectorList<n,S,Int> & source, const Int k )
+            void Read( cref<VectorList<n,S,Int>> source, const Int k )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -123,13 +123,13 @@ namespace Tensors
             }
             
             template<typename S>
-            void Read( const Tensor2<S,Int> & source, const Int k )
+            void Read( cref<Tensor2<S,Int>> source, const Int k )
             {
                 Real( source.data(k) );
             }
             
             template<typename S>
-            void Write( VectorList<n,S,Int> & target, const Int k ) const
+            void Write( mref<VectorList<n,S,Int>> target, const Int k ) const
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -138,9 +138,28 @@ namespace Tensors
             }
             
             template<typename S>
-            void Write( Tensor2<S,Int> & source, const Int k ) const
+            void Write( mref<Tensor2<S,Int>> source, const Int k ) const
             {
                 Write( source.data(k) );
+            }
+            
+            
+            template<
+                Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+                Op self_op, Op target_op,
+                typename R, typename S, typename T
+            >
+            void CombineInto( cref<R> alpha, cref<S> beta, mptr<T> target ) const
+            {
+                combine_buffers<alpha_flag,beta_flag,self_op,target_op,n>(
+                    alpha, data(), beta, target
+                );
+            }
+            
+            template<typename T >
+            void AddTo( mptr<T> target ) const
+            {
+                add_to_buffer<n>(data(), target);
             }
             
 //######################################################
@@ -149,12 +168,12 @@ namespace Tensors
             
         public:
             
-            Scal * data()
+            mptr<Scal> data()
             {
                 return &v[0];
             }
             
-            const Scal * data() const
+            cptr<Scal> data() const
             {
                 return &v[0];
             }
@@ -189,7 +208,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator+=( const Tiny::Vector<n,T,Int> & s )
+            operator+=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -204,7 +223,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator-=( const Tiny::Vector<n,T,Int> & s )
+            operator-=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -219,7 +238,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator*=( const Tiny::Vector<n,T,Int> & s )
+            operator*=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -234,7 +253,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator/=( const Tiny::Vector<n,T,Int> & s )
+            operator/=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -249,7 +268,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator+=( const T & s )
+            operator+=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -264,7 +283,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator-=( const T & s )
+            operator-=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -279,7 +298,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator*=( const T & s )
+            operator*=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -298,7 +317,7 @@ namespace Tensors
                 return std::sqrt( r );
             }
             
-            force_inline friend Real Norm( const CLASS & u )
+            force_inline friend Real Norm( cref<CLASS> u )
             {
                 return u.Norm();
             }
@@ -345,7 +364,7 @@ namespace Tensors
                 }
             }
             
-            force_inline friend Scal Dot( const CLASS & x, const CLASS & y )
+            force_inline friend Scal Dot( cref<CLASS> x, cref<CLASS> y )
             {
                 Scal r (0);
                 
@@ -356,7 +375,7 @@ namespace Tensors
                 return r;
             }
             
-            force_inline friend Scal InnerProduct( const CLASS & x, const CLASS & y )
+            force_inline friend Scal InnerProduct( cref<CLASS> x, cref<CLASS> y )
             {
                 Scal r (0);
                 
@@ -368,7 +387,7 @@ namespace Tensors
             }
             
             
-            force_inline friend Real AngleBetweenUnitVectors( const CLASS & u, const CLASS & w )
+            force_inline friend Real AngleBetweenUnitVectors( cref<CLASS> u, cref<CLASS> w )
             {
                 Real a = 0;
                 Real b = 0;
@@ -382,7 +401,7 @@ namespace Tensors
                 return Scalar::Two<Real> * atan( std::sqrt(a/b) );
             }
             
-            force_inline friend Real Angle( const CLASS & x, const CLASS & y )
+            force_inline friend Real Angle( cref<CLASS> x, cref<CLASS> y )
             {
                 CLASS u = x;
                 CLASS w = y;
@@ -394,7 +413,7 @@ namespace Tensors
             }
 
             
-            force_inline friend void Plus( const CLASS & x, const CLASS & y, CLASS & z )
+            force_inline friend void Plus( cref<CLASS> x, cref<CLASS> y, mref<CLASS> z )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -402,7 +421,7 @@ namespace Tensors
                 }
             }
    
-            force_inline friend void Times( const Scal scale, const CLASS & x, CLASS & y )
+            force_inline friend void Times( cref<Scal> scale, cref<CLASS> x, mref<CLASS> y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -410,7 +429,7 @@ namespace Tensors
                 }
             }
             
-            force_inline friend void axpy( const Scal alpha, const CLASS & x, CLASS & y )
+            force_inline friend void axpy( cref<Scal> alpha, cref<CLASS> x, mref<CLASS> y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -433,7 +452,7 @@ namespace Tensors
             }
             
             template<class Stream_T>
-            Stream_T & ToStream( Stream_T & s ) const
+            Stream_T & ToStream( mref<Stream_T> s ) const
             {
                 s << "{ ";
                 s << Tools::ToString(v[0]);

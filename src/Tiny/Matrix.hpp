@@ -19,7 +19,7 @@ namespace Tensors
             using Vector_Out_T = Vector<m,Scal,Int>;
             using Vector_Int_T = Vector<n,Scal,Int>;
             
-            using Vector_T = Vector<n,Scal,Int>;
+            using Vector_T     = Vector<n,Scal,Int>;
             
         protected:
             
@@ -51,7 +51,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator+=( const Tiny::Matrix<m,n,T,Int> & B )
+            operator+=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -70,7 +70,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator-=( const Tiny::Matrix<m,n,T,Int> & B )
+            operator-=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -89,7 +89,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator*=( const Tiny::Matrix<m,n,T,Int> & B )
+            operator*=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -108,7 +108,7 @@ namespace Tensors
                 std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
                 CLASS &
             >
-            operator/=( const Tiny::Matrix<m,n,T,Int> & B )
+            operator/=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -146,9 +146,9 @@ namespace Tensors
                 void
             >
             Dot(
-                const Tiny::Matrix<m,K,R,   Int> & X,
-                const Tiny::Matrix<K,n,S,   Int> & Y,
-                      Tiny::Matrix<m,n,Scal,Int> & Z
+                cref<Tiny::Matrix<m,K,R,   Int>> X,
+                cref<Tiny::Matrix<K,n,S,   Int>> Y,
+                mref<Tiny::Matrix<m,n,Scal,Int>> Z
             )
             {
                 // First pass to overwrite (if desired).
@@ -156,7 +156,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        if constexpr ( addto == AddTo )
+                        if constexpr ( addto == Tensors::AddTo )
                         {
                             Z[i][j] += X[i][0] * Y[0][j];
                         }
@@ -203,9 +203,9 @@ namespace Tensors
                 void
             >
             Dot(
-                const Tiny::Matrix<m,n,Scal,Int> & M,
-                const Tiny::Vector<n,  S,   Int> & x,
-                      Tiny::Vector<m,  T,   Int> & y
+                cref<Tiny::Matrix<m,n,Scal,Int>> M,
+                cref<Tiny::Vector<n,  S,   Int>> x,
+                mref<Tiny::Vector<m,  T,   Int>> y
             )
             {
                 for( Int i = 0; i < m; ++i )
@@ -217,7 +217,7 @@ namespace Tensors
                         y_i += M[i][j] * x[j];
                     }
                     
-                    if constexpr ( addto == AddTo )
+                    if constexpr ( addto == Tensors::AddTo )
                     {
                         y[i] += y_i;
                     }
@@ -232,7 +232,7 @@ namespace Tensors
         public:
             
 
-            force_inline void Transpose( Matrix<n,m,Scal,Int> & B ) const
+            force_inline void Transpose( mref<Matrix<n,m,Scal,Int>> B ) const
             {
                 for( Int j = 0; j < n; ++j )
                 {
@@ -252,7 +252,7 @@ namespace Tensors
                 return B;
             }
 
-            force_inline void ConjugateTranspose( Matrix<n,m,Scal,Int> & B ) const
+            force_inline void ConjugateTranspose( mref<Matrix<n,m,Scal,Int>> B ) const
             {
                 for( Int j = 0; j < n; ++j )
                 {

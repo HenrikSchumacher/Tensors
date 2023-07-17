@@ -227,8 +227,8 @@ namespace Tensors
             }
             
             PatternCSR(
-                const std::vector<Int> & idx,
-                const std::vector<Int> & jdx,
+                cref<std::vector<Int>> idx,
+                cref<std::vector<Int>> jdx,
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
@@ -246,8 +246,8 @@ namespace Tensors
             }
             
             PatternCSR(
-                const std::vector<std::vector<Int>> & idx,
-                const std::vector<std::vector<Int>> & jdx,
+                cref<std::vector<std::vector<Int>>> idx,
+                cref<std::vector<std::vector<Int>>> jdx,
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
@@ -273,7 +273,7 @@ namespace Tensors
             }
             
             PatternCSR(
-                const std::vector<PairAggregator<Int,Int,LInt>> & idx,
+                cref<std::vector<PairAggregator<Int,Int,LInt>>> idx,
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
@@ -411,14 +411,14 @@ namespace Tensors
                     
                     // From here on, we may use as many threads as we want.
                     SetThreadCount( final_thread_count );
-                    
-                    
+                                        
                     // We have to sort b_inner to be compatible with the CSR format.
                     SortInner();
                     
                     if( compressQ )
                     {
                         Compress();
+                        
                     }
                     else
                     {
@@ -430,6 +430,7 @@ namespace Tensors
                 {
                     SetThreadCount( final_thread_count );
                 }
+                
                 ptoc(ClassName()+"::FromPairs");
             }
             
@@ -482,23 +483,19 @@ namespace Tensors
                         
                         diag_ptr = Tensor1<LInt,Int>( m );
                         
-                        mptr<LInt> diag_ptr__ = diag_ptr.data();
-                        cptr<LInt> outer__    = outer.data();
-                        cptr<Int>  inner__    = inner.data();
-                        
                         ParallelDo(
                             [=]( const Int i )
                             {
-                                const LInt k_begin = outer__[i  ];
-                                const LInt k_end   = outer__[i+1];
+                                const LInt k_begin = outer[i  ];
+                                const LInt k_end   = outer[i+1];
                                 
                                 LInt k = k_begin;
                                 
-                                while( (k < k_end) && (inner__[k] < i)  )
+                                while( (k < k_end) && (inner[k] < i)  )
                                 {
                                     ++k;
                                 }
-                                diag_ptr__[i] = k;
+                                diag_ptr[i] = k;
                             },
                             job_ptr
                         );
@@ -521,14 +518,10 @@ namespace Tensors
                     Tensor1<LInt,Int> costs (m + 1);
                     costs[0]=0;
                     
-                    cptr<LInt> diag_ptr__ = diag_ptr.data();
-                    cptr<LInt> outer__    = outer.data();
-                    mptr<LInt> costs__    = costs.data();
-                    
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,&costs]( const Int i )
                         {
-                            costs__[i+1] = outer__[i+1] - diag_ptr__[i];
+                            costs[i+1] = outer[i+1] - diag_ptr[i];
                         },
                         job_ptr
                     );
@@ -554,14 +547,10 @@ namespace Tensors
                     Tensor1<LInt,Int> costs (m + 1);
                     costs[0]=0;
                     
-                    cptr<LInt> diag_ptr__ = diag_ptr.data();
-                    cptr<LInt> outer__    = outer.data();
-                    mptr<LInt> costs__    = costs.data();
-                    
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,&costs]( const Int i )
                         {
-                            costs__[i+1] = diag_ptr__[i] - outer__[i];
+                            costs[i+1] = diag_ptr[i] - outer[i];
                         },
                         job_ptr
                     );
@@ -598,18 +587,18 @@ namespace Tensors
                 return outer(i+1) - outer(i);
             }
             
-            Tensor1<LInt,Int> & Outer()
+            mref<Tensor1<LInt,Int>> Outer()
             {
                 return outer;
             }
             
-            const Tensor1<LInt,Int> & Outer() const
+            cref<Tensor1<LInt,Int>> Outer() const
             {
                 return outer;
             }
             
 
-            LInt & Outer( const Int i )
+            mref<LInt> Outer( const Int i )
             {
 #ifndef TOOLS_DEBUG
                 if( i < 0 || i >= outer.Size() )
@@ -620,7 +609,7 @@ namespace Tensors
                 return outer[i];
             }
             
-            const LInt & Outer( const Int i ) const
+            cref<LInt> Outer( const Int i ) const
             {
 #ifdef TOOLS_DEBUG
                 if( i < 0 || i >= outer.Size() )
@@ -632,17 +621,17 @@ namespace Tensors
             }
             
             
-            Tensor1<Int,LInt> & Inner()
+            mref<Tensor1<Int,LInt>> Inner()
             {
                 return inner;
             }
             
-            const Tensor1<Int,LInt> & Inner() const
+            cref<Tensor1<Int,LInt>> Inner() const
             {
                 return inner;
             }
 
-            Int & Inner( const LInt k )
+            mref<Int> Inner( const LInt k )
             {
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= inner.Size() )
@@ -653,7 +642,7 @@ namespace Tensors
                 return inner[k];
             }
             
-            const Int & Inner( const LInt k ) const
+            cref<Int> Inner( const LInt k ) const
             {
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= inner.Size() )
@@ -664,7 +653,7 @@ namespace Tensors
                 return inner[k];
             }
             
-            const Tensor1<LInt,Int> & Diag() const
+            cref<Tensor1<LInt,Int>> Diag() const
             {
                 RequireDiag();
                 
@@ -672,7 +661,7 @@ namespace Tensors
             }
             
             
-            const LInt & Diag( const Int i ) const
+            cref<LInt> Diag( const Int i ) const
             {
 #ifdef TOOLS_DEBUG
                 if( i < 0 || i >= diag_ptr.Size() )
@@ -683,7 +672,7 @@ namespace Tensors
                 return diag_ptr[i];
             }
             
-            const JobPointers<Int> & JobPtr() const
+            cref<JobPointers<Int>> JobPtr() const
             {
                 RequireJobPtr();
                 
@@ -692,7 +681,7 @@ namespace Tensors
             
             
             
-            const JobPointers<Int> & UpperTriangularJobPtr() const
+            cref<JobPointers<Int>> UpperTriangularJobPtr() const
             {
                 RequireUpperTriangularJobPtr();
                 
@@ -700,7 +689,7 @@ namespace Tensors
             }
             
             
-            const JobPointers<Int> & LowerTriangularJobPtr() const
+            cref<JobPointers<Int>> LowerTriangularJobPtr() const
             {
                 RequireLowerTriangularJobPtr();
                 
@@ -882,7 +871,9 @@ namespace Tensors
                                 
                                 const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
                                 
-                                copy_buffer<VarSize,Sequential>( &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes );
+                                copy_buffer<VarSize,Sequential>(
+                                    &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes
+                                );
                             },
                             thread_count
                         );
@@ -899,13 +890,13 @@ namespace Tensors
                 }
             }
             
-            //##############################################################################################
+            //###########################################################################################
             //####          Matrix Multiplication
-            //##############################################################################################
+            //###########################################################################################
             
         protected:
             
-            PatternCSR DotBinary_( const PatternCSR & B ) const
+            PatternCSR DotBinary_( cref<PatternCSR> B ) const
             {
                 ptic(ClassName()+"::DotBinary_");
                 
@@ -1087,7 +1078,7 @@ namespace Tensors
             
         public:
             
-            bool InnerSorted() const
+            bool InnerSortedQ() const
             {
                 return inner_sorted;
             }
@@ -1153,7 +1144,7 @@ namespace Tensors
             
             
             template<typename S, typename T, typename J>
-            void FillLowerTriangleFromUpperTriangle( std::map<S,Tensor1<T,J>> & values )
+            void FillLowerTriangleFromUpperTriangle( mref<std::map<S,Tensor1<T,J>>> values )
             {
                 ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
                 

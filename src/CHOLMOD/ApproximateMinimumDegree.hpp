@@ -71,7 +71,7 @@ namespace Tensors
             }
             
             template<typename LInt>
-            Permutation<Int> operator()( ptr<LInt> rp, ptr<Int> ci, const Int n, const Int thread_count )
+            Permutation<Int> operator()( cptr<LInt> rp, cptr<Int> ci, const Int n, const Int thread_count )
             {
                 Tensor1<Int,Int> perm ( n );
                 

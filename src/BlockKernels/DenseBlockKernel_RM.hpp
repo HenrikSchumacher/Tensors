@@ -124,7 +124,7 @@ namespace Tensors
             // Read matrix.
             if constexpr ( a_copy )
             {
-                ptr<Scal> a_from = &A_const[BLOCK_NNZ * k_global];
+                cptr<Scal> a_from = &A_const[BLOCK_NNZ * k_global];
                 
                 if constexpr ( a_RM )
                 {

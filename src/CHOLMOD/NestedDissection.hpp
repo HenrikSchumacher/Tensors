@@ -114,7 +114,7 @@ namespace Tensors
             }
             
             template<typename Int_out, typename LInt1, typename Int2>
-            Permutation<Int_out> operator()( ptr<LInt1> rp, ptr<Int2> ci, const Int_out n, const Int_out thread_count )
+            Permutation<Int_out> operator()( cptr<LInt1> rp, cptr<Int2> ci, const Int_out n, const Int_out thread_count )
             {
                 Tensor1<Int,Int> perm ( int_cast<Int>(n) );
                 

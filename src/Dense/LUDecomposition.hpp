@@ -22,7 +22,7 @@ namespace Tensors
             LUDecomposition() = default;
             
             template<typename T>
-            LUDecomposition( ptr<T> A_, const Int ldA )
+            LUDecomposition( cptr<T> A_, const Int ldA )
             {
                 Factorize( A_, ldA );
             }
@@ -397,7 +397,7 @@ namespace Tensors
             
             
             template<typename T>
-            void Factorize( ptr<T> A_, const Int ldA )
+            void Factorize( cptr<T> A_, const Int ldA )
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )

@@ -87,7 +87,7 @@ namespace Tensors
          
     public:
         
-        void operator()( mptr<T> begin, ptr<T> end )
+        void operator()( mptr<T> begin, cptr<T> end )
         {
             operator()( begin, std::max( static_cast<I>(0), static_cast<I>(2)*static_cast<I>(end-begin)) );
         }
