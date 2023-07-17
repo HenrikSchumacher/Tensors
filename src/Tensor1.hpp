@@ -70,7 +70,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline Scal & operator()(const Int i)
+        force_inline mref<Scal> operator()(const Int i)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -78,7 +78,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline const Scal & operator()(const Int i) const
+        force_inline cref<Scal> operator()(const Int i) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -86,7 +86,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline Scal & operator[](const Int i)
+        force_inline mref<Scal> operator[](const Int i)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -94,7 +94,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline const Scal & operator[](const Int i) const
+        force_inline cref<Scal> operator[](const Int i) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -104,7 +104,7 @@ namespace Tensors {
         
 
         
-        force_inline Scal & First()
+        force_inline mref<Scal> First()
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(0);
@@ -112,7 +112,7 @@ namespace Tensors {
             return a[0];
         }
         
-        force_inline const Scal & First() const
+        force_inline cref<Scal> First() const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(0);
@@ -120,7 +120,7 @@ namespace Tensors {
             return a[0];
         }
 
-        force_inline Scal & Last()
+        force_inline mref<Scal> Last()
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(n-1);
@@ -128,7 +128,7 @@ namespace Tensors {
             return a[n-1];
         }
         
-        force_inline const Scal & Last() const
+        force_inline cref<Scal> Last() const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(n-1);

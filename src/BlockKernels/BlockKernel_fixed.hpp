@@ -170,7 +170,7 @@ namespace Tensors
         }
         
         
-        force_inline void FMA( const Scal a, const Scal b, Scal & restrict c ) const
+        force_inline void FMA( const Scal a, const Scal b, mref<Scal> c ) const
         {
             if constexpr ( use_fma )
             {
@@ -279,7 +279,7 @@ namespace Tensors
             }
         }
         
-        force_inline Scal & get_y( const Int i, const Int k )
+        force_inline mref<Scal> get_y( const Int i, const Int k )
         {
             if constexpr ( y_intRM )
             {

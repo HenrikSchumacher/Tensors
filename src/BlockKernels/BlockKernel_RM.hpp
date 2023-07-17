@@ -194,12 +194,12 @@ namespace Tensors
             return static_cast<Scal_out>(y[i][k]);
         }
         
-        force_inline Scal & get_y( const Int i, const Int k )
+        force_inline mref<Scal> get_y( const Int i, const Int k )
         {
             return y[i][k];
         }
         
-//        force_inline Scal & get_y_to( const Int i, const Int k ) const
+//        force_inline mref<Scal> get_y_to( const Int i, const Int k ) const
 //        {
 //            if constexpr (y_RM )
 //            {

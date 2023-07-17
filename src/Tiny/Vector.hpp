@@ -159,22 +159,22 @@ namespace Tensors
                 return &v[0];
             }
             
-            Scal & operator[]( const Int i )
+            mref<Scal> operator[]( const Int i )
             {
                 return v[i];
             }
             
-            const Scal & operator[]( const Int i ) const
+            cref<Scal> operator[]( const Int i ) const
             {
                 return v[i];
             }
             
-            Scal & operator()( Int i )
+            mref<Scal> operator()( Int i )
             {
                 return v[i];
             }
             
-            const Scal & operator()( const Int i ) const
+            cref<Scal> operator()( const Int i ) const
             {
                 return v[i];
             }

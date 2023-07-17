@@ -115,7 +115,7 @@ namespace Tensors {
         }
 
         
-        force_inline  mptr<Scal> data( const Int i, const Int j, const Int k)
+        force_inline mptr<Scal> data( const Int i, const Int j, const Int k)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
@@ -132,7 +132,7 @@ namespace Tensors {
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
-        force_inline Scal & operator()( const Int i, const Int j, const Int k)
+        force_inline mref<Scal> operator()( const Int i, const Int j, const Int k)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
@@ -140,7 +140,7 @@ namespace Tensors {
             return a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
-        force_inline const Scal & operator()( const Int i, const Int j, const Int k) const
+        force_inline cref<Scal> operator()( const Int i, const Int j, const Int k) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
@@ -195,13 +195,13 @@ namespace Tensors {
 #ifdef LTEMPLATE_H
     
     template<typename Scal, typename Int>
-    Tensor3<Scal,Int> from_CubeRef( const mma::TensorRef<mreal> & A )
+    Tensor3<Scal,Int> from_CubeRef( cref<mma::TensorRef<mreal>> A )
     {
         return ToTensor3<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
     }
     
     template<typename Scal, typename Int>
-    Tensor3<Scal,Int> from_CubeRef( const mma::TensorRef<mint> & A )
+    Tensor3<Scal,Int> from_CubeRef( cref<mma::TensorRef<mint>> A )
     {
         return ToTensor3<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
     }

@@ -262,7 +262,7 @@ namespace Tensors {
             return tensors[i].data(j,k);
         }
 
-        force_inline Scal & operator()( const Int i, const Int j, const Int k)
+        force_inline mref<Scal> operator()( const Int i, const Int j, const Int k)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -270,7 +270,7 @@ namespace Tensors {
             return tensors[i](j,k);
         }
     
-        force_inline const Scal & operator()( const Int i, const Int j, const Int k) const
+        force_inline cref<Scal> operator()( const Int i, const Int j, const Int k) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);

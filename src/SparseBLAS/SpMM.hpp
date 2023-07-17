@@ -104,7 +104,8 @@ public:
                 }
                 else if( beta == static_cast<S_out>(1) )
                 {
-                    SpMM_impl<One    ,One    ,One    ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<One    ,One    ,One    ,NRHS>(
+                    rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
@@ -137,8 +138,8 @@ private:
     >
     void SpMM_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<R_out> alpha,  cptr<T_in>  X, const Int ldX,
-        cref<S_out> beta,   mptr<T_out> Y, const Int ldY,
+        const R_out alpha,  cptr<T_in>  X, const Int ldX,
+        const S_out beta,   mptr<T_out> Y, const Int ldY,
         cref<JobPointers<Int>> job_ptr,
         const Int nrhs = NRHS
     )

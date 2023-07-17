@@ -49,22 +49,22 @@ namespace Tensors
 //######################################################
 
             
-            force_inline Real & Diag( const Int i )
+            force_inline mref<Real> Diag( const Int i )
             {
                 return diag[i];
             }
             
-            force_inline const Real & Diag( const Int i ) const
+            force_inline cref<Real> Diag( const Int i ) const
             {
                 return diag[i];
             }
             
-            force_inline Scal & Upper( const Int i )
+            force_inline mref<Scal> Upper( const Int i )
             {
                 return upper[i];
             }
             
-            force_inline const Scal & Upper( const Int i ) const
+            force_inline cref<Scal> Upper( const Int i ) const
             {
                 return upper[i];
             }

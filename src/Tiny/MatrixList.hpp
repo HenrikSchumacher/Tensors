@@ -149,7 +149,7 @@ namespace Tensors
                 }
             }
             
-            Tensor_T & operator()( const Int i, const Int j )
+            mref<Tensor_T> operator()( const Int i, const Int j )
             {
                 return A[i][j];
             }
@@ -159,12 +159,12 @@ namespace Tensors
                 return A[i][j];
             }
             
-            Scal & operator()( const Int i, const Int j, const Int k )
+            mref<Scal> operator()( const Int i, const Int j, const Int k )
             {
                 return A[i][j][k];
             }
             
-            const Scal & operator()( const Int i, const Int j, const Int k ) const
+            cref<Scal> operator()( const Int i, const Int j, const Int k ) const
             {
                 return A[i][j][k];
             }
