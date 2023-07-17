@@ -9,7 +9,7 @@ namespace Tensors
             Op opA, Op opB,
             int M, int N, int K,
             Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-            typename Scalar
+            typename Scal
         >
         class GEMM
         {
@@ -25,9 +25,9 @@ namespace Tensors
             
             void operator()(
                 const int m, const int n, const int k,
-                const Scalar & alpha, const Scalar * restrict A, const int ldA,
-                                      const Scalar * restrict B, const int ldB,
-                const Scalar & beta,        Scalar * restrict C, const int ldC
+                const Scal & alpha, const Scal * restrict A, const int ldA,
+                                    const Scal * restrict B, const int ldB,
+                const Scal & beta,        Scal * restrict C, const int ldC
             )
             {
                 if constexpr( (1 <= M) && (M<=MaxM) && (1 <= N) && (N<=MaxN) && (1 <= K) && (K<=MaxK) )
@@ -69,9 +69,9 @@ namespace Tensors
             template<int N_>
             void gemm_N_(
                 const int m, const int k,
-                const Scalar & restrict alpha, ptr<Scalar> A, const int ldA,
-                                               ptr<Scalar> B, const int ldB,
-                const Scalar & restrict beta,  mut<Scalar> C, const int ldC
+                const Scal & restrict alpha, ptr<Scal> A, const int ldA,
+                                               ptr<Scal> B, const int ldB,
+                const Scal & restrict beta,  mut<Scal> C, const int ldC
             )
             {
                 switch( m )
@@ -177,9 +177,9 @@ namespace Tensors
             template<int M_, int N_>
             void gemmMN_(
                 const int k,
-                const Scalar & restrict alpha, ptr<Scalar> A, const int ldA,
-                                               ptr<Scalar> B, const int ldB,
-                const Scalar & restrict beta,  mut<Scalar> C, const int ldC
+                const Scal & restrict alpha, ptr<Scal> A, const int ldA,
+                                               ptr<Scal> B, const int ldB,
+                const Scal & restrict beta,  mut<Scal> C, const int ldC
             )
             {
                 switch( k )
