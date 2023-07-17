@@ -32,7 +32,7 @@ namespace Tensors
             ~NestedDissection() = default;
             
             template<typename Int1, typename Int2, typename Int3, typename Int4>
-            Int64 operator()( ptr<Int1> rp, ptr<Int2> ci, const Int3 n_, mut<Int4> perm )
+            Int64 operator()( cptr<Int1> rp, cptr<Int2> ci, const Int3 n_, mptr<Int4> perm )
             {
                 ptic(ClassName()+"::operator()");
                 

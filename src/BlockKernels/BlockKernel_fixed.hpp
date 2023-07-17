@@ -38,19 +38,20 @@ namespace Tensors
         
     protected:
         
-        mut<Scal>      A       = nullptr;
-        ptr<Scal>      A_const = nullptr;
+        mptr<Scal>     A       = nullptr;
+        cptr<Scal>     A_const = nullptr;
         const Scal_out alpha   = 0;
-        ptr<Scal_in>   X       = nullptr;
+        cptr<Scal_in>  X       = nullptr;
         const Scal_out beta    = 0;
-        mut<Scal_out>  Y       = nullptr;
+        mptr<Scal_out> Y       = nullptr;
 
         
         const Scal_in  * restrict x_from = nullptr;
 //              Scal_out * restrict y_to   = nullptr;
         
-        Scal x [x_intRM ? COLS : RHS_COUNT][x_intRM ? RHS_COUNT : COLS] = {};
-        Scal y [y_intRM ? ROWS : RHS_COUNT][y_intRM ? RHS_COUNT : ROWS] = {};
+        
+        Tiny::Matrix<x_intRM ? COLS : RHS_COUNT, x_intRM ? RHS_COUNT : COLS, Scal,Int> x;
+        Tiny::Matrix<y_intRM ? ROWS : RHS_COUNT, y_intRM ? RHS_COUNT : ROWS, Scal,Int> y;
 
         const Int rhs_count = 1;
         const Int rows_size = ROWS;
@@ -60,7 +61,7 @@ namespace Tensors
         
         CLASS() = delete;
         
-        explicit CLASS( mut<Scal> A_ )
+        explicit CLASS( mptr<Scal> A_ )
         :   A       ( A_      )
         ,   A_const ( nullptr )
         ,   alpha   ( 0       )
@@ -70,9 +71,9 @@ namespace Tensors
         {}
 
         CLASS(
-            ptr<Scal> A_,
-            const Scal_out alpha_, ptr<Scal_in>  X_,
-            const Scal_out beta_,  mut<Scal_out> Y_,
+            cptr<Scal> A_,
+            const Scal_out alpha_, cptr<Scal_in>  X_,
+            const Scal_out beta_,  mptr<Scal_out> Y_,
             Int rhs_count_
         )
         :   A         ( nullptr          )
@@ -332,12 +333,13 @@ namespace Tensors
         force_inline void CleanseY()
         {
             // Clear the local vector chunk of the kernel.
-            zerofy_buffer<ROWS_SIZE>( &y[0][0] );           // TODO: Might be inefficient.
+//            zerofy_buffer<ROWS_SIZE>( &y[0][0] );
+            y.SetZero();
         }
         
         force_inline void WriteY( const Int i_global ) const
         {
-            mut<Scal_out> y_to = &Y[ RowsSize() * i_global];
+            mptr<Scal_out> y_to = &Y[ RowsSize() * i_global];
             
             if constexpr ( alpha_flag == 1 )
             {
@@ -350,7 +352,8 @@ namespace Tensors
                         {
                             if constexpr ( fixed )
                             {
-                                copy_buffer<ROWS_SIZE>( &y[0][0], y_to );
+//                                copy_buffer<ROWS_SIZE>( &y[0][0], y_to );
+                                y.Write(y_to);
                             }
                             else
                             {
@@ -462,9 +465,13 @@ namespace Tensors
                 }
                 else
                 {
-                    for( Int k = 0; k < RowsSize(); ++k )
+                    if constexpr ( fixed )
                     {
-                        y_to[k] *= beta;
+                        scale_buffer<ROWS_SIZE>( beta, y_to );
+                    }
+                    else
+                    {
+                        scale_buffer<VarSize,Sequential>( beta, y_to, RowsSize() );
                     }
                 }
             }
@@ -547,7 +554,7 @@ namespace Tensors
         force_inline void WriteYZero( const Int i_global ) const
         {
             // CAUTION! We cannot use i_global here because BeginRow() has not been in an empty row!
-            mut<Scal_out> y_to = &Y[ RowsSize() * i_global ];
+            mptr<Scal_out> y_to = &Y[ RowsSize() * i_global ];
             
             if constexpr ( beta_flag == 0 )
             {

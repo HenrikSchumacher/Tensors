@@ -69,9 +69,9 @@ namespace Tensors
             template<int N_>
             void gemm_N_(
                 const int m, const int k,
-                const Scal & restrict alpha, ptr<Scal> A, const int ldA,
-                                               ptr<Scal> B, const int ldB,
-                const Scal & restrict beta,  mut<Scal> C, const int ldC
+                cref<Scal> alpha, cptr<Scal> A, const int ldA,
+                                  cptr<Scal> B, const int ldB,
+                cref<Scal> beta,  mptr<Scal> C, const int ldC
             )
             {
                 switch( m )
@@ -177,9 +177,9 @@ namespace Tensors
             template<int M_, int N_>
             void gemmMN_(
                 const int k,
-                const Scal & restrict alpha, ptr<Scal> A, const int ldA,
-                                               ptr<Scal> B, const int ldB,
-                const Scal & restrict beta,  mut<Scal> C, const int ldC
+                cref<Scal> alpha, cptr<Scal> A, const int ldA,
+                                  cptr<Scal> B, const int ldB,
+                cref<Scal> beta,  mptr<Scal> C, const int ldC
             )
             {
                 switch( k )

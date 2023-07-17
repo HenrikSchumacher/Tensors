@@ -30,7 +30,7 @@ namespace Tensors {
         }
         
         template<typename S>
-        TENSOR_T( ptr<S> a_, const Int d0, const Int d1, const Int d2 )
+        TENSOR_T( cptr<S> a_, const Int d0, const Int d1, const Int d2 )
         :   TENSOR_T( d0, d1, d2 )
         {
             Read(a_);
@@ -82,7 +82,7 @@ namespace Tensors {
     public:
         
 
-        force_inline mut<Scal> data( const Int i )
+        force_inline mptr<Scal> data( const Int i )
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -90,7 +90,7 @@ namespace Tensors {
             return &a[i * dims[1] * dims[2]];
         }
         
-        force_inline ptr<Scal> data( const Int i ) const
+        force_inline cptr<Scal> data( const Int i ) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -98,7 +98,7 @@ namespace Tensors {
             return &a[i * dims[1] * dims[2]];
         }
 
-        force_inline mut<Scal> data( const Int i, const Int j )
+        force_inline mptr<Scal> data( const Int i, const Int j )
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j);
@@ -106,7 +106,7 @@ namespace Tensors {
             return &a[( i * dims[1] + j ) * dims[2]];
         }
         
-        force_inline ptr<Scal> data( const Int i, const Int j ) const
+        force_inline cptr<Scal> data( const Int i, const Int j ) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j);
@@ -115,7 +115,7 @@ namespace Tensors {
         }
 
         
-        force_inline mut<Scal> data( const Int i, const Int j, const Int k)
+        force_inline  mptr<Scal> data( const Int i, const Int j, const Int k)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
@@ -124,7 +124,7 @@ namespace Tensors {
         }
         
         
-        force_inline ptr<Scal> data( const Int i, const Int j, const Int k) const
+        force_inline mptr<Scal> data( const Int i, const Int j, const Int k) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
@@ -132,7 +132,7 @@ namespace Tensors {
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
-        force_inline Scal & operator()( const Int i, const Int j, const Int k)
+        force_inline mref<Scal> operator()( const Int i, const Int j, const Int k)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
@@ -140,7 +140,7 @@ namespace Tensors {
             return a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
-        force_inline const Scal & operator()( const Int i, const Int j, const Int k) const
+        force_inline cref<Scal> operator()( const Int i, const Int j, const Int k) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
@@ -149,25 +149,25 @@ namespace Tensors {
         }
         
         template< typename S>
-        void Write( const Int i, mut<S> b ) const
+        void Write( const Int i, mptr<S> b ) const
         {
             copy_buffer( data(i), b, dims[1] * dims[2] );
         }
         
         template< typename S>
-        void Write( const Int i, const Int j, mut<Scal> b ) const
+        void Write( const Int i, const Int j, mptr<Scal> b ) const
         {
             copy_buffer( data(i,j), b, dims[2] );
         }
         
         template< typename S>
-        void Read( const Int i, ptr<S> b )
+        void Read( const Int i, cptr<S> b )
         {
             copy_buffer( b, data(i), dims[1] * dims[2] );
         }
         
         template< typename S>
-        void Read( const Int i, const Int j, ptr<S> b )
+        void Read( const Int i, const Int j, cptr<S> b )
         {
             copy_buffer( b, data(i,j), dims[2] );
         }
@@ -183,7 +183,7 @@ namespace Tensors {
     
     
     template<typename Scal, typename Int, typename S>
-    Tensor3<Scal,Int> ToTensor3( ptr<S> a_, const Int d0, const Int d1, const Int d2 )
+    Tensor3<Scal,Int> ToTensor3( cptr<S> a_, const Int d0, const Int d1, const Int d2 )
     {
         Tensor3<Scal,Int> result ( d0, d1, d2 );
 

@@ -84,7 +84,7 @@ protected:
     }
     
     template<Int k>
-    force_inline void read( ptr<Scal> const B )
+    force_inline void read( cptr<Scal> const B )
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
@@ -95,7 +95,7 @@ protected:
     }
 
     template<Int k>
-    force_inline void read( ptr<Scal> B, const Int ldB )
+    force_inline void read( cptr<Scal> B, const Int ldB )
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
@@ -106,7 +106,7 @@ protected:
     }
     
     template<Int k>
-    force_inline void write( mut<Scal> B ) const
+    force_inline void write( mptr<Scal> B ) const
     {
         copy_buffer<n-k>( &A[k][k], B );
         
@@ -117,7 +117,7 @@ protected:
     }
 
     template<Int k>
-    force_inline void write( mut<Scal> B, const Int ldB ) const
+    force_inline void write( mptr<Scal> B, const Int ldB ) const
     {
         copy_buffer<n-k>( &A[k][k], B );
         

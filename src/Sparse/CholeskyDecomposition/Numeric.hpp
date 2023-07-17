@@ -8,7 +8,7 @@ public:
     
     template<typename ExtScal>
     void NumericFactorization(
-        ptr<ExtScal> A_val_,
+        cptr<ExtScal> A_val_,
         const ExtScal reg_  = 0 // Regularization parameter for the diagonal.
     )
     {

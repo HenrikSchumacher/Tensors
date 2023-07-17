@@ -321,9 +321,9 @@ namespace Tensors
                     inner  = Tensor1<Int ,LInt>( nnz );
                     values = Tensor1<Scal,LInt>( nnz );
                     
-                    mut<LInt> outer__ = outer.data();
-                    mut<Int>  inner__ = inner.data();
-                    mut<Scal> value__ = values.data();
+                    mptr<LInt> outer__ = outer.data();
+                    mptr<Int>  inner__ = inner.data();
+                    mptr<Scal> value__ = values.data();
                     
                     copy_buffer( counters.data(list_count-1), &outer__[1], m );
                     
@@ -341,11 +341,11 @@ namespace Tensors
                         {
                             const LInt entry_count = entry_counts[thread];
                             
-                            ptr<Int>  thread_idx = idx[thread];
-                            ptr<Int>  thread_jdx = jdx[thread];
-                            ptr<Scal> thread_val = val[thread];
+                            cptr<Int>  thread_idx = idx[thread];
+                            cptr<Int>  thread_jdx = jdx[thread];
+                            cptr<Scal> thread_val = val[thread];
                             
-                            mut<LInt> c = counters.data(thread);
+                            mptr<LInt> c = counters.data(thread);
                             
                             for( LInt k = entry_count; k --> 0; )
                             {
@@ -459,12 +459,12 @@ namespace Tensors
                             const Int i_begin = job_ptr[thread  ];
                             const Int i_end   = job_ptr[thread+1];
                             
-                            mut<LInt> c = counters.data(thread);
-                            mut<Int > B_inner  = B.Inner().data();
-                            mut<Scal> B_values = B.Value().data();
-                            ptr<LInt> A_outer  = Outer().data();
-                            ptr<Int > A_inner  = Inner().data();
-                            ptr<Scal> A_values = Value().data();
+                            mptr<LInt> c = counters.data(thread);
+                            mptr<Int > B_inner  = B.Inner().data();
+                            mptr<Scal> B_values = B.Value().data();
+                            cptr<LInt> A_outer  = Outer().data();
+                            cptr<Int > A_inner  = Inner().data();
+                            cptr<Scal> A_values = Value().data();
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
@@ -578,10 +578,10 @@ namespace Tensors
                         
                         Tensor1<LInt,Int> new_outer (outer.Size(),0);
                         
-                        ptr<LInt> outer__     = outer.data();
-                        mut<Int > inner__      = inner.data();
-                        mut<Scal> values__  = values.data();
-                        mut<LInt> new_outer__ = new_outer.data();
+                        cptr<LInt> outer__     = outer.data();
+                        mptr<Int > inner__      = inner.data();
+                        mptr<Scal> values__  = values.data();
+                        mptr<LInt> new_outer__ = new_outer.data();
                         
                         ParallelDo(
                             [=]( const Int thread )
@@ -660,8 +660,8 @@ namespace Tensors
                         Tensor1< Int,LInt> new_inner  (nnz,0);
                         Tensor1<Scal,LInt> new_values (nnz,0);
                         
-                        mut<Int > new_inner__  = new_inner.data();
-                        mut<Scal> new_values__ = new_values.data();
+                        mptr<Int > new_inner__  = new_inner.data();
+                        mptr<Scal> new_values__ = new_values.data();
                         
                         //TODO: Parallelization might be a bad idea here.
                         ParallelDo(
@@ -725,7 +725,7 @@ namespace Tensors
                 Permute( p.data(), q.data(), sortQ );
             }
             
-            MatrixCSR Permute( ptr<Int> p, ptr<Int> q, bool sortQ = true )
+            MatrixCSR Permute( cptr<Int> p, cptr<Int> q, bool sortQ = true )
             {
                 if( p == nullptr )
                 {
@@ -752,13 +752,13 @@ namespace Tensors
             
         protected:
             
-            MatrixCSR PermuteRows( ptr<Int> p )
+            MatrixCSR PermuteRows( cptr<Int> p )
             {
                 MatrixCSR B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
                 
                 {
-                    ptr<LInt> A_outer = outer.data();
-                    mut<LInt> B_outer = B.Outer().data();
+                    cptr<LInt> A_outer = outer.data();
+                    mptr<LInt> B_outer = B.Outer().data();
                     
                     B_outer[0] = 0;
                     
@@ -781,13 +781,13 @@ namespace Tensors
                     
                     const Int thread_count = B_job_ptr.ThreadCount();
                     
-                    ptr<LInt> A_outer  = outer.data();
-                    ptr<Int > A_inner  = inner.data();
-                    mut<Scal> A_values = values.data();
+                    cptr<LInt> A_outer  = outer.data();
+                    cptr<Int > A_inner  = inner.data();
+                    mptr<Scal> A_values = values.data();
                     
-                    ptr<LInt> B_outer  = B.Outer().data();
-                    mut<Int > B_inner  = B.Inner().data();
-                    mut<Scal> B_values = B.Values().data();
+                    cptr<LInt> B_outer  = B.Outer().data();
+                    mptr<Int > B_inner  = B.Inner().data();
+                    mptr<Scal> B_values = B.Values().data();
                     
                     ParallelDo(
                         [=,&B]( const Int i )
@@ -811,13 +811,13 @@ namespace Tensors
                 return B;
             }
             
-            MatrixCSR PermuteCols( ptr<Int> q, bool sortQ = true )
+            MatrixCSR PermuteCols( cptr<Int> q, bool sortQ = true )
             {
                 MatrixCSR B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
                 
                 Tensor1<Int,Int> q_inv_buffer ( ColCount() );
                 
-                mut<Int> q_inv = q_inv_buffer.data();
+                mptr<Int> q_inv = q_inv_buffer.data();
                 
                 ParallelDo(
                     [=]( const Int j )
@@ -836,12 +836,12 @@ namespace Tensors
                         TwoArraySort<Int,Scal,LInt> S;
                         
 //                            ptr<LInt> A_outer  = outer.data();
-                        ptr<Int > A_inner  = inner.data();
-                        ptr<Scal> A_values = values.data();
+                        cptr<Int > A_inner  = inner.data();
+                        cptr<Scal> A_values = values.data();
                         
-                        ptr<LInt> B_outer  = B.Outer().data();
-                        mut<Int > B_inner  = B.Inner().data();
-                        mut<Scal> B_values = B.Values().data();
+                        cptr<LInt> B_outer  = B.Outer().data();
+                        mptr<Int > B_inner  = B.Inner().data();
+                        mptr<Scal> B_values = B.Values().data();
                         
                         const Int i_begin = B.JobPtr()[thread  ];
                         const Int i_end   = B.JobPtr()[thread+1];
@@ -873,12 +873,12 @@ namespace Tensors
                 return B;
             }
             
-            MatrixCSR PermuteRowsCols( ptr<Int> p, ptr<Int> q, bool sortQ = true )
+            MatrixCSR PermuteRowsCols( cptr<Int> p, cptr<Int> q, bool sortQ = true )
             {
                 MatrixCSR B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
                 
                 Tensor1<Int,Int> q_inv_buffer ( ColCount() );
-                mut<Int> q_inv = q_inv_buffer.data();
+                mptr<Int> q_inv = q_inv_buffer.data();
                 
                 ParallelDo(
                     [=]( const Int j )
@@ -890,8 +890,8 @@ namespace Tensors
                 );
                 
                 {
-                    ptr<LInt> A_outer = outer.data();
-                    mut<LInt> B_outer = B.Outer().data();
+                    cptr<LInt> A_outer = outer.data();
+                    mptr<LInt> B_outer = B.Outer().data();
                     
                     B_outer[0] = 0;
                     
@@ -912,13 +912,13 @@ namespace Tensors
                 ParallelDo(
                     [=,&B]( const Int thread )
                     {
-                        ptr<LInt> A_outer  = outer.data();
-                        ptr<Int > A_inner  = inner.data();
-                        ptr<Scal> A_values = values.data();
+                        cptr<LInt> A_outer  = outer.data();
+                        cptr<Int > A_inner  = inner.data();
+                        cptr<Scal> A_values = values.data();
                         
-                        ptr<LInt> B_outer  = B.Outer().data();
-                        mut<Int > B_inner  = B.Inner().data();
-                        mut<Scal> B_values = B.Values().data();
+                        cptr<LInt> B_outer  = B.Outer().data();
+                        mptr<Int > B_inner  = B.Inner().data();
+                        mptr<Scal> B_values = B.Values().data();
                         
                         TwoArraySort<Int,Scal,LInt> S;
                         
@@ -977,12 +977,12 @@ namespace Tensors
                             const Int i_begin = job_ptr[thread  ];
                             const Int i_end   = job_ptr[thread+1];
                             
-                            mut<LInt> c = counters.data(thread);
+                            mptr<LInt> c = counters.data(thread);
                             
-                            ptr<LInt> A_outer  = Outer().data();
-                            ptr<Int>  A_inner  = Inner().data();
+                            cptr<LInt> A_outer  = Outer().data();
+                            cptr<Int>  A_inner  = Inner().data();
                             
-                            ptr<LInt> B_outer  = B.Outer().data();
+                            cptr<LInt> B_outer  = B.Outer().data();
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
@@ -1014,18 +1014,18 @@ namespace Tensors
                             const Int i_begin = job_ptr[thread  ];
                             const Int i_end   = job_ptr[thread+1];
                             
-                            mut<LInt> c        = counters.data(thread);
+                            mptr<LInt> c        = counters.data(thread);
                             
-                            ptr<LInt> A_outer  = Outer().data();
-                            ptr<Int > A_inner  = Inner().data();
-                            ptr<Scal> A_values = Value().data();
+                            cptr<LInt> A_outer  = Outer().data();
+                            cptr<Int > A_inner  = Inner().data();
+                            cptr<Scal> A_values = Value().data();
                             
-                            ptr<LInt> B_outer  = B.Outer().data();
-                            ptr<Int > B_inner  = B.Inner().data();
-                            ptr<Scal> B_values = B.Value().data();
+                            cptr<LInt> B_outer  = B.Outer().data();
+                            cptr<Int > B_inner  = B.Inner().data();
+                            cptr<Scal> B_values = B.Value().data();
                             
-                            mut<LInt> C_inner  = C.Inner().data();
-                            ptr<Scal> C_values = C.Value().data();
+                            mptr<LInt> C_inner  = C.Inner().data();
+                            cptr<Scal> C_values = C.Value().data();
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
@@ -1090,8 +1090,8 @@ namespace Tensors
             // Use own nonzero values.
             template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                const R_out alpha, ptr<T_in>  X, const Int ldX,
-                const S_out beta,  mut<T_out> Y, const Int ldY,
+                cref<R_out> alpha, cptr<T_in>  X, const Int ldX,
+                cref<S_out> beta,  mptr<T_out> Y, const Int ldY,
                 const Int   nrhs = Int(1)
             ) const
             {
@@ -1101,8 +1101,8 @@ namespace Tensors
             // Use own nonzero values.
             template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                const R_out alpha, ptr<T_in>  X,
-                const S_out beta,  mut<T_out> Y,
+                cref<R_out> alpha, cptr<T_in>  X,
+                cref<S_out> beta,  mptr<T_out> Y,
                 const Int   nrhs = Int(1)
             ) const
             {
@@ -1112,8 +1112,8 @@ namespace Tensors
             // Use own nonzero values.
             template<typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                const R_out alpha, const Tensor1<T_in, Int> & X,
-                const S_out beta,        Tensor1<T_out,Int> & Y
+                cref<R_out> alpha, cref<Tensor1<T_in, Int>> X,
+                cref<S_out> beta,  mref<Tensor1<T_out,Int>> Y
             ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
@@ -1131,8 +1131,8 @@ namespace Tensors
             // Use own nonzero values.
             template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                 const R_out alpha, const Tensor2<T_in, Int> & X,
-                 const S_out beta,        Tensor2<T_out,Int> & Y
+                 cref<R_out> alpha, cref<Tensor2<T_in, Int>> X,
+                 cref<S_out> beta,  mref<Tensor2<T_out,Int>> Y
              ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -1152,9 +1152,9 @@ namespace Tensors
             // Use external list of values.
             template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                ptr<T_ext>  ext_values,
-                const R_out alpha, ptr<T_ext> X, const Int ldX,
-                const S_out beta,  mut<T_ext> Y, const Int ldY,
+                cptr<T_ext>  ext_values,
+                cref<R_out> alpha, cptr<T_ext> X, const Int ldX,
+                cref<S_out> beta,  mptr<T_ext> Y, const Int ldY,
                 const Int   nrhs = static_cast<Int>(1)
             ) const
             {
@@ -1164,9 +1164,9 @@ namespace Tensors
             // Use external list of values.
             template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                ptr<T_ext>  ext_values,
-                const R_out alpha, ptr<T_ext> X,
-                const S_out beta,  mut<T_ext> Y,
+                cptr<T_ext> ext_values,
+                cref<R_out> alpha, cptr<T_ext> X,
+                cref<S_out> beta,  mptr<T_ext> Y,
                 const Int   nrhs = static_cast<Int>(1)
             ) const
             {
@@ -1175,9 +1175,9 @@ namespace Tensors
             
             template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                const Tensor1<T_ext,Int> & ext_values,
-                const R_out alpha, const Tensor1<T_in, Int> & X,
-                const S_out beta,        Tensor1<T_out,Int> & Y
+                cref<Tensor1<T_ext,Int>> ext_values,
+                cref<R_out> alpha, cref<Tensor1<T_in, Int>> X,
+                cref<S_out> beta,  mref<Tensor1<T_out,Int>> Y
             ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
@@ -1194,9 +1194,9 @@ namespace Tensors
             
             template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot(
-                 const Tensor1<T_ext,Int> & ext_values,
-                 const R_out alpha, const Tensor2<T_in, Int> & X,
-                 const S_out beta,        Tensor2<T_out,Int> & Y
+                 cref<Tensor1<T_ext,Int>> ext_values,
+                 cref<R_out> alpha, cref<Tensor2<T_in, Int>> X,
+                 cref<S_out> beta,  mref<Tensor2<T_out,Int>> Y
          ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -1265,19 +1265,19 @@ namespace Tensors
             
             MatrixCSR<Scal,Int,LInt> A( m, n, nnz, thread_count );
             
-            mut<LInt> rp = A.Outer().data();
+            mptr<LInt> rp = A.Outer().data();
             for( Int i = 0; i < n+1; ++i )
             {
                 s >> rp[i];
             }
             
-            mut<Int> ci = A.Inner().data();
+            mptr<Int> ci = A.Inner().data();
             for( Int i = 0; i < nnz; ++i )
             {
                 s >> ci[i];
             }
             
-            mut<Scal> a = A.Values().data();
+            mptr<Scal> a = A.Values().data();
             for( Int i = 0; i < nnz; ++i )
             {
                 s >> a[i];

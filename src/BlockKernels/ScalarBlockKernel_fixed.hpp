@@ -64,14 +64,14 @@ namespace Tensors
         
         CLASS() = delete;
         
-        explicit CLASS( mut<Scal> A_ )
+        explicit CLASS( mptr<Scal> A_ )
         :   BASE( A_ )
         {}
         
         CLASS(
-            ptr<Scal> A_,
-            const Scal_out alpha_, ptr<Scal_in>  X_,
-            const Scal_out beta_,  mut<Scal_out> Y_,
+            cptr<Scal> A_,
+            cref<Scal_out> alpha_, cptr<Scal_in>  X_,
+            cref<Scal_out> beta_,  mptr<Scal_out> Y_,
             const Int      rhs_count_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )

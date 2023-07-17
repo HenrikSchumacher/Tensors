@@ -78,20 +78,22 @@ namespace Tensors
         
         const Scal * restrict a_from = nullptr;
         
-        alignas(ALIGNMENT) Scal a [(a_intRM)?ROWS:COLS][(a_intRM)?COLS:ROWS];
+//        alignas(ALIGNMENT) Scal a [(a_intRM)?ROWS:COLS][(a_intRM)?COLS:ROWS];
+        
+        Tiny::Matrix<(a_intRM)?ROWS:COLS,(a_intRM)?COLS:ROWS,Scal,Int> a;
         
     public:
         
         CLASS() = delete;
         
-        explicit CLASS( mut<Scal> A_ )
+        explicit CLASS( mptr<Scal> A_ )
         :   BASE( A_ )
         {}
         
         CLASS(
-            ptr< Scal>     A_,
-            const Scal_out alpha_, ptr<Scal_in>   X_,
-            const Scal_out beta_,  mut<Scal_out>  Y_,
+            cptr< Scal>    A_,
+            cref<Scal_out> alpha_, cptr<Scal_in>  X_,
+            cref<Scal_out> beta_,  mptr<Scal_out> Y_,
             const Int      rhs_count_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
@@ -111,8 +113,8 @@ namespace Tensors
                 
         force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            ptr<Scal> a_from_ = &A[ BLOCK_NNZ * from];
-            mut<Scal> a_to_   = &A[ BLOCK_NNZ * to  ];
+            cptr<Scal> a_from_ = &A[ BLOCK_NNZ * from];
+            mptr<Scal> a_to_   = &A[ BLOCK_NNZ * to  ];
             
             if constexpr ( a_RM )
             {
@@ -147,44 +149,53 @@ namespace Tensors
             {
                 a_from = &A_const[BLOCK_NNZ * k_global];
                 
-                if constexpr ( a_RM )
+                if constexpr ( a_RM == a_intRM )
                 {
-                    if constexpr ( a_intRM )
-                    {
-                        copy_buffer<BLOCK_NNZ>( a_from, &a[0][0] );
-                    }
-                    else
-                    {
-                        LOOP_UNROLL_FULL
-                        for( Int i = 0; i < ROWS; ++i )
-                        {
-                            LOOP_UNROLL_FULL
-                            for( Int j = 0; j < COLS; ++j )
-                            {
-                                a[j][i] = a_from[COLS*i+j];
-                            }
-                        }
-                    }
+                    a.template Read<Op::Id>( a_from );
                 }
-                else // !a_RM
+                else
                 {
-                    if constexpr ( a_intRM )
-                    {
-                        LOOP_UNROLL_FULL
-                        for( Int j = 0; j < COLS; ++j )
-                        {
-                            LOOP_UNROLL_FULL
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                a[i][j] = a_from[ROWS*j+i];
-                            }
-                        }
-                    }
-                    else
-                    {
-                        copy_buffer<BLOCK_NNZ>( a_from, &a[0][0] );
-                    }
+                    a.template Read<Op::Trans>( a_from );
                 }
+                
+//                if constexpr ( a_RM )
+//                {
+//                    if constexpr ( a_intRM )
+//                    {
+//                        a.Read( a_from );
+//                    }
+//                    else
+//                    {
+//                        LOOP_UNROLL_FULL
+//                        for( Int i = 0; i < ROWS; ++i )
+//                        {
+//                            LOOP_UNROLL_FULL
+//                            for( Int j = 0; j < COLS; ++j )
+//                            {
+//                                a[j][i] = a_from[COLS*i+j];
+//                            }
+//                        }
+//                    }
+//                }
+//                else // !a_RM
+//                {
+//                    if constexpr ( a_intRM )
+//                    {
+//                        LOOP_UNROLL_FULL
+//                        for( Int j = 0; j < COLS; ++j )
+//                        {
+//                            LOOP_UNROLL_FULL
+//                            for( Int i = 0; i < ROWS; ++i )
+//                            {
+//                                a[i][j] = a_from[ROWS*j+i];
+//                            }
+//                        }
+//                    }
+//                    else
+//                    {
+//                        a.Read( a_from );
+//                    }
+//                }
             }
             else
             {
@@ -345,35 +356,13 @@ namespace Tensors
                 }
                 default:
                 {
-//                    if constexpr ( std::is_same_v<Scal,double> )
-//                    {
-//                        cblas_dgemm(
-//                            CblasColMajor,
-//                            a_intRM ? CblasTrans : CblasNoTrans,
-//                            CblasNoTrans,
-//                            a_intRM ? ROWS : COLS,
-//                            COND(fixed,RHS_COUNT,rhs_count),
-//                            a_intRM ? COLS : ROWS,
-//                            1.0, &a[0][0], a_intRM ? COLS : ROWS,
-//                                 &x[0][0], COLS,
-//                            1.0, &y[0][0], ROWS
-//                        );
-//                    }
-//                    else
-//                    {
-//                        cblas_sgemm(
-//                            CblasColMajor,
-//                            a_intRM ? CblasTrans : CblasNoTrans,
-//                            CblasNoTrans,
-//                            a_intRM ? ROWS : COLS,
-//                            COND(fixed,RHS_COUNT,rhs_count),
-//                            a_intRM ? COLS : ROWS,
-//                            1.0f, &a[0][0], a_intRM ? COLS : ROWS,
-//                                  &x[0][0], COLS,
-//                            1.0f, &y[0][0], ROWS
-//                        );
-//                    }
-//                    break;
+                    
+//                    BLAS::gemm<Layout::RowMajor,a_intRM ? Op::Trans : Op::Id,Op::Id>(
+//                        a_intRM ? ROWS : COLS, RHS_COUNT, a_intRM ? COLS : ROWS,
+//                        Scalar::One<Scal>, &a[0][0], a_intRM ? COLS : ROWS,
+//                                           &x[0][0], COLS,
+//                        Scalar::One<Scal>, &y[0][0], ROWS,
+//                    );
                     
                 }
             }

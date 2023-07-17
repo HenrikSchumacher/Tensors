@@ -17,7 +17,7 @@ namespace Tensors
         
         template<typename ExtInt1, typename ExtInt2, typename Int>
         void operator()(
-            mut<ExtInt1> rp, mut<ExtInt2> ci, Permutation<Int> & perm
+            mptr<ExtInt1> rp, mptr<ExtInt2> ci, mref<Permutation<Int>> perm
         )
         {
             print( TypeName<idx_t> );

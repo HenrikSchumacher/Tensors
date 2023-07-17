@@ -128,12 +128,12 @@ namespace Tensors
             
             //  Access routines
             
-            mut<Scal> data( const Int i, const Int j )
+            mptr<Scal> data( const Int i, const Int j )
             {
                 return A[i][j].data();
             }
             
-            ptr<Scal> data( const Int i, const Int j ) const
+            cptr<Scal> data( const Int i, const Int j ) const
             {
                 return A[i][j].data();
             }
@@ -273,7 +273,7 @@ namespace Tensors
         
         
         template<int m, int n, typename T, typename I, IS_FLOAT(T)>
-        inline mma::TensorRef<mreal> to_MTensorRef( const Tiny::MatrixList<m,n,T,I> & A )
+        inline mma::TensorRef<mreal> to_MTensorRef( cref<Tiny::MatrixList<m,n,T,I>> A )
         {
             const mint N = A.Dimension(2);
             
@@ -289,7 +289,7 @@ namespace Tensors
             
             auto B = mma::makeCube<mreal>( N, m, n );
             
-            mut<mreal> b = B.data();
+            mptr<mreal> b = B.data();
             
             for( mint k = 0; k < N; ++k )
             {
@@ -306,7 +306,7 @@ namespace Tensors
         }
         
         template<int m, int n, typename J, typename I, IS_INT(J)>
-        inline mma::TensorRef<mint> to_MTensorRef( const Tiny::MatrixList<m,n,J,I> & A )
+        inline mma::TensorRef<mint> to_MTensorRef( cref<Tiny::MatrixList<m,n,J,I>> A )
         {
             const mint N = A.Dimension(2);
             
@@ -322,7 +322,7 @@ namespace Tensors
             
             auto B = mma::makeCube<mint>( N, m, n );
             
-            mut<mint> b = B.data();
+            mptr<mint> b = B.data();
             
             for( mint k = 0; k < N; ++k )
             {

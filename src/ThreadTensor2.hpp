@@ -174,7 +174,7 @@ namespace Tensors {
             }
         }
         
-        force_inline mut<Scal> data( const Int i )
+        force_inline mptr<Scal> data( const Int i )
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -182,7 +182,7 @@ namespace Tensors {
             return tensors[i].data();
         }
         
-        force_inline ptr<Scal> data( const Int i ) const
+        force_inline cptr<Scal> data( const Int i ) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -190,7 +190,7 @@ namespace Tensors {
             return tensors[i].data();
         }
 
-        force_inline mut<Scal> data( const Int i, const Int j)
+        force_inline mptr<Scal> data( const Int i, const Int j)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -198,7 +198,7 @@ namespace Tensors {
             return tensors[i].data(j);
         }
         
-        force_inline ptr<Scal> data( const Int i, const Int j) const
+        force_inline cptr<Scal> data( const Int i, const Int j) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -207,7 +207,7 @@ namespace Tensors {
         }
         
 
-        force_inline Scal & operator()( const Int i, const Int j )
+        force_inline mref<Scal> operator()( const Int i, const Int j )
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -215,7 +215,7 @@ namespace Tensors {
             return tensors[i](j);
         }
     
-        force_inline const Scal & operator()( const Int i, const Int j) const
+        force_inline cref<Scal> operator()( const Int i, const Int j) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -249,7 +249,7 @@ namespace Tensors {
             );
         }
 
-        void Write( mut<Scal> b ) const
+        void Write( mptr<Scal> b ) const
         {
             const Int thread_count = dims[0];
             
@@ -263,25 +263,25 @@ namespace Tensors {
         }
         
         template<typename S>
-        void Write( const Int i, mut<S> b ) const
+        void Write( const Int i, mptr<S> b ) const
         {
             tensors[i].Write( b );
         }
         
         template<typename S>
-        void Write( const Int i, const Int j, mut<S> b ) const
+        void Write( const Int i, const Int j, mptr<S> b ) const
         {
             tensors[i].Write( j, b );
         }
         
         template<typename S>
-        void Read( const Int i, ptr<S> b )
+        void Read( const Int i, cptr<S> b )
         {
             tensors[i].Read( b );
         }
         
         template<typename S>
-        void Read( const Int i, const Int j, ptr<S> b )
+        void Read( const Int i, const Int j, cptr<S> b )
         {
             tensors[i].Read( j, b );
         }
@@ -314,13 +314,13 @@ namespace Tensors {
         }
         
         template<typename S, typename J>
-        void AddReduce( Tensor1<S,J> & B, const bool add_to ) const
+        void AddReduce( mref<Tensor1<S,J>> B, const bool add_to ) const
         {
             AddReduce( B.data(), add_to );
         }
         
         template<typename S>
-        void AddReduce( S * const B, const bool add_to ) const
+        void AddReduce( mptr<S> B, const bool add_to ) const
         {
             if( add_to )
             {
@@ -352,12 +352,12 @@ namespace Tensors {
         }
         
         
-        Tensor1<Scal,Int> & operator[]( const Int thread )
+        mref<Tensor1<Scal,Int>> operator[]( const Int thread )
         {
             return tensors[thread];
         }
         
-        const Tensor1<Scal,Int> & operator[]( const Int thread ) const
+        cref<Tensor1<Scal,Int>> operator[]( const Int thread ) const
         {
             return tensors[thread];
         }
@@ -376,7 +376,7 @@ namespace Tensors {
 
     
     template<typename Scal, typename Int, IS_FLOAT(Scal)>
-    inline mma::TensorRef<mreal> to_MTensorRef( const ThreadTensor2<Scal,Int> & A )
+    inline mma::TensorRef<mreal> to_MTensorRef( cref<ThreadTensor2<Scal,Int>> A )
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
@@ -395,7 +395,7 @@ namespace Tensors {
     }
     
     template<typename J, typename Int, IS_INT(J)>
-    inline mma::TensorRef<mint> to_MTensorRef( const ThreadTensor2<J,Int> & A )
+    inline mma::TensorRef<mint> to_MTensorRef( cref<ThreadTensor2<J,Int>> A )
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);

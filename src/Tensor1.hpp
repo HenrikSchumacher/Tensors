@@ -30,7 +30,7 @@ namespace Tensors {
         }
         
         template<typename S>
-        TENSOR_T( ptr<S> a_, const Int d0 )
+        TENSOR_T( cptr<S> a_, const Int d0 )
         :   TENSOR_T( d0 )
         {
             Read(a_);
@@ -54,7 +54,7 @@ namespace Tensors {
         }
         
 
-        force_inline mut<Scal> data( const Int i )
+        force_inline mptr<Scal> data( const Int i )
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -62,7 +62,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline ptr<Scal> data( const Int i ) const
+        force_inline cptr<Scal> data( const Int i ) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -70,7 +70,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline Scal & operator()(const Int i)
+        force_inline mref<Scal> operator()(const Int i)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -78,7 +78,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline const Scal & operator()(const Int i) const
+        force_inline cref<Scal> operator()(const Int i) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -86,7 +86,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline Scal & operator[](const Int i)
+        force_inline mref<Scal> operator[](const Int i)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -94,7 +94,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline const Scal & operator[](const Int i) const
+        force_inline cref<Scal> operator[](const Int i) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -250,7 +250,7 @@ namespace Tensors {
     }
     
     template<typename Scal, typename Int, typename S>
-    Tensor1<Scal,Int> ToTensor1( mut<S> a_, const Int d0 )
+    Tensor1<Scal,Int> ToTensor1( mptr<S> a_, const Int d0 )
     {
         Tensor1<Scal,Int> result (d0);
 

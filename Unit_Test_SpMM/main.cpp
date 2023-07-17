@@ -27,9 +27,9 @@ int max_thread_count = 8;
 
 template<typename R_out, typename T_in, typename S_out, typename T_out, typename Scalar, typename Int, typename LInt>
     __attribute__((noinline)) void Dot_True(
-    ptr<LInt> rp, ptr<Int> ci, ptr<Scalar> a, const Int m, const Int n,
-    const R_out alpha,  ptr<T_in>  X, const Int ldX,
-    const S_out beta,   mut<T_out> Y, const Int ldY,
+    cptr<LInt> rp, cptr<Int> ci, cptr<Scalar> a, const Int m, const Int n,
+    cref<R_out> alpha,  cptr<T_in>  X, const Int ldX,
+    cref<S_out> beta,   mptr<T_out> Y, const Int ldY,
     const Int   cols
 )
 {

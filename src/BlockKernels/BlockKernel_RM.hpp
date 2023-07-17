@@ -31,12 +31,12 @@ namespace Tensors
         
     protected:
         
-        mut<Scal>      A       = nullptr;
-        ptr<Scal>      A_const = nullptr;
+        mptr<Scal>      A       = nullptr;
+        cptr<Scal>      A_const = nullptr;
         const Scal_out alpha   = 0;
-        ptr<Scal_in>   X       = nullptr;
+        cptr<Scal_in>   X       = nullptr;
         const Scal_out beta    = 0;
-        mut<Scal_out>  Y       = nullptr;
+        mptr<Scal_out>  Y       = nullptr;
 
         
         const Scal_in  * restrict x_from = nullptr;
@@ -55,7 +55,7 @@ namespace Tensors
         
         CLASS() = delete;
         
-        explicit CLASS( mut<Scal> A_ )
+        explicit CLASS( mptr<Scal> A_ )
         :   A       ( A_      )
         ,   A_const ( nullptr )
         ,   alpha   ( 0       )
@@ -65,9 +65,9 @@ namespace Tensors
         {}
 
         CLASS(
-            ptr<Scal> A_,
-            const Scal_out alpha_, ptr<Scal_in>  X_,
-            const Scal_out beta_,  mut<Scal_out> Y_,
+            cptr<Scal> A_,
+            cref<Scal_out> alpha_, cptr<Scal_in>  X_,
+            cref<Scal_out> beta_,  mptr<Scal_out> Y_,
             const Int rhs_count_
         )
         :   A         ( nullptr          )
@@ -238,7 +238,7 @@ namespace Tensors
         
         force_inline void WriteY( const Int i_global ) const
         {
-            mut<Scal_out> y_to = &Y[ RowsSize() * i_global];
+            mptr<Scal_out> y_to = &Y[ RowsSize() * i_global];
             
             if constexpr ( alpha_flag == 1 )
             {
@@ -415,7 +415,7 @@ namespace Tensors
         force_inline void WriteYZero( const Int i_global ) const
         {
             // CAUTION! We cannot use i_global here because BeginRow() has not been called in an empty row!
-            mut<Scal_out> y_to = &Y[ RowsSize() * i_global ];
+            mptr<Scal_out> y_to = &Y[ RowsSize() * i_global ];
             
             if constexpr ( beta_flag == 0 )
             {

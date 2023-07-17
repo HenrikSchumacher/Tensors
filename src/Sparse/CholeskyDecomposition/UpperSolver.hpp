@@ -31,26 +31,26 @@ namespace Tensors
             const Int nrhs    = 0;
             const Int max_n_1 = 0;
             
-            ptr<Int>  SN_rp;
-            ptr<LInt> SN_outer;
-            ptr<Int>  SN_inner;
+            cptr<Int>  SN_rp;
+            cptr<LInt> SN_outer;
+            cptr<Int>  SN_inner;
             
-            ptr<LInt> SN_tri_ptr;
-            mut<Scal> SN_tri_val;
-            ptr<LInt> SN_rec_ptr;
-            mut<Scal> SN_rec_val;
+            cptr<LInt> SN_tri_ptr;
+            mptr<Scal> SN_tri_val;
+            cptr<LInt> SN_rec_ptr;
+            mptr<Scal> SN_rec_val;
             
             // On in put: the right hand side; on output: the solution.
-            mut<Scal> X;
+            mptr<Scal> X;
             
             // Working space for BLAS3 routines.
             Tensor1<Scal,Int> X_1_buffer;
             
             // X_1 is the part of X that interacts with U_1, size = n_0 x n_1.
-            mut<Scal> X_1;
+            mptr<Scal> X_1;
             
             // x_1 is the part of x that interacts with U_1, size = n_1.
-            mut<Scal> x_1;
+            mptr<Scal> x_1;
             
         public:
             
@@ -112,16 +112,16 @@ namespace Tensors
                 const Int n_1 = int_cast<Int>(l_end - l_begin);
                 
                 // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
-                ptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
                 
                 // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
-                ptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
+                cptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
 
                 
                 if constexpr ( mult_rhs )
                 {
                     // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
-                    mut<Scal> X_0 = &X[nrhs * SN_rp[s]];
+                    mptr<Scal> X_0 = &X[nrhs * SN_rp[s]];
                     
                     // Load the already computed values into X_1.
                     for( Int j = 0; j < n_1; ++j )
@@ -183,7 +183,7 @@ namespace Tensors
                 else // mult_rhs == false
                 {
                     // x_0 is the part of x that interacts with U_0, size = n_0.
-                    mut<Scal> x_0 = &X[SN_rp[s]];
+                    mptr<Scal> x_0 = &X[SN_rp[s]];
 
                     if( n_0 == one )
                     {

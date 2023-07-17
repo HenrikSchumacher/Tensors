@@ -99,7 +99,7 @@ namespace Tensors
             container_0[current_size++] = a;
         }
         
-        force_inline void Push( ptr<T_0> a, const LInt n )
+        force_inline void Push( cptr<T_0> a, const LInt n )
         {
             if( current_size + n >= capacity )
             {

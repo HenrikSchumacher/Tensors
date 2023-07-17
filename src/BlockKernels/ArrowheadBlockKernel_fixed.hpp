@@ -69,20 +69,20 @@ namespace Tensors
         
         const Scal * restrict a_from = nullptr;
         
-        Scal a [BLOCK_NNZ];
+        Tiny::Vector<BLOCK_NNZ,Scal,Int> a;
         
     public:
         
         CLASS() = delete;
         
-        explicit CLASS( mut<Scal> A_ )
+        explicit CLASS( mptr<Scal> A_ )
         :   BASE( A_ )
         {}
         
         CLASS(
-            ptr<Scal> A_,
-            const Scal_out alpha_, ptr<Scal_in>  X_,
-            const Scal_out beta_,  mut<Scal_out> Y_,
+            cptr<Scal> A_,
+            cref<Scal_out> alpha_, cptr<Scal_in>  X_,
+            cref<Scal_out> beta_,  mptr<Scal_out> Y_,
             const Int rhs_count_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
@@ -102,8 +102,8 @@ namespace Tensors
                 
         force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            ptr<Scal> a_from_ = &A[BLOCK_NNZ * from];
-            mut<Scal> a_to_   = &A[BLOCK_NNZ * to  ];
+            cptr<Scal> a_from_ = &A[BLOCK_NNZ * from];
+            mptr<Scal> a_to_   = &A[BLOCK_NNZ * to  ];
             
             a_to_[0] = a_from_[0];
             
@@ -120,9 +120,7 @@ namespace Tensors
             // Read matrix.
             if constexpr ( a_copy )
             {
-                a_from = &A_const[BLOCK_NNZ * k_global];
-                
-                copy_buffer<BLOCK_NNZ>( a_from, &a[0] );
+                a.Read( &A_const[BLOCK_NNZ * k_global] );
             }
             else
             {

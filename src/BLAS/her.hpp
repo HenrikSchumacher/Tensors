@@ -12,8 +12,8 @@ namespace Tensors
         
         force_inline void her(
             const I0 n_,
-            const typename Scalar::Real<Scal> & alpha, const Scal * x, const I2 incx_,
-                                                             Scal * A, const I3 ldA_
+            cref<Scalar::Real<Scal>> alpha, cptr<Scal> x, const I2 incx_,
+                                            mptr<Scal> A, const I3 ldA_
         )
         {
             ASSERT_INT(I0);

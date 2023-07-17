@@ -26,9 +26,9 @@ public:
             // A vector for path compression.
             Tensor1<Int,Int> a ( n, no_element );
             
-            ptr<LInt> A_diag  = A.Diag().data();
-            ptr<LInt> A_outer = A.Outer().data();
-            ptr< Int> A_inner = A.Inner().data();
+            cptr<LInt> A_diag  = A.Diag().data();
+            cptr<LInt> A_outer = A.Outer().data();
+            cptr< Int> A_inner = A.Inner().data();
 
             for( Int k = 1; k < n; ++k )
             {

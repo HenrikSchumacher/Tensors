@@ -9,11 +9,11 @@ public:
     template<Int NRHS = VarSize, typename R_out, typename T_in, typename S_out, typename T_out>
     void Multiply_DenseMatrix
     (
-        ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
-        const R_out alpha, ptr<T_in>  X, const Int ldX,
-        const S_out beta,  mut<T_out> Y, const Int ldY,
+        cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
+        cref<R_out> alpha, cptr<T_in>  X, const Int ldX,
+        cref<S_out> beta,  mptr<T_out> Y, const Int ldY,
         const Int   nrhs,
-        const JobPointers<Int> & restrict job_ptr
+        cref<JobPointers<Int>> job_ptr
     )
     {
         StaticParameterCheck<R_out,T_in,S_out,T_out>();

@@ -7,7 +7,7 @@
 public:
 
     template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
-    void Solve( ptr<ExtScal> B, mut<ExtScal> X_out, const Int nrhs_ = ione )
+    void Solve( cptr<ExtScal> B, mptr<ExtScal> X_out, const Int nrhs_ = ione )
     {
         const std::string tag = ClassName() + "::Solve<"
             + (parQ == Parallel ? "Parallel" : "Sequential") + ","
@@ -40,7 +40,7 @@ public:
 
 
     template<Parallel_T parQ = Sequential, typename ExtScal>
-    void UpperSolve( ptr<ExtScal> B, mut<ExtScal> X_out, const Int nrhs_ = ione )
+    void UpperSolve( cptr<ExtScal> B, mptr<ExtScal> X_out, const Int nrhs_ = ione )
     {
         const std::string tag = ClassName() + "::UpperSolve<"
             + (parQ == Parallel ? "Parallel" : "Sequential") + ","
@@ -67,7 +67,7 @@ public:
     }
 
 template<Parallel_T parQ = Sequential, typename ExtScal>
-void LowerSolve( ptr<ExtScal> B, mut<ExtScal> X_out, const Int nrhs_ = ione )
+void LowerSolve( cptr<ExtScal> B, mptr<ExtScal> X_out, const Int nrhs_ = ione )
 {
     const std::string tag = ClassName() + "::LowerSolve<"
         + (parQ == Parallel ? "Parallel" : "Sequential") + ","

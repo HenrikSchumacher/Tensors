@@ -69,7 +69,7 @@
 //            }
 //
 //            template< Int RHS_COUNT, bool unitDiag = false>
-//            void U_Solve_Sequential_0( ptr<Scal> b,  mut<Scal> x )
+//            void U_Solve_Sequential_0( cptr<Scal> b,  mptr<Scal> x )
 //            {
 //                U.SolveUpperTriangular_Sequential_0<RHS_COUNT,unitDiag>(b,x);
 //            }

@@ -25,7 +25,7 @@ TENSOR_T() = default;
 }
 
 // Copy constructor
-TENSOR_T( const TENSOR_T & other )
+TENSOR_T( cref<TENSOR_T> other )
 :   n    ( other.n    )
 ,   dims ( other.dims )
 {
@@ -48,7 +48,7 @@ explicit TENSOR_T( const TENSOR_T<S,J> & other )
     Read(other.a);
 }
 
-inline friend void swap(TENSOR_T & A, TENSOR_T & B) noexcept
+inline friend void swap(mref<TENSOR_T> A, mref<TENSOR_T> B) noexcept
 {
 //    logprint(A.ClassName()+": Swap");
     // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
@@ -68,7 +68,7 @@ TENSOR_T( TENSOR_T && other ) noexcept
 
 
 /* Move-assignment operator */
-TENSOR_T & operator=( TENSOR_T && other ) noexcept
+mref<TENSOR_T> operator=( TENSOR_T && other ) noexcept
 {
 //    print(other.ClassName()+": Move-assign");
     if( this == &other )
@@ -80,7 +80,7 @@ TENSOR_T & operator=( TENSOR_T && other ) noexcept
 }
 
 /* Copy-assignment operator */
-TENSOR_T & operator=( const TENSOR_T & other )
+mref<TENSOR_T> operator=( cref<TENSOR_T> other )
 {
     if( this != &other )
     {
@@ -112,21 +112,21 @@ Int Size() const
 }
 
 template<typename S>
-void Read( ptr<S> a_ )
+void Read( cptr<S> a_ )
 {
     copy_buffer( a_, a, static_cast<Size_T>(n) );
 }
 
 //// Parallelized version.
 template<typename S>
-void ReadParallel( ptr<S> a_, const Size_T thread_count )
+void ReadParallel( cptr<S> a_, const Size_T thread_count )
 {
     copy_buffer<VarSize,Parallel>( a_, a, static_cast<Size_T>(n), thread_count );
 }
 
 template<typename R>
 std::enable_if_t<Scalar::ComplexQ<Scal> && !Scalar::ComplexQ<R>,void>
-Read( ptr<R> re, ptr<R> im )
+Read( cptr<R> re, cptr<R> im )
 {
     for( Int i = 0; i < n; ++i )
     {
@@ -136,19 +136,19 @@ Read( ptr<R> re, ptr<R> im )
 }
 
 template<typename S>
-void Write( mut<S> a_ ) const
+void Write( mptr<S> a_ ) const
 {
     copy_buffer( a, a_, static_cast<Size_T>(n) );
 }
 template<typename S>
-void WriteParallel( mut<S> a_, const Size_T thread_count ) const
+void WriteParallel( mptr<S> a_, const Size_T thread_count ) const
 {
     copy_buffer<VarSize,Parallel>( a, a_, static_cast<Size_T>(n), thread_count );
 }
 
 template<typename R>
 std::enable_if_t<Scalar::ComplexQ<Scal> && !Scalar::ComplexQ<R>,void>
-Write( mut<R> re, mut<R> im ) const
+Write( mptr<R> re, mptr<R> im ) const
 {
     for( Int i = 0; i < n; ++i )
     {
@@ -269,23 +269,23 @@ force_inline Int Dimension( const Int i ) const
 
 public:
 
-force_inline mut<Scal> data()
+force_inline mptr<Scal> data()
 {
     return a;
 }
 
-force_inline ptr<Scal> data() const
+force_inline cptr<Scal> data() const
 {
     return a;
 }
 
 
-void AddFrom( ptr<Scal> b )
+void AddFrom( cptr<Scal> b )
 {
     add_to_buffer( b, a, n);
 }
 
-void AddTo( mut<Scal> b ) const
+void AddTo( mptr<Scal> b ) const
 {
     add_to_buffer( a, b, n);
 }
@@ -328,10 +328,10 @@ Real FrobeniusNorm() const
     return norm_2( a, n );
 }
 
-friend Real MaxDistance( const TENSOR_T & x, const TENSOR_T & y )
+friend Real MaxDistance( cref<TENSOR_T> x, cref<TENSOR_T> y )
 {
-    ptr<Scal> x_a = x.a;
-    ptr<Scal> y_a = y.a;
+    cptr<Scal> x_a = x.a;
+    cptr<Scal> y_a = y.a;
 
     const Int last = x.Size();
 
@@ -345,14 +345,14 @@ friend Real MaxDistance( const TENSOR_T & x, const TENSOR_T & y )
     return max;
 }
 
-inline friend Real RelativeMaxError( const TENSOR_T & x, const TENSOR_T & y )
+inline friend Real RelativeMaxError( cref<TENSOR_T> x, cref<TENSOR_T> y )
 {
     return MaxDistance(x,y) / x.MaxNorm();
 }
 
 
 template<typename T, typename I>
-force_inline TENSOR_T & operator+=( const TENSOR_T<T,I> & b )
+force_inline mref<TENSOR_T> operator+=( cref<TENSOR_T<T,I>> b )
 {
     const Size_T m = std::min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
     combine_buffers<Scalar::Flag::Plus, Scalar::Flag::Plus>(
@@ -363,7 +363,7 @@ force_inline TENSOR_T & operator+=( const TENSOR_T<T,I> & b )
 }
 
 template<typename T, typename I>
-force_inline TENSOR_T & operator-=( const TENSOR_T<T,I> & b )
+force_inline mref<TENSOR_T> operator-=( cref<TENSOR_T<T,I>> b )
 {
     const Size_T m = std::min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
     combine_buffers<Scalar::Flag::Minus, Scalar::Flag::Plus>(
@@ -374,7 +374,7 @@ force_inline TENSOR_T & operator-=( const TENSOR_T<T,I> & b )
 }
 
 template<class T>
-force_inline TENSOR_T & operator*=( const T alpha )
+force_inline mref<TENSOR_T> operator*=( const T alpha )
 {
     scale_buffer( alpha, a, n );
     
@@ -382,11 +382,11 @@ force_inline TENSOR_T & operator*=( const T alpha )
 }
 
 
-friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
+friend void Subtract( cref<TENSOR_T> x, cref<TENSOR_T> y, mref<TENSOR_T> z )
 {
-    ptr<Scal> x_a = x.a;
-    ptr<Scal> y_a = y.a;
-    mut<Scal> z_a = z.a;
+    cptr<Scal> x_a = x.a;
+    cptr<Scal> y_a = y.a;
+    mptr<Scal> z_a = z.a;
 
     const Int last = x.Size();
 
@@ -396,11 +396,11 @@ friend void Subtract( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
     }
 }
 
-friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
+friend void Plus( cref<TENSOR_T> x, cref<TENSOR_T> y, mref<TENSOR_T> z )
 {
-    ptr<Scal> x_a = x.a;
-    ptr<Scal> y_a = y.a;
-    mut<Scal> z_a = z.a;
+    cptr<Scal> x_a = x.a;
+    cptr<Scal> y_a = y.a;
+    mptr<Scal> z_a = z.a;
 
     const Int last = x.Size();
 
@@ -410,10 +410,10 @@ friend void Plus( const TENSOR_T & x, const TENSOR_T & y, TENSOR_T & z )
     }
 }
 
-friend void Times( const Scal alpha, const TENSOR_T & x, TENSOR_T & y )
+friend void Times( const Scal alpha, cref<TENSOR_T> x, mref<TENSOR_T> y )
 {
-    ptr<Scal> x_a = x.a;
-    mut<Scal> y_a = y.a;
+    cptr<Scal> x_a = x.a;
+    mptr<Scal> y_a = y.a;
 
     const Int last = x.Size();
 
@@ -423,7 +423,7 @@ friend void Times( const Scal alpha, const TENSOR_T & x, TENSOR_T & y )
     }
 }
 
-inline friend std::string to_string( const TENSOR_T & A )
+inline friend std::string to_string( cref<TENSOR_T> A )
 {
     return A.ToString();
 }
@@ -468,7 +468,7 @@ Stream_T & ToStream( Stream_T & s ) const
     return ArrayToStream( a, dims.data(), Rank(), s );
 }
 
-inline friend std::ostream & operator<<( std::ostream & s, const TENSOR_T & tensor )
+inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
 {
     tensor.ToStream(s);
     return s;

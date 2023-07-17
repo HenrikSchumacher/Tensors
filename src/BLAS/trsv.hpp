@@ -9,7 +9,8 @@ namespace Tensors
             typename I0, typename I1, typename I2
         >
         force_inline void trsv(
-            const I0 n_, const Scal * A, const I1 ldA_, Scal * const x, const I2 incx_
+            const I0 n_, cptr<Scal> A, const I1 ldA_,
+                         mptr<Scal> x, const I2 incx_
         )
         {
             ASSERT_INT(I0);

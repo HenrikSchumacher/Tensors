@@ -7,7 +7,7 @@
 public:
 
     template<typename ExtScal>
-    void ReadRightHandSide( ptr<ExtScal> B, Int nrhs_ = ione )
+    void ReadRightHandSide( cptr<ExtScal> B, Int nrhs_ = ione )
     {
         nrhs = std::max( ione, nrhs_ );
         
@@ -34,7 +34,7 @@ public:
     }
 
     template<typename ExtScal>
-    void WriteSolution( mut<ExtScal> X_ )
+    void WriteSolution( mptr<ExtScal> X_ )
     {
         const std::string tag = ClassName() + "::WriteSolution<" + TypeName<ExtScal> + "> (" + ToString(nrhs)+ ")";
         
@@ -138,8 +138,8 @@ public:
                     }
                     
                     
-                    ptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
-                    ptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
+                    cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                    cptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                     
                     // Copy first row of supernode.
                     copy_buffer<VarSize,Sequential>( &SN_inner[l_begin], &U_ci[start+n_0], n_1 );

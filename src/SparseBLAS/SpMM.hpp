@@ -2,10 +2,10 @@ public:
 
     template<Size_T NRHS = VarSize, typename R_out, typename T_in, typename S_out, typename T_out>
     void SpMM (
-        ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
-        const R_out alpha_, ptr<T_in>  X, const Int ldX,
-        const S_out beta,   mut<T_out> Y, const Int ldY,
-        const JobPointers<Int> & restrict job_ptr,
+        cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
+        cref<R_out> alpha_, cptr<T_in>  X, const Int ldX,
+        cref<S_out> beta,   mptr<T_out> Y, const Int ldY,
+        cref<JobPointers<Int>> job_ptr,
         const Int nrhs = NRHS
     )
     {
@@ -136,10 +136,10 @@ private:
         typename R_out, typename T_in, typename S_out, typename T_out
     >
     void SpMM_impl(
-        ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
-        const R_out alpha,  ptr<T_in>  X, const Int ldX,
-        const S_out beta,   mut<T_out> Y, const Int ldY,
-        const JobPointers<Int> & restrict job_ptr,
+        cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
+        cref<R_out> alpha,  cptr<T_in>  X, const Int ldX,
+        cref<S_out> beta,   mptr<T_out> Y, const Int ldY,
+        cref<JobPointers<Int>> job_ptr,
         const Int nrhs
     )
     {

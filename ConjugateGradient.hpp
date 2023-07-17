@@ -65,10 +65,10 @@ namespace Tensors
         
         template<typename Operator_T, typename Preconditioner_T>
         bool operator()(
-            Operator_T       & A,
-            Preconditioner_T & P,
-            ptr<Scal> b_in,       const Int ldb,
-            mut<Scal> x_inout,    const Int ldx,
+            mref<Operator_T>       A,
+            mref<Preconditioner_T> P,
+            cptr<Scal> b_in,       const Int ldb,
+            mptr<Scal> x_inout,    const Int ldx,
             const Real relative_tolerance
         )
         {
@@ -200,7 +200,7 @@ namespace Tensors
         
     protected:
         
-        void ComputeScalarProducts( ptr<Scal> v, ptr<Scal> w, RealVector_T & dots )
+        void ComputeScalarProducts( cptr<Scal> v, cptr<Scal> w, mref<RealVector_T> dots )
         {
             ParallelDo(
                 [this,v,w,&dots]( const Int thread )

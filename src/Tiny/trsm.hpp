@@ -11,8 +11,8 @@ namespace Tensors
             typename Scal, typename Int, typename Scal_in
         >
         void trsm(
-            const Scal_in alpha, ptr<Scal>    A_, const Int ldA,
-                                   mut<Scal_in> B_, const Int ldB
+            cref<Scal_in> alpha, cptr<Scal>    A_, const Int ldA,
+                                 mptr<Scal_in> B_, const Int ldB
         )
         {
             // Solves opA(A) * C = alpha * B and stores the result in B.
@@ -34,7 +34,7 @@ namespace Tensors
             Scalar::Flag alpha_flag,
             typename Scal, typename Int, typename Scal_in
         >
-        void trsm( const Scal_in  alpha, ptr<Scal> A_, mut<Scal_in> const B_ )
+        void trsm( cref< Scal_in> alpha, cptr<Scal> A_, mptr<Scal_in> const B_ )
         {
             // Solves opA(A) * C = alpha * B and stores the result in B.
             

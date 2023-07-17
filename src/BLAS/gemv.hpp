@@ -10,9 +10,9 @@ namespace Tensors
         >
         force_inline void gemv(
             const I0 m_, const I1 n_,
-            const Scal & alpha, const Scal * A, const I2 ldA_,
-                                const Scal * x, const I3 incx_,
-            const Scal & beta,        Scal * y, const I4 incy_
+            cref<Scal> alpha, cptr<Scal> A, const I2 ldA_,
+                              cptr<Scal> x, const I3 incx_,
+            cref<Scal> beta,  mptr<Scal> y, const I4 incy_
         )
         {
             ASSERT_INT(I0);

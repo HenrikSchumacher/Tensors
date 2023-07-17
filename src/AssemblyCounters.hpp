@@ -56,7 +56,7 @@ namespace Tensors {
         
         LInt * S_buffer = nullptr;
         safe_alloc(S_buffer,thread_count+1);
-        mut<LInt> S = S_buffer;
+        mptr<LInt> S = S_buffer;
         S[0] = static_cast<LInt>(0);
 
         const Int step = line_count / thread_count;
@@ -118,7 +118,7 @@ namespace Tensors {
                 
                 for( Int i = 0; i < thread_count; ++i )
                 {
-                    mut<LInt> c_i = counters.data(i);
+                    mptr<LInt> c_i = counters.data(i);
                     
                     for( Int j = j_begin; j < j_end; ++j )
                     {
@@ -157,12 +157,12 @@ namespace Tensors {
         ParallelDo(
             [=,&counters]( const Int thread )
             {
-                ptr<Int> thread_idx = idx[thread];
-                ptr<Int> thread_jdx = jdx[thread];
+                cptr<Int> thread_idx = idx[thread];
+                cptr<Int> thread_jdx = jdx[thread];
                 
                 const LInt entry_count = entry_counts[thread];
                 
-                mut<LInt> c = counters.data(thread);
+                mptr<LInt> c = counters.data(thread);
                 
                 if( symmetrize!=0 )
                 {

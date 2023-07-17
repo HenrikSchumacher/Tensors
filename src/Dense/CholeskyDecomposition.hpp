@@ -29,7 +29,7 @@ namespace Tensors
             ~CholeskyDecomposition() = default;
             
             template<typename T>
-            void Solve( ptr<T> B, const Int ldB, mut<T> X, const Int ldX, const Int nrhs )
+            void Solve( cptr<T> B, const Int ldB, mptr<T> X, const Int ldX, const Int nrhs )
             {
                 const Int max_rhs = 4 * ( (nrhs + static_cast<Int>(3))/ static_cast<Int>(4) );
                 
@@ -89,8 +89,8 @@ namespace Tensors
             
             //        template<typename T>
             //        void Solve(
-            //            ptr<T> B, const Int ldB,
-            //            mut<T> X, const Int ldX,
+            //            cptr<T> B, const Int ldB,
+            //            mptr<T> X, const Int ldX,
             //            const Int nrhs
             //        )
             //        {
@@ -265,7 +265,7 @@ namespace Tensors
             //        }
             
             template<Int max_rhs, typename T>
-            void solve( ptr<T> B, const Int ldB, mut<T> X, const Int ldX, const Int nrhs )
+            void solve( cptr<T> B, const Int ldB, mptr<T> X, const Int ldX, const Int nrhs )
             {
                 //Goal is to solve (U^T U) X = B
                 
@@ -334,7 +334,7 @@ namespace Tensors
             
             
             template<typename T>
-            void solve_gen( ptr<T> B, const Int ldB, mut<T> X, const Int ldX, const Int nrhs )
+            void solve_gen( cptr<T> B, const Int ldB, mptr<T> X, const Int ldX, const Int nrhs )
             {
                 //Goal is to solve (U^T U) X = B
                 
@@ -432,7 +432,7 @@ namespace Tensors
             }
             
             template<typename T>
-            void WriteFactors( mut<T> A_, const Int ldA ) const
+            void WriteFactors( mptr<T> A_, const Int ldA ) const
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
@@ -442,7 +442,7 @@ namespace Tensors
             }
             
             template<typename T>
-            void ReadFactors( ptr<T> A_, const Int ldA )
+            void ReadFactors( cptr<T> A_, const Int ldA )
             {
                 LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )

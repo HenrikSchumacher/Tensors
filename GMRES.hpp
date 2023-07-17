@@ -78,10 +78,10 @@ namespace Tensors
         
         template<typename Operator_T, typename Preconditioner_T>
         bool operator()(
-            Operator_T       & A,
-            Preconditioner_T & P,
-            ptr<Scal> b_in,       const Int ldb,
-            mut<Scal> x_inout,    const Int ldx,
+            mref<Operator_T>       A,
+            mref<Preconditioner_T> P,
+            cptr<Scal> b_in,       const Int ldb,
+            mptr<Scal> x_inout,    const Int ldx,
             const Real relative_tolerance,
             const Int  max_restarts
         )
@@ -130,10 +130,10 @@ namespace Tensors
         
         template<typename Operator_T, typename Preconditioner_T>
         bool Solve(
-            Operator_T       & A,
-            Preconditioner_T & P,
-            ptr<Scal> b_in,       const Int ldb,
-            mut<Scal> x_inout,    const Int ldx,
+            mref<Operator_T>       A,
+            mref<Preconditioner_T> P,
+            cptr<Scal> b_in,       const Int ldb,
+            mptr<Scal> x_inout,    const Int ldx,
             const Real relative_tolerance
         )
         {
@@ -250,7 +250,7 @@ namespace Tensors
             }
             
             //x_inout -= x
-            combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus,Op::Id,Op::Id,VarSize,Parallel>(
+            combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus,VarSize,Parallel>(
                 -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * K, thread_count
             );
             
@@ -265,11 +265,11 @@ namespace Tensors
     protected:
         
         template<typename Operator_T, typename Preconditioner_T>
-        void ArnoldiStep( Operator_T & A, Preconditioner_T & P )
+        void ArnoldiStep( mref<Operator_T> A, mref<Preconditioner_T> P )
         {
             ptic(ClassName()+"::ArnoldiStep");
             
-            mut<Scal> q = Q.data(iter+1);
+            mptr<Scal> q = Q.data(iter+1);
                         
             ptic(ClassName()+"::Apply Operators");
             if constexpr( side == Side::Left )
@@ -384,7 +384,7 @@ namespace Tensors
             ptoc(ClassName()+"::ApplyGivensRotations");
         }
         
-        void ComputeNorms( ptr<Scal> v, RealVector_T & norms )
+        void ComputeNorms( cptr<Scal> v, mref<RealVector_T> norms )
         {
             ParallelDo(
                 [this,v,&norms]( const Int thread )
@@ -417,7 +417,7 @@ namespace Tensors
             }
         }
         
-        void ComputeScalarProducts( ptr<Scal> v, ptr<Scal> w, Vector_T & dots )
+        void ComputeScalarProducts( cptr<Scal> v, cptr<Scal> w, mref<Vector_T> dots )
         {
             ParallelDo(
                 [this,v,w,&dots]( const Int thread )
@@ -446,7 +446,7 @@ namespace Tensors
         }
         
         template<Scalar::Flag flag>
-        void MulAdd( mut<Scal> v, ptr<Scal> w, const Vector_T & factors )
+        void MulAdd( mptr<Scal> v, cptr<Scal> w, const Vector_T & factors )
         {
             ParallelDo(
                 [this,v,w,&factors]( const Int i )
@@ -467,7 +467,7 @@ namespace Tensors
             );
         }
         
-        void InverseScale( mut<Scal> q, const RealVector_T & factors )
+        void InverseScale( mptr<Scal> q, const RealVector_T & factors )
         {
             ParallelDo(
                 [this,q,&factors]( const Int thread )

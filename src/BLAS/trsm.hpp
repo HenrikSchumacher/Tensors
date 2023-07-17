@@ -10,8 +10,8 @@ namespace Tensors
         >
         force_inline void trsm(
             const I0 n_, const I1 nrhs_,
-            const Scal alpha, const Scal * A, const I2 ldA_,
-                                    Scal * B, const I3 ldB_
+            cref<Scal> alpha, cptr<Scal> A, const I2 ldA_,
+                              mptr<Scal> B, const I3 ldB_
         )
         {
             ASSERT_INT(I0);

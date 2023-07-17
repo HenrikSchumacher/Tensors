@@ -26,8 +26,8 @@ namespace Tensors
             
             void operator()(
                 const int n, const int nrhs,
-                const Scal & restrict alpha, ptr<Scal> A, const int ldA,
-                                             ptr<Scal> B, const int ldB
+                cref<Scal> alpha, cptr<Scal> A, const int ldA,
+                                  mptr<Scal> B, const int ldB
             )
             {
                 if constexpr( (1 <= N) && (N<=MaxN) && (1 <= MaxNRHS) && (NRHS<=MaxNRHS) )

@@ -67,15 +67,15 @@ namespace Tensors
         
         CLASS() = delete;
         
-        explicit CLASS( mut<Scal> A_ )
+        explicit CLASS( mptr<Scal> A_ )
         :   BASE( A_ )
         {}
         
         CLASS(
-            ptr<Scal> A_,
-            const Scal_out  alpha_,     ptr<Scal_in>  X_,
-            const Scal_out  beta_,      mut<Scal_out> Y_,
-            const Int       rhs_count_
+            cptr<Scal>     A_,
+            cref<Scal_out> alpha_,     cptr<Scal_in>  X_,
+            cref<Scal_out> beta_,      mptr<Scal_out> Y_,
+            const Int      rhs_count_
         )
         :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
         {}
@@ -94,8 +94,8 @@ namespace Tensors
                 
         force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            ptr<Scal> a_from_ = &A[ BLOCK_NNZ * from];
-            mut<Scal> a_to_   = &A[ BLOCK_NNZ * to  ];
+            cptr<Scal> a_from_ = &A[ BLOCK_NNZ * from];
+            mptr<Scal> a_to_   = &A[ BLOCK_NNZ * to  ];
             
             if constexpr ( a_RM )
             {

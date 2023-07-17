@@ -71,7 +71,7 @@ namespace Tensors
 //      Matrix multiplication
 //##############################################################################################
         
-        void Scale( mut<Scal_out> Y, const Scal_out beta, const Int rhs_count ) const
+        void Scale( mptr<Scal_out> Y, cref<Scal_out> beta, const Int rhs_count ) const
         {
             const Int size = RowCount() * rhs_count;
             
@@ -87,9 +87,9 @@ namespace Tensors
         
         
         force_flattening void Dot(
-            ptr<Scal> A,
-            const Scal_out alpha, ptr<Scal_in>  X,
-            const Scal_out beta,  mut<Scal_out> Y,
+            cptr<Scal> A,
+            cref<Scal_out> alpha, cptr<Scal_in>  X,
+            cref<Scal_out> beta,  mptr<Scal_out> Y,
             const Int rhs_count
         ) const
         {

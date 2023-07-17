@@ -6,7 +6,7 @@ namespace Tensors
         Size_T N = VarSize, typename C = std::less<>,
         typename T, typename Int
     >
-    void Ordering( ptr<T> key, mut<Int> perm, Int n, C comp = C() )
+    void Ordering( cptr<T> key, mptr<Int> perm, Int n, C comp = C() )
     {
         ASSERT_INT  (Int);
         

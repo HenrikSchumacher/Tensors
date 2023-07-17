@@ -14,7 +14,7 @@ namespace Tensors
         
     public:
         
-        void operator()( mut<S> a, mut<T> b, const I n, const bool reverse = false )
+        void operator()( mptr<S> a, mptr<T> b, const I n, const bool reverse = false )
         {
             if( n <= 1 )
             {

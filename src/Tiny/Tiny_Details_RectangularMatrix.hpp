@@ -19,14 +19,14 @@ public:
 //######################################################
 
     template<typename T>
-    void Write( mut<T> target ) const
+    void Write( mptr<T> target ) const
     {
         copy_buffer<m*n>( &A[0][0], target );
     }
 
     // Copy stride.
     template<typename T>
-    void Write( mut<T> B, const Int ld_B ) const
+    void Write( mptr<T> B, const Int ld_B ) const
     {
         for( Int i = 0; i < m; ++i )
         {
@@ -36,7 +36,7 @@ public:
 
     // BLAS-like write-modify method without stride.
     template<Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R, typename S, typename T>
-    void Write( const R alpha, const S beta, mut<T> B) const
+    void Write( cref<R> alpha, cref<S> beta, mptr<T> B) const
     {
         // Writing B = alpha * A + beta * B
         combine_buffers<alpha_flag,beta_flag,m*n>(
@@ -46,7 +46,7 @@ public:
 
     // BLAS-like write-modify method with stride.
     template<Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R, typename S, typename T>
-    void Write( const R alpha, const S beta, mut<T> B, const Int ldB ) const
+    void Write( cref<R> alpha, cref<S> beta, mptr<T> B, const Int ldB ) const
     {
         // Writing B = alpha * A + beta * B
         for( Int i = 0; i < m; ++i )
@@ -60,7 +60,7 @@ public:
     // Row-scattered write-modify method.
     // Useful in supernodal arithmetic for sparse matrices.
     template<Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R, typename S, typename T>
-    void Write( const R alpha, const S beta, mut<T> B, const Int ldB, ptr<Int> idx ) const
+    void Write( cref<R> alpha, cref<S> beta, mptr<T> B, const Int ldB, cptr<Int> idx ) const
     {
         // Writing B[idx[i]][j] = alpha * A[i][j] + beta * B[idx[i]][j]
         for( Int i = 0; i < m; ++i )
@@ -79,7 +79,7 @@ public:
 
     // We are extremely generous and provide an extra read method without stride.
     template<Op op = Op::Id, typename T>
-    void Read( ptr<T> B )
+    void Read( cptr<T> B )
     {
         // Reading A = op(B)
         if constexpr ( op == Op::Id )
@@ -91,7 +91,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scal> B_j = &B[m*j];
+                cptr<Scal> B_j = &B[m*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -104,7 +104,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scal> B_j = &B[m*j];
+                cptr<Scal> B_j = &B[m*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -116,7 +116,7 @@ public:
 
     // BLAS-like read-modify method with stride.
     template<Op op = Op::Id, typename T>
-    void Read( ptr<T> B, const Int ldB )
+    void Read( cptr<T> B, const Int ldB )
     {
         // Reading A = op(B)
         if constexpr ( op == Op::Id )
@@ -131,7 +131,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scal> B_j = &B[ldB*j];
+                cptr<Scal> B_j = &B[ldB*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -144,7 +144,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scal> B_j = &B[ldB*j];
+                cptr<Scal> B_j = &B[ldB*j];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -157,7 +157,7 @@ public:
     // Scattered read-modify method.
     // Useful in supernodal arithmetic for sparse matrices.
     template<Op op = Op::Id, typename T>
-    void Read( ptr<T> B, const Int ldB, ptr<Int> idx )
+    void Read( cptr<T> B, const Int ldB, cptr<Int> idx )
     {
         // Reading A = op(B)
         if constexpr ( op == Op::Id )
@@ -172,7 +172,7 @@ public:
             // TODO: Not sure whether it would be better to swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scal> B_j = &B[ldB*idx[j]];
+                cptr<Scal> B_j = &B[ldB*idx[j]];
                 
                 for( Int i = 0; i < m; ++i )
                 {
@@ -185,7 +185,7 @@ public:
             // TODO: Not sure whether it would be better to  swap the two loops here...
             for( Int j = 0; j < n; ++j )
             {
-                ptr<Scal> B_j = &B[ldB*idx[j]];
+                cptr<Scal> B_j = &B[ldB*idx[j]];
                 
                 for( Int i = 0; i < m; ++i )
                 {

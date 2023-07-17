@@ -11,11 +11,11 @@ namespace Tensors
 //            typename Scal_A, typename Scal_B, typename Scal_C
 //        >
 //        void gemm(
-//            const Scal_C alpha,
-//            ptr<Scal_A>  A_,
-//            ptr<Scal_B>  B_,
-//            const Scal_C beta,
-//            mut<Scal_C>  C_
+//            cref<Scal_C> alpha,
+//            cptr<Scal_A> A_,
+//            cptr<Scal_B> B_,
+//            cref<Scal_C> beta,
+//            mptr<Scal_C> C_
 //        )
 //        {
 //            // Computes C = alpha * opA(A) * opB(B) + beta * C.
@@ -37,11 +37,11 @@ namespace Tensors
             typename Scal_A, typename Scal_B, typename Scal_C, typename Int
         >
         void gemm(
-            const Scal_C alpha,
-            ptr<Scal_A>  A_,    const Int ldA,
-            ptr<Scal_B>  B_,    const Int ldB,
-            const Scal_C beta,
-            mut<Scal_C>  C_,    const Int ldC
+            cref<Scal_C> alpha,
+            cptr<Scal_A>  A_,    const Int ldA,
+            cptr<Scal_B>  B_,    const Int ldB,
+            cref<Scal_C> beta,
+            mptr<Scal_C>  C_,    const Int ldC
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
@@ -61,11 +61,11 @@ namespace Tensors
             typename Scal_A, typename Scal_B, typename Scal_C, typename Int
         >
         void gemm(
-            const Scal_C alpha,
-            ptr<Scal_A>  A_,    const Int ldA,
-            ptr<Scal_B>  B_,    const Int ldB,  ptr<Int> idx,
-            const Scal_C beta,
-            mut<Scal_C>  C_,    const Int ldC
+            cref<Scal_C> alpha,
+            cptr<Scal_A> A_,    const Int ldA,
+            cptr<Scal_B> B_,    const Int ldB,  cptr<Int> idx,
+            cref<Scal_C> beta,
+            mptr<Scal_C> C_,    const Int ldC
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.
@@ -88,11 +88,11 @@ namespace Tensors
             typename Scal_A, typename Scal_B, typename Scal_C, typename Int
         >
         void gemm(
-            const Scal_A alpha,
-            ptr<Scal_A>  A_,    const Int ldA,
-            ptr<Scal_B>  B_,    const Int ldB,
-            const Scal_C beta,
-            mut<Scal_C>  C_,    const Int ldC,  ptr<Int> idx
+            cref<Scal_A> alpha,
+            cptr<Scal_A> A_,    const Int ldA,
+            cptr<Scal_B> B_,    const Int ldB,
+            cref<Scal_C> beta,
+            mptr<Scal_C> C_,    const Int ldC,  cptr<Int> idx
         )
         {
             // Computes C = alpha * opA(A) * opB(B) + beta * C.

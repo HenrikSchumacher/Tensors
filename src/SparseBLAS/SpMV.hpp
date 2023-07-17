@@ -2,10 +2,10 @@ public:
 
     template<typename R_out, typename T_in, typename S_out, typename T_out>
     void SpMV(
-        ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
-        const R_out alpha_, ptr<T_in>  X,
-        const S_out beta,   mut<T_out> Y,
-        const JobPointers<Int> & restrict job_ptr
+        cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
+        cref<R_out> alpha_, cptr<T_in>  X,
+        cref<S_out> beta,   mptr<T_out> Y,
+        cref<JobPointers<Int>> job_ptr
     )
     {
         StaticParameterCheck<R_out,T_in,S_out,T_out>();
@@ -107,10 +107,10 @@ private:
 
     template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R_out, typename T_in, typename S_out, typename T_out>
     void SpMV_impl(
-        ptr<LInt> rp, ptr<Int> ci, ptr<Scal> a, const Int m, const Int n,
-        const R_out alpha, ptr<T_in>  x,
-        const S_out beta,  mut<T_out> y,
-        const JobPointers<Int> & restrict job_ptr
+        cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
+        cref<R_out> alpha, cptr<T_in>  x,
+        cref<S_out> beta,  mptr<T_out> y,
+        cref<JobPointers<Int>> job_ptr
     )
     {
         std::string tag = std::string(ClassName()+"::SpMV_impl<")

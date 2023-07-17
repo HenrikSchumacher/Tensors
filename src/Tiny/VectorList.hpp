@@ -51,7 +51,7 @@ namespace Tensors
             }
             
             template< typename ExtScal, typename ExtInt >
-            explicit VectorList( ptr<ExtScal> a, const ExtInt length_ )
+            explicit VectorList( cptr<ExtScal> a, const ExtInt length_ )
             :   length(length_)
             {
                 for( Int i = 0; i < n; ++i )
@@ -63,7 +63,7 @@ namespace Tensors
             }
             
             // Copy constructor
-            VectorList( const VectorList & other )
+            VectorList( cref<VectorList> other )
             :   VectorList( other.length )
             {
                 for( Int i = 0; i < n; ++i )
@@ -138,7 +138,7 @@ namespace Tensors
             
             //  Access routines
             
-            mut<Scal> data( const Int i )
+            mptr<Scal> data( const Int i )
             {
 #ifdef TOOLS_DEBUG
                 BoundCheck(i);
@@ -146,7 +146,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            ptr<Scal> data( const Int i ) const
+            cptr<Scal> data( const Int i ) const
             {
 #ifdef TOOLS_DEBUG
                 BoundCheck(i);
@@ -154,7 +154,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            Tensor_T & operator[]( const Int i )
+            mref<Tensor_T> operator[]( const Int i )
             {
 #ifdef TOOLS_DEBUG
                 BoundCheck(i);
@@ -162,7 +162,7 @@ namespace Tensors
                 return v[i];
             }
             
-            const Tensor_T & operator[]( const Int i ) const
+            cref<Tensor_T> operator[]( const Int i ) const
             {
 #ifdef TOOLS_DEBUG
                 BoundCheck(i);
@@ -170,7 +170,7 @@ namespace Tensors
                 return v[i];
             }
             
-            Tensor_T & operator()( const Int i )
+            mref<Tensor_T> operator()( const Int i )
             {
 #ifdef TOOLS_DEBUG
                 BoundCheck(i);
@@ -178,7 +178,7 @@ namespace Tensors
                 return v[i];
             }
             
-            const Tensor_T & operator()( const Int i ) const
+            cref<Tensor_T> operator()( const Int i ) const
             {
 #ifdef TOOLS_DEBUG
                 BoundCheck(i);
@@ -186,7 +186,7 @@ namespace Tensors
                 return v[i];
             }
             
-            Scal & operator()( const Int i, const Int k )
+            mref<Scal> operator()( const Int i, const Int k )
             {
 #ifdef TOOLS_DEBUG
                 BoundCheck(i);
@@ -194,7 +194,7 @@ namespace Tensors
                 return v[i][k];
             }
             
-            const Scal & operator()( const Int i, const Int k ) const
+            cref<Scal> operator()( const Int i, const Int k ) const
             {
 #ifdef TOOLS_DEBUG
                 BoundCheck(i);
@@ -233,7 +233,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Read( ptr<S> a )
+            void Read( cptr<S> a )
             {
                 //Assuming that a is a list of size Dimension(1) x n of vectors in interleaved form.
                 
@@ -247,7 +247,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Write( mut<S> a ) const
+            void Write( mptr<S> a ) const
             {
                 //Assuming that a is a list of size Dimension(1) x n of vectors in interleaved form.
                 
@@ -298,11 +298,11 @@ namespace Tensors
         
         
         template<int n, typename Scal, typename Int, IS_FLOAT(Scal)>
-        inline mma::TensorRef<mreal> to_MTensorRef( const VectorList<n,Scal,Int> & A )
+        inline mma::TensorRef<mreal> to_MTensorRef( cref<VectorList<n,Scal,Int>> A )
         {
             const mint m = A.Dimension(1);
             
-            ptr<Scal> p [n];
+            cptr<Scal> p [n];
             
             for( mint j = 0; j < n; ++j )
             {
@@ -311,7 +311,7 @@ namespace Tensors
             
             auto B = mma::makeMatrix<mreal>( m, n );
             
-            mut<mreal> b = B.data();
+            mptr<mreal> b = B.data();
             
             for( mint i = 0; i < m; ++i )
             {
@@ -325,7 +325,7 @@ namespace Tensors
         }
         
         template<int n, typename J, typename Int, IS_INT(J)>
-        inline mma::TensorRef<mint> to_MTensorRef( const VectorList<n,J,Int> & A )
+        inline mma::TensorRef<mint> to_MTensorRef( cref<VectorList<n,J,Int>> A )
         {
             const mint m = A.Dimension(1);
             
@@ -338,7 +338,7 @@ namespace Tensors
             
             auto B = mma::makeMatrix<mint>( m, n );
             
-            mut<mint> b = B.data();
+            mptr<mint> b = B.data();
             
             for( mint i = 0; i < m; ++i )
             {

@@ -37,26 +37,26 @@ namespace Tensors
             const Int n;
             
             // shared data
-            ptr<LInt>       A_diag; // position to the diagonal element of A in each row.
-            ptr<LInt>       A_rp;   // row pointers of upper triangle of A
-            ptr<Int>        A_ci;   // column indices of upper triangle of A
-            ptr<Scal>       A_val;  // values of upper triangle of A
+            cptr<LInt>       A_diag; // position to the diagonal element of A in each row.
+            cptr<LInt>       A_rp;   // row pointers of upper triangle of A
+            cptr<Int>        A_ci;   // column indices of upper triangle of A
+            cptr<Scal>       A_val;  // values of upper triangle of A
             
             Scal            reg;     // Regularization parameter for the diagonal.
             
-            ptr<Int>        child_ptr;
-            ptr<Int>        child_idx;
+            cptr<Int>        child_ptr;
+            cptr<Int>        child_idx;
             
-            ptr<Int>        SN_rp;
-            ptr<LInt>       SN_outer;
-            ptr<Int>        SN_inner;
+            cptr<Int>        SN_rp;
+            cptr<LInt>       SN_outer;
+            cptr<Int>        SN_inner;
             
-            ptr<LInt>       SN_tri_ptr;
-            mut<Scal>       SN_tri_val;
-            ptr<LInt>       SN_rec_ptr;
-            mut<Scal>       SN_rec_val;
+            cptr<LInt>       SN_tri_ptr;
+            mptr<Scal>       SN_tri_val;
+            cptr<LInt>       SN_rec_ptr;
+            mptr<Scal>       SN_rec_val;
             
-            ptr<Int>         desc_counts;
+            cptr<Int>        desc_counts;
             
             
             // local data
@@ -67,10 +67,10 @@ namespace Tensors
             Tensor1<Int,Int> JJ_pos_buffer;
             Tensor1<Int,Int> JL_pos_buffer;
             
-            mut<Int> II_pos = nullptr;
-            mut<Int> IL_pos = nullptr;
-            mut<Int> JJ_pos = nullptr;
-            mut<Int> JL_pos = nullptr;
+            mptr<Int> II_pos = nullptr;
+            mptr<Int> IL_pos = nullptr;
+            mptr<Int> JJ_pos = nullptr;
+            mptr<Int> JL_pos = nullptr;
             
             Int IL_len = 0;
             Int JL_len = 0;
@@ -81,10 +81,10 @@ namespace Tensors
             Tensor1<Scal,Int> C_0_buffer; // scattered subblock of U_0
             Tensor1<Scal,Int> C_1_buffer; // scattered subblock of U_1
             
-            mut<Scal> B_0 = nullptr;
-            mut<Scal> B_1 = nullptr;
-            mut<Scal> C_0 = nullptr;
-            mut<Scal> C_1 = nullptr;
+            mptr<Scal> B_0 = nullptr;
+            mptr<Scal> B_1 = nullptr;
+            mptr<Scal> C_0 = nullptr;
+            mptr<Scal> C_1 = nullptr;
 
             
             // Monitors.
@@ -230,8 +230,8 @@ namespace Tensors
                 
                 // U_0 is interpreted as an upper triangular matrix of size n_0 x n_0.
                 // U_1 is interpreted as a  rectangular      matrix of size n_0 x n_1.
-                mut<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
-                mut<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
+                mptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                mptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                 
                 FetchFromA( i_begin, i_end, l_begin, l_end, U_0, U_1);
                 
@@ -251,7 +251,7 @@ namespace Tensors
         protected:
             
             void FetchFromA(
-                Int i_begin, Int i_end, LInt l_begin, LInt l_end, mut<Scal> U_0, mut<Scal> U_1
+                Int i_begin, Int i_end, LInt l_begin, LInt l_end, mptr<Scal> U_0, mptr<Scal> U_1
             )
             {
                 // Read the values of A into U_0 and U_1.
@@ -320,7 +320,7 @@ namespace Tensors
             void FetchFromDescendants(
                 const Int s,                            // the supernode into which to fetch
                 const Int t_begin, const Int t_end,     // the range of descendants
-                const Int n_0, const Int n_1, mut<Scal> U_0, mut<Scal> U_1
+                const Int n_0, const Int n_1, mptr<Scal> U_0, mptr<Scal> U_1
             )
             {
                 // Incorporate the row updates from descendants [ t_begin,...,t_end [ into U_0 and U_1.
@@ -341,7 +341,7 @@ namespace Tensors
                     const Int m_0 = SN_rp[t+1] - SN_rp[t];
                     const Int m_1 = int_cast<Int>(SN_outer[t+1] - SN_outer[t]);
 
-                    ptr<Scal> t_rec = &SN_rec_val[SN_rec_ptr[t]];
+                    cptr<Scal> t_rec = &SN_rec_val[SN_rec_ptr[t]];
                     // t_rec is interpreted as a rectangular matrix of size m_0 x m_1.
 
                     // TODO: Maybe we should transpose U_0 and U_1 etc. to reduce amount of scattered-reads and adds...
@@ -529,8 +529,8 @@ namespace Tensors
                             // where U_1 is a matrix of size n_0 x n_1.
                             for( Int i = 0; i < IL_len; ++i )
                             {
-                                mut<Scal> U_1_i = &U_1[n_1 * II_pos[i]];
-                                ptr<Scal> C_1_i = &C_1[JL_len * i];
+                                mptr<Scal> U_1_i = &U_1[n_1 * II_pos[i]];
+                                cptr<Scal> C_1_i = &C_1[JL_len * i];
                                 
                                 for( Int j = 0; j < JL_len; ++j )
                                 {
@@ -561,8 +561,8 @@ namespace Tensors
                                 const Scal factor = - Scalar::Conj(t_rec[IL_pos[i]]);
 
                                 const Int i_ = II_pos[i];
-                                mut<Scal> U_0_i = &U_0[n_0 * i_];
-                                mut<Scal> U_1_i = &U_1[n_1 * i_];
+                                mptr<Scal> U_0_i = &U_0[n_0 * i_];
+                                mptr<Scal> U_1_i = &U_1[n_1 * i_];
                                 
                                 for( Int j = i; j < IL_len; ++j )
                                 {
@@ -582,7 +582,7 @@ namespace Tensors
                                 const Scal factor = - Scalar::Conj(t_rec[IL_pos[i]]);
 
                                 const Int i_ = II_pos[i];
-                                mut<Scal> U_0_i = &U_0[n_0 * i_];
+                                mptr<Scal> U_0_i = &U_0[n_0 * i_];
 
                                 for( Int j = i; j < IL_len; ++j )
                                 {
@@ -596,7 +596,7 @@ namespace Tensors
                 } // for( Int t = t_begin; t < t_end; ++t )
             }
             
-            void FactorizeSupernode( Int n_0, Int n_1, mut<Scal> U_0, mut<Scal> U_1 )
+            void FactorizeSupernode( Int n_0, Int n_1, mptr<Scal> U_0, mptr<Scal> U_1 )
             {
                 _tic();
                 
@@ -634,12 +634,12 @@ namespace Tensors
             
         protected:
             
-            force_inline void scatter_read( ptr<Scal> x, mut<Scal> y, ptr<Int> idx, Int N )
+            force_inline void scatter_read( cptr<Scal> x, mptr<Scal> y, cptr<Int> idx, Int N )
             {
                 for( ; N --> izero; ) { y[N] = x[idx[N]]; }
             }
             
-            force_inline void scatter_add( ptr<Scal> x, mut<Scal> y, ptr<Int> idx, Int N )
+            force_inline void scatter_add( cptr<Scal> x, mptr<Scal> y, cptr<Int> idx, Int N )
             {
                 for( ; N --> izero; ) { y[idx[N]] += x[N]; }
             }

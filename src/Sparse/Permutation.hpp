@@ -108,7 +108,7 @@ namespace Tensors
         }
         
         template<typename J>
-        Permutation( ptr<J> p_, const Int n_, const Inverse inverseQ, const Int thread_count_ )
+        Permutation( cptr<J> p_, const Int n_, const Inverse inverseQ, const Int thread_count_ )
         :   n              ( n_               )
         ,   p              ( n                )
         ,   p_inv          ( n                )
@@ -224,7 +224,7 @@ namespace Tensors
         }
         
         template<typename J>
-        void SetPermutation( ptr<J> p_ )
+        void SetPermutation( cptr<J> p_ )
         {
             // TODO: check p_ for triviality during copy.
             
@@ -254,7 +254,7 @@ namespace Tensors
         }
         
         template<typename J>
-        void SetInversePermutation( ptr<J> p_inv_ )
+        void SetInversePermutation( cptr<J> p_inv_ )
         {
 //            print("SetInversePermutation");
             // TODO: check p_inv_ for triviality during copy.
@@ -431,7 +431,7 @@ namespace Tensors
         
         // TODO: We could add a leading dimension argument...
         template<typename S, typename T>
-        void Permute( ptr<S> a, mut<T> b, const Inverse inverseQ, Size_T chunk = Scalar::One<Size_T> )
+        void Permute( cptr<S> a, mptr<T> b, const Inverse inverseQ, Size_T chunk = Scalar::One<Size_T> )
         {
             // Permute a chunkwise into b, i.e., b[size*i+k] <- a[size*p[i]+k];
             
@@ -443,7 +443,7 @@ namespace Tensors
             {
                 Invert( inverseQ );
                 
-                ptr<Int> r = GetPermutation().data();
+                cptr<Int> r = GetPermutation().data();
 
                 if( chunk == Scalar::One<Size_T> )
                 {
@@ -571,7 +571,7 @@ namespace Tensors
         
         
         template<typename J>
-        bool PermutationQ( ptr<J> p_ ) const
+        bool PermutationQ( cptr<J> p_ ) const
         {
             std::string tag = ClassName() + "::PermutationQ";
             
@@ -651,12 +651,12 @@ namespace Tensors
     
     template<bool P_TrivialQ, bool Q_TrivialQ, bool SortQ, typename LInt, typename Int>
     Tensor1<LInt,LInt> permutePatternCSR(
-        Tensor1<LInt,Int> & outer,
-        Tensor1<Int,LInt> & inner,
-        const Permutation<Int> & P,  // row    permutation
-        const Permutation<Int> & Q,  // column permutation
+        mref<Tensor1<LInt,Int>> outer,
+        mref<Tensor1<Int,LInt>> inner,
+        cref<Permutation<Int>>  P,  // row    permutation
+        cref<Permutation<Int>>  Q,  // column permutation
         const LInt nnz,
-        bool sort = true
+        bool  sort = true
     )
     {
         std::string tag = std::string("PermutePatternCSR<") + TypeName<LInt> + "," + TypeName<Int> + ">";
@@ -667,8 +667,8 @@ namespace Tensors
 
         const Int thread_count = P.ThreadCount();
         
-        ptr<Int> p     = P.GetPermutation().data();
-        ptr<Int> q_inv = Q.GetInversePermutation().data();
+        cptr<Int> p     = P.GetPermutation().data();
+        cptr<Int> q_inv = Q.GetInversePermutation().data();
 
         Tensor1<LInt, Int> new_outer ( m+1 );
         Tensor1< Int,LInt> new_inner ( nnz );
@@ -703,7 +703,7 @@ namespace Tensors
             parallel_accumulate( new_outer.data(), m+1, thread_count );
         }
         
-        mut<LInt> scratch = perm.data();
+        mptr<LInt> scratch = perm.data();
 
         JobPointers<Int> job_ptr ( m, new_outer.data(), thread_count );
         
@@ -761,10 +761,10 @@ namespace Tensors
     
     template<typename Int, typename LInt>
     Tensor1<LInt,LInt> PermutePatternCSR(
-        Tensor1<LInt,Int> & outer,
-        Tensor1<Int,LInt> & inner,
-        const Permutation<Int> & P,  // row    permutation
-        const Permutation<Int> & Q,  // column permutation
+        mref<Tensor1<LInt,Int>> outer,
+        mref<Tensor1<Int,LInt>> inner,
+        cref<Permutation<Int>> P,  // row    permutation
+        cref<Permutation<Int>> Q,  // column permutation
         const LInt nnz,
         bool sort = true        // Whether to restore row-wise ordering (as in demanded by CSR).
     )

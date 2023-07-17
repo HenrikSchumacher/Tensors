@@ -10,9 +10,9 @@ namespace Tensors
         >
         force_inline void ger(
             const I0 m_, const I1 n_,
-            const Scal & alpha, const Scal * x, const I2 inc_x_,
-                                const Scal * y, const I3 inc_y_,
-                                      Scal * A, const I4 ldA_
+            cref<Scal> alpha, cptr<Scal> x, const I2 inc_x_,
+                              cptr<Scal> y, const I3 inc_y_,
+                              mptr<Scal> A, const I4 ldA_
         )
         {
             // A := alpha * opx(x) * opx(y^T) + A,

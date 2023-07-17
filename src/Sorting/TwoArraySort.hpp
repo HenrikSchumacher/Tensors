@@ -27,7 +27,7 @@ namespace Tensors
         ,   comp ( comp_ )
         {}
         
-        void operator()( mut<Key_T> keys_, mut<Val_T> vals_, const Int n = N )
+        void operator()( mptr<Key_T> keys_, mptr<Val_T> vals_, const Int n = N )
         {
             // Sort the elements in array `vals` according to the corresp. elements in the array `keys`.
             

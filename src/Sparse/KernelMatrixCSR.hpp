@@ -65,15 +65,15 @@ namespace Tensors
             
         public:
             
-            void FillLowerTriangleFromUpperTriangle( mut<Scal> values ) const
+            void FillLowerTriangleFromUpperTriangle( mptr<Scal> values ) const
             {
                 ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
                 
                 if( pattern.WellFormed() && (pattern.RowCount()>= pattern.ColCount()) )
                 {
-                    ptr<LInt> diag   = pattern.Diag().data();
-                    ptr<LInt> outer  = pattern.Outer().data();
-                    ptr<Int>  inner  = pattern.Inner().data();
+                    cptr<LInt> diag   = pattern.Diag().data();
+                    cptr<LInt> outer  = pattern.Outer().data();
+                    cptr<Int>  inner  = pattern.Inner().data();
                     
                     const auto & job_ptr = pattern.LowerTriangularJobPtr();
                     
@@ -133,24 +133,24 @@ namespace Tensors
 //      Matrix multiplication
 //##############################################################################################
             
-            void Scale( mut<Scal_out> Y, const Scal_out beta, const Int rhs_count ) const
+            void Scale( mptr<Scal_out> Y, cref<Scal_out> beta, const Int rhs_count ) const
             {
                 const Int size = RowCount() * rhs_count;
                 
                 if( beta == static_cast<Scal_out>(0) )
                 {
-                    zerofy_buffer( Y, size, pattern.ThreadCount() );
+                    zerofy_buffer<VarSize,Sequential>( Y, size, pattern.ThreadCount() );
                 }
                 else
                 {
-                    scale_buffer(beta, Y, size, pattern.ThreadCount() );
+                    scale_buffer<VarSize,Sequential>(beta, Y, size, pattern.ThreadCount() );
                 }
             }
             
             force_flattening void Dot(
-                ptr<Scal> A,
-                const Scal_out alpha, ptr<Scal_in>  X,
-                const Scal_out beta,  mut<Scal_out> Y,
+                cptr<Scal> A,
+                cref<Scal_out> alpha, cptr<Scal_in>  X,
+                cref<Scal_out> beta,  mptr<Scal_out> Y,
                 const Int rhs_count
             ) const
             {
@@ -175,8 +175,8 @@ namespace Tensors
                         // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                         Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
                         
-                        ptr<LInt> rp = pattern.Outer().data();
-                        ptr< Int> ci = pattern.Inner().data();
+                        cptr<LInt> rp = pattern.Outer().data();
+                        cptr< Int> ci = pattern.Inner().data();
                         
                         // Kernel is supposed the following rows of pattern:
                         const Int i_begin = job_ptr[thread  ];
@@ -257,14 +257,13 @@ namespace Tensors
 
                 if( !p.TrivialQ() || !q.TrivialQ() )
                 {
-                    ptr<Scal> u = this->new_values.data();
-                    mut<Scal> v = this->values.data();
+                    cptr<Scal> u = this->new_values.data();
+                    mptr<Scal> v = this->values.data();
                     Tensor1<Scal,LInt> new_values ( nnz );
                     
                     ParallelDo(
                         [&]( const Int i ) { v[i] = u[perm[i]]; },
-                        nnz,
-                        this->ThreadCount()
+                        nnz, this->ThreadCount()
                     );
                     
                     swap( this->values, new_values);

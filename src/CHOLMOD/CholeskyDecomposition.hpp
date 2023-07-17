@@ -245,7 +245,7 @@ namespace Tensors
             }
             
             template<typename ExtScal>
-            void Solve( ptr<ExtScal> b, mut<ExtScal> x )
+            void Solve( cptr<ExtScal> b, mptr<ExtScal> x )
             {
                 std::string tag = ClassName()+"::Solve";
                 
@@ -321,7 +321,7 @@ namespace Tensors
             }
             
             template<typename ExtScal>
-            void Solve( ptr<ExtScal> b, mut<ExtScal> x, const Size_T nrhs )
+            void Solve( cptr<ExtScal> b, mptr<ExtScal> x, const Size_T nrhs )
             {
                 std::string tag = ClassName()+"::Solve ( " + ToString(nrhs) +" )";
                 
@@ -337,7 +337,7 @@ namespace Tensors
                     
                     const Size_T n = A->nrow;
                     
-                    mut<Scal> b_ptr = reinterpret_cast<Scal *>(b_->x);
+                    mptr<Scal> b_ptr = reinterpret_cast<Scal *>(b_->x);
 
                     ptic(tag+": transpose input");
                     // We have to transpose the inputs.
@@ -389,7 +389,7 @@ namespace Tensors
                     
                     const Size_T n = A->nrow;
                     
-                    mut<Scal> b_ptr = reinterpret_cast<Scal *>(b_->x);
+                    mptr<Scal> b_ptr = reinterpret_cast<Scal *>(b_->x);
 
                     ptic(tag+": transpose input");
                     // We have to transpose the inputs.

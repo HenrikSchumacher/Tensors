@@ -33,7 +33,7 @@ namespace Tensors
             ~ApproximateMinimumDegree() = default;
             
             template<typename LInt>
-            int operator()( ptr<LInt> rp_, ptr<Int> ci, const Int n, mut<Int> perm )
+            int operator()( cptr<LInt> rp_, cptr<Int> ci, const Int n, mptr<Int> perm )
             {
                 ptic(ClassName()+"::operator()");
                 Tensor1<Int,Int> rp_buffer;

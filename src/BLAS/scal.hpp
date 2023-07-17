@@ -7,7 +7,7 @@ namespace Tensors
     {
         template<typename Scal, typename I0, typename I1>
         force_inline void scal(
-            const I0 n_, const Scal & alpha, Scal * x, const I1 inc_x_
+            const I0 n_, cref<Scal> alpha, mptr<Scal> x, const I1 inc_x_
         )
         {
             ASSERT_INT(I0);

@@ -216,7 +216,8 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                ptr<ExtLInt> outer_, ptr<ExtInt> inner_,
+                cptr<ExtLInt> outer_,
+                cptr<ExtInt>  inner_,
                 Int n_, Int thread_count_
             )
             :   n               ( std::max( izero, n_)               )
@@ -231,7 +232,9 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt, typename ExtInt2>
             CholeskyDecomposition(
-                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, ptr<ExtInt2> p_,
+                cptr<ExtLInt> outer_,
+                cptr<ExtInt>  inner_,
+                cptr<ExtInt2> p_,
                 Int n_, Int thread_count_
             )
             :   n               ( std::max( izero, n_)                  )
@@ -246,7 +249,9 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                ptr<ExtLInt> outer_, ptr<ExtInt> inner_, Permutation<Int> && perm_
+                cptr<ExtLInt> outer_,
+                cptr<ExtInt> inner_,
+                Permutation<Int> && perm_
             )
             :   n               ( std::max( izero, perm_.Size() )            )
             ,   thread_count    ( std::max( ione, perm_.ThreadCount())       )
@@ -307,7 +312,7 @@ namespace Tensors
             
             const Tensor1<Int,Int> & PostOrdering()
             {
-                auto & restrict post = EliminationTree().PostOrdering();
+                const auto & restrict post = EliminationTree().PostOrdering();
                 
                 if( !EliminationTree().PostOrderedQ() )
                 {
@@ -324,8 +329,8 @@ namespace Tensors
                         
                         // A_inner_perm.Compose( std::move(A.Permute( post, post )), Compose::Post );
                         
-                        ptr<LInt> p = A_inner_perm.data();
-                        mut<LInt> q = inner_perm_perm.data();
+                        cptr<LInt> p = A_inner_perm.data();
+                        mptr<LInt> q = inner_perm_perm.data();
                         
                         ParallelDo(
                             [p,q]( const LInt i )

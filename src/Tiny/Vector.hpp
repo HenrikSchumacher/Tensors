@@ -30,7 +30,7 @@ namespace Tensors
             }
             
             template<typename S>
-            CLASS( ptr<S> matrix, const Int k )
+            CLASS( cptr<S> matrix, const Int k )
             {
                 Read( &matrix[n *k ] );
             }
@@ -46,7 +46,7 @@ namespace Tensors
                 }
                 else
                 {
-                    ptr<S> w_ = &(*w.begin());
+                    cptr<S> w_ = &(*w.begin());
                     
                     for( Int i = 0; i < m; ++i )
                     {

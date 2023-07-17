@@ -30,7 +30,7 @@ namespace Tensors {
         }
         
         template<typename S>
-        TENSOR_T( ptr<S> a_, const Int d0, const Int d1 )
+        TENSOR_T( cptr<S> a_, const Int d0, const Int d1 )
         :   TENSOR_T( d0, d1 )
         {
             Read(a_);
@@ -44,7 +44,7 @@ namespace Tensors {
         }
         
         template<bool row_first = false, typename S>
-        void WriteTransposed( mut<S> b )
+        void WriteTransposed( mptr<S> b )
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
@@ -72,7 +72,7 @@ namespace Tensors {
         }
         
         template<bool row_first = false, typename S>
-        void ReadTransposed( ptr<S> b )
+        void ReadTransposed( cptr<S> b )
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
@@ -101,21 +101,21 @@ namespace Tensors {
         
         // row-wise Write
         template< typename S>
-        void Write( const Int i, mut<S> b ) const
+        void Write( const Int i, mptr<S> b ) const
         {
             copy_buffer( data(i), b, dims[1] );
         }
         
         // row-wise Read
         template< typename S>
-        void Read( const Int i, ptr<S> b )
+        void Read( const Int i, cptr<S> b )
         {
             copy_buffer( b, data(i), dims[1] );
         }
         
         
         template<typename S>
-        void Read( ptr<S> a_, const Int lda, const Int thread_count = 0 )
+        void Read( cptr<S> a_, const Int lda, const Int thread_count = 0 )
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
@@ -131,7 +131,7 @@ namespace Tensors {
         }
         
         template<typename S>
-        void Write( mut<S> a_, const Int lda, const Int thread_count = 0 )
+        void Write( mptr<S> a_, const Int lda, const Int thread_count = 0 )
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
@@ -170,7 +170,7 @@ namespace Tensors {
         
     public:
 
-        force_inline mut<Scal> data( const Int i )
+        force_inline mptr<Scal> data( const Int i )
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -178,7 +178,7 @@ namespace Tensors {
             return &a[i * dims[1]];
         }
         
-        force_inline ptr<Scal> data( const Int i ) const
+        force_inline cptr<Scal> data( const Int i ) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -186,7 +186,7 @@ namespace Tensors {
             return &a[i * dims[1]];
         }
         
-        force_inline Scal & operator()(const Int i, const Int j)
+        force_inline mref<Scal> operator()(const Int i, const Int j)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j);
@@ -194,7 +194,7 @@ namespace Tensors {
             return a[ i * dims[1] + j];
         }
         
-        force_inline const Scal & operator()( const Int i, const Int j) const
+        force_inline cref<Scal> operator()( const Int i, const Int j) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j);
@@ -202,7 +202,7 @@ namespace Tensors {
             return a[i * dims[1] + j];
         }
         
-        force_inline mut<Scal> operator[](const Int i)
+        force_inline mptr<Scal> operator[](const Int i)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -210,7 +210,7 @@ namespace Tensors {
             return data(i);
         }
         
-        force_inline ptr<Scal> operator[](const Int i) const
+        force_inline cptr<Scal> operator[](const Int i) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -347,7 +347,7 @@ namespace Tensors {
 //    }
 
     template<typename Scal, typename Int, typename S>
-    Tensor2<Scal,Int> ToTensor2( ptr<S> a_, const Int d0, const Int d1, const bool transpose = false )
+    Tensor2<Scal,Int> ToTensor2( cptr<S> a_, const Int d0, const Int d1, const bool transpose = false )
     {
         Tensor2<Scal,Int> result ( d0, d1 );
 

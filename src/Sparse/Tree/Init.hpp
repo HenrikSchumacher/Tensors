@@ -50,7 +50,7 @@ protected:
         desc_counts = Tensor1<Int,Int>    ( n );
         
         
-        mut<Int> p = post.Scratch().data();
+        mptr<Int> p = post.Scratch().data();
         
         const Int root = Root();
         

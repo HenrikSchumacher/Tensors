@@ -11,8 +11,8 @@ namespace Tensors
         >
         force_inline void herk(
             const I0 n_, const I1 k_,
-            const typename Scalar::Real<Scal> & alpha, const Scal * A, const I2 ldA_,
-            const typename Scalar::Real<Scal> & beta ,       Scal * C, const I3 ldC_
+            cref<Scalar::Real<Scal>> alpha, cptr<Scal> A, const I2 ldA_,
+            cref<Scalar::Real<Scal>> beta , mptr<Scal> C, const I3 ldC_
         )
         {
             ASSERT_INT(I0);

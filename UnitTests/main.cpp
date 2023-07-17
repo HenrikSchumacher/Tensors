@@ -22,8 +22,8 @@ int ineff_count = 0;
 
 template<typename R_0, typename S_0,typename R_1, typename S_1>
 __attribute__((noinline)) void combine_buffers_true(
-    const R_0 & alpha, ptr<S_0> x,
-    const R_1 & beta,  mut<S_1> y,
+    cref<R_0> alpha, cptr<S_0> x,
+    cref<R_1> beta,  mptr<S_1> y,
     Size_T n
 )
 {
@@ -35,10 +35,10 @@ __attribute__((noinline)) void combine_buffers_true(
 
 template<Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R_0, typename S_0, typename R_1, typename S_1>
 void test_combine_buffers(
-    Tensor1<S_0,Size_T> & x,
-    Tensor1<S_1,Size_T> & y,
-    Tensor1<S_1,Size_T> & z,
-    Tensor1<S_1,Size_T> & z_true
+    mref<Tensor1<S_0,Size_T>> x,
+    mref<Tensor1<S_1,Size_T>> y,
+    mref<Tensor1<S_1,Size_T>> z,
+    mref<Tensor1<S_1,Size_T>> z_true
 )
 {
     const Size_T n = x.Size();
