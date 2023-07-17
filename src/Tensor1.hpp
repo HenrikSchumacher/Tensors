@@ -70,7 +70,7 @@ namespace Tensors {
             return &a[i];
         }
         
-        force_inline mref<Scal> operator()(const Int i)
+        force_inline Scal & operator()(const Int i)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -78,7 +78,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline cref<Scal> operator()(const Int i) const
+        force_inline const Scal & operator()(const Int i) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -86,7 +86,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline mref<Scal> operator[](const Int i)
+        force_inline Scal & operator[](const Int i)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -94,7 +94,7 @@ namespace Tensors {
             return a[i];
         }
         
-        force_inline cref<Scal> operator[](const Int i) const
+        force_inline const Scal & operator[](const Int i) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);

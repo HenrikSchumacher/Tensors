@@ -186,7 +186,7 @@ namespace Tensors {
             return &a[i * dims[1]];
         }
         
-        force_inline mref<Scal> operator()(const Int i, const Int j)
+        force_inline Scal & operator()(const Int i, const Int j)
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j);
@@ -194,7 +194,7 @@ namespace Tensors {
             return a[ i * dims[1] + j];
         }
         
-        force_inline cref<Scal> operator()( const Int i, const Int j) const
+        force_inline const Scal & operator()( const Int i, const Int j) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i,j);

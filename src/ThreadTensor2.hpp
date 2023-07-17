@@ -207,7 +207,7 @@ namespace Tensors {
         }
         
 
-        force_inline mref<Scal> operator()( const Int i, const Int j )
+        force_inline Scal & operator()( const Int i, const Int j )
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -215,7 +215,7 @@ namespace Tensors {
             return tensors[i](j);
         }
     
-        force_inline cref<Scal> operator()( const Int i, const Int j) const
+        force_inline const Scal & operator()( const Int i, const Int j) const
         {
 #ifdef TOOLS_DEBUG
             BoundCheck(i);
@@ -352,12 +352,12 @@ namespace Tensors {
         }
         
         
-        mref<Tensor1<Scal,Int>> operator[]( const Int thread )
+        Tensor1<Scal,Int> & operator[]( const Int thread )
         {
             return tensors[thread];
         }
         
-        cref<Tensor1<Scal,Int>> operator[]( const Int thread ) const
+        const Tensor1<Scal,Int> & operator[]( const Int thread ) const
         {
             return tensors[thread];
         }

@@ -25,7 +25,7 @@ TENSOR_T() = default;
 }
 
 // Copy constructor
-TENSOR_T( cref<TENSOR_T> other )
+TENSOR_T( const TENSOR_T & other )
 :   n    ( other.n    )
 ,   dims ( other.dims )
 {
@@ -80,7 +80,7 @@ mref<TENSOR_T> operator=( TENSOR_T && other ) noexcept
 }
 
 /* Copy-assignment operator */
-mref<TENSOR_T> operator=( cref<TENSOR_T> other )
+mref<TENSOR_T> operator=( const TENSOR_T & other )
 {
     if( this != &other )
     {
