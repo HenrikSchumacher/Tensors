@@ -25,9 +25,9 @@ namespace Tensors
             
             void operator()(
                 const int m, const int n, const int k,
-                const Scal & alpha, const Scal * restrict A, const int ldA,
-                                    const Scal * restrict B, const int ldB,
-                const Scal & beta,        Scal * restrict C, const int ldC
+                cref<Scal> alpha, cptr<Scal> A, const int ldA,
+                                  cptr<Scal> B, const int ldB,
+                cref<Scal> beta,  mptr<Scal> C, const int ldC
             )
             {
                 if constexpr( (1 <= M) && (M<=MaxM) && (1 <= N) && (N<=MaxN) && (1 <= K) && (K<=MaxK) )

@@ -132,7 +132,7 @@ public:
 
 private:
 
-    template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, Size_T NRHS,
+    template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, Size_T NRHS = VarSize,
         typename R_out, typename T_in, typename S_out, typename T_out
     >
     void SpMM_impl(
@@ -140,7 +140,7 @@ private:
         cref<R_out> alpha,  cptr<T_in>  X, const Int ldX,
         cref<S_out> beta,   mptr<T_out> Y, const Int ldY,
         cref<JobPointers<Int>> job_ptr,
-        const Int nrhs
+        const Int nrhs = NRHS
     )
     {
         std::string tag = std::string(ClassName()+"::SpMM_impl<")
