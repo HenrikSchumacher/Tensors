@@ -39,7 +39,7 @@ public:
     void Write( const R alpha, const S beta, mut<T> B) const
     {
         // Writing B = alpha * A + beta * B
-        combine_buffers<alpha_flag,beta_flag,Op::Id,Op::Id,m*n>(
+        combine_buffers<alpha_flag,beta_flag,m*n>(
             alpha, &A[0][0], beta, B
         );
     }
@@ -51,7 +51,7 @@ public:
         // Writing B = alpha * A + beta * B
         for( Int i = 0; i < m; ++i )
         {
-            combine_buffers<alpha_flag,beta_flag,Op::Id,Op::Id,n>(
+            combine_buffers<alpha_flag,beta_flag,n>(
                 alpha, &A[i][0], beta, &B[ldB*i]
             );
         }
@@ -65,7 +65,7 @@ public:
         // Writing B[idx[i]][j] = alpha * A[i][j] + beta * B[idx[i]][j]
         for( Int i = 0; i < m; ++i )
         {
-            combine_buffers<alpha_flag,beta_flag,Op::Id,Op::Id,n>(
+            combine_buffers<alpha_flag,beta_flag,n>(
                 alpha, &A[i][0], beta, &B[ldB*idx[i]]
             );
         }
