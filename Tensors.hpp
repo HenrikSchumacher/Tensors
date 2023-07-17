@@ -4,11 +4,7 @@
     #include <iostream>
     #include <random>
     #include <cstring>
-//    #include <array>
     #include <complex>
-
-
-
 
     #include "Tools/Tools.hpp"
 
@@ -28,9 +24,6 @@
 
     #include "src/Sorting/TwoArrayQuickSort.hpp"
     #include "src/Sorting/TwoArraySort.hpp"
-//    #include "src/Sorting/TimSort.hpp"
-
-    
 
     #include "Tiny.hpp"
     #include "src/TriangleIndexing.hpp"
@@ -45,7 +38,6 @@
     #include "src/SparseBLAS.hpp"
     #include "src/Sparse/PatternCSR.hpp"
     #include "src/Sparse/BinaryMatrixCSR.hpp"
-//    #include "src/Sparse/BinaryMatrixVBSR.hpp"
     #include "src/Sparse/MatrixCSR.hpp"
 
 
