@@ -141,11 +141,7 @@ namespace Tensors
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
                 
-                swap( A.outer,        B.outer        );
-                swap( A.inner,        B.inner        );
-                swap( A.m,            B.m            );
-                swap( A.n,            B.n            );
-                swap( A.thread_count, B.thread_count );
+                swap( static_cast<Base_T&>(A), static_cast<Base_T&>(B) );
             }
             
             // (Copy-)assignment operator
