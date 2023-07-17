@@ -206,7 +206,7 @@ private:
 
                             if constexpr ( a_flag == Generic )
                             {
-                                combine_buffers<Generic,Zero,Op::Id,Op::Id,NRHS,Sequential>(
+                                combine_buffers<Generic,Zero,NRHS,Sequential>(
                                   a[l],            &X[ldX * j],
                                   Scalar::Zero<T>, &z[0],
                                   nrhs
@@ -214,7 +214,7 @@ private:
                             }
                             else
                             {
-                                combine_buffers<One,Zero,Op::Id,Op::Id,NRHS,Sequential>(
+                                combine_buffers<One,Zero,NRHS,Sequential>(
                                   Scalar::One<T>,  &X[ldX * j],
                                   Scalar::Zero<T>, &z[0],
                                   nrhs
@@ -233,7 +233,7 @@ private:
 
                             if constexpr ( a_flag == Generic )
                             {
-                                combine_buffers<Generic,One,Op::Id,Op::Id,NRHS,Sequential>(
+                                combine_buffers<Generic,One,NRHS,Sequential>(
                                   a[l],           &X[ldX * j],
                                   Scalar::One<T>, &z[0],
                                   nrhs
@@ -242,7 +242,7 @@ private:
                             else
                             {
                                 // In caase a is a nullptr...
-                                combine_buffers<One,One,Op::Id,Op::Id,NRHS,Sequential>(
+                                combine_buffers<One,One,NRHS,Sequential>(
                                   Scalar::One<T>, &X[ldX * j],
                                   Scalar::One<T>, &z[0],
                                   nrhs
@@ -258,7 +258,7 @@ private:
 
                             if constexpr ( a_flag == Generic)
                             {
-                                combine_buffers<Generic,One,Op::Id,Op::Id,NRHS,Sequential>(
+                                combine_buffers<Generic,One,NRHS,Sequential>(
                                     a[l],           &X[ldX * j],
                                     Scalar::One<T>, &z[0],
                                     nrhs
@@ -267,7 +267,7 @@ private:
                             else
                             {
                                 // In case a is a nullptr...
-                                combine_buffers<One,One,Op::Id,Op::Id,NRHS,Sequential>(
+                                combine_buffers<One,One,NRHS,Sequential>(
                                     Scalar::One<T>, &X[ldX * j],
                                     Scalar::One<T>, &z[0],
                                     nrhs
@@ -277,7 +277,7 @@ private:
 
                         // incorporate the local updates into Y-buffer
 
-                        combine_buffers<alpha_flag,beta_flag,Op::Id,Op::Id,NRHS,Sequential>(
+                        combine_buffers<alpha_flag,beta_flag,NRHS,Sequential>(
                             alpha, &z[0],
                             beta,  &Y[ldY * i],
                             nrhs
