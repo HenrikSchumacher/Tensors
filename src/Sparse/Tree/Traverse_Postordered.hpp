@@ -86,7 +86,7 @@ public:
             ptic(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
             
             ParallelDo_Dynamic(
-                [=,&workers]( const Int thread, const Int k )
+                [=,this,&workers]( const Int thread, const Int k )
                 {
                     const Time start_time = Clock::now();
 
@@ -121,7 +121,7 @@ public:
             ptic(tag_1 + " = " + ToString(d) + "; using " + ToString(use_threads) + " threads.");
             
             ParallelDo_Dynamic(
-                [=,&workers]( const Int thread, const Int k )
+                [=,this,&workers]( const Int thread, const Int k )
                 {
                     const Time start_time = Clock::now();
 
@@ -161,7 +161,7 @@ public:
 //            const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : one;
 //    
 //            ParallelDo_Dynamic(
-//                [=,&workers]( const Int thread, const Int k )
+//                [=,this,&workers]( const Int thread, const Int k )
 //                {
 //                    const Time start_time = Clock::now();
 //    

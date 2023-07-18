@@ -310,7 +310,7 @@ namespace Tensors
             
         protected:
             
-            const Tensor1<Int,Int> & PostOrdering()
+            cref<Tensor1<Int,Int>> PostOrdering()
             {
                 const auto & restrict post = EliminationTree().PostOrdering();
                 

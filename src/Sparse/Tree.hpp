@@ -144,17 +144,17 @@ namespace Tensors
         }
         
         
-        const Tensor1<Int,Int> & Parents() const
+        cref<Tensor1<Int,Int>> Parents() const
         {
             return parents;
         }
         
-        const Permutation<Int> & PostOrdering() const
+        cref<Permutation<Int>> PostOrdering() const
         {
             return post;
         }
         
-        const Tensor1<Int,Int> & DescendantCounts() const
+        cref<Tensor1<Int,Int>> DescendantCounts() const
         {
             return desc_counts;
         }
@@ -164,7 +164,7 @@ namespace Tensors
             return desc_counts[i];
         }
         
-        const Tensor1<Int,Int> & ChildPointers() const
+        cref<Tensor1<Int,Int>> ChildPointers() const
         {
             return A.Outer();
         }
@@ -174,7 +174,7 @@ namespace Tensors
             return A.Outer(i);
         }
         
-        const Tensor1<Int,Int> & ChildIndices() const
+        cref<Tensor1<Int,Int>> ChildIndices() const
         {
             return A.Inner();
         }
@@ -184,7 +184,7 @@ namespace Tensors
             return A.Inner(k);
         }
         
-        const Tensor1<Int,Int> & LevelPointers() const
+        cref<Tensor1<Int,Int>> LevelPointers() const
         {
             return levels.Outer();
         }
@@ -194,7 +194,7 @@ namespace Tensors
             return levels.Outer(i);
         }
         
-        const Tensor1<Int,Int> & LevelIndices() const
+        cref<Tensor1<Int,Int>> LevelIndices() const
         {
             return levels.Inner();
         }
@@ -222,22 +222,22 @@ namespace Tensors
             return A.ChildIndex(ChildPointer(i)+k);
         }
 
-        const Tensor1<double,Int> & Costs() const
+        cref<Tensor1<double,Int>> Costs() const
         {
             return costs;
         }
         
-        const Tensor1<double,Int> & DescendantCosts() const
+        cref<Tensor1<double,Int>> DescendantCosts() const
         {
             return desc_costs;
         }
         
-        const std::vector<Int> & TreeTopVertices() const
+        cref<std::vector<Int>> TreeTopVertices() const
         {
             return tree_top_vertices;
         }
         
-        const std::vector<Int> & SubtreeRoots() const
+        cref<std::vector<Int>> SubtreeRoots() const
         {
             return subtrees;
         }
@@ -245,7 +245,7 @@ namespace Tensors
         bool PostOrderedQ() const
         {
             return ParallelDoReduce(
-                [=]( const Int i ) -> bool
+                [=,this]( const Int i ) -> bool
                 {
                     const Int p_i = parents[i];
 

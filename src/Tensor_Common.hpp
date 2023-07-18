@@ -184,7 +184,7 @@ public:
         if constexpr (Scalar::RealQ<Scal> )
         {
             ParallelDo(
-                       [=]( const Int thread )
+                       [=,this]( const Int thread )
                        {
                            const Int i_begin = JobPointer( n, thread_count, thread     );
                            const Int i_end   = JobPointer( n, thread_count, thread + 1 );
@@ -205,7 +205,7 @@ public:
         else
         {
             ParallelDo(
-                       [=]( const Int thread )
+                       [=,this]( const Int thread )
                        {
                            const Int i_begin = JobPointer( n, thread_count, thread     );
                            const Int i_end   = JobPointer( n, thread_count, thread + 1 );

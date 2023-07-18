@@ -33,7 +33,7 @@ namespace Tensors {
             const Int thread_count = dims[0];
             
             ParallelDo(
-                [=]( const Int thread )
+                [=,this]( const Int thread )
                 {
                     tensors[thread] = Tensor_T( dims[1], dims[2] );
                 },
@@ -49,7 +49,7 @@ namespace Tensors {
             const Int thread_count = dims[0];
             
             ParallelDo(
-                [=]( const Int thread )
+                [=,this]( const Int thread )
                 {
                     tensors[thread] = Tensor_T( dims[1], dims[2], init );
                 },
@@ -64,7 +64,7 @@ namespace Tensors {
             const Int thread_count = dims[0];
             
             ParallelDo(
-                [=]( const Int thread )
+                [=,this]( const Int thread )
                 {
                     tensors[thread].Read( a_ + thread * dims[1] * dims[2]);
                 },
@@ -81,7 +81,7 @@ namespace Tensors {
             const Int thread_count = dims[0];
 
             ParallelDo(
-                [=]( const Int thread )
+                [=,this]( const Int thread )
                 {
                     tensors[thread].Read( other[thread].data() );
                 },
@@ -101,7 +101,7 @@ namespace Tensors {
             const Int thread_count = dims[0];
             
             ParallelDo(
-                [=]( const Int thread )
+                [=,this]( const Int thread )
                 {
                     tensors[thread].Read( other[thread].data() );
                 },
@@ -124,7 +124,7 @@ namespace Tensors {
 //            const Int thread_count = dims[0];
 //
 //            ParallelDo(
-//                [=]( const Int thread )
+//                [=,this]( const Int thread )
 //                {
 //                    tensors[thread] = Tensor_T( other[thread] );
 //                },
@@ -288,7 +288,7 @@ namespace Tensors {
             const Int thread_count = dims[0];
             
             ParallelDo(
-                [=,&init]( const Int thread )
+                [this,&init]( const Int thread )
                 {
                     tensors[thread].fill( init );
                 },
@@ -301,7 +301,7 @@ namespace Tensors {
             const Int thread_count = dims[0];
             
             ParallelDo(
-                [=]( const Int thread )
+                [=,this]( const Int thread )
                 {
                     tensors[thread].SetZero();
                 },
@@ -314,7 +314,7 @@ namespace Tensors {
             const Int thread_count = dims[0];
             
             ParallelDo(
-                [=]( const Int thread )
+                [=,this]( const Int thread )
                 {
                     tensors[thread].Write( b + dims[1] * dims[2] * thread );
                 },

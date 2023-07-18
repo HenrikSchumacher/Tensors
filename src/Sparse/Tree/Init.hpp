@@ -81,7 +81,7 @@ protected:
                 }
             }
             ,
-            [=,&counter]( const Int node )
+            [=,this,&counter]( const Int node )
             {
                 if( counter < root )
                 {

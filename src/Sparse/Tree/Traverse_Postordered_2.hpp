@@ -68,7 +68,7 @@ void Traverse_Postordered( std::vector<std::unique_ptr<Worker_T>> & restrict wor
         ptic(tag_1 + " <= "+ToString(tree_top_depth)+"; using " + ToString(use_threads) + " threads.");
         
         ParallelDo_Dynamic(
-            [=,&workers]( const Int thread, const Int k )
+            [=,this,&workers]( const Int thread, const Int k )
             {
                 const Time start_time = Clock::now();
                 
@@ -105,7 +105,7 @@ void Traverse_Postordered( std::vector<std::unique_ptr<Worker_T>> & restrict wor
         ptic(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
         
         ParallelDo_Dynamic(
-            [=,&workers]( const Int thread, const Int k )
+            [=,this,&workers]( const Int thread, const Int k )
             {
                 const Time start_time = Clock::now();
                 

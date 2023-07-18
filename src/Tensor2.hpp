@@ -122,7 +122,7 @@ namespace Tensors
             const Int d_1 = dims[1];
             
             ParallelDo(
-                [=]( const Int i )
+                [=,this]( const Int i )
                 {
                     copy_buffer<VarSize,Sequential>( &a_[lda * i], &a[d_1 * i], d_1 );
                 },
@@ -137,7 +137,7 @@ namespace Tensors
             const Int d_1 = dims[1];
             
             ParallelDo(
-                [=]( const Int i )
+                [=,this]( const Int i )
                 {
                     copy_buffer<VarSize,Sequential>( &a[d_1 * i], &a_[lda * i], d_1 );
                 },

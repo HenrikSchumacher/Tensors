@@ -83,7 +83,7 @@ public:
     //            }
 
 
-    const Matrix_T & GetU() const
+    cref<Matrix_T> GetU() const
     {
         std::string tag ( "U" );
         
@@ -187,17 +187,17 @@ public:
         return std::any_cast<Matrix_T &>( this->GetCache(tag) );
     }
 
-    const BinaryMatrix_T & GetA() const
+    cref<BinaryMatrix_T> GetA() const
     {
         return A;
     }
 
-    const Permutation<Int> & GetPermutation() const
+    cref<Permutation<Int>> GetPermutation() const
     {
         return perm;
     }
 
-    const Tensor1<LInt,LInt> & GetValuePermutation() const
+    cref<Tensor1<LInt,LInt>> GetValuePermutation() const
     {
         return A_inner_perm;
     }
@@ -207,47 +207,47 @@ public:
         return SN_count;
     }
 
-    const Tensor1<Int,Int> & SN_RowPointers() const
+    cref<Tensor1<Int,Int>> SN_RowPointers() const
     {
         return SN_rp;
     }
 
-    const Tensor1<LInt,Int> & SN_Outer() const
+    cref<Tensor1<LInt,Int>> SN_Outer() const
     {
         return SN_outer;
     }
 
-    const Tensor1<Int,LInt> & SN_Inner() const
+    cref<Tensor1<Int,LInt>> SN_Inner() const
     {
         return SN_inner;
     }
 
-    const Tensor1<LInt,Int> & SN_TrianglePointers() const
+    cref<Tensor1<LInt,Int>> SN_TrianglePointers() const
     {
         return SN_tri_ptr;
     }
 
-    const Tensor1<Scal,LInt> & SN_TriangleValues() const
+    cref<Tensor1<Scal,LInt>> SN_TriangleValues() const
     {
         return SN_tri_val;
     }
 
-    const Tensor1<LInt,Int> & SN_RectanglePointers() const
+    cref<Tensor1<LInt,Int>> SN_RectanglePointers() const
     {
         return SN_rec_ptr;
     }
 
-    const Tensor1<Scal,LInt> & SN_RectangleValues() const
+    cref<Tensor1<Scal,LInt>> SN_RectangleValues() const
     {
         return SN_rec_val;
     }
 
-    const Tensor1<Int,Int> & RowToSN() const
+    cref<Tensor1<Int,Int>> RowToSN() const
     {
         return row_to_SN;
     }
 
-    const Tensor1<Scal,LInt> & Values() const
+    cref<Tensor1<Scal,LInt>> Values() const
     {
         return A_val;
     }

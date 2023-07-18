@@ -229,7 +229,7 @@ namespace Tensors
             // TODO: check p_ for triviality during copy.
             
             is_trivial = ParallelDoReduce(
-                [=]( const Int i ) -> bool
+                [=,this]( const Int i ) -> bool
                 {
                     const Int p_i = int_cast<Int>(p_[i]);
                     
@@ -248,7 +248,7 @@ namespace Tensors
 
         
         // There is no nonconstant GetPermutation() because we want the error-free execution of the constructors to be a certificate.
-        const Tensor1<Int,Int> & GetPermutation() const
+        cref<Tensor1<Int,Int>> GetPermutation() const
         {
             return p;
         }
@@ -261,7 +261,7 @@ namespace Tensors
 //            p_inv.Read(p_inv_);
 
             ParallelDoReduce(
-                [=]( const Int i ) -> bool
+                [=,this]( const Int i ) -> bool
                 {
                     const Int p_inv_i = static_cast<Int>(p_inv_[i]);
                     
@@ -280,7 +280,7 @@ namespace Tensors
         
 
         // There is no nonconstant GetPermutation() because we want the error-free execution of the constructors to be a certificate.
-        const Tensor1<Int,Int> & GetInversePermutation() const
+        cref<Tensor1<Int,Int>> GetInversePermutation() const
         {
             return p_inv;
         }
@@ -309,7 +309,7 @@ namespace Tensors
                 }
                 
                 ParallelDo(
-                    [=]( const Int i )
+                    [=,this]( const Int i )
                     {
                         p[p_inv[i]] = i;
                     },
@@ -328,7 +328,7 @@ namespace Tensors
                     p_inv = Tensor1<Int,Int>(n);
                 }
                 ParallelDo(
-                    [=]( const Int i )
+                    [=,this]( const Int i )
                     {
                         p_inv[p[i]] = i;
                     },
@@ -402,7 +402,7 @@ namespace Tensors
                     }
                     
                     is_trivial = ParallelDoReduce(
-                        [=]( const Int i ) -> bool
+                        [=,this]( const Int i ) -> bool
                         {
                             scratch[i] = a[b[i]];
                             
@@ -416,7 +416,7 @@ namespace Tensors
                     
                     //post
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             scratch[i] = b_inv[a_inv[i]];
                         },
@@ -448,7 +448,7 @@ namespace Tensors
                 if( chunk == Scalar::One<Size_T> )
                 {
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             b[i] = static_cast<T>(a[r[i]]);
                         },
@@ -458,7 +458,7 @@ namespace Tensors
                 else
                 {
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             copy_buffer( &a[chunk * r[i]], &b[chunk * i], chunk );
                         },
@@ -535,7 +535,7 @@ namespace Tensors
                 swap( p, scratch );
                 
                 is_trivial = ParallelDoReduce(
-                    [=]( const Int i ) -> bool
+                    [=,this]( const Int i ) -> bool
                     {
                         const Int p_i = p[i];
                         
@@ -552,7 +552,7 @@ namespace Tensors
                 swap( p_inv, scratch );
                 
                 is_trivial = ParallelDoReduce(
-                    [=]( const Int i ) -> bool
+                    [=,this]( const Int i ) -> bool
                     {
                         const Int p_inv_i = p_inv[i];
                         

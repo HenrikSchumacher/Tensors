@@ -484,7 +484,7 @@ namespace Tensors
                         diag_ptr = Tensor1<LInt,Int>( m );
                         
                         ParallelDo(
-                            [=]( const Int i )
+                            [=,this]( const Int i )
                             {
                                 const LInt k_begin = outer[i  ];
                                 const LInt k_end   = outer[i+1];
@@ -519,7 +519,7 @@ namespace Tensors
                     costs[0]=0;
                     
                     ParallelDo(
-                        [=,&costs]( const Int i )
+                        [this,&costs]( const Int i )
                         {
                             costs[i+1] = outer[i+1] - diag_ptr[i];
                         },
@@ -548,7 +548,7 @@ namespace Tensors
                     costs[0]=0;
                     
                     ParallelDo(
-                        [=,&costs]( const Int i )
+                        [this,&costs]( const Int i )
                         {
                             costs[i+1] = diag_ptr[i] - outer[i];
                         },
@@ -794,7 +794,7 @@ namespace Tensors
                         mptr<Int>      inner__ = inner.data();
                         
                         ParallelDo(
-                            [=]( const Int thread )
+                            [=,this]( const Int thread )
                             {
                                 const Int i_begin = job_ptr[thread  ];
                                 const Int i_end   = job_ptr[thread+1];
@@ -1160,7 +1160,7 @@ namespace Tensors
                     cptr<Int>  inner__ = Inner().data();
                     
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             const LInt k_begin = outer__[i];
                             const LInt k_end   =  diag__[i];

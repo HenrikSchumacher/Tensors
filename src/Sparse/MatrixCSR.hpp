@@ -538,7 +538,7 @@ namespace Tensors
                         RequireJobPtr();
                         
                         ParallelDo(
-                            [=]( const Int thread )
+                            [=,this]( const Int thread )
                             {
                                 TwoArraySort<Int,Scal,LInt> S;
                                 
@@ -584,7 +584,7 @@ namespace Tensors
                         mptr<LInt> new_outer__ = new_outer.data();
                         
                         ParallelDo(
-                            [=]( const Int thread )
+                            [=,this]( const Int thread )
                             {
                                 const Int i_begin = job_ptr[thread  ];
                                 const Int i_end   = job_ptr[thread+1];
@@ -665,7 +665,7 @@ namespace Tensors
                         
                         //TODO: Parallelization might be a bad idea here.
                         ParallelDo(
-                            [=]( const Int thread )
+                            [=,this]( const Int thread )
                             {
                                 const  Int i_begin = job_ptr[thread  ];
                                 const  Int i_end   = job_ptr[thread+1];
@@ -705,8 +705,8 @@ namespace Tensors
         public:
             
             MatrixCSR Permute(
-                const Tensor1<Int,Int> & p,
-                const Tensor1<Int,Int> & q,
+                cref<Tensor1<Int,Int>> p,
+                cref<Tensor1<Int,Int>> q,
                 bool sortQ = true
             )
             {
@@ -763,7 +763,7 @@ namespace Tensors
                     B_outer[0] = 0;
                     
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
                             
@@ -790,7 +790,7 @@ namespace Tensors
                     mptr<Scal> B_values = B.Values().data();
                     
                     ParallelDo(
-                        [=,&B]( const Int i )
+                        [=,this,&B]( const Int i )
                         {
                             const Int p_i = p[i];
                             const LInt A_begin = A_outer[p_i  ];
@@ -820,7 +820,7 @@ namespace Tensors
                 mptr<Int> q_inv = q_inv_buffer.data();
                 
                 ParallelDo(
-                    [=]( const Int j )
+                    [=,this]( const Int j )
                     {
                         q_inv[q[j]] = j;
                     },
@@ -831,7 +831,7 @@ namespace Tensors
                 copy_buffer( outer.data(), B.Outer().data(), m+1 );
                 
                 ParallelDo(
-                    [=,&B]( const Int thread )
+                    [=,this,&B]( const Int thread )
                     {
                         TwoArraySort<Int,Scal,LInt> S;
                         
@@ -881,7 +881,7 @@ namespace Tensors
                 mptr<Int> q_inv = q_inv_buffer.data();
                 
                 ParallelDo(
-                    [=]( const Int j )
+                    [=,this]( const Int j )
                     {
                         q_inv[q[j]] = j;
                     },
@@ -896,7 +896,7 @@ namespace Tensors
                     B_outer[0] = 0;
                     
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
                             
@@ -910,7 +910,7 @@ namespace Tensors
                 B.Outer().Accumulate();
                 
                 ParallelDo(
-                    [=,&B]( const Int thread )
+                    [=,this,&B]( const Int thread )
                     {
                         cptr<LInt> A_outer  = outer.data();
                         cptr<Int > A_inner  = inner.data();
@@ -972,7 +972,7 @@ namespace Tensors
                     // https://en.wikipedia.org/wiki/Counting_sort
                     
                     ParallelDo(
-                        [=,&B,&counters]( const Int thread )
+                        [=,this,&B,&counters]( const Int thread )
                         {
                             const Int i_begin = job_ptr[thread  ];
                             const Int i_end   = job_ptr[thread+1];
@@ -1009,7 +1009,7 @@ namespace Tensors
                     copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
                     
                     ParallelDo(
-                        [=,&B,&counters]( const Int thread )
+                        [=,this,&B,&counters]( const Int thread )
                         {
                             const Int i_begin = job_ptr[thread  ];
                             const Int i_end   = job_ptr[thread+1];
