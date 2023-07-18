@@ -4,7 +4,7 @@ public:
     {
     public:
      
-        const Tree<Int> & restrict tree = nullptr;
+        cref<Tree<Int>> tree = nullptr;
         
         DebugWorker( const Tree<Int> & tree_ )
         :   tree( tree_ )

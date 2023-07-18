@@ -4,7 +4,7 @@
 
 
 template<class Worker_T>
-void Traverse_Descendants_Postordered( Worker_T & restrict worker, Int node ) const
+void Traverse_Descendants_Postordered( mref<Worker_T> worker, Int node ) const
 {
     // Applies ker to node and its descendants in postorder.
     // Worker can be a class that has operator( Int node ) defined or simply a lambda.
@@ -22,7 +22,7 @@ void Traverse_Descendants_Postordered( Worker_T & restrict worker, Int node ) co
 
 
 template<Parallel_T parQ = Parallel, class Worker_T>
-void Traverse_Postordered( std::vector<std::unique_ptr<Worker_T>> & restrict workers ) const
+void Traverse_Postordered( mref<std::vector<std::unique_ptr<Worker_T>>> workers ) const
 {
     std::string tag = ClassName() + "::Traverse_Postordered<" + (parQ == Parallel ? "par" : "seq") + ">";
     if( !PostOrderedQ() )
@@ -72,7 +72,7 @@ void Traverse_Postordered( std::vector<std::unique_ptr<Worker_T>> & restrict wor
             {
                 const Time start_time = Clock::now();
                 
-                Worker_T & restrict worker = *workers[thread];
+                mref<Worker_T> worker = *workers[thread];
                 
                 const Int node = LevelIndex(k);
                 
@@ -109,7 +109,7 @@ void Traverse_Postordered( std::vector<std::unique_ptr<Worker_T>> & restrict wor
             {
                 const Time start_time = Clock::now();
                 
-                Worker_T & restrict worker = *workers[thread];
+                mref<Worker_T> worker = *workers[thread];
                 
                 const Int node = LevelIndex(k);
                 

@@ -312,7 +312,7 @@ namespace Tensors
             
             cref<Tensor1<Int,Int>> PostOrdering()
             {
-                const auto & restrict post = EliminationTree().PostOrdering();
+                cref<Permutation<Int>> post = EliminationTree().PostOrdering();
                 
                 if( !EliminationTree().PostOrderedQ() )
                 {

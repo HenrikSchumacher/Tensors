@@ -5,7 +5,7 @@
 public:
 
 template<class Worker_T>
-void Traverse_Descendants_Preordered( Worker_T & restrict worker, const Int node ) const
+void Traverse_Descendants_Preordered( mref<Worker_T> worker, const Int node ) const
 {
     debug_print(ClassName() + "::Traverse_Descendants_Preordered ( node = " + ToString(node) + " ) begins.");
 
@@ -29,7 +29,7 @@ void Traverse_Descendants_Preordered( Worker_T & restrict worker, const Int node
 }
 
 //template<class Worker_T>
-//void Traverse_Children_Preordered( Worker_T & restrict worker, const Int node ) const
+//void Traverse_Children_Preordered( mref<Worker_T> worker, const Int node ) const
 //{
 //    debug_print(ClassName() + "::Traverse_Children_Preordered ( node = " + ToString(node) + " ) begins.");
 //

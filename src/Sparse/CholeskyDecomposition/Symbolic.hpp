@@ -201,7 +201,7 @@ protected:
         ptoc(ClassName()+"::SN_Allocate");
     }
     
-    bool FundamentalQ( const Int i, Tensor1<Int,Int> & restrict prev_col_nz )
+    bool FundamentalQ( const Int i, mref<Tensor1<Int,Int>> prev_col_nz )
     {
         // Using Theorem 2.3 and Corollary 3.2 in
         //
