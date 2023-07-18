@@ -1,16 +1,17 @@
 #pragma once
 
-namespace Tensors {
+namespace Tensors
+{
 
 #define TENSOR_T Tensor3
 
-    template <typename Scal_, typename Int_>
+    template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
     class TENSOR_T
     {
         
 #include "Tensor_Common.hpp"
         
-    protected:
+    private:
         
         std::array<Int,3> dims = {0,0,0};     // dimensions visible to user
 
@@ -23,7 +24,7 @@ namespace Tensors {
             allocate();
         }
         
-        TENSOR_T( const Int d0, const Int d1, const Int d2, const Scal init )
+        TENSOR_T( const Int d0, const Int d1, const Int d2, cref<Scal> init )
         :   TENSOR_T( d0, d1, d2 )
         {
             Fill( init );
@@ -45,14 +46,17 @@ namespace Tensors {
         
         void BoundCheck( const Int i ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+#endif
         }
         
         void BoundCheck( const Int i, const Int j ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
@@ -61,10 +65,12 @@ namespace Tensors {
             {
                 eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
+#endif
         }
         
         void BoundCheck( const Int i, const Int j, const Int k ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
@@ -77,6 +83,7 @@ namespace Tensors {
             {
                 eprint(ClassName()+": third index " + std::to_string(k) + " is out of bounds [ 0, " + std::to_string(dims[2]) +" [.");
             }
+#endif
         }
         
     public:
@@ -84,67 +91,59 @@ namespace Tensors {
 
         force_inline mptr<Scal> data( const Int i )
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return &a[i * dims[1] * dims[2]];
         }
         
         force_inline cptr<Scal> data( const Int i ) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return &a[i * dims[1] * dims[2]];
         }
 
         force_inline mptr<Scal> data( const Int i, const Int j )
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i,j);
-#endif
+            
             return &a[( i * dims[1] + j ) * dims[2]];
         }
         
         force_inline cptr<Scal> data( const Int i, const Int j ) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i,j);
-#endif
+            
             return &a[( i * dims[1] + j ) * dims[2]];
         }
 
         
         force_inline mptr<Scal> data( const Int i, const Int j, const Int k)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
-#endif
+            
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
         
         force_inline mptr<Scal> data( const Int i, const Int j, const Int k) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
-#endif
+            
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
         force_inline mref<Scal> operator()( const Int i, const Int j, const Int k)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
-#endif
+            
             return a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
         force_inline cref<Scal> operator()( const Int i, const Int j, const Int k) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i,j,k);
-#endif
+            
             return a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
@@ -176,7 +175,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return std::string("Tensor3<")+TypeName<Scal>+","+TypeName<Int>+">";
+            return std::string("Tensor3<")+TypeName<Scal>+","+TypeName<Int>+","+Tools::ToString(alignment)+">";
         }
         
     }; // Tensor3

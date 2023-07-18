@@ -2,20 +2,24 @@
 
 namespace Tensors {
 
-    template <typename Scal_, typename Int_>
+    template <typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
     class ThreadTensor3
     {
         ASSERT_INT(Int_);
         
         using Scal = Scal_;
-        using Real   = typename Scalar::Real<Scal_>;
-        using Int    = Int_;
+        using Real = typename Scalar::Real<Scal_>;
+        using Int  = Int_;
+        
+        static constexpr Size_T Alignment = alignment;
+        
+        using Container_T = Tensor2<Scal,Int,Alignment>;
         
     private:
         
         Int n = 0;
         std::array<Int,3> dims = {0,0,0};
-        std::vector<Tensor2<Scal,Int>> tensors;
+        std::vector<Container_T> tensors;
         
     public:
         
@@ -24,37 +28,37 @@ namespace Tensors {
         ThreadTensor3( const Int d0, const Int d1, const Int d2 )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
-        ,   tensors( std::vector<Tensor2<Scal,Int>> ( d0 ) )
+        ,   tensors( std::vector<Container_T> ( d0 ) )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
                 [=]( const Int thread )
                 {
-                    tensors[thread] = Tensor2<Scal,Int>( dims[1], dims[2] );
+                    tensors[thread] = Container_T( dims[1], dims[2] );
                 },
                 thread_count
             );
         }
         
-        ThreadTensor3( const Int d0, const Int d1, const Int d2, const Scal init )
+        ThreadTensor3( const Int d0, const Int d1, const Int d2, cref<Scal> init )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
-        ,   tensors( std::vector<Tensor2<Scal,Int>> ( d0 ) )
+        ,   tensors( std::vector<Container_T> ( d0 ) )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
                 [=]( const Int thread )
                 {
-                    tensors[thread] = Tensor2<Scal,Int>( dims[1], dims[2], init );
+                    tensors[thread] = Container_T( dims[1], dims[2], init );
                 },
                 thread_count
             );
         }
         
         template<typename S>
-        ThreadTensor3( const S * a_, const Int d0, const Int d1, const Int d2 )
+        ThreadTensor3( cptr<S> a_, const Int d0, const Int d1, const Int d2 )
         :   ThreadTensor3( d0, d1, d2 )
         {
             const Int thread_count = dims[0];
@@ -69,7 +73,7 @@ namespace Tensors {
         }
 
         // Copy constructor
-        explicit ThreadTensor3( const ThreadTensor3<Scal,Int> & other )
+        explicit ThreadTensor3( const ThreadTensor3 & other )
         :   ThreadTensor3( other.dims[0], other.dims[1], other.dims[2] )
         {
             print(ClassName()+" copy constructor");
@@ -86,8 +90,8 @@ namespace Tensors {
         }
         
         // Copy constructor
-        template<typename S, typename J>
-        explicit ThreadTensor3( const ThreadTensor3<S,J> & other )
+        template<typename S, typename J, Size_T alignment_>
+        explicit ThreadTensor3( const ThreadTensor3<S,J,alignment_> & other )
         :   ThreadTensor3( other.dims[0], other.dims[1], other.dims[2] )
         {
             ASSERT_INT(J)
@@ -108,7 +112,7 @@ namespace Tensors {
 //        // Copy constructor
 //        ThreadTensor3( const ThreadTensor3 & other )
 //        :
-//            tensors( std::vector<Tensor2<Scal,Int>> (other.Dimension(0)) ),
+//            tensors( std::vector<Container_T> (other.Dimension(0)) ),
 //            n(other.Size())
 //        {
 //            dims[0] = other.Dimension(0);
@@ -122,13 +126,13 @@ namespace Tensors {
 //            ParallelDo(
 //                [=]( const Int thread )
 //                {
-//                    tensors[thread] = Tensor2<Scal,Int>( other[thread] );
+//                    tensors[thread] = Container_T( other[thread] );
 //                },
 //                thread_count
 //            );
 //        }
         
-        friend void swap(ThreadTensor3 &A, ThreadTensor3 &B) noexcept
+        friend void swap( mref<ThreadTensor3> A, mref<ThreadTensor3> B) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
@@ -180,110 +184,111 @@ namespace Tensors {
         
         void BoundCheck( const Int i ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+#endif
         }
         
         void BoundCheck( const Int i, const Int j ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+            
             if( (j < 0) || (j > dims[1]) )
             {
                 eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
+#endif
         }
         
         void BoundCheck( const Int i, const Int j, const Int k ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+            
             if( (j < 0) || (j > dims[1]) )
             {
                 eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
+            
             if( (k < 0) || (k > dims[2]) )
             {
                 eprint(ClassName()+": third index " + std::to_string(k) + " is out of bounds [ 0, " + std::to_string(dims[2]) +" [.");
             }
+#endif
         }
         
         force_inline mptr<Scal> data( const Int i )
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+
             return tensors[i].data();
         }
         
         force_inline cptr<Scal> data( const Int i ) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return tensors[i].data();
         }
 
         force_inline mptr<Scal> data( const Int i, const Int j)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return tensors[i].data(j);
         }
         
         force_inline cptr<Scal> data( const Int i, const Int j) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return tensors[i].data(j);
         }
         
         force_inline mptr<Scal> data( const Int i, const Int j, const Int k)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return tensors[i].data(j,k);
         }
         
         force_inline cptr<Scal> data( const Int i, const Int j, const Int k) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return tensors[i].data(j,k);
         }
 
         force_inline mref<Scal> operator()( const Int i, const Int j, const Int k)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return tensors[i](j,k);
         }
     
         force_inline cref<Scal> operator()( const Int i, const Int j, const Int k) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return tensors[i](j,k);
         }
         
-        void Fill( const Scal init )
+        void Fill( cref<Scal> init )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
-                [=]( const Int thread )
+                [=,&init]( const Int thread )
                 {
                     tensors[thread].fill( init );
                 },
@@ -407,12 +412,12 @@ namespace Tensors {
         }
         
         
-        Tensor2<Scal,Int> & operator[]( const Int thread )
+        mref<Container_T> operator[]( const Int thread )
         {
             return tensors[thread];
         }
         
-        const Tensor2<Scal,Int> & operator[]( const Int thread ) const
+        cref<Container_T> operator[]( const Int thread ) const
         {
             return tensors[thread];
         }
@@ -421,7 +426,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return std::string("ThreadTensor3")+"<"+TypeName<Scal>+","+TypeName<Int>+">";
+            return std::string("ThreadTensor3")+"<"+TypeName<Scal>+","+TypeName<Int>+","+ToString(Alignment)+">";
         }
         
     }; // ThreadTensor3

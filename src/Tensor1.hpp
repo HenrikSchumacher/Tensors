@@ -1,16 +1,17 @@
 #pragma once
 
-namespace Tensors {
+namespace Tensors
+{
 
 #define TENSOR_T Tensor1
 
-    template <typename Scal_, typename Int_>
+    template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
     class TENSOR_T
     {
         
 #include "Tensor_Common.hpp"
         
-    protected:
+    private:
         
         std::array<Int,1> dims = {0}; // dimensions visible to user
         
@@ -23,7 +24,7 @@ namespace Tensors {
             allocate();
         }
         
-        TENSOR_T( const Int d0, const Scal init )
+        TENSOR_T( const Int d0, cref<Scal> init )
         :   TENSOR_T( d0 )
         {
             Fill( init );
@@ -40,10 +41,12 @@ namespace Tensors {
         
         void BoundCheck( const Int i ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+#endif
         }
         
     public:
@@ -56,49 +59,43 @@ namespace Tensors {
 
         force_inline mptr<Scal> data( const Int i )
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return &a[i];
         }
         
         force_inline cptr<Scal> data( const Int i ) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return &a[i];
         }
         
         force_inline mref<Scal> operator()(const Int i)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return a[i];
         }
         
         force_inline cref<Scal> operator()(const Int i) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return a[i];
         }
         
         force_inline mref<Scal> operator[](const Int i)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return a[i];
         }
         
         force_inline cref<Scal> operator[](const Int i) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return a[i];
         }
         
@@ -106,33 +103,21 @@ namespace Tensors {
         
         force_inline mref<Scal> First()
         {
-#ifdef TOOLS_DEBUG
-            BoundCheck(0);
-#endif
             return a[0];
         }
         
         force_inline cref<Scal> First() const
         {
-#ifdef TOOLS_DEBUG
-            BoundCheck(0);
-#endif
             return a[0];
         }
 
         force_inline mref<Scal> Last()
         {
-#ifdef TOOLS_DEBUG
-            BoundCheck(n-1);
-#endif
             return a[n-1];
         }
         
         force_inline cref<Scal> Last() const
         {
-#ifdef TOOLS_DEBUG
-            BoundCheck(n-1);
-#endif
             return a[n-1];
         }
         
@@ -193,12 +178,12 @@ namespace Tensors {
             return sum;
         }
         
-        inline friend Scal Total( const TENSOR_T & x )
+        inline friend Scal Total( cref<TENSOR_T> x )
         {
             return x.Total();
         }
         
-        inline friend Scal Dot( const TENSOR_T & x, const TENSOR_T & y )
+        inline friend Scal Dot( cref<TENSOR_T> x, cref<TENSOR_T> y )
         {
             if( x.n != y.m )
             {
@@ -233,7 +218,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return std::string("Tensor1<")+TypeName<Scal>+","+TypeName<Int>+">";
+            return std::string("Tensor1<")+TypeName<Scal>+","+TypeName<Int>+","+Tools::ToString(alignment)+">";
         }
         
         
@@ -262,13 +247,13 @@ namespace Tensors {
 #ifdef LTEMPLATE_H
     
     template<typename Scal, typename Int>
-    Tensor1<Scal,Int> from_VectorRef( const mma::TensorRef<mreal> & A )
+    Tensor1<Scal,Int> from_VectorRef( cref<mma::TensorRef<mreal>> A )
     {
         return ToTensor1<Scal,Int>( A.data(), A.dimensions()[0] );
     }
     
     template<typename Scal, typename Int>
-    Tensor1<Scal,Int> from_VectorRef( const mma::TensorRef<mint> & A )
+    Tensor1<Scal,Int> from_VectorRef( cref<mma::TensorRef<mint>> A )
     {
         return ToTensor1<Scal,Int>( A.data(), A.dimensions()[0] );
     }

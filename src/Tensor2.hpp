@@ -1,16 +1,17 @@
 #pragma once
 
-namespace Tensors {
+namespace Tensors
+{
 
 #define TENSOR_T Tensor2
 
-    template <typename Scal_, typename Int_>
+    template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
     class Tensor2
     {
 
 #include "Tensor_Common.hpp"
         
-    protected:
+    private:
         
         std::array<Int,2> dims = {0,0};     // dimensions visible to user
         
@@ -23,7 +24,7 @@ namespace Tensors {
             allocate();
         }
         
-        TENSOR_T( const Int d0, const Int d1, const Scal init )
+        TENSOR_T( const Int d0, const Int d1, cref<Scal> init )
         :   TENSOR_T( d0, d1 )
         {
             Fill( init );
@@ -123,10 +124,9 @@ namespace Tensors {
             ParallelDo(
                 [=]( const Int i )
                 {
-                    copy_buffer( &a_[lda * i], &a[d_1 * i], d_1, 1 );
+                    copy_buffer<VarSize,Sequential>( &a_[lda * i], &a[d_1 * i], d_1 );
                 },
-                d_0,
-                thread_count
+                d_0, thread_count
             );
         }
         
@@ -139,10 +139,9 @@ namespace Tensors {
             ParallelDo(
                 [=]( const Int i )
                 {
-                    copy_buffer( &a[d_1 * i], &a_[lda * i], d_1, 1 );
+                    copy_buffer<VarSize,Sequential>( &a[d_1 * i], &a_[lda * i], d_1 );
                 },
-                d_0,
-                thread_count
+                d_0, thread_count
             );
         }
 
@@ -150,71 +149,70 @@ namespace Tensors {
         
         void BoundCheck( const Int i ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+#endif
         }
         
         void BoundCheck( const Int i, const Int j ) const
         {
+#ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+            
             if( (j < 0) || (j > dims[1]) )
             {
                 eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
+#endif
         }
         
     public:
 
         force_inline mptr<Scal> data( const Int i )
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return &a[i * dims[1]];
         }
         
         force_inline cptr<Scal> data( const Int i ) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return &a[i * dims[1]];
         }
         
         force_inline mref<Scal> operator()(const Int i, const Int j)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i,j);
-#endif
+            
             return a[ i * dims[1] + j];
         }
         
         force_inline cref<Scal> operator()( const Int i, const Int j) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i,j);
-#endif
+            
             return a[i * dims[1] + j];
         }
         
         force_inline mptr<Scal> operator[](const Int i)
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return data(i);
         }
         
         force_inline cptr<Scal> operator[](const Int i) const
         {
-#ifdef TOOLS_DEBUG
             BoundCheck(i);
-#endif
+            
             return data(i);
         }
         
@@ -240,7 +238,7 @@ namespace Tensors {
         
         static std::string ClassName()
         {
-            return std::string("Tensor2<")+TypeName<Scal>+","+TypeName<Int>+">";
+            return std::string("Tensor2<")+TypeName<Scal>+","+TypeName<Int>+","+Tools::ToString(alignment)+">";
         }
         
     }; // Tensor2
@@ -367,20 +365,20 @@ namespace Tensors {
     
     
     template<typename Scal, typename Int>
-    Tensor2<Scal,Int> from_MatrixRef( const mma::TensorRef<mreal> & A )
+    Tensor2<Scal,Int> from_MatrixRef( cref<mma::TensorRef<mreal>> A )
     {
         return ToTensor2<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1] );
     }
     
     template<typename Scal, typename Int>
-    Tensor2<Scal,Int> from_MatrixRef( const mma::TensorRef<mint> & A )
+    Tensor2<Scal,Int> from_MatrixRef( cref<mma::TensorRef<mint>> A )
     {
         return ToTensor2<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1] );
     }
     
 
     template<typename Scal, typename Int, IS_FLOAT(Scal)>
-    mma::MatrixRef<mreal> to_transposed_MTensorRef( const Tensor2<Scal,Int> & B )
+    mma::MatrixRef<mreal> to_transposed_MTensorRef( cref<Tensor2<Scal,Int>> B )
     {
         Int rows = B.Dimension(0);
         Int cols = B.Dimension(1);
@@ -400,7 +398,7 @@ namespace Tensors {
     }
     
     template<typename J, typename Int>
-    mma::MatrixRef<mint> to_transposed_MTensorRef( const Tensor2<J,Int> & B )
+    mma::MatrixRef<mint> to_transposed_MTensorRef( cref<Tensor2<J,Int>> B )
     {
         ASSERT_INT(J)
         Int rows = B.Dimension(0);
@@ -426,9 +424,9 @@ namespace Tensors {
     // Should be only a fall-back. BLAS is _much_ faster.
     template<typename Scal, typename I1, typename I2, typename I3>
     void Dot(
-        const Tensor2<Scal,I1> & A,
-        const Tensor1<Scal,I2> & x,
-              Tensor1<Scal,I3> & y
+        cref<Tensor2<Scal,I1>> A,
+        cref<Tensor1<Scal,I2>> x,
+        mref<Tensor1<Scal,I3>> y
     )
     {
         
@@ -456,9 +454,9 @@ namespace Tensors {
     // Should be only a fall-back. BLAS is _much_ faster.
     template<typename Scal, typename I1, typename I2, typename I3>
     void Dot(
-        const Tensor1<Scal,I1> & x,
-        const Tensor2<Scal,I2> & A,
-              Tensor1<Scal,I3> & y
+        cref<Tensor1<Scal,I1>> x,
+        cref<Tensor2<Scal,I2>> A,
+        mref<Tensor1<Scal,I3>> y
     )
     {
         ASSERT_INT (I1);
