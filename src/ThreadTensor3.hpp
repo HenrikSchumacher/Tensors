@@ -13,13 +13,13 @@ namespace Tensors {
         
         static constexpr Size_T Alignment = alignment;
         
-        using Container_T = Tensor2<Scal,Int,Alignment>;
+        using Tensor_T = Tensor2<Scal,Int,Alignment>;
         
     private:
         
         Int n = 0;
         std::array<Int,3> dims = {0,0,0};
-        std::vector<Container_T> tensors;
+        std::vector<Tensor_T> tensors;
         
     public:
         
@@ -28,14 +28,14 @@ namespace Tensors {
         ThreadTensor3( const Int d0, const Int d1, const Int d2 )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
-        ,   tensors( std::vector<Container_T> ( d0 ) )
+        ,   tensors( std::vector<Tensor_T> ( d0 ) )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
                 [=]( const Int thread )
                 {
-                    tensors[thread] = Container_T( dims[1], dims[2] );
+                    tensors[thread] = Tensor_T( dims[1], dims[2] );
                 },
                 thread_count
             );
@@ -44,14 +44,14 @@ namespace Tensors {
         ThreadTensor3( const Int d0, const Int d1, const Int d2, cref<Scal> init )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
-        ,   tensors( std::vector<Container_T> ( d0 ) )
+        ,   tensors( std::vector<Tensor_T> ( d0 ) )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
                 [=]( const Int thread )
                 {
-                    tensors[thread] = Container_T( dims[1], dims[2], init );
+                    tensors[thread] = Tensor_T( dims[1], dims[2], init );
                 },
                 thread_count
             );
@@ -112,7 +112,7 @@ namespace Tensors {
 //        // Copy constructor
 //        ThreadTensor3( const ThreadTensor3 & other )
 //        :
-//            tensors( std::vector<Container_T> (other.Dimension(0)) ),
+//            tensors( std::vector<Tensor_T> (other.Dimension(0)) ),
 //            n(other.Size())
 //        {
 //            dims[0] = other.Dimension(0);
@@ -126,7 +126,7 @@ namespace Tensors {
 //            ParallelDo(
 //                [=]( const Int thread )
 //                {
-//                    tensors[thread] = Container_T( other[thread] );
+//                    tensors[thread] = Tensor_T( other[thread] );
 //                },
 //                thread_count
 //            );
@@ -412,12 +412,12 @@ namespace Tensors {
         }
         
         
-        mref<Container_T> operator[]( const Int thread )
+        mref<Tensor_T> operator[]( const Int thread )
         {
             return tensors[thread];
         }
         
-        cref<Container_T> operator[]( const Int thread ) const
+        cref<Tensor_T> operator[]( const Int thread ) const
         {
             return tensors[thread];
         }

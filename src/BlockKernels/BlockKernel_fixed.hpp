@@ -8,7 +8,7 @@ namespace Tensors
         int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
         typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
-        int alpha_flag, int beta_flag,
+        Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
         bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
         bool y_RM, bool y_intRM,
         bool use_fma
@@ -72,8 +72,8 @@ namespace Tensors
 
         CLASS(
             cptr<Scal> A_,
-            const Scal_out alpha_, cptr<Scal_in>  X_,
-            const Scal_out beta_,  mptr<Scal_out> Y_,
+            cref<Scal_out> alpha_, cptr<Scal_in>  X_,
+            cref<Scal_out> beta_,  mptr<Scal_out> Y_,
             Int rhs_count_
         )
         :   A         ( nullptr          )
@@ -170,7 +170,19 @@ namespace Tensors
         }
         
         
-        force_inline void FMA( const Scal a, const Scal b, mref<Scal> c ) const
+//        force_inline void FMA( const Scal a, const Scal b, mref<Scal> c ) const
+//        {
+//            if constexpr ( use_fma )
+//            {
+//                c = std::fma(a,b,c);
+//            }
+//            else
+//            {
+//                c += a * b;
+//            }
+//        }
+        
+        force_inline void FMA( cref<Scal> a, cref<Scal> b, mref<Scal> c ) const
         {
             if constexpr ( use_fma )
             {
@@ -341,10 +353,10 @@ namespace Tensors
         {
             mptr<Scal_out> y_to = &Y[ RowsSize() * i_global];
             
-            if constexpr ( alpha_flag == 1 )
+            if constexpr ( alpha_flag == Scalar::Flag::Plus )
             {
                 // alpha == 1;
-                if constexpr ( beta_flag == 0 )
+                if constexpr ( beta_flag == Scalar::Flag::Zero )
                 {
                     if constexpr (y_RM)
                     {
@@ -390,7 +402,8 @@ namespace Tensors
                         {
                             if constexpr ( fixed )
                             {
-                                copy_buffer<RHS_COUNT>( &y[0][0], y_to );
+//                                copy_buffer<RHS_COUNT>( &y[0][0], y_to );
+                                y.Write( y_to );
                             }
                             else
                             {
@@ -399,7 +412,7 @@ namespace Tensors
                         }
                     }
                 }
-                else if constexpr ( beta_flag == 1 )
+                else if constexpr ( beta_flag == Scalar::Flag::Plus )
                 {
                     if constexpr (y_RM)
                     {
@@ -446,9 +459,9 @@ namespace Tensors
                     }
                 }
             }
-            else if constexpr ( alpha_flag == 0 )
+            else if constexpr ( alpha_flag == Scalar::Flag::Zero )
             {
-                if constexpr ( beta_flag == 0 )
+                if constexpr ( beta_flag == Scalar::Flag::Zero )
                 {
                     if constexpr ( fixed )
                     {
@@ -459,7 +472,7 @@ namespace Tensors
                         zerofy_buffer( y_to, RowsSize() );
                     }
                 }
-                else if constexpr ( beta_flag == 1 )
+                else if constexpr ( beta_flag == Scalar::Flag::Plus )
                 {
                     // do nothing;
                 }
@@ -475,10 +488,11 @@ namespace Tensors
                     }
                 }
             }
-            else // alpha_flag == -1
+            else // alpha_flag == Scalar::Flag::Generic or Scalar::Flag::Minus
             {
-                // alpha arbitrary;
-                if constexpr ( beta_flag == 0 )
+                // general alpha
+                
+                if constexpr ( beta_flag == Scalar::Flag::Zero )
                 {
                     if constexpr (y_RM)
                     {
@@ -501,7 +515,7 @@ namespace Tensors
                         }
                     }
                 }
-                else if constexpr ( beta_flag == 1 )
+                else if constexpr ( beta_flag == Scalar::Flag::Plus )
                 {
                     if constexpr (y_RM)
                     {
@@ -524,9 +538,10 @@ namespace Tensors
                         }
                     }
                 }
-                else // beta_flag == -1
+                else // // beta_flag == Scalar::Flag::Generic or Scalar::Flag::Minus
                 {
                     // general alpha and general beta
+                    
                     if constexpr (y_RM)
                     {
                         for( Int i = 0; i < ROWS; ++i )
@@ -556,7 +571,7 @@ namespace Tensors
             // CAUTION! We cannot use i_global here because BeginRow() has not been in an empty row!
             mptr<Scal_out> y_to = &Y[ RowsSize() * i_global ];
             
-            if constexpr ( beta_flag == 0 )
+            if constexpr ( beta_flag == Scalar::Flag::Zero )
             {
                 if constexpr ( fixed )
                 {
@@ -567,16 +582,19 @@ namespace Tensors
                     zerofy_buffer<VarSize,Sequential>( y_to, RowsSize() );
                 }
             }
-            else if constexpr ( beta_flag == 1 )
+            else if constexpr ( beta_flag == Scalar::Flag::Plus )
             {
                 // do nothing;
             }
             else
             {
-                LOOP_UNROLL_FULL
-                for( Int k = 0; k < RowsSize(); ++k )
+                if constexpr ( fixed )
                 {
-                    y_to[k] *= beta;
+                    scale_buffer<ROWS_SIZE>(beta, y_to);
+                }
+                else
+                {
+                    scale_buffer<VarSize,Sequential>( beta, y_to, RowsSize() );
                 }
             }
         }

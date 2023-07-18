@@ -15,7 +15,7 @@ namespace Tensors
         
         static constexpr Size_T Alignment = alignment;
         
-        using Container_T = Tensor1<Scal,Int,Alignment>;
+        using Tensor_T = Tensor1<Scal,Int,Alignment>;
         
         
         
@@ -23,7 +23,7 @@ namespace Tensors
         
         Int n = 0;
         std::array<Int,2> dims = {0,0};
-        std::vector<Container_T> tensors;
+        std::vector<Tensor_T> tensors;
         
     public:
         
@@ -32,14 +32,14 @@ namespace Tensors
         ThreadTensor2( const Int d0, const Int d1 )
         :   n( d0 * d1 )
         ,   dims{ d0, d1 }
-        ,   tensors( std::vector<Container_T> ( d0 ) )
+        ,   tensors( std::vector<Tensor_T> ( d0 ) )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
                 [=]( const Int thread )
                 {
-                    tensors[thread] = Container_T( dims[1] );
+                    tensors[thread] = Tensor_T( dims[1] );
                 },
                 thread_count
             );
@@ -48,14 +48,14 @@ namespace Tensors
         ThreadTensor2( const Int d0, const Int d1, const Scal init )
         :   n( d0 * d1 )
         ,   dims{ d0, d1 }
-        ,   tensors( std::vector<Container_T> ( d0 ) )
+        ,   tensors( std::vector<Tensor_T> ( d0 ) )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
                 [=]( const Int thread )
                 {
-                    tensors[thread] = Container_T( dims[1], init );
+                    tensors[thread] = Tensor_T( dims[1], init );
                 },
                 thread_count
             );
@@ -359,12 +359,12 @@ namespace Tensors
         }
         
         
-        mref<Container_T> operator[]( const Int thread )
+        mref<Tensor_T> operator[]( const Int thread )
         {
             return tensors[thread];
         }
         
-        cref<Container_T> operator[]( const Int thread ) const
+        cref<Tensor_T> operator[]( const Int thread ) const
         {
             return tensors[thread];
         }

@@ -4,7 +4,7 @@
 
 #define BASE  BlockKernel_fixed<                            \
     ROWS_,COLS_,RHS_COUNT_,fixed,                           \
-    Scal_,Scal_in_,Scal_out_,                         \
+    Scal_,Scal_in_,Scal_out_,                               \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
     x_RM, x_intRM, x_copy, x_prefetch,                      \
@@ -18,7 +18,7 @@ namespace Tensors
         int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
         typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
-        int alpha_flag, int beta_flag,
+        Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
         bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
         bool y_RM, bool y_intRM,
         bool use_fma

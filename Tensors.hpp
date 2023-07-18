@@ -51,6 +51,4 @@
     #include "src/BlockKernels/ArrowheadBlockKernel_fixed.hpp"
     #include "src/BlockKernels/ScalarBlockKernel_fixed.hpp"
 
-//    #include "src/BlockKernels/BlockKernel_RM.hpp"
-//    #include "src/BlockKernels/DenseBlockKernel_RM.hpp"
 #endif
