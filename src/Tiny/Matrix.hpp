@@ -23,7 +23,7 @@ namespace Tensors
             
         protected:
             
-            std::array<std::array<Scal,n>,m> A;
+            alignas(Tools::Alignment) std::array<std::array<Scal,n>,m> A;
             
             
         public:

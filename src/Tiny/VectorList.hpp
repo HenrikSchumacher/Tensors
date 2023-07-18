@@ -5,7 +5,7 @@ namespace Tensors
     namespace Tiny
     {
         
-        template< int n_, typename Scal_, typename Int_ >
+        template< int n_, typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
         class VectorList
         {
         public:
@@ -14,7 +14,9 @@ namespace Tensors
             
             static constexpr Int n = n_;
             
-            using Tensor_T = Tensor1<Scal,Int>;
+            static constexpr Size_T Alignment = alignment;
+            
+            using Tensor_T = Tensor1<Scal,Int,Alignment>;
             
             using Vector_T = Vector<n,Scal,Int>;
             
@@ -72,7 +74,7 @@ namespace Tensors
                 }
             }
             
-            friend void swap(VectorList & A, VectorList & B)
+            friend void swap( mref<VectorList> A, mref<VectorList> B)
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
@@ -288,7 +290,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("VectorList")+"<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("VectorList")+"<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+","+ToString(Alignment)+">";
             }
         };
         

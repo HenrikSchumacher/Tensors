@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Tiny
     {
-        template< int m_, int n_, typename Scal_, typename Int_>
+        template< int m_, int n_, typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
         class MatrixList
         {
         public:
@@ -14,7 +14,9 @@ namespace Tensors
             static constexpr Int m = m_;
             static constexpr Int n = n_;
             
-            using Tensor_T = Tensor1<Scal,Int>;
+            static constexpr Size_T Alignment = alignment;
+            
+            using Tensor_T = Tensor1<Scal,Int,Alignment>;
             
         private:
             
@@ -264,7 +266,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return "MatrixList<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return "MatrixList<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+","+ToString(Alignment)+">";
             }
         };
         

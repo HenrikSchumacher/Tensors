@@ -6,7 +6,7 @@ namespace Tensors
     {
 #define CLASS Vector
         
-        template<int n_, typename Scal_, typename Int_> class VectorList;
+        template<int n_, typename Scal_, typename Int_, Size_T alignment> class VectorList;
         
         template< int n_, typename Scal_, typename Int_>
         class CLASS
@@ -17,8 +17,8 @@ namespace Tensors
             
             static constexpr Int n = n_;
 
-            template<typename S>
-            CLASS( cref<VectorList<n,S,Int>> v_list, const Int k )
+            template<typename S, Size_T alignment>
+            CLASS( cref<VectorList<n,S,Int,alignment>> v_list, const Int k )
             {
                 Read(v_list, k);
             }
@@ -63,7 +63,7 @@ namespace Tensors
             
         protected:
             
-            std::array<Scal,n> v;
+            alignas(Tools::Alignment) std::array<Scal,n> v;
             
 //######################################################
 //##                     Memory                       ##
@@ -113,8 +113,8 @@ namespace Tensors
                 copy_buffer<n>( source, &v[0] );
             }
             
-            template<typename S>
-            void Read( cref<VectorList<n,S,Int>> source, const Int k )
+            template<typename S, Size_T alignment>
+            void Read( cref<VectorList<n,S,Int,alignment>> source, const Int k )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -128,8 +128,8 @@ namespace Tensors
                 Real( source.data(k) );
             }
             
-            template<typename S>
-            void Write( mref<VectorList<n,S,Int>> target, const Int k ) const
+            template<typename S, Size_T alignment>
+            void Write( mref<VectorList<n,S,Int,alignment>> target, const Int k ) const
             {
                 for( Int i = 0; i < n; ++i )
                 {
