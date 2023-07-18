@@ -270,7 +270,6 @@ namespace Tensors
         
 #include "Tree/Traverse_Preordered.hpp"
 #include "Tree/Traverse_Postordered.hpp"
-//#include "Tree/Traverse_Postordered_2.hpp"
         
     public:
     

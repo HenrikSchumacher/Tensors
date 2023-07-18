@@ -190,7 +190,6 @@ namespace Tensors
             
             ptic(ClassName()+": Solve least squares system.");
             
-            // TODO: y = H[1..iter][1..iter] \ beta[1..iter];
             Tensor2<Scal,Int> H_mat    (iter,iter);
             Tensor1<Scal,Int> beta_vec (iter);
             Tensor2<Scal,Int> y        (iter,K);
