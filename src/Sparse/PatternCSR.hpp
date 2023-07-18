@@ -1160,7 +1160,7 @@ namespace Tensors
                     cptr<Int>  inner__ = Inner().data();
                     
                     ParallelDo(
-                        [=,this]( const Int i )
+                        [=]( const Int i )
                         {
                             const LInt k_begin = outer__[i];
                             const LInt k_end   =  diag__[i];
