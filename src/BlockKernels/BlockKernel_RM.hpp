@@ -11,7 +11,7 @@ namespace Tensors
         bool x_RM, bool x_copy, bool x_prefetch,
         bool y_RM
     >
-    class alignas( OBJECT_ALIGNMENT ) CLASS
+    class alignas( ObjectAlignment ) CLASS
     {
         ASSERT_ARITHMETIC(Scal_)
         ASSERT_ARITHMETIC(Scal_in_)

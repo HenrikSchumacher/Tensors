@@ -3,7 +3,7 @@
 namespace Tensors
 {
     template<typename T_0, typename T_1, typename T_2, typename LInt, int BUFFER_CAP = 128>
-    class alignas(OBJECT_ALIGNMENT) TripleAggregator
+    class alignas(ObjectAlignment) TripleAggregator
     {
         ASSERT_INT(LInt);
         

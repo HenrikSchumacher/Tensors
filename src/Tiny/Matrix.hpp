@@ -28,7 +28,7 @@ namespace Tensors
             
         public:
             
-            explicit CLASS( const Scal init )
+            explicit CLASS( cref<Scal> init )
             :   A {{{init}}}
             {}
             
@@ -447,7 +447,7 @@ namespace Tensors
                 }
             }
             
-            Scal Det() const
+            [[nodiscard]] Scal Det() const
             {
                 if constexpr ( m != n )
                 {
@@ -581,7 +581,7 @@ namespace Tensors
                 }
             }
             
-            Vector<n,Scal,Int>  Diagonal() const
+            [[nodiscard]] Vector<n,Scal,Int>  Diagonal() const
             {
                 static_assert(m==n, "Diagonal is only defined for square matrices.");
                 
@@ -616,7 +616,7 @@ namespace Tensors
                 return static_cast<Int>(0);
             }
             
-            static std::string ClassName()
+            [[nodiscard]] static std::string ClassName()
             {
                 return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }

@@ -9,7 +9,7 @@ public:
         zerofy_buffer<m*n>( &A[0][0] );
     }
     
-    void Fill( const Scal init )
+    void Fill( cref<Scal> init )
     {
         fill_buffer<m*n>( &A[0][0], init );
     }

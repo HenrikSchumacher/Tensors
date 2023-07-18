@@ -8,7 +8,7 @@ namespace Tensors
         template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
         
         template<bool mult_rhs, typename Scal_, typename Int_, typename LInt_>
-        class alignas(OBJECT_ALIGNMENT) UpperSolver
+        class alignas(ObjectAlignment) UpperSolver
         {
             ASSERT_INT(Int_);
             ASSERT_INT(LInt_)

@@ -10,7 +10,7 @@ namespace Tensors
         template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
         
         template<bool mult_rhs, bool lockedQ, typename Scal_, typename Int_, typename LInt_>
-        class alignas(OBJECT_ALIGNMENT) LowerSolver
+        class alignas(ObjectAlignment) LowerSolver
         {
             ASSERT_INT(Int_);
             ASSERT_INT(LInt_)

@@ -3,7 +3,7 @@
 namespace Tensors
 {
     template<typename T_0, typename LInt>
-    class alignas(OBJECT_ALIGNMENT) Aggregator
+    class alignas(ObjectAlignment) Aggregator
     {
         // A dynamically growing version of Tensor1 that allows pushing of several elements at once.
         // It also allows decently fast access with the operator[].

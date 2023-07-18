@@ -4,7 +4,7 @@
     
 public:
 
-    explicit CLASS( const Scal init )
+    explicit CLASS( cref<Scal> init )
     {
         Fill(init);
     }
@@ -17,7 +17,7 @@ public:
         }
     }
     
-    force_inline void Fill( const Scal init )
+    force_inline void Fill( cref<Scal> init )
     {
         if constexpr ( n > 0 )
         {
@@ -25,7 +25,7 @@ public:
         }
     }
     
-    force_inline void Read( const Scal * const B )
+    force_inline void Read( cptr<Scal> B )
     {
         if constexpr ( n > 0 )
         {
@@ -33,7 +33,7 @@ public:
         }
     }
 
-    force_inline void Read( const Scal * const B, const Int ldB )
+    force_inline void Read( cptr<Scal> B, const Int ldB )
     {
         if constexpr ( n > 0 )
         {
@@ -41,7 +41,7 @@ public:
         }
     }
     
-    force_inline void Write( Scal * B ) const
+    force_inline void Write( mptr<Scal> B ) const
     {
         if constexpr ( n > 0 )
         {
@@ -49,7 +49,7 @@ public:
         }
     }
 
-    force_inline void Write( Scal * B, const Int ldB ) const
+    force_inline void Write( mptr<Scal> B, const Int ldB ) const
     {
         if constexpr ( n > 0 )
         {
@@ -135,7 +135,7 @@ protected:
        
 public:
 
-    friend CLASS operator+( const CLASS & x, const CLASS & y )
+    friend CLASS operator+( cref<CLASS> x, cref<CLASS> y )
     {
         CLASS z;
         for( Int i = 0; i < n; ++i )
@@ -148,7 +148,7 @@ public:
         return z;
     }
     
-    force_inline void Conjugate( CLASS & B ) const
+    force_inline void Conjugate( mref<CLASS> B ) const
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -165,7 +165,7 @@ public:
         std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
-    operator+=( const CLASS<n,T,Int> & B )
+    operator+=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -183,7 +183,7 @@ public:
         std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
-    operator-=( const CLASS<n,T,Int> & B )
+    operator-=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -201,7 +201,7 @@ public:
         std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
-    operator*=( const CLASS<n,T,Int> & B )
+    operator*=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -219,7 +219,7 @@ public:
         std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
-    operator/=( const CLASS<n,T,Int> & B )
+    operator/=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -238,7 +238,7 @@ public:
         std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
-    operator+=( const T lambda )
+    operator+=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -257,7 +257,7 @@ public:
         std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
-    operator-=( const T lambda )
+    operator-=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -276,7 +276,7 @@ public:
         std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
         CLASS &
     >
-    operator*=( const T lambda )
+    operator*=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {

@@ -10,7 +10,7 @@ namespace Tensors
         template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
         
         template<typename Scal_, typename Int_, typename LInt_>
-        class alignas(OBJECT_ALIGNMENT) CholeskyFactorizer
+        class alignas(ObjectAlignment) CholeskyFactorizer
         {
             // Performs a left-looking factorization.
             

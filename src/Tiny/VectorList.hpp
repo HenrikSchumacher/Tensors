@@ -41,7 +41,7 @@ namespace Tensors
                 }
             }
             
-            VectorList( const Int length_, const Scal init )
+            VectorList( const Int length_, cref<Scal> init )
             :   length(length_)
             {
                 for( Int i = 0; i < n; ++i )

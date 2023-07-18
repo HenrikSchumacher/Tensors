@@ -32,7 +32,7 @@ namespace Tensors
 //##                     Memory                       ##
 //######################################################
 
-            explicit CLASS( const Scal init )
+            explicit CLASS( cref<Scal> init )
             :   diag  { init }
             ,   upper { init }
             {}

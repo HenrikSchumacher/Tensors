@@ -325,7 +325,7 @@ namespace Tensors
                     mptr<Int>  inner__ = inner.data();
                     mptr<Scal> value__ = values.data();
                     
-                    copy_buffer( counters.data(list_count-1), &outer__[1], m );
+                    copy_buffer<VarSize,Sequential>( counters.data(list_count-1), &outer__[1], m );
                     
                     // The counters array tells each thread where to write.
                     // Since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
@@ -401,22 +401,22 @@ namespace Tensors
             
         public:
             
-            Tensor1<Scal,LInt> & Values()
+            mref<Tensor1<Scal,LInt>> Values()
             {
                 return values;
             }
             
-            const Tensor1<Scal,LInt> & Values() const
+            cref<Tensor1<Scal,LInt>> Values() const
             {
                 return values;
             }
             
-            Tensor1<Scal,LInt> & Value()
+            mref<Tensor1<Scal,LInt>> Value()
             {
                 return values;
             }
             
-            const Tensor1<Scal,LInt> & Value() const
+            cref<Tensor1<Scal,LInt>> Value() const
             {
                 return values;
             }

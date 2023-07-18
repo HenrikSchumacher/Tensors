@@ -3,7 +3,7 @@
 namespace Tensors {
     
     template<typename LInt, typename Int>
-    inline void AccumulateAssemblyCounters( Tensor2<LInt,Int> & counters )
+    inline void AccumulateAssemblyCounters( mref<Tensor2<LInt,Int>> counters )
     {
         ptic("AccumulateAssemblyCounters");
 
@@ -35,11 +35,11 @@ namespace Tensors {
 
 
     template<typename LInt, typename Int>
-    inline void AccumulateAssemblyCounters_Parallel( Tensor2<LInt,Int> & counters )
+    inline void AccumulateAssemblyCounters_Parallel( mref<Tensor2<LInt,Int>> counters )
     {
-        static_assert(CACHE_LINE_WIDTH % sizeof(LInt) == 0, "CACHE_LINE_WIDTH is not divisible by sizeof(LInt)");
+        static_assert(CacheLineWidth % sizeof(LInt) == 0, "sizeof(LInt) is not a divisor of CacheLineWidth.");
 
-        constexpr Int per_line = CACHE_LINE_WIDTH / sizeof(LInt);
+        constexpr Int per_line = CacheLineWidth / sizeof(LInt);
 
         ptic("AccumulateAssemblyCounters (parallel)");
         
@@ -52,7 +52,7 @@ namespace Tensors {
             return;
         }
         
-        const Int line_count = (m * sizeof(LInt) + CACHE_LINE_WIDTH - 1 ) / CACHE_LINE_WIDTH;
+        const Int line_count = int_cast<Int>( (m * sizeof(LInt) + CacheLineWidth - 1 ) / CacheLineWidth );
         
         LInt * S_buffer = nullptr;
         safe_alloc(S_buffer,thread_count+1);

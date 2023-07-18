@@ -13,7 +13,7 @@ namespace Tensors
         bool y_RM, bool y_intRM,
         bool use_fma
     >
-    class alignas( OBJECT_ALIGNMENT ) CLASS
+    class alignas( ObjectAlignment ) CLASS
     {
         ASSERT_ARITHMETIC(Scal_)
         ASSERT_ARITHMETIC(Scal_in_)

@@ -699,7 +699,7 @@ namespace Tensors
             
         protected:
             
-            Tensor2<LInt,Int> CreateTransposeCounters() const
+            [[nodiscard]] Tensor2<LInt,Int> CreateTransposeCounters() const
             {
                 ptic(ClassName()+"::CreateTransposeCounters");
                 

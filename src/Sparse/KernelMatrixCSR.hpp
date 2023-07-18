@@ -240,7 +240,7 @@ namespace Tensors
             
         public:
             
-            Permutation<LInt> Permute(
+            [[nodiscard]] Permutation<LInt> Permute(
                 const Permutation<Int> & p,  // row    permutation
                 const Permutation<Int> & q  // column permutation
             )
@@ -281,7 +281,7 @@ namespace Tensors
             
         public:
             
-            std::string ClassName() const
+            [[nodiscard]] std::string ClassName() const
             {
                 return "Sparse::KernelMatrixCSR<"+kernel.ClassName()+">";
             }
