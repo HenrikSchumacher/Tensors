@@ -16,11 +16,9 @@ public:
         cref<JobPointers<Int>> job_ptr
     )
     {
-        StaticParameterCheck<R_out,T_in,S_out,T_out>();
-
         if( nrhs == Scalar::One<Int> )
         {
-            if( ldX == Scalar::One<Int> && ldY == Scalar::One<Int> )
+            if( (ldX == Scalar::One<Int>) && (ldY == Scalar::One<Int>) )
             {
                 SpMV(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
             }
