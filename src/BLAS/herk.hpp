@@ -50,7 +50,7 @@ namespace Tensors
             
             // Moreover, we graciously interpret Op::Trans as Op::ConjTrans.
             
-            if constexpr ( std::is_same_v<Scal,double> )
+            if constexpr ( SameQ<Scal,double> )
             {
                 if constexpr ( op == Op::Id )
                 {
@@ -67,7 +67,7 @@ namespace Tensors
                     );
                 }
             }
-            else if constexpr ( std::is_same_v<Scal,float> )
+            else if constexpr ( SameQ<Scal,float> )
             {
                 if( op == Op::Id )
                 {
@@ -84,7 +84,7 @@ namespace Tensors
                     );
                 }
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
+            else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
                 if( op == Op::Id )
                 {
@@ -101,7 +101,7 @@ namespace Tensors
                     );
                 }
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
+            else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
                 if( op == Op::Id )
                 {

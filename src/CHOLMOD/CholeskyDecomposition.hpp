@@ -14,13 +14,13 @@ namespace Tensors
         public:
             
             static_assert(
-                          std::is_same_v<Scal_,float>
+                          SameQ<Scal_,float>
                           ||
-                          std::is_same_v<Scal_,double>
+                          SameQ<Scal_,double>
                           ||
-                          std::is_same_v<Scal_,std::complex<float>>
+                          SameQ<Scal_,std::complex<float>>
                           ||
-                          std::is_same_v<Scal_,std::complex<double>>
+                          SameQ<Scal_,std::complex<double>>
                           ,
                           "CHOLMOD::CholeskyDecomposition supports only single or double precisions floating point numbers (both real and complex)."
                           );
@@ -31,40 +31,40 @@ namespace Tensors
             
             
             static_assert(
-                          std::is_same_v<Int_,Int32> || std::is_same_v<Int_,Int64>,
+                          SameQ<Int_,Int32> || SameQ<Int_,Int64>,
                           "CHOLMOD::CholeskyDecomposition supports only type Int from {Int32, Int64}."
                           );
             
             using  Int = Int_;
             
             static_assert(
-                          std::is_same_v<LInt_,Int32> || std::is_same_v<LInt_,Int64>,
+                          SameQ<LInt_,Int32> || SameQ<LInt_,Int64>,
                           "CHOLMOD::CholeskyDecomposition supports only type LInt from {Int32, Int64}."
                           );
             
             static_assert(
-                          std::is_same_v<Int_,LInt_>,
+                          SameQ<Int_,LInt_>,
                           "CHOLMOD::CholeskyDecomposition wants Int == LInt for the moment."
                           );
             
             static_assert(
-                          std::is_same_v<LInt_,Int64>
+                          SameQ<LInt_,Int64>
                           ||
-                          ( std::is_same_v<Int,Int32> && std::is_same_v<LInt_,Int32>),
+                          ( SameQ<Int,Int32> && SameQ<LInt_,Int32>),
                           "CHOLMOD::CholeskyDecomposition supports only type LInt = Int32 only if Int = Int32."
                           );
             
             using LInt = LInt_;
             
             
-//            static constexpr int itype = std::is_same_v<Int,Int32>
-//            ? std::is_same_v<LInt,Int32>
+//            static constexpr int itype = SameQ<Int,Int32>
+//            ? SameQ<LInt,Int32>
 //            ? CHOLMOD_INT
 //            : CHOLMOD_INTLONG
 //            : CHOLMOD_LONG;
             
-            static constexpr int itype = std::is_same_v<Int,Int32> ? CHOLMOD_INT : CHOLMOD_LONG;
-            static constexpr bool long_version = std::is_same_v<Int,Int64>;
+            static constexpr int itype = SameQ<Int,Int32> ? CHOLMOD_INT : CHOLMOD_LONG;
+            static constexpr bool long_version = SameQ<Int,Int64>;
             
             
         protected:

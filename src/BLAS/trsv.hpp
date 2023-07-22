@@ -25,19 +25,19 @@ namespace Tensors
             assert_positive(ldA);
             assert_positive(incx);
             
-            if constexpr ( std::is_same_v<Scal,double> )
+            if constexpr ( SameQ<Scal,double> )
             {
                 return cblas_dtrsv( to_BLAS(layout), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, const_cast<Scal*>(A), ldA, x, incx );
             }
-            else if constexpr ( std::is_same_v<Scal,float> )
+            else if constexpr ( SameQ<Scal,float> )
             {
                 return cblas_strsv( to_BLAS(layout), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, const_cast<Scal*>(A), ldA, x, incx );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
+            else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
                 return cblas_ztrsv( to_BLAS(layout), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, const_cast<Scal*>(A), ldA, x, incx );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
+            else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
                 return cblas_ctrsv( to_BLAS(layout), to_BLAS(uplo), to_BLAS(opA), to_BLAS(diag), n, const_cast<Scal*>(A), ldA, x, incx );
             }

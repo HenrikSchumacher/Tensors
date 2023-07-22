@@ -14,7 +14,7 @@ namespace Tensors
         public:
             
             static_assert(
-                std::is_same_v<Int_,Int32> || std::is_same_v<Int_,Int64>,
+                SameQ<Int_,Int32> || SameQ<Int_,Int64>,
                 "ApproximateMinimumDegree supports only 32 and 64 bit signed integers."
             );
             
@@ -43,7 +43,7 @@ namespace Tensors
                 
                 int status = 0;
                 
-                if constexpr ( std::is_same_v<Int,LInt>  )
+                if constexpr ( SameQ<Int,LInt>  )
                 {
                     rp_ptr = rp_;
                 }
@@ -54,7 +54,7 @@ namespace Tensors
                     rp_ptr = rp_buffer.data();
                 }
                 
-                if constexpr ( std::is_same_v<Int,Int32>  )
+                if constexpr ( SameQ<Int,Int32>  )
                 {
                     status = amd_order( n, rp_ptr, ci, perm, nullptr, info.data() );
                 }

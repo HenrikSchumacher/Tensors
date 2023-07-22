@@ -178,9 +178,15 @@ namespace Tensors
                         cptr<LInt> rp = pattern.Outer().data();
                         cptr< Int> ci = pattern.Inner().data();
                         
+                        
                         // Kernel is supposed the following rows of pattern:
                         const Int i_begin = job_ptr[thread  ];
                         const Int i_end   = job_ptr[thread+1];
+                        
+                        
+                        const LInt last_k = rp[i_end];
+                        
+                        const LInt look_ahead = 1;
                         
                         for( Int i = i_begin; i < i_end; ++i )
                         {
@@ -193,26 +199,17 @@ namespace Tensors
                                 // Clear the local vector chunk of the kernel.
                                 ker.CleanseY();
                                 
-                                // Perform all but the last calculation in row with prefetch.
-                                for( LInt k = k_begin; k < k_end-1; ++k )
+                                for( LInt k = k_begin; k < k_end; ++k )
                                 {
                                     const Int j = ci[k];
                                     
-                                    ker.Prefetch(k,ci[k+1]);
+                                    if ( k + look_ahead < last_k )
+                                    {
+                                        ker.Prefetch(k,ci[k+look_ahead]);
+                                    }
                                     
                                     // Let the kernel apply to the k-th block to the j-th chunk of the input.
                                     // The result is stored in the kernel's local vector chunk X.
-                                    ker.ApplyBlock(k,j);
-                                }
-                                
-                                // Perform last calculation in row without prefetch.
-                                {
-                                    const LInt k = k_end-1;
-                                    
-                                    const Int j = ci[k];
-                                    
-                                    // Let the kernel apply to the k-th block to the j-th chunk of the input X.
-                                    // The result is stored in the kernel's local vector chunk.
                                     ker.ApplyBlock(k,j);
                                 }
                                 

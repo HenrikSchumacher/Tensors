@@ -36,28 +36,28 @@ namespace Tensors
             assert_positive(ldB);
             assert_positive(ldC);
 
-            if constexpr ( std::is_same_v<Scal,double> )
+            if constexpr ( SameQ<Scal,double> )
             {
                 return cblas_dgemm(
                     to_BLAS(layout), to_BLAS(opA), to_BLAS(opB),
                     m, n, k, alpha, A, ldA, B, ldB, beta, C, ldC
                 );
             }
-            else if constexpr ( std::is_same_v<Scal,float> )
+            else if constexpr ( SameQ<Scal,float> )
             {
                 return cblas_sgemm(
                     to_BLAS(layout), to_BLAS(opA), to_BLAS(opB),
                     m, n, k, alpha, A, ldA, B, ldB, beta, C, ldC
                 );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
+            else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
                 return cblas_zgemm(
                     to_BLAS(layout), to_BLAS(opA), to_BLAS(opB),
                     m, n, k, &alpha, A, ldA, B, ldB, &beta, C, ldC
                 );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
+            else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
                 return cblas_cgemm(
                     to_BLAS(layout), to_BLAS(opA), to_BLAS(opB),

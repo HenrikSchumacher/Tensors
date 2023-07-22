@@ -46,7 +46,7 @@ namespace Tensors
             idx_t * perm_ptr  = nullptr;
             idx_t * iperm_ptr = nullptr;
             
-            if constexpr ( !std::is_same_v<idx_t,ExtInt1> )
+            if constexpr ( !SameQ<idx_t,ExtInt1> )
             {
                 rp_buffer = Tensor1<idx_t,idx_t>( n + 1 );
                 rp_buffer.Read(rp);
@@ -57,7 +57,7 @@ namespace Tensors
                 rp_ptr = rp;
             }
             
-            if constexpr ( !std::is_same_v<idx_t,ExtInt2>)
+            if constexpr ( !SameQ<idx_t,ExtInt2>)
             {
                 ci_buffer = Tensor1<idx_t,idx_t>( rp[n] );
                 ci_buffer.Read(ci);
@@ -68,7 +68,7 @@ namespace Tensors
                 ci_ptr    = ci;
             }
             
-            if constexpr ( !std::is_same_v<idx_t,Int>)
+            if constexpr ( !SameQ<idx_t,Int>)
             {
                 perm_buffer  = Tensor1<idx_t,idx_t>( n );
                 iperm_buffer = Tensor1<idx_t,idx_t>( n );
@@ -91,7 +91,7 @@ namespace Tensors
             METIS_NodeND(&n, rp_ptr, ci_ptr, nullptr, &opts[0], perm_ptr, iperm_ptr );
             ptoc("METIS_NodeND");
             
-            if constexpr ( !std::is_same_v<idx_t,Int> )
+            if constexpr ( !SameQ<idx_t,Int> )
             {
                  perm_buffer.Write( perm.GetPermutation().data() );
                 iperm_buffer.Write( perm.GetInversePermutation().data() );

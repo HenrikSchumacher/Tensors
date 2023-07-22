@@ -40,7 +40,7 @@ namespace Tensors
             {
                 const Int m = int_cast<Int>(w.size());
                 
-                if(m > n )
+                if(m > n)
                 {
                     eprint(TO_STD_STRING(CLASS)+": Length of initializer list must not exceed length of n");
                 }
@@ -205,7 +205,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
                 CLASS &
             >
             operator+=( cref<Tiny::Vector<n,T,Int>> s )
@@ -220,7 +220,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
                 CLASS &
             >
             operator-=( cref<Tiny::Vector<n,T,Int>> s )
@@ -235,7 +235,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
                 CLASS &
             >
             operator*=( cref<Tiny::Vector<n,T,Int>> s )
@@ -250,7 +250,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
                 CLASS &
             >
             operator/=( cref<Tiny::Vector<n,T,Int>> s )
@@ -265,7 +265,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
                 CLASS &
             >
             operator+=( cref<T> s )
@@ -280,7 +280,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
                 CLASS &
             >
             operator-=( cref<T> s )
@@ -295,7 +295,7 @@ namespace Tensors
             template<class T>
             force_inline
             std::enable_if_t<
-                std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
                 CLASS &
             >
             operator*=( cref<T> s )
@@ -329,7 +329,7 @@ namespace Tensors
             
             
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<std::is_same_v<Real,Dummy>,Real> Min() const
+            force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> Min() const
             {
                 if constexpr ( n > 0 )
                 {
@@ -347,7 +347,7 @@ namespace Tensors
             }
 
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<std::is_same_v<Real,Dummy>,Real> Max() const
+            force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> Max() const
             {
                 if constexpr ( n > 0 )
                 {

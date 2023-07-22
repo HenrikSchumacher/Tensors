@@ -172,7 +172,7 @@ namespace Tensors
             
             template<typename S>
             force_inline std::enable_if_t<
-                std::is_same_v<S, Scal> && !Scalar::ComplexQ<Scal>,
+                SameQ<S, Scal> && !Scalar::ComplexQ<Scal>,
                 void
             >
             QRAlgorithm(
@@ -211,7 +211,7 @@ namespace Tensors
             
             template<typename S>
             force_inline std::enable_if_t<
-                std::is_same_v<S, Scal> && !Scalar::ComplexQ<Scal>,
+                SameQ<S, Scal> && !Scalar::ComplexQ<Scal>,
                 void
             >
             QRAlgorithm(

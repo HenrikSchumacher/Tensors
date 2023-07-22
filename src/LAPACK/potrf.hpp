@@ -41,19 +41,19 @@ namespace Tensors
             assert_positive(n);
             assert_positive(ldA);
             
-            if constexpr ( std::is_same_v<Scal,double> )
+            if constexpr ( SameQ<Scal,double> )
             {
                 LAPACK_dpotrf( &flag, &n, A, &ldA, &info );
             }
-            else if constexpr ( std::is_same_v<Scal,float> )
+            else if constexpr ( SameQ<Scal,float> )
             {
                 LAPACK_spotrf( &flag, &n, A, &ldA, &info );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
+            else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
                 LAPACK_zpotrf( &flag, &n, A, &ldA, &info );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
+            else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
                 LAPACK_cpotrf( &flag, &n, A, &ldA, &info );
             }
@@ -90,19 +90,19 @@ namespace Tensors
 //            assert_positive(n);
 //            assert_positive(ldA);
 //
-//            if constexpr ( std::is_same_v<Scal,double> )
+//            if constexpr ( SameQ<Scal,double> )
 //            {
 //                return LAPACKE_dpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
 //            }
-//            else if constexpr ( std::is_same_v<Scal,float> )
+//            else if constexpr ( SameQ<Scal,float> )
 //            {
 //                return LAPACKE_spotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
 //            }
-//            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
+//            else if constexpr ( SameQ<Scal,std::complex<double>> )
 //            {
 //                return LAPACKE_zpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
 //            }
-//            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
+//            else if constexpr ( SameQ<Scal,std::complex<float>> )
 //            {
 //                return LAPACKE_cpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
 //            }

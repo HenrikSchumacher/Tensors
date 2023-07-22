@@ -22,19 +22,19 @@ namespace Tensors
             assert_positive(inc_x);
             assert_positive(inc_y);
 
-            if constexpr ( std::is_same_v<Scal,double> )
+            if constexpr ( SameQ<Scal,double> )
             {
                 return cblas_ddot( n, x, inc_x, y, inc_y );
             }
-            else if constexpr ( std::is_same_v<Scal,float> )
+            else if constexpr ( SameQ<Scal,float> )
             {
                 return cblas_sdot( n, x, inc_x, y, inc_y );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
+            else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
                 return cblas_cdot( n, x, inc_x, y, inc_y );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
+            else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
                 return cblas_zdot( n, x, inc_x, y, inc_y );
             }

@@ -1,10 +1,10 @@
 public:
 
-    template<Size_T NRHS = VarSize, typename R_out, typename T_in, typename S_out, typename T_out>
+    template<Size_T NRHS = VarSize, typename alpha_T_, typename X_T, typename beta_T_, typename Y_T>
     void SpMM(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<R_out> alpha_, cptr<T_in>  X, const Int ldX,
-        cref<S_out> beta_,  mptr<T_out> Y, const Int ldY,
+        cref<alpha_T_> alpha_, cptr<X_T>  X, const Int ldX,
+        cref<beta_T_ > beta_,  mptr<Y_T> Y, const Int ldY,
         cref<JobPointers<Int>> job_ptr,
         const Int nrhs = NRHS
     )
@@ -12,13 +12,13 @@ public:
         // This is basically a large switch to determine at runtime, which instantiation of SpMM_impl is to be invoked.
         // In particular, this implies that all relevant cases of SpMM_impl are instantiated.
 
-        using alpha_T = std::conditional_t< Scalar::RealQ<R_out>, Scalar::Real<T_out>, T_out>;
-        using beta_T  = std::conditional_t< Scalar::RealQ<S_out>, Scalar::Real<T_out>, T_out>;
+        using alpha_T = std::conditional_t< Scalar::RealQ<alpha_T_>, Scalar::Real<Y_T>, Y_T>;
+        using beta_T  = std::conditional_t< Scalar::RealQ<beta_T_ >, Scalar::Real<Y_T>, Y_T>;
         
-        StaticParameterCheck<alpha_T,T_in,beta_T,T_out>();
+        StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
         
-        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<T_out>(alpha_) : scalar_cast<R_out>(0);
-        const beta_T  beta  = scalar_cast<T_out>(beta_);
+        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<alpha_T>(alpha_) : scalar_cast<alpha_T>(0);
+        const beta_T  beta  = scalar_cast<beta_T>(beta_);
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
         if( alpha == static_cast<alpha_T>(0) )
@@ -136,26 +136,22 @@ public:
     }
 
 private:
-
-#if ( defined(__clang__) && __has_attribute(ext_vector_type) )
-    static constexpr bool vec_possibleQ = true;
-#else
-    static constexpr bool vec_possibleQ = false;
-#endif
   
 
     template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, Size_T NRHS = VarSize,
-        typename R_out, typename T_in, typename S_out, typename T_out
+        typename alpha_T, typename X_T, typename beta_T, typename Y_T
     >
     void SpMM_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<R_out> alpha,  cptr<T_in>  X, const Int ldX,
-        cref<S_out> beta,   mptr<T_out> Y, const Int ldY,
+        cref<alpha_T> alpha, cptr<X_T> X, const Int ldX,
+        cref< beta_T>  beta, mptr<Y_T> Y, const Int ldY,
         cref<JobPointers<Int>> job_ptr,
         const Int nrhs = NRHS
     )
     {
-        if constexpr( (NRHS > 0) && vec_possibleQ )
+        using namespace Scalar;
+        
+        if constexpr( (NRHS > 0) && vec_enabledQ && RealQ<Scal> && RealQ<alpha_T> && RealQ<X_T> && RealQ<beta_T> && RealQ<Y_T> )
         {
             SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
         }
@@ -165,10 +161,10 @@ private:
                 +ToString(a_flag)+","
                 +ToString(alpha_flag)+","
                 +ToString(beta_flag)+","
-                +TypeName<R_out>+","
-                +TypeName<T_in >+","
-                +TypeName<S_out>+","
-                +TypeName<T_out>+ ","
+                +TypeName<alpha_T>+","
+                +TypeName<X_T>+","
+                +TypeName<beta_T>+","
+                +TypeName<Y_T>+ ","
                 + ( ( NRHS == VarSize ) ? std::string("VarSize") : ToString(NRHS) )
                 +">("+ToString(nrhs)+")";
 
@@ -189,7 +185,7 @@ private:
             // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
             
             using T = typename std::conditional_t<
-                Scalar::ComplexQ<Scal> || Scalar::ComplexQ<T_in>,
+                Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
                 typename Scalar::Complex<Scal>,
                 typename Scalar::Real<Scal>
             >;
@@ -199,7 +195,7 @@ private:
             ParallelDo(
                 [&]( const Int thread )
                 {
-                    Tensor1<T,Int> z (nrhs);
+                    Tensor1<T,Int> y (nrhs);
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
@@ -230,7 +226,7 @@ private:
                                 
                                 combine_buffers<a_flag,Zero,NRHS,Sequential>(
                                   COND(a_flag == Generic,a[l],Scalar::One<T>), &X[ldX * j],
-                                  Scalar::Zero<T>,                             &z[0],
+                                  Scalar::Zero<T>,                             &y[0],
                                   nrhs
                                 );
                             }
@@ -252,14 +248,14 @@ private:
                                 // Add-in
                                 combine_buffers<a_flag,One,NRHS,Sequential>(
                                   COND(a_flag == Generic,a[l],Scalar::One<T>), &X[ldX * j],
-                                  Scalar::One<T>,                              &z[0],
+                                  Scalar::One<T>,                              &y[0],
                                   nrhs
                                 );
                             }
 
                             // Incorporate the local updates into Y-buffer.
                             combine_buffers<alpha_flag,beta_flag,NRHS,Sequential>(
-                                alpha, &z[0],
+                                alpha, &y[0],
                                 beta,  &Y[ldY * i],
                                 nrhs
                             );
@@ -293,12 +289,12 @@ private:
 #if ( defined(__clang__) && __has_attribute(ext_vector_type) )
 
 template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, Size_T NRHS = VarSize,
-    typename R_out, typename T_in, typename S_out, typename T_out
+    typename alpha_T, typename X_T, typename beta_T, typename Y_T
 >
 void SpMM_vec(
     cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-    cref<R_out> alpha_,  cptr<T_in>  X, const Int ldX,
-    cref<S_out> beta_,   mptr<T_out> Y, const Int ldY,
+    cref<alpha_T> alpha,  cptr<X_T>  X, const Int ldX,
+    cref<beta_T>  beta,   mptr<Y_T> Y, const Int ldY,
     cref<JobPointers<Int>> job_ptr
 )
 {
@@ -307,10 +303,10 @@ void SpMM_vec(
         +ToString(alpha_flag)+","
         +ToString(beta_flag)+","
         +ToString(NRHS)+","
-        +TypeName<R_out>+","
-        +TypeName<T_in >+","
-        +TypeName<S_out>+","
-        +TypeName<T_out>
+        +TypeName<alpha_T>+","
+        +TypeName<X_T>+","
+        +TypeName<beta_T>+","
+        +TypeName<Y_T>
         +">";
 
     ptic(tag);
@@ -332,25 +328,25 @@ void SpMM_vec(
     
     // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
     
-    using T = typename std::conditional_t<
-        Scalar::ComplexQ<Scal> || Scalar::ComplexQ<T_in>,
+    // TODO: Use real types for alpha, beta, x, a, y if applicable.
+    // TODO: Maybe use simple combine_buffer to merge y and z.
+    
+    using y_T = typename std::conditional_t<
+        Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
         typename Scalar::Complex<Scal>,
         typename Scalar::Real<Scal>
     >;
     
-    
-    typedef T vec_T __attribute__((__ext_vector_type__(NRHS)));
+    using x_T = y_T;
+//    using z_T = Y_T;
     
     constexpr bool prefetchQ = true;
     
     ParallelDo(
         [&]( const Int thread )
         {
-            vec_T alpha( alpha_ );
-            vec_T beta ( beta_ );
-            
-            vec_T x;
-            vec_T y;
+            vec_T<NRHS,x_T> x;
+//            vec_T<NRHS,z_T> z;
             
             const Int i_begin = job_ptr[thread  ];
             const Int i_end   = job_ptr[thread+1];
@@ -362,7 +358,7 @@ void SpMM_vec(
             for( Int i = i_begin; i < i_end; ++i )
             {
                 
-                vec_T z ( Scalar::Zero<T> );
+                vec_T<NRHS,y_T> y ( Scalar::Zero<y_T> );
                 
                 const LInt l_begin = rp[i  ];
                 const LInt l_end   = rp[i+1];
@@ -383,62 +379,65 @@ void SpMM_vec(
                             }
                         }
 
-                        copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<T *>(&x) );
+                        copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
                         
                         
                         if constexpr( a_flag == One )
                         {
-                            z += x;
+                            y += x;
                         }
                         else if constexpr( a_flag == Generic )
                         {
-                            z += a[l] * x;
+                            y += a[l] * x;
                         }
                     }
 
                     
                     // Incorporate the local updates into Y-buffer.
                                
+                    combine_buffers<alpha_flag,beta_flag,NRHS>(
+                        alpha, reinterpret_cast<y_T *>(&y), beta, &Y[ldY * i]
+                    );
                     
-                    if constexpr ( beta_flag != One )
-                    {
-                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<T *>(&y) );
-                    }
-                    
-                    
-                    if constexpr ( alpha_flag == One )
-                    {
-                        if constexpr ( beta_flag == Zero )
-                        {
-                            y = z;
-                        }
-                        else if constexpr ( beta_flag == One )
-                        {
-                            y += z;
-                        }
-                        else if constexpr ( beta_flag == Generic )
-                        {
-                            y = z + beta * y;
-                        }
-                    }
-                    else if constexpr( alpha_flag == Generic )
-                    {
-                        if constexpr ( beta_flag == Zero )
-                        {
-                            y = alpha * z;
-                        }
-                        else if constexpr ( beta_flag == One )
-                        {
-                            y += alpha * z;
-                        }
-                        else if constexpr ( beta_flag == Generic )
-                        {
-                            y = alpha * z + beta * y;
-                        }
-                    }
-
-                    copy_buffer<NRHS>( reinterpret_cast<T *>(&y), &Y[ldY * i] );
-                    
+//                    if constexpr ( beta_flag != Zero )
+//                    {
+//                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
+//                    }
+//
+//
+//                    if constexpr ( alpha_flag == One )
+//                    {
+//                        if constexpr ( beta_flag == Zero )
+//                        {
+//                            z = y;
+//                        }
+//                        else if constexpr ( beta_flag == One )
+//                        {
+//                            z += y;
+//                        }
+//                        else if constexpr ( beta_flag == Generic )
+//                        {
+//                            z = y + beta * z;
+//                        }
+//                    }
+//                    else if constexpr( alpha_flag == Generic )
+//                    {
+//                        if constexpr ( beta_flag == Zero )
+//                        {
+//                            z = alpha * y;
+//                        }
+//                        else if constexpr ( beta_flag == One )
+//                        {
+//                            z += alpha * y;
+//                        }
+//                        else if constexpr ( beta_flag == Generic )
+//                        {
+//                            z = alpha * y + beta * z;
+//                        }
+//                    }
+//
+//                    copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
+//
                 }
                 else
                 {
@@ -453,11 +452,12 @@ void SpMM_vec(
                     }
                     else if constexpr( beta_flag == Generic )
                     {
-                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<T *>(&y) );
-                        
-                        y *= beta;
-
-                        copy_buffer<NRHS>( reinterpret_cast<T *>(&y), &Y[ldY * i] );
+                        scale_buffer<NRHS,Sequential>( beta, &Y[ldY * i] );
+//                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
+//
+//                        z *= beta;
+//
+//                        copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
                     }
                 }
             }

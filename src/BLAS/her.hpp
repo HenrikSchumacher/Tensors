@@ -30,19 +30,19 @@ namespace Tensors
             
             
             
-            if constexpr ( std::is_same_v<Scal,double> )
+            if constexpr ( SameQ<Scal,double> )
             {
                 return cblas_dsyr( to_BLAS(layout), to_BLAS(uplo), n, alpha, x, incx, A, ldA );
             }
-            else if constexpr ( std::is_same_v<Scal,float> )
+            else if constexpr ( SameQ<Scal,float> )
             {
                 return cblas_ssyr( to_BLAS(layout), to_BLAS(uplo), n, alpha, x, incx, A, ldA );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
+            else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
                 return cblas_zher( to_BLAS(layout), to_BLAS(uplo), n, alpha, x, incx, A, ldA );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
+            else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
                 return cblas_cher( to_BLAS(layout), to_BLAS(uplo), n, alpha, x, incx, A, ldA );
             }

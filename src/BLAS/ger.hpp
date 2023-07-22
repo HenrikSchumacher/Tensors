@@ -39,15 +39,15 @@ namespace Tensors
             assert_positive(inc_y);
 
 
-            if constexpr ( std::is_same_v<Scal,double> )
+            if constexpr ( SameQ<Scal,double> )
             {
                 return cblas_dger( to_BLAS(layout), m, n, alpha, x, inc_x, y, inc_y, A, ldA );
             }
-            else if constexpr ( std::is_same_v<Scal,float> )
+            else if constexpr ( SameQ<Scal,float> )
             {
                 return cblas_sger( to_BLAS(layout), m, n, alpha, x, inc_x, y, inc_y, A, ldA );
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<double>> )
+            else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
                 if constexpr ( (opx == Op::Id) && ((opy == Op::Id)) )
                 {
@@ -76,7 +76,7 @@ namespace Tensors
                 }
     
             }
-            else if constexpr ( std::is_same_v<Scal,std::complex<float>> )
+            else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
                 if constexpr ( (opx == Op::Id) && ((opy == Op::Id)) )
                 {

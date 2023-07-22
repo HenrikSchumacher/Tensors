@@ -99,12 +99,15 @@ namespace Tensors
         
         // Copy constructor
         CLASS( const CLASS & other )
-        :   A          ( other.A          )
-        ,   A_const    ( other.A_const    )
-        ,   alpha      ( other.alpha      )
-        ,   X          ( other.X          )
-        ,   beta       ( other.beta       )
-        ,   Y          ( other.Y          )
+        :   A         ( other.A           )
+        ,   A_const   ( other.A_const     )
+        ,   alpha     ( other.alpha       )
+        ,   X         ( other.X           )
+        ,   beta      ( other.beta        )
+        ,   Y         ( other.Y           )
+        ,   rhs_count ( other.rhs_count_  )
+        ,   rows_size ( other.rows_size   )
+        ,   cols_size ( other.cols_size   )
         {}
         
         ~CLASS() = default;
@@ -169,19 +172,6 @@ namespace Tensors
             }
         }
         
-        
-//        force_inline void FMA( const Scal a, const Scal b, mref<Scal> c ) const
-//        {
-//            if constexpr ( use_fma )
-//            {
-//                c = std::fma(a,b,c);
-//            }
-//            else
-//            {
-//                c += a * b;
-//            }
-//        }
-        
         force_inline void FMA( cref<Scal> a, cref<Scal> b, mref<Scal> c ) const
         {
             if constexpr ( use_fma )
@@ -198,7 +188,6 @@ namespace Tensors
         {
             if constexpr ( x_copy )
             {
-                // CAUTION: Shadowing global variable here!
                 x_from = &X[ColsSize() * j_global];
                 
                 if constexpr ( x_RM )

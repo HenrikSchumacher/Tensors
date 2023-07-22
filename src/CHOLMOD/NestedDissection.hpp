@@ -14,7 +14,7 @@ namespace Tensors
         public:
             
             static_assert(
-                std::is_same_v<Int_,Int32>,
+                SameQ<Int_,Int32>,
                 "CHOLMOD::NestedDissection uses Metis which supports only 32 bit signed integers."
             );
             
@@ -68,7 +68,7 @@ namespace Tensors
                 Tensor1<Int,Int> perm_buffer;
                 Int * perm_ptr = nullptr;
                 
-                if constexpr( std::is_same_v<Int,Int4> )
+                if constexpr( SameQ<Int,Int4> )
                 {
                     perm_ptr = perm;
                 }
@@ -98,7 +98,7 @@ namespace Tensors
                     eprint(ClassName()+" nested dissection module not installed.");
                 }
                 
-                if constexpr( std::is_same_v<Int,Int4> )
+                if constexpr( SameQ<Int,Int4> )
                 {
                     // Do nothing.
                 }

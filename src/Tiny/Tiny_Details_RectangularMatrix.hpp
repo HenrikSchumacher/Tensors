@@ -16,28 +16,65 @@ public:
 
 
     template<typename T>
-    void AddTo( mptr<T> target ) const
+    void AddTo( mptr<T> B ) const
     {
-        add_to_buffer<m*n>( &A[0][0], target );
+        add_to_buffer<m*n>( &A[0][0], B );
     }
 
 //######################################################
 //##              Writing to raw buffers              ##
 //######################################################
 
-    template<typename T>
-    void Write( mptr<T> target ) const
+    template<Op op = Op::Id, typename T>
+    void Write( mptr<T> B ) const
     {
-        copy_buffer<m*n>( &A[0][0], target );
+        if constexpr ( op == Op::Id )
+        {
+            for( Int i = 0; i < m; ++i )
+            {
+                copy_buffer<n>( &A[i][0], &B[n*i] );
+            }
+        }
+        else if constexpr ( op == Op::Id )
+        {
+            for( Int j = 0; j < n; ++j )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    B[m * j + i ] = A[i][j];
+                }
+            }
+        }
+        else
+        {
+            eprint(ClassName()+"::Write: No implementation for op available.");
+        }
     }
 
     // Copy stride.
-    template<typename T>
+    template<Op op = Op::Id, typename T>
     void Write( mptr<T> B, const Int ld_B ) const
     {
-        for( Int i = 0; i < m; ++i )
+        if constexpr ( op == Op::Id )
         {
-            copy_buffer<n>( &A[i][0], &B[n*i] );
+            for( Int i = 0; i < m; ++i )
+            {
+                copy_buffer<n>( &A[i][0], &B[ld_B*i] );
+            }
+        }
+        else if constexpr ( op == Op::Id )
+        {
+            for( Int j = 0; j < n; ++j )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    B[ld_B * j + i ] = A[i][j];
+                }
+            }
+        }
+        else
+        {
+            eprint(ClassName()+"::Write: No implementation for op available.");
         }
     }
 
@@ -227,7 +264,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator+=( const T lambda )
@@ -247,7 +284,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator-=( const T lambda )
@@ -266,7 +303,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator*=( const T lambda )

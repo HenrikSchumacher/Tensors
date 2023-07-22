@@ -162,7 +162,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator+=( cref<CLASS<n,T,Int>> B )
@@ -180,7 +180,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator-=( cref<CLASS<n,T,Int>> B )
@@ -198,7 +198,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator*=( cref<CLASS<n,T,Int>> B )
@@ -216,7 +216,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator/=( cref<CLASS<n,T,Int>> B )
@@ -235,7 +235,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator+=( cref<T> lambda )
@@ -254,7 +254,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator-=( cref<T> lambda )
@@ -273,7 +273,7 @@ public:
     template<class T>
     force_inline
     std::enable_if_t<
-        std::is_same_v<T,Scal> || (Scalar::ComplexQ<Scal> && std::is_same_v<T,Real>),
+        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
         CLASS &
     >
     operator*=( cref<T> lambda )
