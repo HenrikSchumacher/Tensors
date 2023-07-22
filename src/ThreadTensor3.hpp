@@ -401,12 +401,12 @@ namespace Tensors {
             }
         }
         
-        Int CountNan() const
+        Int CountNaNs() const
         {
             Int counter = 0;
             for( Int thread = 0 ; thread < dims[0]; ++thread )
             {
-                counter += tensors[thread].CountNan();
+                counter += tensors[thread].CountNaNs();
             }
             return counter;
         }

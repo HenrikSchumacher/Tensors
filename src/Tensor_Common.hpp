@@ -292,7 +292,7 @@ public:
         add_to_buffer( a, b, n );
     }
 
-    Int CountNan() const
+    Int CountNaNs() const
     {
         Int counter = 0;
         

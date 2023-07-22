@@ -362,7 +362,7 @@ void SpMM_vec(
             for( Int i = i_begin; i < i_end; ++i )
             {
                 
-                vec_T z = {};
+                vec_T z ( Scalar::Zero<T> );
                 
                 const LInt l_begin = rp[i  ];
                 const LInt l_end   = rp[i+1];
@@ -398,10 +398,44 @@ void SpMM_vec(
 
                     
                     // Incorporate the local updates into Y-buffer.
+                               
                     
-                    copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<T *>(&y) );
+                    if constexpr ( beta_flag != One )
+                    {
+                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<T *>(&y) );
+                    }
                     
-                    y = alpha * z + beta * y;
+                    
+                    if constexpr ( alpha_flag == One )
+                    {
+                        if constexpr ( beta_flag == Zero )
+                        {
+                            y = z;
+                        }
+                        else if constexpr ( beta_flag == One )
+                        {
+                            y += z;
+                        }
+                        else if constexpr ( beta_flag == Generic )
+                        {
+                            y = z + beta * y;
+                        }
+                    }
+                    else if constexpr( alpha_flag == Generic )
+                    {
+                        if constexpr ( beta_flag == Zero )
+                        {
+                            y = alpha * z;
+                        }
+                        else if constexpr ( beta_flag == One )
+                        {
+                            y += alpha * z;
+                        }
+                        else if constexpr ( beta_flag == Generic )
+                        {
+                            y = alpha * z + beta * y;
+                        }
+                    }
 
                     copy_buffer<NRHS>( reinterpret_cast<T *>(&y), &Y[ldY * i] );
                     
@@ -413,6 +447,10 @@ void SpMM_vec(
                     {
                         zerofy_buffer<NRHS,Sequential>( &Y[ldY * i] );
                     }
+                    else if constexpr( beta_flag == One )
+                    {
+                        // Do nothing.
+                    }
                     else if constexpr( beta_flag == Generic )
                     {
                         copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<T *>(&y) );
@@ -420,10 +458,6 @@ void SpMM_vec(
                         y *= beta;
 
                         copy_buffer<NRHS>( reinterpret_cast<T *>(&y), &Y[ldY * i] );
-                    }
-                    else if constexpr( beta_flag == One )
-                    {
-                        // Do nothing.
                     }
                 }
             }
