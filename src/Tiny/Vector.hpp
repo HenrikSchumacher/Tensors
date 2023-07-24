@@ -32,7 +32,7 @@ namespace Tensors
             template<typename S>
             CLASS( cptr<S> matrix, const Int k )
             {
-                Read( &matrix[n *k ] );
+                Read( &matrix[n * k] );
             }
             
             template<typename S>
@@ -306,15 +306,20 @@ namespace Tensors
                 }
                 return *this;
             }
-            
-            force_inline Real Norm() const
+
+            force_inline Real SquaredNorm() const
             {
                 Real r = 0;
                 for( Int i = 0; i < n; ++i )
                 {
                     r += Scalar::AbsSquared(v[i]);
                 }
-                return std::sqrt( r );
+                return r;
+            }
+            
+            force_inline Real Norm() const
+            {
+                return std::sqrt( SquaredNorm() );
             }
             
             force_inline friend Real Norm( cref<CLASS> u )
@@ -363,6 +368,26 @@ namespace Tensors
                     return std::numeric_limits<Real>::lowest();
                 }
             }
+            
+            template <typename Dummy = Scal>
+            force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> MaxNorm() const
+            {
+                if constexpr ( n > 0 )
+                {
+                    Real m = std::abs(v[0]);
+                    for( Int i = 1; i < n; ++i )
+                    {
+                        m = std::max(m,std::abs(v[i]));
+                    }
+                    return m;
+                }
+                else
+                {
+                    return Scalar::Zero<Real>;
+                }
+            }
+            
+            
             
             force_inline friend Scal Dot( cref<CLASS> x, cref<CLASS> y )
             {

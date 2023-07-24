@@ -123,6 +123,7 @@ namespace Tensors
         
         void Resize( const Int m_ )
         {
+            ptic(ClassName()+"::Resize(" + Tools::ToString(m_) + ")");
             const Int m = std::max( static_cast<Int>(0),m_);
             
             TENSOR_T b (m);
@@ -137,6 +138,7 @@ namespace Tensors
             }
             
             swap( *this, b );
+            ptoc(ClassName()+"::Resize(" + Tools::ToString(m_) + ")");
         }
         
         void Resize( const Int m_, Int thread_count )

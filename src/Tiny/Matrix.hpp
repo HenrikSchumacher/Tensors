@@ -16,10 +16,11 @@ namespace Tensors
             static constexpr Int m = m_;
             static constexpr Int n = n_;
             
-            using Vector_Out_T = Vector<m,Scal,Int>;
-            using Vector_Int_T = Vector<n,Scal,Int>;
             
-            using Vector_T     = Vector<n,Scal,Int>;
+            using ColVector_T = Vector<m,Scal,Int>;
+            using RowVector_T = Vector<n,Scal,Int>;
+            
+            using Vector_T    = Vector<n,Scal,Int>;
             
         protected:
             
@@ -38,6 +39,22 @@ namespace Tensors
 
 #include "Tiny_Details_Matrix.hpp"
 #include "Tiny_Details_RectangularMatrix.hpp"
+            
+            
+        public:
+            
+            void WriteRow( mref<RowVector_T> u, const Int i )
+            {
+                u.Read( &A[i] );
+            }
+            
+            void WriteCol( mref<ColVector_T> v, const Int j )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v[i] = A[i][j];
+                }
+            }
             
 //######################################################
 //##                  Arithmetic                      ##
@@ -590,6 +607,109 @@ namespace Tensors
                 return v;
             }
             
+            
+            
+//            void QRDecomposition( mref<Matrix<m,m,Scal,Int>> Q, mref<Matrix<m,n,Scal,Int>> R, mref<Vector<n,Int,Int>> p ) const
+//            {
+//                static_assert( m >= n, "QRDecomposition is only possible for matrices with at least many rows as columns.");
+//                
+//                // Factorize A[:,p] = Q * R with an orthogonal matrix Q and an upper triangular matrix R.
+//                
+//                
+//                ColVector_T cols [n];
+//                
+//                for( Int i = 0; i < m; ++i )
+//                {
+//                    for( Int j = 0; j < n; ++j )
+//                    {
+//                        cols[j][i] = A[i][j];
+//                    }
+//                }
+//                
+//                
+//                
+//                Q.SetIdentity();
+//                iota_buffer<n>( p.data() );
+//                
+//                RowVector_T squared_norms;
+//                
+//                ColVector_T u; // vector for the Householder reflections.
+//                ColVector_T v; // some scratch space
+//                
+//                for( Int j = 0; j < n; ++j )
+//                {
+//                    squared_norms[j] = cols[j].SquaredNorm();
+//                }
+//                
+//                Int k = 0;
+//                
+//                
+//                Int pivot = iamax_buffer<n>( squared_norms.data() );
+//                
+//                if( pivot != k )
+//                {
+//                    std::swap( p[k],             p[pivot]             );
+//                    std::swap( squared_norms[k], squared_norms[pivot] );
+//                    std::swap( cols[k],          cols[pivot]          );
+//                }
+//                
+//                for( Int i = k; i < n; ++i )
+//                {
+//                    u[i] = Scalar::Conj(cols[k][i]);
+//                }
+//                
+//                Real uu = 0;
+//                for( Int i = k; i < n; ++i )
+//                {
+//                    uu += Scalar::AbsSquared(u[k][i]);
+//                }
+//                
+//                if( uu < eps_squared )
+//                {
+//                    // TODO: Would be a reason to stop, no?
+//                    wprint("uu = 0.");
+//                }
+//                
+//                Real u_norm = std::sqrt( uu );
+//                
+//                Scal u_pivot (u[k]);
+//                
+//                Real abs_squared_u_pivot = Scalar::AbsSquared(u_pivot);
+//                
+//                const Scal rho (
+//                    COND(
+//                        Scalar::ComplexQ<Scal>
+//                        ,
+//                        ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
+//                        ,
+//                        ( u_pivot > zero ) ? -one : one
+//                    )
+//                );
+//                
+//                uu -= abs_squared_u_pivot;
+//                
+//                u[k][k] -= rho * u_norm;
+//                
+//                uu += Scalar::AbsSquared(u[k][k]);
+//                
+//                Real u_norm_inv ( one / std::sqrt( uu ) );
+//                
+//                for( Int i = k; i < n; ++i )
+//                {
+//                    u[k][i] *= u_norm_inv;
+//                }
+//                
+//                // Now [ u[k],...,u[m-1] ] is the reflection vector.
+//                
+//                
+//                
+//                // Find Householder reflection that clears out B[k+1:m][k].
+//                
+//                // Apply Householder reflection to B.
+//                
+//                // Apply Householder reflection to Q.
+//            
+//            }
             
         public:
 
