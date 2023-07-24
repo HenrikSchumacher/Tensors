@@ -35,22 +35,23 @@ namespace Tensors
 
         public:
             
+            template< AddTo_T addto >
             force_inline friend void Dot( const CLASS & M, const Vector_T & x, Vector_T & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
-                    Scal y_i (0);
+                    Scal y_i ( (addto == Overwrite) ? Scalar::Zero<Scal> : y[i] );
                     
                     for( Int j = 0; j < i; ++j )
                     {
-                        y_i += Scalar::Conj(M.A[j][i]) * x.v[j];
+                        y_i += Scalar::Conj(M[j][i]) * x[j];
                     }
                     for( Int j = i; j < n; ++j )
                     {
-                        y_i += M.A[i][j] * x.v[j];
+                        y_i += M[i][j] * x[j];
                     }
                     
-                    y.v[i] = y_i;
+                    y[i] = y_i;
                 }
             }
             
@@ -300,7 +301,7 @@ namespace Tensors
             
             void HessenbergDecomposition(
                 Matrix                      <n,n,Scal,Int> & U,
-                SelfAdjointTridiagonalMatrix<n,    Real,Int> & T
+                SelfAdjointTridiagonalMatrix<n,  Real,Int> & T
             ) const
             {
                 // Computes a unitary matrix U and and a self-adjoint tridiagonal matrix T such that U . T . U^H = A.
@@ -569,7 +570,7 @@ namespace Tensors
                         const Scal rho (
                             COND(
                                 Scalar::ComplexQ<Scal>
-                                 ,
+                                ,
                                 ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
                                 ,
                                 ( u_pivot > zero ) ? -one : one
@@ -697,7 +698,7 @@ namespace Tensors
                 T.QRAlgorithm( Q, eigs, tol, max_iter );
 
                 //TODO: We might exploit here that V has zeroes in first row and column.
-                Dot<false>(V,Q,U);
+                Dot<Overwrite>(V,Q,U);
             }
             
             std::string ToString() const
