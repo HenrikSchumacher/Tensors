@@ -151,7 +151,7 @@ private:
     {
         using namespace Scalar;
         
-        if constexpr( (NRHS > 0) && vec_enabledQ && RealQ<Scal> && RealQ<alpha_T> && RealQ<X_T> && RealQ<beta_T> && RealQ<Y_T> )
+        if constexpr( (NRHS > 0) && ( a_flag == Scalar::Flag::Zero || VectorizableQ<Scal> ) && VectorizableQ<Y_T> )
         {
             SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
         }
@@ -286,7 +286,7 @@ private:
         }
     }
 
-#if ( defined(__clang__) && __has_attribute(ext_vector_type) )
+#if ( vec_enabledQ )
 
 template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, Size_T NRHS = VarSize,
     typename alpha_T, typename X_T, typename beta_T, typename Y_T
@@ -338,7 +338,6 @@ void SpMM_vec(
     >;
     
     using x_T = y_T;
-//    using z_T = Y_T;
     
     constexpr bool prefetchQ = true;
     
@@ -346,7 +345,6 @@ void SpMM_vec(
         [&]( const Int thread )
         {
             vec_T<NRHS,x_T> x;
-//            vec_T<NRHS,z_T> z;
             
             const Int i_begin = job_ptr[thread  ];
             const Int i_end   = job_ptr[thread+1];
