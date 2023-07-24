@@ -286,7 +286,7 @@ private:
         }
     }
 
-#if ( vec_enabledQ )
+#if ( defined(__clang__) && __has_attribute(ext_vector_type) )
 
 template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, Size_T NRHS = VarSize,
     typename alpha_T, typename X_T, typename beta_T, typename Y_T
