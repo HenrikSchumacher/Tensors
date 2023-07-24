@@ -40,8 +40,6 @@ namespace Tensors
         using BASE::COLS_SIZE;
         using BASE::NRHS;
         
-        using BASE::vecQ;
-        
         static constexpr LInt BLOCK_NNZ = 1;
         
     protected:
@@ -98,26 +96,13 @@ namespace Tensors
 
             const Scal a = A_const[BLOCK_NNZ * k_global];
 
-            if constexpr ( vecQ )
+            for( Int j = 0; j < COLS; ++j )
             {
-                for( Int j = 0; j < ROWS; ++j )
+                for( Int k = 0; k < NRHS; ++k )
                 {
-                    y[j] += a * x[j];
+                    y[j][k] += a * x[j][k];
                 }
             }
-            else
-            {
-                for( Int j = 0; j < COLS; ++j )
-                {
-                    for( Int k = 0; k < NRHS; ++k )
-                    {
-                        y[j][k] += a * x[j][k];
-                    }
-                }
-            }
-            
-
-
         }
         
     public:

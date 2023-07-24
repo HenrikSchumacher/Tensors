@@ -47,8 +47,6 @@ namespace Tensors
         using BASE::COLS_SIZE;
         using BASE::NRHS;
         
-        using BASE::vecQ;
-        
         static constexpr LInt BLOCK_NNZ = COLS + ROWS - 1;
         
     protected:
@@ -156,35 +154,18 @@ namespace Tensors
              //    \                                                                  /
              */
             
-            if constexpr ( vecQ )
+            for( Int k = 0; k < NRHS; ++k )
             {
-                y[0] += get_a(0) * x[0];
+                y[0][k] += get_a(0) * x[0][k];
                 
                 for( Int j = 1; j < COLS; ++j )
                 {
-                    y[0] += get_a(j) * x[j];
+                    y[0][k] += get_a(j) * x[j][k];
                 }
                 
                 for( Int i = 1; i < ROWS; ++i )
                 {
-                    y[i] += get_a(COLS-1+i) * x[0];
-                }
-            }
-            else
-            {
-                for( Int k = 0; k < NRHS; ++k )
-                {
-                    y[0][k] += get_a(0) * x[0][k];
-                    
-                    for( Int j = 1; j < COLS; ++j )
-                    {
-                        y[0][k] += get_a(j) * x[j][k];
-                    }
-                    
-                    for( Int i = 1; i < ROWS; ++i )
-                    {
-                        y[i][k] += get_a(COLS-1+i) * x[0][k];
-                    }
+                    y[i][k] += get_a(COLS-1+i) * x[0][k];
                 }
             }
         }

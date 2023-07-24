@@ -41,9 +41,6 @@ namespace Tensors
         static constexpr Scalar::Flag Plus    = Scalar::Flag::Plus;
         static constexpr Scalar::Flag Generic = Scalar::Flag::Generic;
         
-        static constexpr bool vecQ = VectorizableQ<Scal_out>;
-        
-        
     protected:
         
         mptr<Scal>     A       = nullptr;
@@ -63,15 +60,9 @@ namespace Tensors
         using x_T = y_T;
         using z_T = Scal_out;
         
-        // Use vectorization for real types if possible.
-        mutable std::conditional_t<vecQ, std::array<vec_T<NRHS,y_T>,COLS>, Tiny::Matrix<COLS,NRHS,x_T,Int> > x;
-        mutable std::conditional_t<vecQ, std::array<vec_T<NRHS,y_T>,ROWS>, Tiny::Matrix<ROWS,NRHS,y_T,Int> > y;
-        
-        mutable std::conditional_t<
-            vecQ && SameQ<y_T,z_T>,
-            std::array<vec_T<NRHS,z_T>,ROWS>,
-            Tiny::Matrix<ROWS,NRHS,z_T,Int>
-        > z;
+        mutable Tiny::Matrix<COLS,NRHS,x_T,Int> x;
+        mutable Tiny::Matrix<ROWS,NRHS,x_T,Int> y;
+        mutable Tiny::Matrix<ROWS,NRHS,z_T,Int> z;
         
         const Int rhs_count = 1;
         const Int rows_size = ROWS;
@@ -224,19 +215,7 @@ namespace Tensors
         force_inline void CleanseY() const
         {
             // Clear the local vector chunk of the kernel.
-            if constexpr ( vecQ )
-            {
-                for( Int j = 0; j < COLS; ++j )
-                {
-//                    zerofy_buffer<NRHS>( reinterpret_cast<y_T *>(&y[j]) );
-                    
-                    y[j] = Scalar::Zero<y_T>;
-                }
-            }
-            else
-            {
-                y.SetZero();
-            }
+            y.SetZero();
         }
         
     private:
@@ -297,107 +276,7 @@ namespace Tensors
         
         force_inline void WriteY( const Int i_global ) const
         {
-            if constexpr ( vecQ )
-            {
-                if constexpr ( SameQ<y_T,z_T> )
-                {
-                    // "Vectorized" reduction at row end.
-                    if constexpr ( beta_flag != Zero )
-                    {
-                        ReadZ( i_global );
-                    }
-                    
-                    if constexpr ( alpha_flag == Zero )
-                    {
-                        if constexpr ( beta_flag == Zero )
-                        {
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                z[i] = Scalar::Zero<z_T>;
-//                                z[i] = vec_T<NRHS,z_T>(0);
-                            }
-                        }
-                        else if constexpr ( beta_flag == Plus )
-                        {
-                            // do nothing;
-                        }
-                        else
-                        {
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                z[i] *= beta;
-                            }
-                        }
-                    }
-                    else if constexpr ( alpha_flag == Plus )
-                    {
-                        if constexpr ( beta_flag == Zero )
-                        {
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                z[i] = y[i];
-                            }
-                        }
-                        else if constexpr ( beta_flag == Plus )
-                        {
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                z[i] += y[i];
-                            }
-                        }
-                        else // beta_flag == Generic or beta_flag == Minus
-                        {
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                z[i] = y[i] + beta * z[i];
-                            }
-                        }
-                    }
-                    else  // beta_flag == Generic or beta_flag == Minus
-                    {
-                        if constexpr ( beta_flag == Zero )
-                        {
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                z[i] = alpha * y[i];
-                            }
-                        }
-                        else if constexpr ( beta_flag == Plus )
-                        {
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                z[i] += alpha * y[i];
-                            }
-                        }
-                        else // beta_flag == Generic or beta_flag == Minus
-                        {
-                            for( Int i = 0; i < ROWS; ++i )
-                            {
-                                z[i] = alpha * y[i] + beta * z[i];
-                            }
-                        }
-                    }
-                    
-                    WriteZ( i_global );
-                }
-                else
-                {
-                    // Using "unvectorized" combine_buffers because that allows us to use
-                    // a Real type T if both Scal_in and Scal are real, even if Scal_out is complex.
-                    
-                    // Since this reduction happens only at the ends of rows (and thus not that
-                    // often), vectorization would not yield that much bang for the buck.
-                    
-                    for( Int i = 0; i < ROWS; ++i )
-                    {
-                        combine_buffers<alpha_flag,beta_flag,NRHS>( alpha, reinterpret_cast<y_T *>(&y[i]), beta, &Y[ROWS_SIZE * i_global] );
-                    }
-                }
-            }
-            else
-            {
-                combine_buffers<alpha_flag,beta_flag,ROWS_SIZE>( alpha, y.data(), beta, &Y[ROWS_SIZE * i_global] );
-            }
+            combine_buffers<alpha_flag,beta_flag,ROWS_SIZE>( alpha, y.data(), beta, &Y[ROWS_SIZE * i_global] );
         }
         
         force_inline void WriteYZero( const Int i_global ) const
