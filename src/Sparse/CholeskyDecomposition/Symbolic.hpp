@@ -180,8 +180,8 @@ protected:
             const Int n_0 =               SN_rp   [k+1] - SN_rp   [k];
             const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
 
-            max_n_0 = std::max( max_n_0, n_0 );
-            max_n_1 = std::max( max_n_1, n_1 );
+            max_n_0 = Max( max_n_0, n_0 );
+            max_n_1 = Max( max_n_1, n_1 );
 
             SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
             SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;

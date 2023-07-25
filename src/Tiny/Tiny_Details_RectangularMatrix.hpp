@@ -152,7 +152,7 @@ public:
                 
                 for( Int i = 0; i < m; ++i )
                 {
-                    A[i][j] = Scalar::Conj(B_j[i]);
+                    A[i][j] = Conj(B_j[i]);
                 }
             }
         }
@@ -192,7 +192,7 @@ public:
                 
                 for( Int i = 0; i < m; ++i )
                 {
-                    A[i][j] = Scalar::Conj(B_j[i]);
+                    A[i][j] = Conj(B_j[i]);
                 }
             }
         }
@@ -233,7 +233,7 @@ public:
                 
                 for( Int i = 0; i < m; ++i )
                 {
-                    A[i][j] = Scalar::Conj(B_j[i]);
+                    A[i][j] = Conj(B_j[i]);
                 }
             }
         }
@@ -325,7 +325,7 @@ public:
         {
             for( Int j = 0; j < n; ++j )
             {
-                B.A[i][j] = Scalar::Conj(A[i][j]);
+                B.A[i][j] = Conj(A[i][j]);
             }
         }
     }

@@ -9,7 +9,7 @@ public:
     template<typename ExtScal>
     void ReadRightHandSide( cptr<ExtScal> B, Int nrhs_ = ione )
     {
-        nrhs = std::max( ione, nrhs_ );
+        nrhs = Max( ione, nrhs_ );
         
         const std::string tag = ClassName() + "::ReadRightHandSide<" + TypeName<ExtScal> + "> (" + ToString(nrhs)+ ")";
         

@@ -124,7 +124,7 @@ namespace Tensors
         void Resize( const Int m_ )
         {
             ptic(ClassName()+"::Resize(" + Tools::ToString(m_) + ")");
-            const Int m = std::max( static_cast<Int>(0),m_);
+            const Int m = std::max( static_cast<Int>(0), m_ );
             
             TENSOR_T b (m);
             
@@ -143,7 +143,7 @@ namespace Tensors
         
         void Resize( const Int m_, Int thread_count )
         {
-            const Int m = std::max( static_cast<Int>(0),m_);
+            const Int m = Max( static_cast<Int>(0),m_);
             
             TENSOR_T b (m);
             
@@ -209,7 +209,7 @@ namespace Tensors
             {
                 return ToString(
                     &a[i_begin],
-                    {std::max(int_cast<Size_T>(0),int_cast<Size_T>(i_end-i_begin))}
+                    {Max(int_cast<Size_T>(0),int_cast<Size_T>(i_end-i_begin))}
                 );
             }
             else

@@ -58,7 +58,7 @@ namespace Tensors
         
         GMRES( const Int n_, const Int max_iter_, const Int thread_count_ )
         :   n               ( n_ )
-        ,   max_iter        ( std::min(max_iter_,n) )
+        ,   max_iter        ( Min(max_iter_,n) )
         ,   thread_count    ( thread_count_ )
         ,   job_ptr         ( n, thread_count )
         ,   Q               ( max_iter + 1, n, K )
@@ -342,7 +342,7 @@ namespace Tensors
                     const Scal sin = sn[i][k];
                     
                     H(i  ,iter,k) =  cos * xi + sin * eta;
-                    H(i+1,iter,k) = -Scalar::Conj(sin) * xi + cos * eta;
+                    H(i+1,iter,k) = -Conj(sin) * xi + cos * eta;
                 }
             }
             {
@@ -354,19 +354,19 @@ namespace Tensors
                     Scal cos;
                     Scal sin;
                     
-                    const Real r = std::sqrt( Scalar::AbsSquared(xi) + Scalar::AbsSquared(eta) );
+                    const Real r = Aqrt( AbsSquared(xi) + AbsSquared(eta) );
                     
-                    if( std::abs(xi) <= Scalar::eps<Scal> * r )
+                    if( Abs(xi) <= Scalar::eps<Scal> * r )
                     {
                         cos = Scalar::Zero<Scal>;
                         sin = Scalar::One<Scal>;
                     }
                     else
                     {
-                        const Real r_inv = Scalar::Inv<Real>(r);
+                        const Real r_inv = Inv(r);
                         
-                        cos =  std::abs(xi) * r_inv;
-                        sin = (xi / std::abs(xi)) * Scalar::Conj(eta) * r_inv;
+                        cos =  Abs(xi) * r_inv;
+                        sin = (xi / Abs(xi)) * Conj(eta) * r_inv;
                     }
                     
                     cs[iter][k] = cos;
@@ -375,7 +375,7 @@ namespace Tensors
                     H(iter  ,iter,k) = cos * xi + sin * eta;
                     H(iter+1,iter,k) = Scalar::Zero<Scal>;
                                                                       
-                    beta[iter+1][k] = -Scalar::Conj(sin) * beta[iter][k];
+                    beta[iter+1][k] = -Conj(sin) * beta[iter][k];
                     beta[iter  ][k] =  cos * beta[iter][k];
                 }
             }
@@ -399,7 +399,7 @@ namespace Tensors
                     {
                         for( Int k = 0; k < K; ++k )
                         {
-                            sums[k] += Scalar::AbsSquared(v[K * i + k]);
+                            sums[k] += AbsSquared(v[K * i + k]);
                         }
                     }
                     
@@ -412,7 +412,7 @@ namespace Tensors
             
             for( Int k = 0; k < K; ++k )
             {
-                norms[k] = std::sqrt( norms[k] );
+                norms[k] = Sqrt( norms[k] );
             }
         }
         
@@ -432,7 +432,7 @@ namespace Tensors
                     {
                         for( Int k = 0; k < K; ++k )
                         {
-                            sums[k] += Scalar::Conj(v[K * i + k]) * w[K * i + k];
+                            sums[k] += Conj(v[K * i + k]) * w[K * i + k];
                         }
                     }
                     
@@ -475,7 +475,7 @@ namespace Tensors
                     
                     for( Int k = 0; k < K; ++k )
                     {
-                        factors_inv[k] = Scalar::Inv<Real>( factors[k] );
+                        factors_inv[k] = Inv( factors[k] );
                     }
                     
                     const Int i_begin = job_ptr[thread  ];
@@ -523,7 +523,7 @@ namespace Tensors
             
             for( Int k = 0; k < K; ++k )
             {
-                res[k] = std::abs(beta[iter][k]) / b_norms[k];
+                res[k] = Abs(beta[iter][k]) / b_norms[k];
             }
             return res;
         }
@@ -533,7 +533,7 @@ namespace Tensors
             bool succeeded = true;
             for( Int k = 0; k < K; ++k )
             {
-                succeeded = succeeded && (std::abs(beta[iter][k]) <= TOL[k]);
+                succeeded = succeeded && (Abs(beta[iter][k]) <= TOL[k]);
             }
             
             return succeeded;

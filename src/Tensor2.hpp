@@ -222,8 +222,8 @@ namespace Tensors
         {
             ptic(ClassName() + "::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
             
-            const Int d_0 = std::max( static_cast<Int>(0),d_0_);
-            const Int d_1 = std::max( static_cast<Int>(0),d_1_);
+            const Int d_0 = std::max( static_cast<Int>(0), d_0_ );
+            const Int d_1 = std::max( static_cast<Int>(0), d_1_ );
             
             TENSOR_T b ( d_0, d_1 );
             
@@ -435,7 +435,7 @@ namespace Tensors
     {
         
         I3 m = A.Dimension(0);
-        I3 n = std::min(A.Dimension(1),x.Dimension(0));
+        I3 n = Min(A.Dimension(1),x.Dimension(0));
 
         if( y.Dimension(0) != m )
         {
@@ -467,7 +467,7 @@ namespace Tensors
         ASSERT_INT (I2);
         ASSERT_INT (I3);
         
-        I3 m = std::min(A.Dimension(0),x.Dimension(0));
+        I3 m = Min(A.Dimension(0),x.Dimension(0));
         I3 n = A.Dimension(1);
         
         if( y.Dimension(0) != n )
@@ -517,7 +517,7 @@ namespace Tensors
 //        ASSERT_INT (I3);
 //        
 //        I3 m = A.Dimension(0);
-//        I3 n = std::min(A.Dimension(1),x.Dimension(0));
+//        I3 n = Min(A.Dimension(1),x.Dimension(0));
 //
 //        if( y.Dimension(0) != m )
 //        {
@@ -539,7 +539,7 @@ namespace Tensors
 //        ASSERT_INT (I3);
 //        
 //        I3 m = A.Dimension(0);
-//        I3 n = std::min(A.Dimension(1),x.Dimension(0));
+//        I3 n = Min(A.Dimension(1),x.Dimension(0));
 //
 //        if( y.Dimension(0) != m )
 //        {
@@ -562,7 +562,7 @@ namespace Tensors
 //        ASSERT_INT (I3);
 //        
 //        I3 m = A.Dimension(0);
-//        I3 k = std::min(A.Dimension(1),B.Dimension(0));
+//        I3 k = Min(A.Dimension(1),B.Dimension(0));
 //        I3 n = B.Dimension(1);
 //
 //        if( (C.Dimension(0) != m) || (C.Dimension(1) != n) )
@@ -585,7 +585,7 @@ namespace Tensors
 //        ASSERT_INT (I3);
 //        
 //        I3 m = A.Dimension(0);
-//        I3 k = std::min(A.Dimension(1),B.Dimension(0));
+//        I3 k = Min(A.Dimension(1),B.Dimension(0));
 //        I3 n = B.Dimension(1);
 //
 //        if( (C.Dimension(0) != m) || (C.Dimension(1) != n) )

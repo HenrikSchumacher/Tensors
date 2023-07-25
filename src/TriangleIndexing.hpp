@@ -8,7 +8,7 @@ namespace Tensors
     {
         ASSERT_INT(Int);
         
-        return static_cast<Int>( std::floor(std::sqrt(static_cast<double>(k))) );
+        return static_cast<Int>( std::floor(cSqrt(static_cast<double>(k))) );
     }
     
     // Indexing into upper triangle _with_ diagonal
@@ -60,7 +60,7 @@ namespace Tensors
      
         ASSERT_INT(Int);
         
-        return n - 2 - static_cast<Int>(std::floor(std::sqrt(-8*k + 4*n*(n-1)-7)/2.0 - 0.5));
+        return n - 2 - static_cast<Int>(std::floor(cSqrt(-8*k + 4*n*(n-1)-7)/2.0 - 0.5));
     }
     
     template<Size_T n, typename Int>

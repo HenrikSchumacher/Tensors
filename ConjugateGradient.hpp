@@ -50,7 +50,7 @@ namespace Tensors
         
         ConjugateGradient( const Int n_, const Int max_iter_, const Int thread_count_ )
         :   n               ( n_ )
-        ,   max_iter        ( std::min(max_iter_,n) )
+        ,   max_iter        ( Min(max_iter_,n) )
         ,   thread_count    ( thread_count_ )
         ,   r               ( n, K )
         ,   u               ( n, K )
@@ -217,7 +217,7 @@ namespace Tensors
                         for( Int k = 0; k < K; ++k )
                         {
                             // We know that all scalar products that we compute have to be real-valued.
-                            sums[k] += Scalar::Re(Scalar::Conj(v[K * i + k]) * w[K * i + k]);
+                            sums[k] += Re(Conj(v[K * i + k]) * w[K * i + k]);
                         }
                     }
                     
@@ -242,7 +242,7 @@ namespace Tensors
             
             for( Int k = 0; k < K; ++k )
             {
-                res[k] = std::sqrt( std::abs(rho[k]) );
+                res[k] = Sqrt( Abs(rho[k]) );
             }
             
             return res;
@@ -254,7 +254,7 @@ namespace Tensors
             
             for( Int k = 0; k < K; ++k )
             {
-                res[k] = std::sqrt( std::abs(rho[k]) / b_squared_norms[k] );
+                res[k] = Sqrt( Abs(rho[k]) / b_squared_norms[k] );
             }
             return res;
         }
@@ -264,7 +264,7 @@ namespace Tensors
             bool succeeded = true;
             for( Int k = 0; k < K; ++k )
             {
-                succeeded = succeeded && ( std::abs(rho[k]) <= TOL[k]);
+                succeeded = succeeded && ( Abs(rho[k]) <= TOL[k]);
             }
             
             return succeeded;

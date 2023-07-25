@@ -130,9 +130,9 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
     {
         for( Int l = 0; l < cols; ++l )
         {
-            max    = std::max( max,   std::abs(Y_True(i,l)) );
+            max    = Max( max,   std::abs(Y_True(i,l)) );
             Z(i,l) = Y(i,l) - Y_True(i,l);
-            error  = std::max( error, std::abs(Z(i,l)) );
+            error  = Max( error, std::abs(Z(i,l)) );
         }
     }
     

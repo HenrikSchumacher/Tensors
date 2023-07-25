@@ -81,7 +81,7 @@ public:
             const Int k_begin = 0;
             const Int k_end   = static_cast<Int>(subtrees.size());
             
-            const Int use_threads = (parQ == Parallel) ? std::min( thread_count, k_end - k_begin ) : 1;
+            const Int use_threads = (parQ == Parallel) ? Min( thread_count, k_end - k_begin ) : 1;
             
             ptic(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
             
@@ -116,7 +116,7 @@ public:
             const Int k_begin = 0;
             const Int k_end   = static_cast<Int>(tree_top_levels[d].size());
 
-            const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : one;
+            const Int use_threads = parQ == Parallel ? Min( thread_count, k_end - k_begin ) : one;
 
             ptic(tag_1 + " = " + ToString(d) + "; using " + ToString(use_threads) + " threads.");
             
@@ -158,7 +158,7 @@ public:
 //            const Int k_end   = ChildPointer( Root() + 1 );
 //    
 //
-//            const Int use_threads = parQ == Parallel ? std::min( thread_count, k_end - k_begin ) : one;
+//            const Int use_threads = parQ == Parallel ? Min( thread_count, k_end - k_begin ) : one;
 //    
 //            ParallelDo_Dynamic(
 //                [=,this,&workers]( const Int thread, const Int k )

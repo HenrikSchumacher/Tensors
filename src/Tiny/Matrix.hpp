@@ -275,7 +275,7 @@ namespace Tensors
                 {
                     for( Int i = 0; i < m; ++i )
                     {
-                        B[j][i] = Scalar::Conj(A[i][j]);
+                        B[j][i] = Conj(A[i][j]);
                     }
                 }
             }
@@ -293,14 +293,29 @@ namespace Tensors
             {
                 Real max = 0;
                 
-                for( Int i = 0; i < m; ++i )
+                if constexpr ( Scalar::RealQ<Scal> )
                 {
-                    for( Int j = 0; j < n; ++j )
+                    for( Int i = 0; i < m; ++i )
                     {
-                        max = std::max( max, std::abs(A[i][j]));
+                        for( Int j = 0; j < n; ++j )
+                        {
+                            max = Max( max, Abs(A[i][j]) );
+                        }
                     }
+                    return max;
                 }
-                return max;
+                else
+                {
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        for( Int j = 0; j < n; ++j )
+                        {
+                            max = Max( max, AbsSquared(A[i][j]) );
+                        }
+                    }
+                    return Sqrt(max);
+                }
+                
             }
             
             force_inline Real FrobeniusNorm() const
@@ -311,10 +326,10 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        AA += Scalar::AbsSquared(A[i][j]);
+                        AA += AbsSquared(A[i][j]);
                     }
                 }
-                return std::sqrt(AA);
+                return Sqrt(AA);
             }
 
             
@@ -354,7 +369,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        if( std::abs(A[i][j]) <= threshold )
+                        if( Abs(A[i][j]) <= threshold )
                         {
                             A[i][j] = static_cast<Scal>(0);
                         }
@@ -372,7 +387,7 @@ namespace Tensors
                     const Scal c = scalar_cast<Scal>(c_);
                     const Scal s = scalar_cast<Scal>(s_);
                     
-                    // Assumes that Scalar::AbsSquared(c) + Scalar::AbsSquared(s) == one.
+                    // Assumes that AbsSquared(c) + AbsSquared(s) == one.
                     // Assumes that i != j.
                     // Multiplies matrix with the rotation
                     //
@@ -389,7 +404,7 @@ namespace Tensors
                         const Scal y = A[j][k];
                         
                         A[i][k] =      c    * x + s * y;
-                        A[j][k] = - Scalar::Conj(s) * x + c * y;
+                        A[j][k] = - Conj(s) * x + c * y;
                     }
                 }
             }
@@ -402,7 +417,7 @@ namespace Tensors
                     const Scal c = scalar_cast<Scal>(c_);
                     const Scal s = scalar_cast<Scal>(s_);
                     
-                    // Assumes that Scalar::AbsSquared(c) + Scalar::AbsSquared(s) == one.
+                    // Assumes that AbsSquared(c) + AbsSquared(s) == one.
                     // Assumes that i != j.
                     // Multiplies matrix with rotation
                     //
@@ -418,7 +433,7 @@ namespace Tensors
                         const Scal x = A[k][i];
                         const Scal y = A[k][j];
                         
-                        A[k][i] = c * x - Scalar::Conj(s) * y;
+                        A[k][i] = c * x - Conj(s) * y;
                         A[k][j] = s * x +    c    * y;
                     }
                 }
@@ -559,7 +574,7 @@ namespace Tensors
                 {
                     for( Int j = begin; j < end; ++j )
                     {
-                        A[i][j] -= two * u[i] * Scalar::Conj(u[j]);
+                        A[i][j] -= two * u[i] * Conj(u[j]);
                     }
                 }
             }
@@ -570,7 +585,7 @@ namespace Tensors
                 static_assert(m==n, "SetGivensRotation is only defined for square matrices.");
                 
                 // Mostly meant for debugging purposes, thus not extremely optimized.
-                // Assumes that Scalar::AbsSquared(c) + Scalar::AbsSquared(s) == one.
+                // Assumes that AbsSquared(c) + AbsSquared(s) == one.
                 // Write Givens rotion
                 //
                 //    /              \
@@ -584,7 +599,7 @@ namespace Tensors
                 
                 A[i][i] = c;
                 A[i][j] = s;
-                A[j][i] = -Scalar::Conj(s);
+                A[j][i] = -Conj(s);
                 A[j][j] = c;
             }
             
@@ -655,13 +670,13 @@ namespace Tensors
 //                
 //                for( Int i = k; i < n; ++i )
 //                {
-//                    u[i] = Scalar::Conj(cols[k][i]);
+//                    u[i] = Conj(cols[k][i]);
 //                }
 //                
 //                Real uu = 0;
 //                for( Int i = k; i < n; ++i )
 //                {
-//                    uu += Scalar::AbsSquared(u[k][i]);
+//                    uu += AbsSquared(u[k][i]);
 //                }
 //                
 //                if( uu < eps_squared )
@@ -670,17 +685,17 @@ namespace Tensors
 //                    wprint("uu = 0.");
 //                }
 //                
-//                Real u_norm = std::sqrt( uu );
+//                Real u_norm = Sqrt( uu );
 //                
 //                Scal u_pivot (u[k]);
 //                
-//                Real abs_squared_u_pivot = Scalar::AbsSquared(u_pivot);
+//                Real abs_squared_u_pivot = AbsSquared(u_pivot);
 //                
 //                const Scal rho (
 //                    COND(
 //                        Scalar::ComplexQ<Scal>
 //                        ,
-//                        ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / std::sqrt(abs_squared_u_pivot)
+//                        ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / Sqrt(abs_squared_u_pivot)
 //                        ,
 //                        ( u_pivot > zero ) ? -one : one
 //                    )
@@ -690,9 +705,9 @@ namespace Tensors
 //                
 //                u[k][k] -= rho * u_norm;
 //                
-//                uu += Scalar::AbsSquared(u[k][k]);
+//                uu += AbsSquared(u[k][k]);
 //                
-//                Real u_norm_inv ( one / std::sqrt( uu ) );
+//                Real u_norm_inv ( one / Sqrt( uu ) );
 //                
 //                for( Int i = k; i < n; ++i )
 //                {

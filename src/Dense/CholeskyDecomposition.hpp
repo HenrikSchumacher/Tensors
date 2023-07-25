@@ -292,7 +292,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scal U_ii_inv = Scalar::Inv<Scal>( U[i][i] );
+                    const Scal U_ii_inv = Inv<Scal>( U[i][i] );
                     
                     LOOP_UNROLL_FULL
                     for( Int k = 0; k < max_rhs; ++k )
@@ -315,7 +315,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scal U_ii_inv = Scalar::Inv<Scal>( U[i][i] );
+                    const Scal U_ii_inv = Inv<Scal>( U[i][i] );
                     
                     LOOP_UNROLL_FULL
                     for( Int k = 0; k < max_rhs; ++k )
@@ -360,7 +360,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scal U_ii_inv = Scalar::Inv<Scal>( U[i][i] );
+                    const Scal U_ii_inv = Inv( U[i][i] );
                     
                     for( Int k = 0; k < nrhs; ++k )
                     {
@@ -381,7 +381,7 @@ namespace Tensors
                         }
                     }
                     
-                    const Scal U_ii_inv = Scalar::Inv<Scal>( U[i][i] );
+                    const Scal U_ii_inv = Inv( U[i][i] );
                     
                     for( Int k = 0; k < nrhs; ++k )
                     {
@@ -411,7 +411,7 @@ namespace Tensors
                 LOOP_UNROLL_FULL
                 for( Int k = 0; k < n; ++k )
                 {
-                    const Scal a = Scalar::Inv<Scal>( std::sqrt(U[k][k]) );
+                    const Scal a = Inv( Sqrt(U[k][k]) );
                     
                     LOOP_UNROLL_FULL
                     for( Int j = k; j < n; ++j )

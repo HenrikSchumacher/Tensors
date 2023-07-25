@@ -16,5 +16,5 @@ public:
     static constexpr Real four        = 4;
     static constexpr Real eps         = Scalar::eps<Scal>;
     static constexpr Real eps_squared = eps * eps;
-    static constexpr Real eps_sqrt    = Sqrt(eps);
+    static constexpr Real eps_sqrt    = cSqrt(eps);
     static constexpr Real infty       = Scalar::Infty<Scal>;

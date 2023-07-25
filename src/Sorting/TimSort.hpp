@@ -89,7 +89,7 @@ namespace Tensors
         
         void operator()( mptr<T> begin, cptr<T> end )
         {
-            operator()( begin, std::max( static_cast<I>(0), static_cast<I>(2)*static_cast<I>(end-begin)) );
+            operator()( begin, Max( static_cast<I>(0), static_cast<I>(2)*static_cast<I>(end-begin)) );
         }
         
         void operator()( mptr<T> a, const I n )
@@ -107,7 +107,7 @@ namespace Tensors
             // Sort individual subarrays of size RUN
             for( I i = 0; i < n; i+=RUN )
             {
-                InsertionSort(a, i, std::min( (i+RUN-1), (n-1)) );
+                InsertionSort(a, i, Min( (i+RUN-1), (n-1)) );
             }
          
             // Start merging from size RUN (or 32).
@@ -127,7 +127,7 @@ namespace Tensors
                     // mid+1 is starting point
                     // of right sub array
                     I m = l + size - 1;
-                    I r = std::min( (l + chunk_size - 1), (n-1) );
+                    I r = Min( (l + chunk_size - 1), (n-1) );
          
                     // merge sub array arr[left.....mid] &
                     // arr[mid+1....right]

@@ -220,8 +220,8 @@ namespace Tensors
                 cptr<ExtInt>  inner_,
                 Int n_, Int thread_count_
             )
-            :   n               ( std::max( izero, n_)               )
-            ,   thread_count    ( std::max( ione, thread_count_)     )
+            :   n               ( Max( izero, n_)               )
+            ,   thread_count    ( Max( ione, thread_count_)     )
             ,   perm            ( n_, thread_count                   ) // use identity permutation
             ,   A               ( outer_, inner_, n, n, thread_count )
             ,   A_inner_perm    ( A.Permute( perm, perm )            )
@@ -237,8 +237,8 @@ namespace Tensors
                 cptr<ExtInt2> p_,
                 Int n_, Int thread_count_
             )
-            :   n               ( std::max( izero, n_)                  )
-            ,   thread_count    ( std::max( ione, thread_count_)        )
+            :   n               ( Max( izero, n_)                  )
+            ,   thread_count    ( Max( ione, thread_count_)        )
             ,   perm            ( p_, n, Inverse::False, thread_count   )
             ,   A               ( outer_, inner_, n, n, thread_count    )
             ,   A_inner_perm    ( A.Permute( perm, perm )               )
@@ -253,8 +253,8 @@ namespace Tensors
                 cptr<ExtInt> inner_,
                 Permutation<Int> && perm_
             )
-            :   n               ( std::max( izero, perm_.Size() )            )
-            ,   thread_count    ( std::max( ione, perm_.ThreadCount())       )
+            :   n               ( Max( izero, perm_.Size() )            )
+            ,   thread_count    ( Max( ione, perm_.ThreadCount())       )
             ,   perm            ( std::move( perm_)                          )
             ,   A               ( outer_, inner_, n, n, perm.ThreadCount()   )
             ,   A_inner_perm    ( A.Permute( perm, perm )                    )

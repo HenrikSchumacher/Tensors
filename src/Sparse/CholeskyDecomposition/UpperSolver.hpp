@@ -145,7 +145,7 @@ namespace Tensors
                             BLAS::gemv<Layout::RowMajor,Op::Trans>(
                                 n_1, nrhs,
                                 -one, X_1, nrhs,
-                                      U_1, 1,        // XXX Problem: We need Scalar::Conj(U_1)!
+                                      U_1, 1,        // XXX Problem: We need Conj(U_1)!
                                  one, X_0, 1
                             );
                         }
@@ -153,9 +153,9 @@ namespace Tensors
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
                         
-                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                        scale_buffer( Inv(U_0[0]), X_0, nrhs );
                         
-//                        BLAS::scal( nrhs, Scalar::Inv<Scal>(U_0[0]), X_0, 1 );
+//                        BLAS::scal( nrhs,Inv(U_0[0]), X_0, 1 );
                     }
                     else // using BLAS3 routines.
                     {

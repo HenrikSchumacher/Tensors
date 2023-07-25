@@ -70,7 +70,7 @@ int main(int argc, const char * argv[])
                      unif(engine);
                  );
             }
-            A_list(k,i,i) = Scalar::Re(A_list(k,i,i));
+            A_list(k,i,i) = Re(A_list(k,i,i));
         }
     }
     toc("Randomize");
@@ -224,7 +224,7 @@ int main(int argc, const char * argv[])
 //
 //            W -= A_mat;
 //
-//            error = std::max(error, W.FrobeniusNorm());
+//            error = Max(error, W.FrobeniusNorm());
 //        }
 //        toc("Check  HessenbergDecomposition");
 //
@@ -261,16 +261,16 @@ int main(int argc, const char * argv[])
             
             C -= A_mat;
             
-            error_0 = std::max( error_0, C.MaxNorm() );
+            error_0 = Max( error_0, C.MaxNorm() );
             
             Dot<Overwrite>(UH,A_mat,B);
             Dot<Overwrite>(B,U,C);
             C -= D;
-            error_1 = std::max( error_1, C.MaxNorm() );
+            error_1 = Max( error_1, C.MaxNorm() );
             
             Dot<Overwrite>(U,UH,C);
             C-=Id;
-            error_2 = std::max( error_2, C.MaxNorm() );
+            error_2 = Max( error_2, C.MaxNorm() );
             
             eigs.Write( eigs_list.data(rep) );
             

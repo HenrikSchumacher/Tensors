@@ -312,14 +312,14 @@ namespace Tensors
                 Real r = 0;
                 for( Int i = 0; i < n; ++i )
                 {
-                    r += Scalar::AbsSquared(v[i]);
+                    r += AbsSquared(v[i]);
                 }
                 return r;
             }
             
             force_inline Real Norm() const
             {
-                return std::sqrt( SquaredNorm() );
+                return Sqrt( SquaredNorm() );
             }
             
             force_inline friend Real Norm( cref<CLASS> u )
@@ -341,7 +341,7 @@ namespace Tensors
                     Real m = v[0];
                     for( Int i = 1; i < n; ++i )
                     {
-                        m = std::min(m,v[i]);
+                        m = Min(m,v[i]);
                     }
                     return m;
                 }
@@ -359,7 +359,7 @@ namespace Tensors
                     Real m = v[0];
                     for( Int i = 1; i < n; ++i )
                     {
-                        m = std::max(m,v[i]);
+                        m = Tools::Max(m,v[i]);
                     }
                     return m;
                 }
@@ -374,10 +374,10 @@ namespace Tensors
             {
                 if constexpr ( n > 0 )
                 {
-                    Real m = std::abs(v[0]);
+                    Real m = Abs(v[0]);
                     for( Int i = 1; i < n; ++i )
                     {
-                        m = std::max(m,std::abs(v[i]));
+                        m = Max(m,Abs(v[i]));
                     }
                     return m;
                 }
@@ -406,7 +406,7 @@ namespace Tensors
                 
                 for( Int i = 0; i < n; ++i )
                 {
-                    r += Scalar::Conj(x.v[i]) * y.v[i];
+                    r += Conj(x.v[i]) * y.v[i];
                 }
                 return r;
             }
@@ -419,11 +419,11 @@ namespace Tensors
                 
                 for( int i = 0; i < n; ++i )
                 {
-                    a += Scalar::Re( Scalar::Conj(u[i]-w[i]) * (u[i]-w[i]) );
-                    b += Scalar::Re( Scalar::Conj(u[i]+w[i]) * (u[i]+w[i]) );
+                    a += Re( Conj(u[i]-w[i]) * (u[i]-w[i]) );
+                    b += Re( Conj(u[i]+w[i]) * (u[i]+w[i]) );
                 }
                 
-                return Scalar::Two<Real> * atan( std::sqrt(a/b) );
+                return Scalar::Two<Real> * atan( Sqrt(a/b) );
             }
             
             force_inline friend Real Angle( cref<CLASS> x, cref<CLASS> y )

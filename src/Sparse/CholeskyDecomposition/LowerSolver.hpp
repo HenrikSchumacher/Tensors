@@ -138,9 +138,9 @@ namespace Tensors
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
                         
-                        scale_buffer( Scalar::Inv<Scal>(U_0[0]), X_0, nrhs );
+                        scale_buffer( Inv(U_0[0]), X_0, nrhs );
                         
-//                        BLAS::scal( nrhs, Scalar::Inv<Scal>(U_0[0]), X_0, 1 );
+//                        BLAS::scal( nrhs, Inv(U_0[0]), X_0, 1 );
                         
                         if( n_1 > izero )
                         {
@@ -166,7 +166,7 @@ namespace Tensors
                             for( LInt i = 0; i < int_cast<LInt>(n_1); ++i )
                             {
                                 combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Zero>(
-                                    - Scalar::Conj(U_1[i]), X_0, Scalar::Zero<Scal>, &X_1[nrhs*i], nrhs
+                                    - Conj(U_1[i]), X_0, Scalar::Zero<Scal>, &X_1[nrhs*i], nrhs
                                 );
                             }
                         }
@@ -242,11 +242,11 @@ namespace Tensors
                                 {
                                     const std::lock_guard<std::mutex> lock ( row_mutexes[row] );
                                     
-                                    X[row] -= Scalar::Conj(U_1[j]) * x_0[0];
+                                    X[row] -= Conj(U_1[j]) * x_0[0];
                                 }
                                 else
                                 {
-                                    X[row] -= Scalar::Conj(U_1[j]) * x_0[0];
+                                    X[row] -= Conj(U_1[j]) * x_0[0];
                                 }
                             }
                         }

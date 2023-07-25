@@ -479,7 +479,7 @@ namespace Tensors
                                     
                                     if constexpr ( conjugate )
                                     {
-                                        B_values[pos] = Scalar::Conj(A_values[k]);
+                                        B_values[pos] = Conj(A_values[k]);
                                     }
                                     else
                                     {

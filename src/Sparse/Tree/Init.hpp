@@ -63,7 +63,7 @@ protected:
                 const Int next_level = node_to_level[node] + 1;
                 
 
-                max_depth = std::max(max_depth, next_level);
+                max_depth = Max(max_depth, next_level);
 
                 Int next_split_level = node_to_split_level[node];
                 

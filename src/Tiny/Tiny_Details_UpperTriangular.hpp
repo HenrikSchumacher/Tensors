@@ -154,7 +154,7 @@ public:
         {
             for( Int j = i; j < n; ++j )
             {
-                B.A[i][j] = Scalar::Conj(A[i][j]);
+                B.A[i][j] = Conj(A[i][j]);
             }
         }
     }
@@ -294,13 +294,27 @@ public:
     {
         Real max = 0;
         
-        for( Int i = 0; i < n; ++i )
+        if constexpr ( Scalar::RealQ<Scal> )
         {
-            for( Int j = i; j < n; ++j )
+            for( Int i = 0; i < n; ++i )
             {
-                max = std::max( max, std::abs(A[i][j]));
+                for( Int j = i; j < n; ++j )
+                {
+                    max = Max( max, Abs(A[i][j]) );
+                }
             }
         }
+        else
+        {
+            for( Int i = 0; i < n; ++i )
+            {
+                for( Int j = i; j < n; ++j )
+                {
+                    max = Max( max, AbsSquared(A[i][j]) );
+                }
+            }
+        }
+
         return max;
     }
 
@@ -312,8 +326,8 @@ public:
         {
             for( Int j = i; j < n; ++j )
             {
-                AA += Scalar::AbsSquared(A[i][j]);
+                AA += AbsSquared(A[i][j]);
             }
         }
-        return std::sqrt(AA);
+        return Sqrt(AA);
     }

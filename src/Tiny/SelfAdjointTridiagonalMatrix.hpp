@@ -75,7 +75,7 @@ namespace Tensors
             
             force_inline Scal Lower( const Int i )
             {
-                return Scalar::Conj(upper[i]);
+                return Conj(upper[i]);
             }
 
             
@@ -167,7 +167,7 @@ namespace Tensors
                 {
                     B[i][i]     = static_cast<T>(diag[i]);
                     B[i  ][i+1] = static_cast<T>(upper[i]);
-                    B[i+1][i  ] = static_cast<T>(Scalar::Conj(upper[i]));
+                    B[i+1][i  ] = static_cast<T>(Conj(upper[i]));
                 }
                 B[n-1][n-1] = static_cast<T>(diag[n-1]);
             }
@@ -216,7 +216,7 @@ namespace Tensors
                 
                 if constexpr ( n >= 3 )
                 {
-                    if( std::abs(upper[0]) < tol * (std::abs(diag[0])+std::abs(diag[1])) )
+                    if( Abs(upper[0]) < tol * (Abs(diag[0])+Abs(diag[1])) )
                     {
                         //Swap first and last row by reverting the dimensions;
 
@@ -253,7 +253,7 @@ namespace Tensors
             >
             QRAlgorithm(
                 Vector<n,S,Int> & eigs,
-                const Real tol = std::sqrt(eps),
+                const Real tol = cSqrt(eps),
                 const Int max_iter = 4
             )
             {
@@ -299,13 +299,13 @@ namespace Tensors
                 //    \         /  \            /  \         /
                 //
                 //  is diagonal.
-                if( std::abs(b_0) > eps * ( std::abs(a_0)+std::abs(a_1) ) )
+                if( Abs(b_0) > eps * ( Abs(a_0)+Abs(a_1) ) )
                 {
                     const Real d = a_0 - a_1;
-                    const Real delta = std::sqrt( d * d + four * b_0 * b_0 );
+                    const Real delta = Sqrt( d * d + four * b_0 * b_0 );
                     
                     const Real s_ = (d + delta) / (two * b_0);
-                    const Real factor = one / std::sqrt(one + s_ * s_);
+                    const Real factor = InvSqrt(one + s_ * s_);
                     
                     const Real c = factor;
                     const Real s = s_ * factor;
@@ -337,10 +337,10 @@ namespace Tensors
 //                //    \         /  \            /  \         /
 //                //
 //                //  is diagonal.
-//                if( std::abs(b_0) > eps * ( std::abs(a_0)+std::abs(a_1) ) )
+//                if( Abs(b_0) > eps * ( Abs(a_0)+Abs(a_1) ) )
 //                {
 //                    const Real d = a_0 - a_1;
-//                    const Real delta = std::sqrt( d * d + four * b_0 * b_0 );
+//                    const Real delta = Sqrt( d * d + four * b_0 * b_0 );
 //
 //                    diag[0]  = half * (a_0 + a_1 - delta);
 //                    diag[1]  = half * (a_0 + a_1 + delta);
@@ -372,11 +372,11 @@ namespace Tensors
                 
                 const Real d_ = half * (diag[m-2] - a);
                 
-                const Real mu = ( std::abs(d_) <= eps * ( std::abs(diag[m-2]) + std::abs(a) ) )
+                const Real mu = ( Abs(d_) <= eps * ( Abs(diag[m-2]) + Abs(a) ) )
                     ?
-                    a - std::abs(b)
+                    a - Abs(b)
                     :
-                    a - b * b / ( d_ + (d_ >= zero ? one : -one ) * std::sqrt( d_ * d_ + b * b ) );
+                    a - b * b / ( d_ + (d_ >= zero ? one : -one ) * Sqrt( d_ * d_ + b * b ) );
                 
                 // Implicit QR step begins here
                 
@@ -393,7 +393,7 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho = std::sqrt(x * x + y * y);
+                    const Real rho = Sqrt(x * x + y * y);
                     
                     if( rho > eps * diag[0] )
                     {
@@ -429,7 +429,7 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho = std::sqrt(x * x + y * y);
+                    const Real rho = Sqrt(x * x + y * y);
                     
                     if( rho > eps * diag[0] )
                     {
@@ -472,7 +472,7 @@ namespace Tensors
                     //    \         /  \     /   \       /
                     //
                     
-                    const Real rho = std::sqrt(x * x + y * y);
+                    const Real rho = Sqrt(x * x + y * y);
                     
                     if( rho > eps * diag[0] )
                     {
@@ -503,7 +503,7 @@ namespace Tensors
                 
                 // Check for possible deflation and do the next iteration.
                 
-                if( std::abs(upper[m-2]) > tol * (std::abs(diag[m-2])+std::abs(diag[m-1])) )
+                if( Abs(upper[m-2]) > tol * (Abs(diag[m-2])+Abs(diag[m-1])) )
                 {
                     if( iter < max_iter )
                     {
@@ -516,8 +516,8 @@ namespace Tensors
                         dump(diag);
                         dump(upper);
 //                        dump(upper_0);
-                        dump(std::abs(upper[m-2]));
-                        dump(tol * (std::abs(diag[m-2])+std::abs(diag[m-1])));
+                        dump(Abs(upper[m-2]));
+                        dump(tol * (Abs(diag[m-2])+Abs(diag[m-1])));
                         
                         
                         // We give up to improve this eigenvalue. Go to the next one.
@@ -563,11 +563,11 @@ namespace Tensors
 //
 //                const Real d_ = half * (diag[m-2] - a);
 //
-//                const Real mu = ( std::abs(d_) <= eps * ( std::abs(diag[m-2]) + std::abs(a) ) )
+//                const Real mu = ( Abs(d_) <= eps * ( Abs(diag[m-2]) + Abs(a) ) )
 //                    ?
-//                    a - std::abs(b)
+//                    a - Abs(b)
 //                    :
-//                    a - b * b / ( d_ + (d_ >= zero ? one : -one ) * std::sqrt( d_ * d_ + b * b ) );
+//                    a - b * b / ( d_ + (d_ >= zero ? one : -one ) * Sqrt( d_ * d_ + b * b ) );
 //
 //                // Implicit QR step begins here
 //
@@ -584,7 +584,7 @@ namespace Tensors
 //                    //    \         /  \     /   \       /
 //                    //
 //
-//                    const Real rho = std::sqrt(x * x + y * y);
+//                    const Real rho = Sqrt(x * x + y * y);
 //
 //                    if( rho > eps * diag[0] )
 //                    {
@@ -617,7 +617,7 @@ namespace Tensors
 //                    //    \         /  \     /   \       /
 //                    //
 //
-//                    const Real rho = std::sqrt(x * x + y * y);
+//                    const Real rho = Sqrt(x * x + y * y);
 //
 //                    if( rho > eps * diag[0] )
 //                    {
@@ -657,7 +657,7 @@ namespace Tensors
 //                    //    \         /  \     /   \       /
 //                    //
 //
-//                    const Real rho = std::sqrt(x * x + y * y);
+//                    const Real rho = Sqrt(x * x + y * y);
 //
 //                    if( rho > eps * diag[0] )
 //                    {
@@ -684,7 +684,7 @@ namespace Tensors
 //
 //
 //                // Check for possible deflation and do the next iteration.
-//                if( std::abs(upper[m-2]) > tol * (std::abs(diag[m-2])+std::abs(diag[m-1])) )
+//                if( Abs(upper[m-2]) > tol * (Abs(diag[m-2])+Abs(diag[m-1])) )
 //                {
 //                    if( iter < max_iter )
 //                    {
@@ -696,8 +696,8 @@ namespace Tensors
 //
 //                        dump(diag);
 //                        dump(upper);
-//                        dump(std::abs(upper[m-2]));
-//                        dump(tol * (std::abs(diag[m-2])+std::abs(diag[m-1])));
+//                        dump(Abs(upper[m-2]));
+//                        dump(tol * (Abs(diag[m-2])+Abs(diag[m-1])));
 //
 //                    }
 //                }
@@ -736,11 +736,11 @@ namespace Tensors
 //
 //                const Real d_ = half * (diag[m-2] - a);
 //
-//                const Real mu = ( std::abs(d_) <= eps * ( std::abs(diag[m-2]) + std::abs(a) ) )
+//                const Real mu = ( Abs(d_) <= eps * ( Abs(diag[m-2]) + Abs(a) ) )
 //                    ?
-//                    a - std::abs(b)
+//                    a - Abs(b)
 //                    :
-//                    a - b * b / ( d_ + (d_ >= zero ? one : -one ) * std::sqrt( d_ * d_ + b * b ) );
+//                    a - b * b / ( d_ + (d_ >= zero ? one : -one ) * Sqrt( d_ * d_ + b * b ) );
 //
 //                // Implicit QR step begins here
 //
@@ -757,7 +757,7 @@ namespace Tensors
 //                    //    \         /  \     /   \       /
 //                    //
 //
-//                    const Real rho = std::sqrt(x * x + y * y);
+//                    const Real rho = Sqrt(x * x + y * y);
 //
 //                    if( rho > eps * diag[0] )
 //                    {
@@ -787,7 +787,7 @@ namespace Tensors
 //                    //    \         /  \     /   \       /
 //                    //
 //
-//                    const Real rho = std::sqrt(x * x + y * y);
+//                    const Real rho = Sqrt(x * x + y * y);
 //
 //                    if( rho > eps * diag[0] )
 //                    {
@@ -824,7 +824,7 @@ namespace Tensors
 //                    //    \         /  \     /   \       /
 //                    //
 //
-//                    const Real rho = std::sqrt(x * x + y * y);
+//                    const Real rho = Sqrt(x * x + y * y);
 //
 //                    if( rho > eps * diag[0] )
 //                    {
@@ -849,7 +849,7 @@ namespace Tensors
 //
 //                // Check for possible deflation and do the next iteration.
 //
-//                if( std::abs(upper[m-2]) > tol * (std::abs(diag[m-2])+std::abs(diag[m-1])) )
+//                if( Abs(upper[m-2]) > tol * (Abs(diag[m-2])+Abs(diag[m-1])) )
 //                {
 //                    if( iter < max_iter )
 //                    {
@@ -861,8 +861,8 @@ namespace Tensors
 //
 //                        dump(diag);
 //                        dump(upper);
-//                        dump(std::abs(upper[m-2]));
-//                        dump(tol * (std::abs(diag[m-2])+std::abs(diag[m-1])));
+//                        dump(Abs(upper[m-2]));
+//                        dump(tol * (Abs(diag[m-2])+Abs(diag[m-1])));
 //
 //
 //                        // We give up to improve this eigenvalue. Go to the next one.

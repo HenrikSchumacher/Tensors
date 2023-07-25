@@ -67,7 +67,7 @@ namespace Tensors {
             {
                 // each thread does the accumulation on its chunk independently
                 const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
-                const Int j_end   = std::min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
+                const Int j_end   = Min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
                 
                 if( j_end > j_begin )
                 {
@@ -113,7 +113,7 @@ namespace Tensors {
                 const LInt correction = S[thread];
                 
                 const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
-                const Int j_end   = std::min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
+                const Int j_end   = Min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
 
                 
                 for( Int i = 0; i < thread_count; ++i )

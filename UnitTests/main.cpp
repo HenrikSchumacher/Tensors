@@ -129,8 +129,8 @@ void test_combine_buffers(
     
     for( Size_T i = 0; i < n ; ++i )
     {
-        max   = std::max( max, std::abs(z_true[i]) );
-        error = std::max(error, std::abs(z[i] - z_true[i]));
+        max   = Max( max, std::abs(z_true[i]) );
+        error = Max(error, std::abs(z[i] - z_true[i]));
     }
     
     if( max > 0 )
