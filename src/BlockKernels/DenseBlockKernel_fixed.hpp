@@ -127,10 +127,12 @@ namespace Tensors
         
         force_inline void ReadA( const LInt k_global )
         {
+            a_from = &A_const[BLOCK_NNZ * k_global];
+            
             // Read matrix.
             if constexpr ( a_copy )
             {
-                a_from = &A_const[BLOCK_NNZ * k_global];
+                
                 
                 if constexpr ( a_RM == a_intRM )
                 {
@@ -140,10 +142,6 @@ namespace Tensors
                 {
                     a.template Read<Op::Trans>( a_from );
                 }
-            }
-            else
-            {
-                a_from = &A_const[BLOCK_NNZ * k_global];
             }
         }
         
@@ -181,14 +179,25 @@ namespace Tensors
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
             
             ReadA( k_global );
-            
-            for( Int j = 0; j < COLS; ++j )
+
+            if constexpr ( a_copy )
             {
-                for( Int i = 0; i < ROWS; ++i )
+                Dot<AddTo>(a,x,y);
+            }
+            else
+            {
+                for( Int j = 0; j < COLS; ++j )
                 {
-                    for( Int k = 0; k < NRHS; ++k )
+                    for( Int i = 0; i < ROWS; ++i )
                     {
-                        y[i][k] += get_a(i,j) * x[j][k];
+//                        combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Plus,NRHS>(
+//                            get_a(i,j), &x[j][0], Scalar::One<Scal>, &y[i][0]
+//                        );
+                        
+                        for( Int k = 0; k < NRHS; ++k )
+                        {
+                            y[i][k] += get_a(i,j) * x[j][k];
+                        }
                     }
                 }
             }

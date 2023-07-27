@@ -195,14 +195,25 @@ private:
             ParallelDo(
                 [&]( const Int thread )
                 {
-                    Tensor1<T,Int> y (nrhs);
+                    std::conditional_t<
+                        NRHS==VarSize,
+                        Tensor1<T,Int>,
+                        Tiny::Vector<NRHS,Scal,Int>
+                    > y;
+                    
+                    if constexpr ( NRHS==VarSize )
+                    {
+                        y = Tensor1<T,Int>( nrhs );
+                    }
+                    
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
                     const LInt last_l = rp[i_end];
                     
-                    const LInt look_ahead = CacheLineWidth / std::max(static_cast<Size_T>(nrhs),NRHS);
+                    const LInt look_ahead = int_cast<LInt>(std::max( Size_T(1), (CacheLineWidth / sizeof(Scal)) / std::max(static_cast<Size_T>(nrhs),NRHS) ));
 
+                    
                     for( Int i = i_begin; i < i_end; ++i )
                     {
                         const LInt l_begin = rp[i  ];

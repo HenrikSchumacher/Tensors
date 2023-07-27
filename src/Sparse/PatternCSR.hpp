@@ -311,7 +311,7 @@ namespace Tensors
             
             void SetThreadCount( const Int thread_count_ )
             {
-                thread_count = Max( static_cast<Int>(1), thread_count_);
+                thread_count = std::max( static_cast<Int>(1), thread_count_);
                 
                 job_ptr_initialized = false;
             }
@@ -1093,6 +1093,11 @@ namespace Tensors
                 inner_sorted = false;
             }
             
+            bool NonzeroPositionQ( const Int i, const Int j ) const
+            {
+                return FindNonzeroPosition( i, j ).found;
+            }
+            
             Sparse::Position<LInt> FindNonzeroPosition( const Int i, const Int j ) const
             {
                 // Looks up the entry {i,j}. If existent, its index within the list of nonzeroes is returned. Otherwise, a negative number is returned (-1 if simply not found and -2 if i is out of bounds).
@@ -1101,6 +1106,8 @@ namespace Tensors
                 BoundCheck(i,j);
 #endif
                 
+                constexpr LInt threshold = 6;
+                
                 if( (0 <= i) && (i < m) )
                 {
                     cptr<Int> inner__ = inner.data();
@@ -1108,8 +1115,18 @@ namespace Tensors
                     LInt L = outer[i  ];
                     LInt R = outer[i+1]-1;
                     
-                    if( inner_sorted )
+                    if( inner_sorted && ( L + threshold > R ) )
                     {
+                        if( j < inner__[L] )
+                        {
+                            return Sparse::Position<LInt>{0, false};
+                        }
+                        
+                        if( j > inner__[R] )
+                        {
+                            return Sparse::Position<LInt>{0, false};
+                        }
+                        
                         while( L < R )
                         {
                             const LInt k = R - (R-L)/static_cast<Int>(2);
@@ -1127,12 +1144,13 @@ namespace Tensors
                     }
                     else
                     {
-                        while( L < R && inner__[L] < j)
+                        while( (L < R) && (inner__[L] < j) )
                         {
                             ++L;
                         }
                         
                     }
+                    
                     return (inner__[L]==j) ? Sparse::Position<LInt> {L, true} : Sparse::Position<LInt>{0, false};
                 }
                 else

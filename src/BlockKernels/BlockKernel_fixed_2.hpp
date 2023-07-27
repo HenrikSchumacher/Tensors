@@ -58,11 +58,9 @@ namespace Tensors
         >;
         
         using x_T = y_T;
-        using z_T = Scal_out;
         
         mutable Tiny::Matrix<COLS,NRHS,x_T,Int> x;
         mutable Tiny::Matrix<ROWS,NRHS,x_T,Int> y;
-        mutable Tiny::Matrix<ROWS,NRHS,z_T,Int> z;
         
         const Int rhs_count = 1;
         const Int rows_size = ROWS;
@@ -175,30 +173,38 @@ namespace Tensors
         
         force_inline void ReadX( const Int j_global ) const
         {
-            cptr<Scal_in> x_from = &X[COLS_SIZE * j_global];
-            
             if constexpr ( x_RM )
             {
-                
-                for( Int j = 0; j < COLS; ++j )
-                {
-                    for( Int k = 0; k < NRHS; ++k )
-                    {
-                        x[j][k] = static_cast<x_T>( x_from[NRHS*j+k] );
-                    }
-                }
+                x.template Read<Op::Id>( &X[COLS_SIZE * j_global] );
             }
             else
             {
-                // Transpose.
-                for( Int k = 0; k < NRHS; ++k )
-                {
-                    for( Int j = 0; j < COLS; ++j )
-                    {
-                        x[j][k] = static_cast<x_T>( x_from[COLS*k+j] );
-                    }
-                }
+                x.template Read<Op::Trans>( &X[COLS_SIZE * j_global] );
             }
+            
+//            cptr<Scal_in> x_from = &X[COLS_SIZE * j_global];
+//
+//            if constexpr ( x_RM )
+//            {
+//                for( Int j = 0; j < COLS; ++j )
+//                {
+//                    for( Int k = 0; k < NRHS; ++k )
+//                    {
+//                        x[j][k] = static_cast<x_T>( x_from[NRHS*j+k] );
+//                    }
+//                }
+//            }
+//            else
+//            {
+//                // Transpose.
+//                for( Int k = 0; k < NRHS; ++k )
+//                {
+//                    for( Int j = 0; j < COLS; ++j )
+//                    {
+//                        x[j][k] = static_cast<x_T>( x_from[COLS*k+j] );
+//                    }
+//                }
+//            }
         }
         
         force_inline void Prefetch( const LInt k_global, const Int j_next ) const
@@ -220,63 +226,15 @@ namespace Tensors
         
     private:
         
-        force_inline void ReadZ( const Int i_global ) const
-        {
-            cptr<Scal_out> y_from = &Y[ROWS_SIZE * i_global];
 
-            if constexpr ( y_RM )
-            {
-                for( Int i = 0; i < ROWS; ++i )
-                {
-                    for( Int j = 0; j < NRHS; ++j )
-                    {
-                        z[i][j] = static_cast<z_T>(y_from[NRHS * i + j]);
-                    }
-                }
-            }
-            else
-            {
-                for( Int j = 0; j < NRHS; ++j )
-                {
-                    for( Int i = 0; i < ROWS; ++i )
-                    {
-                        z[i][j] = static_cast<z_T>(y_from[ROWS *j + i]);
-                    }
-                }
-            }
-        }
-        
-        force_inline void WriteZ( const Int i_global ) const
-        {
-            mptr<Scal_out> y_to = &Y[ROWS_SIZE * i_global];
-            
-            if constexpr ( y_RM )
-            {
-                for( Int i = 0; i < ROWS; ++i )
-                {
-                    for( Int j = 0; j < NRHS; ++j )
-                    {
-                        y_to[NRHS * i + j] = static_cast<Scal_out>(z[i][j]);
-                    }
-                }
-            }
-            else
-            {
-                for( Int j = 0; j < NRHS; ++j )
-                {
-                    for( Int i = 0; i < ROWS; ++i )
-                    {
-                        y_to[ROWS * j + i] = static_cast<Scal_out>(z[i][j]);
-                    }
-                }
-            }
-        }
         
     public:
         
         force_inline void WriteY( const Int i_global ) const
-        {
-            combine_buffers<alpha_flag,beta_flag,ROWS_SIZE>( alpha, y.data(), beta, &Y[ROWS_SIZE * i_global] );
+        {            
+            combine_buffers<alpha_flag,beta_flag,ROWS_SIZE>(
+                alpha, y.data(), beta, &Y[ROWS_SIZE * i_global]
+            );
         }
         
         force_inline void WriteYZero( const Int i_global ) const
@@ -292,9 +250,9 @@ namespace Tensors
             {
                 // do nothing;
             }
-            else
+            else // beta_flag == Generic or beta_flag == Minus
             {
-                scale_buffer<ROWS_SIZE>( y_to );
+                scale_buffer<ROWS_SIZE>( beta, y_to );
             }
         }
 

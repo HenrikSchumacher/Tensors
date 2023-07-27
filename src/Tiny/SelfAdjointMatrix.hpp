@@ -127,9 +127,6 @@ namespace Tensors
                     
                     for( Int i = k+1; i < n; ++i ) // for each row i below k
                     {
-                        // combine_buffers<Scalar::Flag::Generic,Scalar::Flag::One>(
-                        //     -U[k][i], &U[k][i], 1, &U[i][i], n-1
-                        // )
                         for( Int j = i; j < n; ++j )
                         {
                             U[i][j] -= U[k][i] * U[k][j];

@@ -52,9 +52,6 @@ namespace Tensors
         using BASE::y;
         
         using BASE::ReadX;
-//        using BASE::get_x;
-//        using BASE::get_y;
-//        using BASE::rhs_count;
         
     public:
         
@@ -87,22 +84,16 @@ namespace Tensors
                 
         force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            A[BLOCK_NNZ * to] = A[BLOCK_NNZ * from];
+            A[to] = A[from];
         }
         
         force_inline void ApplyBlock( const LInt k_global, const Int j_global )
         {
             ReadX( j_global );
 
-            const Scal a = A_const[BLOCK_NNZ * k_global];
-
-            for( Int j = 0; j < COLS; ++j )
-            {
-                for( Int k = 0; k < NRHS; ++k )
-                {
-                    y[j][k] += a * x[j][k];
-                }
-            }
+            combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Plus,COLS_SIZE>(
+                A_const[k_global], x.data(), Scalar::One<Scal>, y.data()
+            );
         }
         
     public:
