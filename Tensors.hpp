@@ -26,6 +26,7 @@
 
     #include "src/Sorting/TwoArrayQuickSort.hpp"
     #include "src/Sorting/TwoArraySort.hpp"
+    #include "src/Sorting/NextPermutation.hpp"
 
     #include "Tiny.hpp"
     #include "src/TriangleIndexing.hpp"
