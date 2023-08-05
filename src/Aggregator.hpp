@@ -35,15 +35,15 @@ namespace Tensors
 
         explicit Aggregator( const LInt n )
         :   current_size ( Scalar::Zero<LInt>            )
-        ,   capacity     ( Max(Scalar::One<LInt>,n) )
-        ,   container_0  ( Max(Scalar::One<LInt>,n) )
+        ,   capacity     ( std::max(Scalar::One<LInt>,n) )
+        ,   container_0  ( std::max(Scalar::One<LInt>,n) )
         ,   thread_count ( 1                             )
         {}
         
         explicit Aggregator( const LInt n, const Size_T thread_count_ )
         :   current_size ( Scalar::Zero<LInt>            )
-        ,   capacity     ( Max(Scalar::One<LInt>,n) )
-        ,   container_0  ( Max(Scalar::One<LInt>,n) )
+        ,   capacity     ( std::max(Scalar::One<LInt>,n) )
+        ,   container_0  ( std::max(Scalar::One<LInt>,n) )
         ,   thread_count ( thread_count_                 )
         {}
 
@@ -103,7 +103,7 @@ namespace Tensors
         {
             if( current_size + n >= capacity )
             {
-                RequireCapacity( Max( current_size + n, static_cast<LInt>(2) * capacity ) );
+                RequireCapacity( std::max( current_size + n, static_cast<LInt>(2) * capacity ) );
             }
 
             copy_buffer( a, &container_0[current_size], n );

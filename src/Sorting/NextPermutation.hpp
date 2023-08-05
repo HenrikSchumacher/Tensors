@@ -108,7 +108,7 @@ namespace Tensors
             }
         }
         
-        return !pivot_foundQ;
+        return pivot_foundQ;
     }
     
 } // namespace Tensors
