@@ -62,7 +62,6 @@
 		AF1F64DE29337FEF00146E64 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AF1F64DF29337FEF00146E64 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
 		AF1F64E029337FEF00146E64 /* MMA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MMA.h; sourceTree = "<group>"; };
-		AF1F64E129337FEF00146E64 /* Tools */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Tools; sourceTree = "<group>"; };
 		AF1F64E229337FEF00146E64 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AF1F64E42933800900146E64 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		AF41D3E029E557F200B8D6A8 /* scribble.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = scribble.hpp; sourceTree = "<group>"; };
@@ -70,6 +69,7 @@
 		AF8BDDE1295A1FBE001D8CCF /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Tiny.hpp; sourceTree = "<group>"; };
 		AF8BDDE8295CEC08001D8CCF /* MyBLAS.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MyBLAS.hpp; sourceTree = "<group>"; };
+		AF8EE2602A80038100BF6799 /* submodules */ = {isa = PBXFileReference; lastKnownFileType = folder; path = submodules; sourceTree = "<group>"; };
 		AF99BC1629F4432F007CE9D7 /* GMRES.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = GMRES.hpp; sourceTree = "<group>"; };
 		AF99BC1729F7BF3A007CE9D7 /* ConjugateGradient.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ConjugateGradient.hpp; sourceTree = "<group>"; };
 		AF9A9286298E5BF600242813 /* UnitTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UnitTests; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -148,6 +148,7 @@
 			isa = PBXGroup;
 			children = (
 				AF1F64DE29337FEF00146E64 /* LICENSE */,
+				AF8EE2602A80038100BF6799 /* submodules */,
 				AFFB63192A49BB8900F90D2D /* SparseMatrices */,
 				AF1F64E029337FEF00146E64 /* MMA.h */,
 				AF1F64E229337FEF00146E64 /* README.md */,
@@ -159,7 +160,6 @@
 				AF8BDDE8295CEC08001D8CCF /* MyBLAS.hpp */,
 				AF07F1FE2957025400A82341 /* Sparse.hpp */,
 				AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */,
-				AF1F64E129337FEF00146E64 /* Tools */,
 				AFD9EA0A29337F7E00FC8A85 /* QRAlgorithm */,
 				AF8BDDE0295A1FBE001D8CCF /* SparseCholesky */,
 				AF9A9287298E5BF600242813 /* UnitTests */,
