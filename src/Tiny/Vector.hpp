@@ -505,6 +505,15 @@ namespace Tensors
         
 #undef CLASS
         
+        
+        template<typename Scal, typename Int>
+        void Cross( cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v, mref<Vector<3,Scal,Int>> w )
+        {
+            w[0] = u[1] * v[2] - u[2] * v[1];
+            w[1] = u[2] * v[0] - u[0] * v[2];
+            w[2] = u[0] * v[1] - u[1] * v[0];
+        }
+        
     } // namespace Tiny
     
 } // namespace Tensors
