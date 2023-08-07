@@ -354,7 +354,7 @@ namespace Tensors
                     Scal cos;
                     Scal sin;
                     
-                    const Real r = Aqrt( AbsSquared(xi) + AbsSquared(eta) );
+                    const Real r = Sqrt( AbsSquared(xi) + AbsSquared(eta) );
                     
                     if( Abs(xi) <= Scalar::eps<Scal> * r )
                     {
