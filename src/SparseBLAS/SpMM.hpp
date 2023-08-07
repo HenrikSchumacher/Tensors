@@ -198,7 +198,7 @@ private:
                     std::conditional_t<
                         NRHS==VarSize,
                         Tensor1<T,Int>,
-                        Tiny::Vector<NRHS,Scal,Int>
+                        Tiny::Vector<NRHS,T,Int>
                     > y;
                     
                     if constexpr ( NRHS==VarSize )
