@@ -377,7 +377,7 @@ namespace Tensors
                     Real m = Abs(v[0]);
                     for( Int i = 1; i < n; ++i )
                     {
-                        m = Max(m,Abs(v[i]));
+                        m = Tools::Max(m,Abs(v[i]));
                     }
                     return m;
                 }

@@ -299,7 +299,7 @@ namespace Tensors
                     {
                         for( Int j = 0; j < n; ++j )
                         {
-                            max = Max( max, Abs(A[i][j]) );
+                            max = std::max( max, Abs(A[i][j]) );
                         }
                     }
                     return max;
@@ -310,7 +310,7 @@ namespace Tensors
                     {
                         for( Int j = 0; j < n; ++j )
                         {
-                            max = Max( max, AbsSquared(A[i][j]) );
+                            max = std::max( max, AbsSquared(A[i][j]) );
                         }
                     }
                     return Sqrt(max);
