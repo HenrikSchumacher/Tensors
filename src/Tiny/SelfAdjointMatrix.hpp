@@ -224,13 +224,10 @@ namespace Tensors
                 
                 if constexpr ( n == 2 )
                 {
+                    Real diag[2] = { Re(A[0][0]), Re(A[1][1]) };
+                    
                     Real lambda_min = half * (
-                        A[0][0] + A[1][1]
-                        - Sqrt(
-                            Abs(
-                                (A[0][0]-A[1][1])*(A[0][0]-A[1][1]) + four * Conj(A[0][1])*A[0][1]
-                            )
-                        )
+                        diag[0] + diag[1] - Sqrt( AbsSquared( diag[0]-diag[1] ) + four * AbsSquared( A[0][1] ) )
                     );
                     
                     return lambda_min;
@@ -240,34 +237,36 @@ namespace Tensors
                 {
                     Real lambda_min;
                     
-                    const Scal p1 ( Conj(A[0][1]*A[0][1]) + Conj(A[0][2])*A[0][2] + Conj(A[1][2])*A[1][2] );
+                    Real diag [3] = { Re(A[0][0]), Re(A[1][1]), Re(A[2][2]) };
                     
-                    if( Sqrt(p1) < eps * Sqrt( Abs( A[0][0]*A[0][0] + A[1][1]*A[1][1] + A[2][2]*A[2][2])) )
+                    const Real p1 = AbsSquared(A[0][1]) + AbsSquared(A[0][2]) + AbsSquared(A[1][2]);
+                    
+                    if( Sqrt(p1) < eps * Sqrt( AbsSquared(diag[0]) + AbsSquared(diag[1]) + AbsSquared(diag[2])) )
                     {
                         // A is diagonal
-                        lambda_min = Min( A[0][0], Min(A[1][1],A[2][2]) );
+                        lambda_min = Min( diag[0], Min( diag[1], diag[2] ) );
                     }
                     else
                     {
-                        const Scal q         ( ( A[0][0] + A[1][1] + A[2][2] ) / three );
-                        const Scal delta [3] { A[0][0]-q, A[1][1]-q, A[2][2]-q } ;
-                        const Scal p2        ( delta[0]*delta[0] + delta[1]*delta[1] + delta[2]*delta[2] + two*p1 );
-                        const Scal p    ( Sqrt( p2 / static_cast<Scal>(6) ) );
-                        const Scal pinv ( one/p );
-                        const Scal b11  ( delta[0] * pinv );
-                        const Scal b22  ( delta[1] * pinv );
-                        const Scal b33  ( delta[2] * pinv );
+                        const Real q         ( ( diag[0] + diag[1] + diag[2] ) * Scalar::Third<Real> );
+                        const Real delta [3] { diag[0]-q, diag[1]-q, diag[2]-q } ;
+                        const Real p2        ( AbsSquared(delta[0]) + AbsSquared(delta[1]) + AbsSquared(delta[2]) + two * p1 );
+                        const Real p         ( Sqrt( p2 * Scalar::Sixth<Real> ) );
+                        const Real pinv ( one/p );
+                        const Real b11  ( delta[0] * pinv );
+                        const Real b22  ( delta[1] * pinv );
+                        const Real b33  ( delta[2] * pinv );
                         const Scal b12  (  A[0][1] * pinv );
                         const Scal b13  (  A[0][2] * pinv );
                         const Scal b23  (  A[1][2] * pinv );
                         
-                        const Scal r (
-                                half * (two * b12 * b23 * b13 - b11 * b23 * b23 - b12 *b12 * b33 + b11 * b22 * b33 - b13 *b13 * b22)
+                        const Real r (
+                            half * (two * Re( b12 * b23 * Conj(b13) ) - AbsSquared(b23) * b11 - AbsSquared(b13) * b22 - AbsSquared(b12) * b33   + b11 * b22 * b33 )
                         );
                         
                         
-                        const Scal phi (
-                                ( r <= -one )
+                        const Real phi (
+                                ( r <= - one )
                                 ? ( Scalar::Pi<Scal> / three )
                                 : ( ( r >= one ) ? zero : acos(r) / three )
                         );
@@ -278,7 +277,7 @@ namespace Tensors
                         //                    Scal eig2 ( q + two * p * cos( phi + two * pi/ three ) );
                         //                    Scal eig1 ( three * q - eig0 - eig2 );
                         
-                        lambda_min = q + two * p * cos( phi + two * Scalar::Pi<Scal> / three );
+                        lambda_min = Re( q + two * p * cos( phi + two * Scalar::Pi<Scal> / three ) );
                     }
                     
                     return lambda_min;
@@ -688,7 +687,7 @@ namespace Tensors
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
                 
                 Matrix<n,n,Scal,Int> V;
-                Matrix<n,n,Real,  Int> Q;
+                Matrix<n,n,Real,Int> Q;
                 
                 HessenbergDecomposition(V,T);
 
