@@ -220,8 +220,8 @@ namespace Tensors
                 cptr<ExtInt>  inner_,
                 Int n_, Int thread_count_
             )
-            :   n               ( Max( izero, n_)               )
-            ,   thread_count    ( Max( ione, thread_count_)     )
+            :   n               ( Max( izero, n_)                    )
+            ,   thread_count    ( Max( ione, thread_count_)          )
             ,   perm            ( n_, thread_count                   ) // use identity permutation
             ,   A               ( outer_, inner_, n, n, thread_count )
             ,   A_inner_perm    ( A.Permute( perm, perm )            )
@@ -237,12 +237,12 @@ namespace Tensors
                 cptr<ExtInt2> p_,
                 Int n_, Int thread_count_
             )
-            :   n               ( Max( izero, n_)                  )
-            ,   thread_count    ( Max( ione, thread_count_)        )
-            ,   perm            ( p_, n, Inverse::False, thread_count   )
-            ,   A               ( outer_, inner_, n, n, thread_count    )
-            ,   A_inner_perm    ( A.Permute( perm, perm )               )
-            ,   A_val           ( outer_[n]                             )
+            :   n               ( Max( izero, n_)                     )
+            ,   thread_count    ( Max( ione, thread_count_)           )
+            ,   perm            ( p_, n, Inverse::False, thread_count )
+            ,   A               ( outer_, inner_, n, n, thread_count  )
+            ,   A_inner_perm    ( A.Permute( perm, perm )             )
+            ,   A_val           ( outer_[n]                           )
             {
                 Init();
             }
@@ -250,11 +250,11 @@ namespace Tensors
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
                 cptr<ExtLInt> outer_,
-                cptr<ExtInt> inner_,
+                cptr<ExtInt>  inner_,
                 Permutation<Int> && perm_
             )
-            :   n               ( Max( izero, perm_.Size() )            )
-            ,   thread_count    ( Max( ione, perm_.ThreadCount())       )
+            :   n               ( Max( izero, perm_.Size() )                 )
+            ,   thread_count    ( Max( ione, perm_.ThreadCount())            )
             ,   perm            ( std::move( perm_)                          )
             ,   A               ( outer_, inner_, n, n, perm.ThreadCount()   )
             ,   A_inner_perm    ( A.Permute( perm, perm )                    )

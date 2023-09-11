@@ -341,7 +341,7 @@ namespace Tensors
                     Real m = v[0];
                     for( Int i = 1; i < n; ++i )
                     {
-                        m = Min(m,v[i]);
+                        m = Tools::Min(m,v[i]);
                     }
                     return m;
                 }

@@ -511,7 +511,7 @@ namespace Tensors
                     }
                     else
                     {
-                        eprint(ClassName()+"::qr_algorithm for m = " + Tools::ToString(m)+ ": Failed to improve after max_iter = " + Tools::ToString(max_iter) + " iterations.");
+                        wprint(ClassName()+"::qr_algorithm for m = " + Tools::ToString(m)+ ": Failed to converge after max_iter = " + Tools::ToString(max_iter) + " iterations.");
                         
                         dump(diag);
                         dump(upper);
