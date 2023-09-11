@@ -24,7 +24,7 @@ namespace Tensors
         iota_buffer<N,Sequential>( perm, n );
         
         Sort( perm, &perm[n],
-            [=]( Int i, Int j ) -> bool
+            [=]( const Int i, const Int j ) -> bool
             {
                 return comp( key[i], key[j] );
             }

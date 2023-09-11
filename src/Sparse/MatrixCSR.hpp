@@ -314,7 +314,7 @@ namespace Tensors
                     idx, jdx, entry_counts, list_count, m, symmetrize
                 );
                 
-                const LInt nnz = counters(list_count-1,m-1);
+                const LInt nnz = counters[list_count-1][m-1];
                 
                 if( nnz > 0 )
                 {
