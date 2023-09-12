@@ -421,6 +421,28 @@ namespace Tensors
                 return values;
             }
             
+            mref<Scal> Value( const LInt k )
+            {
+#ifdef TOOLS_DEBUG
+                if( k < 0 || k >= values.Size() )
+                {
+                    eprint(ClassName()+"::Value(): Out of bound access.");
+                }
+#endif
+                return values[k];
+            }
+            
+            cref<Scal> Value( const LInt k ) const
+            {
+#ifdef TOOLS_DEBUG
+                if( k < 0 || k >= values.Size() )
+                {
+                    eprint(ClassName()+"::Value(): Out of bound access.");
+                }
+#endif
+                return values[k];
+            }
+            
             
             Scal operator()( const Int i, const Int j ) const
             {
