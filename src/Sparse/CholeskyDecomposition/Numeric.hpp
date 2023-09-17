@@ -49,8 +49,6 @@ public:
         ptoc(tag + ": Initialize factorizers");
         
         
-        dump(thread_count);
-        
         // Parallel traversal in postorder
         aTree.template Traverse_Postordered<Parallel>( SN_list  );
         

@@ -333,7 +333,7 @@ namespace Tensors
                 const Int nrhs = 1
             ) const
             {
-                Dot_<NRHS>( alpha, X, ldX, beta, Y, ldY, nrhs );
+                this->template Dot_<NRHS>( alpha, X, ldX, beta, Y, ldY, nrhs );
             }
             
             // Assume all nonzeros are equal to 1.
