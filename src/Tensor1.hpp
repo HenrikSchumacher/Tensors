@@ -226,20 +226,20 @@ namespace Tensors
         
     }; // Tensor1
     
-    template<typename Scal, typename Int>
-    Tensor1<Scal,Int> iota( const Int size_ )
+    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment>
+    Tensor1<Scal,Int,alignment> iota( const Int size_ )
     {
-        auto v = Tensor1<Scal,Int>(size_);
+        Tensor1<Scal,Int,alignment> v (size_);
         
         v.iota();
         
         return v;
     }
     
-    template<typename Scal, typename Int, typename S>
-    Tensor1<Scal,Int> ToTensor1( mptr<S> a_, const Int d0 )
+    template<typename Scal, typename Int, typename S, Size_T alignment = DefaultAlignment>
+    Tensor1<Scal,Int,alignment> ToTensor1( mptr<S> a_, const Int d0 )
     {
-        Tensor1<Scal,Int> result (d0);
+        Tensor1<Scal,Int,alignment> result (d0);
 
         result.Read(a_);
         
@@ -248,16 +248,16 @@ namespace Tensors
     
 #ifdef LTEMPLATE_H
     
-    template<typename Scal, typename Int>
-    Tensor1<Scal,Int> from_VectorRef( cref<mma::TensorRef<mreal>> A )
+    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment>
+    Tensor1<Scal,Int,alignment> from_VectorRef( cref<mma::TensorRef<mreal>> A )
     {
-        return ToTensor1<Scal,Int>( A.data(), A.dimensions()[0] );
+        return ToTensor1<Scal,Int,alignment>( A.data(), A.dimensions()[0] );
     }
     
-    template<typename Scal, typename Int>
-    Tensor1<Scal,Int> from_VectorRef( cref<mma::TensorRef<mint>> A )
+    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment>
+    Tensor1<Scal,Int,alignment> from_VectorRef( cref<mma::TensorRef<mint>> A )
     {
-        return ToTensor1<Scal,Int>( A.data(), A.dimensions()[0] );
+        return ToTensor1<Scal,Int,alignment>( A.data(), A.dimensions()[0] );
     }
     
 #endif

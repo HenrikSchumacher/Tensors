@@ -50,21 +50,50 @@ public:
         Read(other.a);
     }
 
-    inline friend void swap(mref<TENSOR_T> A, mref<TENSOR_T> B) noexcept
+    inline friend void swap( TENSOR_T & A, TENSOR_T & B) noexcept
     {
-        //    logprint(A.ClassName()+": Swap");
+        logprint(A.ClassName()+": swap");
         // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
         using std::swap;
-        std::swap_ranges( &A.dims[0], &A.dims[Rank()], &B.dims[0] );
+        
+        if( &A == &B )
+        {
+            wprint("An object of type " + ClassName() + " has been swapped to itself.");
+            logdump(A);
+            logdump(B);
+        }
+        
+        logprint("a");
+        logdump( Rank() );
+        logdump( &A.dims[0] );
+//        logdump( &A.dims[Rank()] );
+        logdump( &B.dims[0] );
+        
+        logprint("b");
+        
+//        std::swap_ranges( &A.dims[0], &A.dims[Rank()], &B.dims[0] );
+        
+        for( Int i = 0; i < Rank(); ++i )
+        {
+            std::swap( A.dims[i], B.dims[i] );
+        }
+        
+        logprint("c");
+        
         swap( A.n, B.n );
+        
+        logprint("d");
+        
         swap( A.a, B.a );
+        
+        logprint("e");
     }
 
     // Move constructor
     TENSOR_T( TENSOR_T && other ) noexcept
     :   TENSOR_T()
     {
-        //    logprint(other.ClassName()+": Move");
+        logprint(other.ClassName()+": Move-constructor");
         swap(*this, other);
     }
 
@@ -72,12 +101,17 @@ public:
     /* Move-assignment operator */
     mref<TENSOR_T> operator=( TENSOR_T && other ) noexcept
     {
-        //    print(other.ClassName()+": Move-assign");
+        logprint(other.ClassName()+": Move-assign");
         if( this == &other )
         {
-            wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
+            wprint("An object of type " + ClassName() + " has been move-assigned to itself.");
+            logdump(*this);
+            logdump(other);
         }
-        swap( *this, other );
+        else
+        {
+            swap( *this, other );
+        }
         return *this;
     }
 
@@ -86,14 +120,14 @@ public:
     {
         if( this != &other )
         {
-            //        logprint(other.ClassName()+": Copy-assignment of size "+Tools::ToString( other.n ));
+            logprint(other.ClassName()+": Copy-assignment of size "+Tools::ToString( other.n ));
             
             if( dims != other.dims )
             {
                 n    = other.n;
                 dims = other.dims;
                 
-                //            logprint(other.ClassName()+": Reallocation of size "+Tools::ToString( n ) );
+                logprint(other.ClassName()+": Reallocation of size "+Tools::ToString( n ) );
                 
                 safe_free(a);
                 allocate();

@@ -69,7 +69,7 @@ namespace Tensors
                 }
             }
             
-            friend void swap(MatrixList &X, MatrixList &Y)
+            friend void swap( MatrixList & X, MatrixList & Y )
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;

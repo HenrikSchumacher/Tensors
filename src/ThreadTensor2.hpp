@@ -113,7 +113,7 @@ namespace Tensors
             );
         }
         
-        friend void swap(ThreadTensor2 &A, ThreadTensor2 &B) noexcept
+        friend void swap( ThreadTensor2 & A, ThreadTensor2 & B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;

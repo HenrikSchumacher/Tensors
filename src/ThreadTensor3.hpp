@@ -132,7 +132,7 @@ namespace Tensors {
 //            );
 //        }
         
-        friend void swap( mref<ThreadTensor3> A, mref<ThreadTensor3> B) noexcept
+        friend void swap( ThreadTensor3 & A, ThreadTensor3 & B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;

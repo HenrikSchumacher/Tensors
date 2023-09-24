@@ -74,7 +74,7 @@ namespace Tensors
                 }
             }
             
-            friend void swap( mref<VectorList> A, mref<VectorList> B)
+            friend void swap( VectorList & A, VectorList & B)
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;

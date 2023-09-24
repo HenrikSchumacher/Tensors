@@ -136,7 +136,7 @@ namespace Tensors
                 logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
             }
             
-            friend void swap( BinaryMatrixCSR &A, BinaryMatrixCSR & B ) noexcept
+            friend void swap( BinaryMatrixCSR & A, BinaryMatrixCSR & B ) noexcept
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
