@@ -267,7 +267,7 @@ namespace Tensors
                 
                 if constexpr ( n == 2 )
                 {
-                    qr_algorithm_2x2<false>(Q);
+                    qr_algorithm_2x2<false>();
                     
                     eigs[0] = diag[0];
                     eigs[1] = diag[1];
