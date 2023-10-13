@@ -220,7 +220,7 @@ namespace Tensors
         
         void Resize( const Int d_0_, const Int d_1_ )
         {
-            ptic(ClassName() + "::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
+//            ptic(ClassName() + "::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
             
             const Int d_0 = std::max( static_cast<Int>(0), d_0_ );
             const Int d_1 = std::max( static_cast<Int>(0), d_1_ );
@@ -237,7 +237,7 @@ namespace Tensors
             
             swap( *this, b );
             
-            ptoc(ClassName()+"::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
+//            ptoc(ClassName()+"::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
         }
         
         static std::string ClassName()
