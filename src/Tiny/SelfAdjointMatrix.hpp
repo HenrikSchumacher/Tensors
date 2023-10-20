@@ -215,7 +215,7 @@ namespace Tensors
                 }
             }
             
-            Real SmallestEigenvalue() const
+            Real SmallestEigenvalue( const Real tol = eps, const Int max_iter = 16 ) const
             {
                 if constexpr ( n == 1 )
                 {
@@ -287,7 +287,7 @@ namespace Tensors
                 {
                     Vector<n,Real,Int> v;
     
-                    Eigenvalues(v);
+                    Eigenvalues(v, tol, max_iter );
                     
                     return v.Min();
                 }
@@ -667,7 +667,11 @@ namespace Tensors
                 }
             }
             
-            void Eigenvalues( Vector<n,Real,Int> & eigs, const Real tol = eps_sqrt, const Int max_iter = 8 ) const
+            void Eigenvalues( 
+                Vector<n,Real,Int> & eigs,
+                const Real tol      = eps,
+                const Int  max_iter = 16
+            ) const
             {
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
                 
@@ -679,9 +683,9 @@ namespace Tensors
             
             void Eigensystem(
                 Matrix<n,n,Scal,Int> & U,
-                Vector <n,   Real,Int> & eigs,
-                const Real tol      = eps_sqrt,
-                const Int  max_iter = 8
+                Vector<n,  Real,Int> & eigs,
+                const Real tol      = eps,
+                const Int  max_iter = 16
             ) const
             {
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
