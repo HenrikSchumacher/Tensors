@@ -1,24 +1,7 @@
 #pragma once
 
-#ifndef LAPACK_dpotrf
-    #define LAPACK_dpotrf dpotrf_
-#endif
-
-#ifndef LAPACK_spotrf
-    #define LAPACK_spotrf spotrf_
-#endif
-
-#ifndef LAPACK_zpotrf
-    #define LAPACK_zpotrf zpotrf_
-#endif
-
-#ifndef LAPACK_cpotrf
-    #define LAPACK_cpotrf cpotrf_
-#endif
-
 namespace Tensors
 {
-
     namespace LAPACK
     {
         template<Layout layout, UpLo uplo, typename Scal, typename I0, typename I1>
@@ -43,19 +26,35 @@ namespace Tensors
             
             if constexpr ( SameQ<Scal,double> )
             {
-                LAPACK_dpotrf( &flag, &n, A, &ldA, &info );
+                #if defined LAPACK_dpotrf
+                    LAPACK_dpotrf( &flag, &n, A, &ldA, &info );
+                #else
+                    dpotrf_( &flag, &n, A, &ldA, &info );
+                #endif
             }
             else if constexpr ( SameQ<Scal,float> )
             {
-                LAPACK_spotrf( &flag, &n, A, &ldA, &info );
+                #if defined LAPACK_spotrf
+                    LAPACK_spotrf( &flag, &n, A, &ldA, &info );
+                #else
+                    spotrf_( &flag, &n, A, &ldA, &info );
+                #endif
             }
             else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
-                LAPACK_zpotrf( &flag, &n, A, &ldA, &info );
+                #if defined LAPACK_zpotrf
+                    LAPACK_zpotrf( &flag, &n, A, &ldA, &info );
+                #else
+                    zpotrf_( &flag, &n, A, &ldA, &info );
+                #endif
             }
             else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
-                LAPACK_cpotrf( &flag, &n, A, &ldA, &info );
+                #if defined LAPACK_cpotrf
+                    LAPACK_cpotrf( &flag, &n, A, &ldA, &info );
+                #else
+                    cpotrf_( &flag, &n, A, &ldA, &info );
+                #endif
             }
             else
             {
@@ -68,52 +67,3 @@ namespace Tensors
     } // namespace LAPACK
     
 } // namespace Tensors
-
-
-
-//#pragma once
-//
-//namespace Tensors
-//{
-//
-//    namespace LAPACK
-//    {
-//        template<Layout layout, UpLo uplo, typename Scal, typename I0, typename I1>
-//        force_inline int potrf( const I0 n_, Scal * A, const I1 ldA_ )
-//        {
-//            ASSERT_INT(I0);
-//            ASSERT_INT(I1);
-//
-//            int n    = int_cast<int>(n_);
-//            int ldA  = int_cast<int>(ldA_);
-//
-//            assert_positive(n);
-//            assert_positive(ldA);
-//
-//            if constexpr ( SameQ<Scal,double> )
-//            {
-//                return LAPACKE_dpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
-//            }
-//            else if constexpr ( SameQ<Scal,float> )
-//            {
-//                return LAPACKE_spotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
-//            }
-//            else if constexpr ( SameQ<Scal,std::complex<double>> )
-//            {
-//                return LAPACKE_zpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
-//            }
-//            else if constexpr ( SameQ<Scal,std::complex<float>> )
-//            {
-//                return LAPACKE_cpotrf( to_LAPACK(layout), to_LAPACK(uplo), n, A, ldA );
-//            }
-//            else
-//            {
-//                eprint("hetrf not defined for scalar type " + TypeName<Scal> );
-//            }
-//
-//        }
-//
-//    } // namespace LAPACK
-//
-//} // namespace Tensors
-//
