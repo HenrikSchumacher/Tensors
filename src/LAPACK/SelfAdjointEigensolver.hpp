@@ -60,8 +60,7 @@ namespace Tensors
             template< typename I0, typename I1, typename I2>
             int Eigensystem( const I0 n_, mptr<Scal> A_, const I1 ldA_, mptr<Scalar::Real<Scal>> eigs_, mptr<Scal> Q_, const I2 ldQ )
             {
-                // Returns Q and eigs such that
-                // ConjugateTranspose(Q) * A * Q == Diagona(eigs);
+                // Returns Q and eigs such that ConjugateTranspose(Q) * A * Q == Diagona(eigs);
                 
                 ASSERT_INT(I0);
                 ASSERT_INT(I1);
