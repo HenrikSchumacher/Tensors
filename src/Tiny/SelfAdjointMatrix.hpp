@@ -235,8 +235,8 @@ namespace Tensors
                 
                 if constexpr ( n == 3 )
                 {
-                    constexpr Scal Pi_Third     = Scalar::Pi<Scal> * Scalar::Third<Scal>;
-                    constexpr Scal Pi_Two_Third = Scalar::Two<Scal> * Pi_Third;
+                    constexpr Real Pi_Third = Scalar::Pi<Real> * Scalar::Third<Real>;
+                    constexpr Real Pi_Two_Third = two * Pi_Third;
                     
                     Real lambda_min;
                     
@@ -244,7 +244,7 @@ namespace Tensors
                     
                     const Real p1 = AbsSquared(A[0][1]) + AbsSquared(A[0][2]) + AbsSquared(A[1][2]);
                     
-                    if( p1 < eps_squared * AbsSquared(diag[0]) + AbsSquared(diag[1]) + AbsSquared(diag[2]))
+                    if( p1 < eps_squared * ( AbsSquared(diag[0]) + AbsSquared(diag[1]) + AbsSquared(diag[2])) )
                     {
                         // A is diagonal
                         lambda_min = Min( diag[0], Min( diag[1], diag[2] ) );
@@ -263,21 +263,16 @@ namespace Tensors
                         const Scal b13  (  A[0][2] * pinv );
                         const Scal b23  (  A[1][2] * pinv );
                         
-                        const Real r (
-                            half * (two * Re( b12 * b23 * Conj(b13) ) - AbsSquared(b23) * b11 - AbsSquared(b13) * b22 - AbsSquared(b12) * b33   + b11 * b22 * b33 )
-                        );
+                        const Real r = half * (two * Re( b12 * b23 * Conj(b13) ) - AbsSquared(b23) * b11 - AbsSquared(b13) * b22 - AbsSquared(b12) * b33 + b11 * b22 * b33 );
                         
                         
-                        const Real phi (
-                                ( r <= - one )
-                                ? ( Pi_Third )
-                                : ( ( r >= one ) ? zero : acos(r) * Scalar::Third<Scal> )
-                        );
+                        const Real phi = ( r <= - one ) ? Pi_Third : ( ( r >= one ) ? zero : acos(r) * Scalar::Third<Real> );
+                        
                         
                         // The eigenvalues are ordered this way: eig2 <= eig1 <= eig0.
                         
                         //                    Scal eig0 ( q + two * p * cos( phi ) );
-                        //                    Scal eig2 ( q + two * p * cos( phi + two * pi/ three ) );
+                        //                    Scal eig2 ( q + two * p * cos( phi + Pi_Two_Third ) );
                         //                    Scal eig1 ( three * q - eig0 - eig2 );
                         
                         lambda_min = Re( q + two * p * cos( phi + Pi_Two_Third ) );

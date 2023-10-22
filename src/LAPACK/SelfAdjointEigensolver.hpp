@@ -48,7 +48,7 @@ namespace Tensors
                 n    = int_cast<int>(n_);
                 ldA  = int_cast<int>(ldA_);
                 
-                int info = Prepare( 'N', A_, eigs_ );
+                int info = Prepare( 'N', A_ );
                 
                 info = heev( 'N');
                 
