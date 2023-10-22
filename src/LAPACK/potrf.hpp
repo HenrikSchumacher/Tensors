@@ -20,7 +20,6 @@ namespace Tensors
                 : ( uplo == UpLo::Upper ) ? UpLo::Lower : UpLo::Upper
             );
             
-            
             assert_positive(n);
             assert_positive(ldA);
             
