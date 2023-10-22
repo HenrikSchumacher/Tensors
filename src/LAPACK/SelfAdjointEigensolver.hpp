@@ -57,8 +57,8 @@ namespace Tensors
                 return info;
             }
             
-            template< typename I0, typename I1, typename I2>
-            int Eigensystem( const I0 n_, mptr<Scal> A_, const I1 ldA_, mptr<Scalar::Real<Scal>> eigs_, mptr<Scal> Q_, const I2 ldQ )
+            template< typename S, typename I0, typename I1, typename I2>
+            int Eigensystem( const I0 n_, mptr<S> A_, const I1 ldA_, mptr<Scalar::Real<S>> eigs_, mptr<S> Q_, const I2 ldQ )
             {
                 // Returns Q and eigs such that ConjugateTranspose(Q) * A * Q == Diagona(eigs);
                 
@@ -90,7 +90,8 @@ namespace Tensors
         private:
             
             
-            force_inline int Prepare( char job, mptr<Scal> A_ )
+            template< typename S>
+            force_inline int Prepare( char job, mptr<S> A_ )
             {
                 assert_positive(n);
                 assert_positive(ldA);
