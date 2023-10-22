@@ -285,7 +285,6 @@ namespace Tensors
                     {
                         ++b;
                     }
-
                     
                     if( ( !first_call) && (a == begin) && (b == end) )
                     {
@@ -362,12 +361,14 @@ namespace Tensors
                 // Performs the implicit QR algorithm in the block A[begin..end-1][begin..end-1].
                 // Assumes that end > begin + 2 (otherwise we would have called qr_algorithm_2x2(begin) or stopped.
                 
+//                const Real mu = SmallestEigenvalue_3x3(end-3);
+                
                 // Compute Wilkinson’s shift mu
                 const Real a = diag [end-1];
                 const Real b = upper[end-2];
-                
+
                 const Real d_ = half * (diag[end-2] - a);
-                
+
                 const Real mu = ( Abs(d_) <= eps * ( Abs(diag[end-2]) + Abs(a) ) )
                     ?
                     a - Abs(b)
@@ -518,6 +519,43 @@ namespace Tensors
                         qr_find_blocks<track_rotationsQ>( begin, end-1, tol, max_iter, true );
                     }
                 }
+            }
+            
+            force_inline Real SmallestEigenvalue_3x3( const Int k ) const
+            {
+                constexpr Scal Pi_Third     = Scalar::Pi<Scal> * Scalar::Third<Scal>;
+                constexpr Scal Pi_Two_Third = Scalar::Two<Scal> * Pi_Third;
+                
+                Real lambda_min;
+                
+                Real diag_ [3] = { Re(diag[k]), Re(diag[k+1]), Re(diag[k+2]) };
+                
+                const Real p1 = AbsSquared(upper[0]) + AbsSquared(upper[1]);
+                
+                const Real q         ( ( diag_[0] + diag_[1] + diag_[2] ) * Scalar::Third<Real> );
+                const Real delta [3] { diag_[0]-q, diag_[1]-q, diag_[2]-q } ;
+                const Real p2        ( AbsSquared(delta[0]) + AbsSquared(delta[1]) + AbsSquared(delta[2]) + two * p1 );
+                const Real p         ( Sqrt( p2 * Scalar::Sixth<Real> ) );
+                const Real pinv ( Inv(p) );
+                const Real b11  ( delta[0] * pinv );
+                const Real b22  ( delta[1] * pinv );
+                const Real b33  ( delta[2] * pinv );
+                const Scal b12  ( upper[0] * pinv );
+                const Scal b23  ( upper[1] * pinv );
+                
+                const Real r (
+                    half * (- AbsSquared(b23) * b11 - AbsSquared(b12) * b33 + b11 * b22 * b33 )
+                );
+                
+                const Real phi (
+                        ( r <= - one )
+                        ? ( Pi_Third )
+                        : ( ( r >= one ) ? zero : acos(r) * Scalar::Third<Scal> )
+                );
+                
+                lambda_min = Re( q + two * p * cos( phi + Pi_Two_Third ) );
+                
+                return lambda_min;
             }
             
         public:

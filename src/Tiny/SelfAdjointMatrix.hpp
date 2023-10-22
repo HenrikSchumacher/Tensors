@@ -235,13 +235,16 @@ namespace Tensors
                 
                 if constexpr ( n == 3 )
                 {
+                    constexpr Scal Pi_Third     = Scalar::Pi<Scal> * Scalar::Third<Scal>;
+                    constexpr Scal Pi_Two_Third = Scalar::Two<Scal> * Pi_Third;
+                    
                     Real lambda_min;
                     
                     Real diag [3] = { Re(A[0][0]), Re(A[1][1]), Re(A[2][2]) };
                     
                     const Real p1 = AbsSquared(A[0][1]) + AbsSquared(A[0][2]) + AbsSquared(A[1][2]);
                     
-                    if( Sqrt(p1) < eps * Sqrt( AbsSquared(diag[0]) + AbsSquared(diag[1]) + AbsSquared(diag[2])) )
+                    if( p1 < eps_squared * AbsSquared(diag[0]) + AbsSquared(diag[1]) + AbsSquared(diag[2]))
                     {
                         // A is diagonal
                         lambda_min = Min( diag[0], Min( diag[1], diag[2] ) );
@@ -252,7 +255,7 @@ namespace Tensors
                         const Real delta [3] { diag[0]-q, diag[1]-q, diag[2]-q } ;
                         const Real p2        ( AbsSquared(delta[0]) + AbsSquared(delta[1]) + AbsSquared(delta[2]) + two * p1 );
                         const Real p         ( Sqrt( p2 * Scalar::Sixth<Real> ) );
-                        const Real pinv ( one/p );
+                        const Real pinv ( Inv(p) );
                         const Real b11  ( delta[0] * pinv );
                         const Real b22  ( delta[1] * pinv );
                         const Real b33  ( delta[2] * pinv );
@@ -267,8 +270,8 @@ namespace Tensors
                         
                         const Real phi (
                                 ( r <= - one )
-                                ? ( Scalar::Pi<Scal> / three )
-                                : ( ( r >= one ) ? zero : acos(r) / three )
+                                ? ( Pi_Third )
+                                : ( ( r >= one ) ? zero : acos(r) * Scalar::Third<Scal> )
                         );
                         
                         // The eigenvalues are ordered this way: eig2 <= eig1 <= eig0.
@@ -277,7 +280,7 @@ namespace Tensors
                         //                    Scal eig2 ( q + two * p * cos( phi + two * pi/ three ) );
                         //                    Scal eig1 ( three * q - eig0 - eig2 );
                         
-                        lambda_min = Re( q + two * p * cos( phi + two * Scalar::Pi<Scal> / three ) );
+                        lambda_min = Re( q + two * p * cos( phi + Pi_Two_Third ) );
                     }
                     
                     return lambda_min;
@@ -690,7 +693,6 @@ namespace Tensors
             {
                 // Returns U and eigs such that
                 // ConjugateTranspose(U) * A * U == Diagona(eigs);
-                
                 
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
                 
