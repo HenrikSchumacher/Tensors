@@ -167,7 +167,6 @@ namespace Tensors
 
                 return info;
             }
-            
         };
         
         
