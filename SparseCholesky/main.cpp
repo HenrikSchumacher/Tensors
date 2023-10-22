@@ -18,9 +18,9 @@
 
 #include "../src/Sparse/Metis.hpp"
 
-#include "../src/CHOLMOD/CholeskyDecomposition.hpp"
-#include "../src/CHOLMOD/ApproximateMinimumDegree.hpp"
-#include "../src/CHOLMOD/NestedDissection.hpp"
+//#include "../src/CHOLMOD/CholeskyDecomposition.hpp"
+//#include "../src/CHOLMOD/ApproximateMinimumDegree.hpp"
+//#include "../src/CHOLMOD/NestedDissection.hpp"
 
 using namespace Tools;
 using namespace Tensors;

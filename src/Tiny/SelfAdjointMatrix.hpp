@@ -688,6 +688,10 @@ namespace Tensors
                 const Int  max_iter = 16
             ) const
             {
+                // Returns U and eigs such that
+                // ConjugateTranspose(U) * A * U == Diagona(eigs);
+                
+                
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
                 
                 Matrix<n,n,Scal,Int> V;

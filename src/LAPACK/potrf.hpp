@@ -14,7 +14,7 @@ namespace Tensors
             int ldA  = int_cast<int>(ldA_);
             int info = 0;
             
-            char flag = to_LAPACK(
+            constexpr char flag = to_LAPACK(
                 layout == Layout::ColMajor
                 ? uplo
                 : ( uplo == UpLo::Upper ) ? UpLo::Lower : UpLo::Upper

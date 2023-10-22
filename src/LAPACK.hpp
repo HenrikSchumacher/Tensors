@@ -51,3 +51,5 @@ namespace Tensors
 
 #include "LAPACK/potrf.hpp"
 
+#include "LAPACK/SelfAdjointEigensolver.hpp"
+

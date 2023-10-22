@@ -161,6 +161,7 @@ public:
     {
         copy_buffer( a, a_, static_cast<Size_T>(n) );
     }
+
     template<typename S>
     void WriteParallel( mptr<S> a_, const Size_T thread_count ) const
     {

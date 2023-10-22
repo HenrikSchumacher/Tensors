@@ -44,6 +44,7 @@ namespace Tensors
             return static_cast<Int>(2);
         }
         
+        
         template<bool row_first = false, typename S>
         void WriteTransposed( mptr<S> b )
         {
@@ -115,34 +116,157 @@ namespace Tensors
         }
         
         
-        template<typename S>
-        void Read( cptr<S> a_, const Int lda, const Int thread_count = 0 )
+        
+        template<Op op = Op::Id, typename S>
+        void Read( cptr<S> B, const Int ld_B, const Int thread_count = 1 ) const
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
             
-            ParallelDo(
-                [=,this]( const Int i )
-                {
-                    copy_buffer<VarSize,Sequential>( &a_[lda * i], &a[d_1 * i], d_1 );
-                },
-                d_0, thread_count
-            );
+            if constexpr ( op == Op::Id )
+            {
+                ParallelDo(
+                    [=,this]( const Int i )
+                    {
+                        copy_buffer<VarSize,Sequential>( &B[ld_B * i], &a[d_1 * i], d_1 );
+                    },
+                    d_0, thread_count
+                );
+            }
+            else if constexpr ( op == Op::Conj )
+            {
+                ParallelDo(
+                    [=,this]( const Int i )
+                    {
+                        for( Int j = 0; j < d_1; ++j )
+                        {
+                            a[d_1 * i + j] = scalar_cast<Scal>(Conj(B[ld_B * i + j]));
+                        }
+                    },
+                    d_0, thread_count
+                );
+            }
+            else if constexpr ( op == Op::Trans )
+            {
+                ParallelDo(
+                    [=,this]( const Int j )
+                    {
+                        for( Int i = 0; i < d_0; ++i )
+                        {
+                            a[d_1 * i + j] = scalar_cast<Scal>(B[ld_B * j + i]);
+                        }
+                    },
+                    d_1, thread_count
+                );
+            }
+            else if constexpr ( op == Op::ConjTrans )
+            {
+                ParallelDo(
+                    [=,this]( const Int j )
+                    {
+                        for( Int i = 0; i < d_0; ++i )
+                        {
+                            a[d_1 * i + j] = scalar_cast<Scal>(Conj(B[ld_B * j + i]));
+                        }
+                    },
+                    d_1, thread_count
+                );
+            }
+            else
+            {
+                eprint(ClassName()+"::Write: No implementation for op available.");
+            }
         }
         
-        template<typename S>
-        void Write( mptr<S> a_, const Int lda, const Int thread_count = 0 )
+//        template<typename S>
+//        void Read( cptr<S> a_, const Int lda, const Int thread_count = 1 )
+//        {
+//            const Int d_0 = dims[0];
+//            const Int d_1 = dims[1];
+//            
+//            ParallelDo(
+//                [a_,lda,d_1,this]( const Int i )
+//                {
+//                    copy_buffer<VarSize,Sequential>( &a_[lda * i], &a[d_1 * i], d_1 );
+//                },
+//                d_0, thread_count
+//            );
+//        }
+//        
+//        template<typename S>
+//        void Write( mptr<S> a_, const Int lda, const Int thread_count = 1 )
+//        {
+//            const Int d_0 = dims[0];
+//            const Int d_1 = dims[1];
+//            
+//            ParallelDo(
+//                [=,this]( const Int i )
+//                {
+//                    copy_buffer<VarSize,Sequential>( &a[d_1 * i], &a_[lda * i], d_1 );
+//                },
+//                d_0, thread_count
+//            );
+//        }
+        
+        template<Op op = Op::Id, typename S>
+        void Write( mptr<S> B, const Int ld_B, const Int thread_count = 1 ) const
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
             
-            ParallelDo(
-                [=,this]( const Int i )
-                {
-                    copy_buffer<VarSize,Sequential>( &a[d_1 * i], &a_[lda * i], d_1 );
-                },
-                d_0, thread_count
-            );
+            if constexpr ( op == Op::Id )
+            {
+                ParallelDo(
+                    [=,this]( const Int i )
+                    {
+                        copy_buffer<VarSize,Sequential>( &a[d_1 * i], &B[ld_B * i], d_1 );
+                    },
+                    d_0, thread_count
+                );
+            }
+            else if constexpr ( op == Op::Conj )
+            {
+                ParallelDo(
+                    [=,this]( const Int i )
+                    {
+                        for( Int j = 0; j < d_1; ++j )
+                        {
+                            B[ld_B * i + j] = scalar_cast<S>(Conj(a[d_1 * i + j]));
+                        }
+                    },
+                    d_0, thread_count
+                );
+            }
+            else if constexpr ( op == Op::Trans )
+            {
+                ParallelDo(
+                    [=,this]( const Int j )
+                    {
+                        for( Int i = 0; i < d_0; ++i )
+                        {
+                            B[ld_B * j + i] = scalar_cast<S>(a[d_1 * i + j]);
+                        }
+                    },
+                    d_1, thread_count
+                );
+            }
+            else if constexpr ( op == Op::ConjTrans )
+            {
+                ParallelDo(
+                    [=,this]( const Int j )
+                    {
+                        for( Int i = 0; i < d_0; ++i )
+                        {
+                            B[ld_B * j + i] = scalar_cast<S>(Conj(a[d_1 * i + j]));
+                        }
+                    },
+                    d_1, thread_count
+                );
+            }
+            else
+            {
+                eprint(ClassName()+"::Write: No implementation for op available.");
+            }
         }
 
     private:
@@ -218,7 +342,7 @@ namespace Tensors
         
     public:
         
-        void Resize( const Int d_0_, const Int d_1_ )
+        void Resize( const Int d_0_, const Int d_1_, bool copy = true )
         {
 //            ptic(ClassName() + "::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
             
@@ -227,17 +351,30 @@ namespace Tensors
             
             TENSOR_T b ( d_0, d_1 );
             
-            const Int min_d_0 = std::min( b.Dimension(0), dims[0] );
-            const Int min_d_1 = std::min( b.Dimension(1), dims[1] );
-            
-            for( Int i = 0; i < min_d_0; ++i )
+            if( copy )
             {
-                copy_buffer( data(i), b.data(i), min_d_1);
+                const Int min_d_0 = std::min( b.Dimension(0), dims[0] );
+                const Int min_d_1 = std::min( b.Dimension(1), dims[1] );
+                
+                for( Int i = 0; i < min_d_0; ++i )
+                {
+                    copy_buffer( data(i), b.data(i), min_d_1);
+                }
+                
             }
             
             swap( *this, b );
+                
             
 //            ptoc(ClassName()+"::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
+        }
+        
+        void RequireSize( const Int d_0, const Int d_1, bool copy = false )
+        {
+            if( dims[0] < d_0 || dims[1] < d_1 )
+            {
+                Resize(d_0,d_1,copy);
+            }
         }
         
         static std::string ClassName()

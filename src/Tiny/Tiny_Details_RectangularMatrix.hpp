@@ -35,13 +35,33 @@ public:
                 copy_buffer<n>( &A[i][0], &B[n*i] );
             }
         }
-        else if constexpr ( op == Op::Id )
+        else if constexpr ( op == Op::Conj )
+        {
+            for( Int i = 0; i < m; ++i )
+            {
+                for( Int j = 0; j < n; ++j )
+                {
+                    B[n * i + j ] = Conj(A[i][j]);
+                }
+            }
+        }
+        else if constexpr ( op == Op::Trans )
         {
             for( Int j = 0; j < n; ++j )
             {
                 for( Int i = 0; i < m; ++i )
                 {
                     B[m * j + i ] = A[i][j];
+                }
+            }
+        }
+        else if constexpr ( op == Op::ConjTrans )
+        {
+            for( Int j = 0; j < n; ++j )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    B[m * j + i ] = Conj(A[i][j]);
                 }
             }
         }
@@ -62,13 +82,33 @@ public:
                 copy_buffer<n>( &A[i][0], &B[ld_B*i] );
             }
         }
-        else if constexpr ( op == Op::Id )
+        else if constexpr ( op == Op::Conj )
+        {
+            for( Int i = 0; i < m; ++i )
+            {
+                for( Int j = 0; j < n; ++j )
+                {
+                    B[ld_B * i + j ] = Conj(A[i][j]);
+                }
+            }
+        }
+        else if constexpr ( op == Op::Trans )
         {
             for( Int j = 0; j < n; ++j )
             {
                 for( Int i = 0; i < m; ++i )
                 {
                     B[ld_B * j + i ] = A[i][j];
+                }
+            }
+        }
+        else if constexpr ( op == Op::ConjTrans )
+        {
+            for( Int j = 0; j < n; ++j )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    B[ld_B * j + i ] = Conj(A[i][j]);
                 }
             }
         }

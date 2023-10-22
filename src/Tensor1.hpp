@@ -121,42 +121,64 @@ namespace Tensors
             return a[n-1];
         }
         
-        void Resize( const Int m_ )
+        void Resize( const Int m_, const bool copy = true )
         {
 //            ptic(ClassName()+"::Resize(" + Tools::ToString(m_) + ")");
             const Int m = std::max( static_cast<Int>(0), m_ );
             
             TENSOR_T b (m);
             
-            if( m <= n )
+            if( copy )
             {
-                b.Read(a);
-            }
-            else
-            {
-                Write(b.data());
+                if( m <= n )
+                {
+                    b.Read(a);
+                }
+                else
+                {
+                    Write(b.data());
+                }
             }
             
             swap( *this, b );
 //            ptoc(ClassName()+"::Resize(" + Tools::ToString(m_) + ")");
         }
         
-        void Resize( const Int m_, Int thread_count )
+        void Resize( const Int m_, const Int thread_count, const bool copy = true )
         {
             const Int m = Max( static_cast<Int>(0),m_);
             
             TENSOR_T b (m);
             
-            if( m <= n )
+            if( copy )
             {
-                b.Read(a,thread_count);
-            }
-            else
-            {
-                Write(b.data(),thread_count);
+                if( m <= n )
+                {
+                    b.ReadParallel(a,thread_count);
+                }
+                else
+                {
+                    WriteParallel(b.data(),thread_count);
+                }
             }
             
             swap( *this, b );
+        }
+        
+        void RequireSize( const Int m, const bool copy = false )
+        {
+            if( m > n )
+            {
+                Resize( m, copy );
+            }
+        }
+        
+        void RequireSize( const Int m, const Int thread_count, const bool copy = false )
+        {
+            if( m > n )
+            {
+                Resize( m, thread_count, copy );
+            }
         }
         
         void Accumulate( const Int thread_count = 1 )
