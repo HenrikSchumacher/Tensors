@@ -445,6 +445,15 @@ namespace Tensors
                     z.v[i] = x.v[i] + y.v[i];
                 }
             }
+            
+            force_inline friend CLASS Plus( cref<CLASS> x, cref<CLASS> y  )
+            {
+                CLASS z;
+                
+                Plus( x, y, z );
+  
+                return z;
+            }
    
             force_inline friend void Times( cref<Scal> scale, cref<CLASS> x, mref<CLASS> y )
             {
@@ -460,6 +469,149 @@ namespace Tensors
                 {
                     y.v[i] += alpha * x.v[i];
                 }
+            }
+
+            template<
+                Scalar::Flag alpha_flag = Scalar::Flag::Generic,
+                Scalar::Flag beta_flag  = Scalar::Flag::Generic
+            >
+            force_inline friend void LinearCombine(
+                cref<Scal> alpha, cref<CLASS> x, cref<Scal> beta, cref<CLASS> y, mref<CLASS> z
+            )
+            {
+                // Sets z = alpha * x + beta * y.
+                
+                for( Int i = 0; i < n; ++i )
+                {
+                    switch( alpha_flag )
+                    {
+                        case Scalar::Flag::Generic:
+                        {
+                            switch( beta_flag )
+                            {
+                                case Scalar::Flag::Generic:
+                                {
+                                    z.v[i] = alpha * x.v[i] + beta * y.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Plus:
+                                {
+                                    z.v[i] = alpha * x.v[i] + y.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Zero:
+                                {
+                                    z.v[i] = alpha * x.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Minus:
+                                {
+                                    z.v[i] = alpha * x.v[i] - y.v[i];
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case Scalar::Flag::Plus:
+                        {
+                            switch( beta_flag )
+                            {
+                                case Scalar::Flag::Generic:
+                                {
+                                    z.v[i] = x.v[i] + beta * y.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Plus:
+                                {
+                                    z.v[i] = x.v[i] + y.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Zero:
+                                {
+                                    z.v[i] = x.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Minus:
+                                {
+                                    z.v[i] = x.v[i] - y.v[i];
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case Scalar::Flag::Zero:
+                        {
+                            switch( beta_flag )
+                            {
+                                case Scalar::Flag::Generic:
+                                {
+                                    z.v[i] = beta * y.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Plus:
+                                {
+                                    z.v[i] = y.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Zero:
+                                {
+                                    z.v[i] = Scalar::Zero<Scal>;
+                                    break;
+                                }
+                                case Scalar::Flag::Minus:
+                                {
+                                    z.v[i] = - y.v[i];
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                        case Scalar::Flag::Minus:
+                        {
+                            switch( beta_flag )
+                            {
+                                case Scalar::Flag::Generic:
+                                {
+                                    z.v[i] = - x.v[i] + beta * y.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Plus:
+                                {
+                                    z.v[i] = - x.v[i] + y.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Zero:
+                                {
+                                    z.v[i] = - x.v[i];
+                                    break;
+                                }
+                                case Scalar::Flag::Minus:
+                                {
+                                    z.v[i] = - (x.v[i] + y.v[i]);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                    
+                }
+            }
+            
+            template<
+                Scalar::Flag alpha_flag = Scalar::Flag::Generic,
+                Scalar::Flag beta_flag  = Scalar::Flag::Generic
+            >
+            force_inline friend CLASS LinearCombine(
+                cref<Scal> alpha, cref<CLASS> x, cref<Scal> beta, cref<CLASS> y
+            )
+            {
+                // Returns alpha * x + beta * y.
+                CLASS z;
+                
+                LinearCombine<alpha_flag,beta_flag>( alpha, x, beta, y, z );
+                
+                return z;
             }
 
             
@@ -507,11 +659,35 @@ namespace Tensors
         
         
         template<typename Scal, typename Int>
-        void Cross( cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v, mref<Vector<3,Scal,Int>> w )
+        force_inline void Cross( 
+            cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v, mref<Vector<3,Scal,Int>> w )
         {
             w[0] = u[1] * v[2] - u[2] * v[1];
             w[1] = u[2] * v[0] - u[0] * v[2];
             w[2] = u[0] * v[1] - u[1] * v[0];
+        }
+        
+        template<typename Scal, typename Int>
+        force_inline Vector<3,Scal,Int> Cross( 
+            cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v )
+        {
+            Vector<3,Scal,Int> w;
+            Cross( u, v, w );
+            return w;
+        }
+        
+        template<typename Scal, typename Int>
+        force_inline Scal Det( cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v, mref<Vector<3,Scal,Int>> w )
+        {
+            return w[0] * ( u[1] * v[2] - u[2] * v[1] )
+                +  w[1] * ( u[2] * v[0] - u[0] * v[2] )
+                +  w[2] * ( u[0] * v[1] - u[1] * v[0] );
+        }
+        
+        template<typename Scal, typename Int>
+        force_inline Scal Det( cref<Vector<2,Scal,Int>> u, cref<Vector<2,Scal,Int>> v )
+        {
+            return u[0] * v[1] - u[1] * v[0];
         }
         
     } // namespace Tiny
