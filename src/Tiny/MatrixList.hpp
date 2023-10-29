@@ -22,7 +22,8 @@ namespace Tensors
             
             Int length = 0;
             
-            Tensor_T A [m][n];
+            std::array<std::array<Tensor_T,n>,m> A;
+//            Tensor_T A [m][n];
             
         public:
             //  The big four and half:
@@ -169,6 +170,16 @@ namespace Tensors
             cref<Scal> operator()( const Int i, const Int j, const Int k ) const
             {
                 return A[i][j][k];
+            }
+            
+            mref<std::array<Tensor_T,n>> operator[]( const Int i )
+            {
+                return A[i];
+            }
+            
+            cref<std::array<Tensor_T,n>> operator[]( const Int i ) const
+            {
+                return A[i];
             }
             
             
