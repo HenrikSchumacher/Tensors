@@ -25,7 +25,7 @@ namespace Tensors
             A.template Read<Op::Id>(A_,ldA);
             B.template Read<Op::Id>(B_,ldB);
             A.template Solve<opA,diag>(B);
-            B.template Write<alpha_flag,Scalar::Flag::Zero>(alpha,0,B_,ldB);
+            B.template Write<alpha_flag,Scalar::Flag::Zero>(alpha,Scalar::Zero<Scal>,B_,ldB);
         }
         
         template<
@@ -46,7 +46,7 @@ namespace Tensors
             A.template Read<Op::Id>(A_);
             B.template Read<Op::Id>(B_);
             A.template Solve<opA,diag>(B);
-            B.template Write<alpha_flag,Scalar::Flag::Zero>(alpha,0,B_);
+            B.template Write<alpha_flag,Scalar::Flag::Zero>(alpha,Scalar::Zero<Scal>,B_);
         }
         
     } // namespace Tiny
