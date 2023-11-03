@@ -690,6 +690,18 @@ namespace Tensors
             return u[0] * v[1] - u[1] * v[0];
         }
         
+        template<int n, typename Scal, typename Int>
+        force_inline Scalar::Real<Scal> Distance( cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v )
+        {
+            Scalar::Real<Scal> r2 = 0;
+            
+            for( Int i = 0; i < n; ++i )
+            {
+                r2 += (u[i] - v[i]) * (u[i] - v[i]);
+            }
+            return Sqrt(r2);
+        }
+        
     } // namespace Tiny
     
 } // namespace Tensors
