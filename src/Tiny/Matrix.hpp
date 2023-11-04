@@ -245,6 +245,58 @@ namespace Tensors
                 }
             }
             
+            
+            force_inline Matrix<n,n,Scal,Int> ATA() const
+            {
+                Matrix<n,n,Scal,Int> B;
+                
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        B[i][j] = A[0][i] * A[0][j];
+                    }
+                }
+                
+                for( Int k = 1; k < m; ++k )
+                {
+                    for( Int i = 0; i < n; ++i )
+                    {
+                        for( Int j = 0; j < n; ++j )
+                        {
+                            B[i][j] += A[k][i] * A[k][j];
+                        }
+                    }
+                }
+                
+                return B;
+            }
+            
+            force_inline Matrix<m,m,Scal,Int> AAT() const
+            {
+                Matrix<m,m,Scal,Int> B;
+                
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < m; ++j )
+                    {
+                        B[i][j] = A[i][0] * A[j][0];
+                    }
+                }
+                
+                for( Int k = 1; k < n; ++k )
+                {
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        for( Int j = 0; j < m; ++j )
+                        {
+                            B[i][j] += A[i][k] * A[j][k];
+                        }
+                    }
+                }
+                
+                return B;
+            }
 
         public:
             
