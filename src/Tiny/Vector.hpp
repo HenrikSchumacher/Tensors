@@ -39,13 +39,14 @@ namespace Tensors
             constexpr CLASS( const std::initializer_list<S> w )
             {
                 const Int n__ = std::min(n,static_cast<Int>(w.size()));
-                
+//                
                 cptr<S> w_ = &(*w.begin());
                 
                 for( Int i = 0; i < n__; ++i )
                 {
                     v[i] = scalar_cast<Scal>(w_[i]);
                 }
+                
                 for( Int i = n__; i < n; ++i )
                 {
                     v[i] = Scalar::Zero<Scal>;

@@ -600,21 +600,21 @@ namespace Tensors
                 }
             }
 
-            std::pair<Int,Int> m = minmax_buffer( scratch.data(), n );
+            const auto [m_0, m_1] = minmax_buffer( scratch.data(), n );
 
-            if( m.first != one )
+            if( m_0 != one )
             {
                 eprint(tag + ": Input does not attain all values in range!");
             }
             
-            if( m.second != one )
+            if( m_1 != one )
             {
                 eprint(tag + ": Input has duplicates!");
             }
             
             ptoc(tag);
             
-            return ( m.first == one ) && ( m.second == one );
+            return ( m_0 == one ) && ( m_1 );
         }
         
         bool PermutationQ() const

@@ -35,8 +35,8 @@ namespace Tensors
             :   A {{{init}}}
             {}
             
-//            template<typename S>
-            constexpr CLASS( const std::initializer_list<Scal[n]> list )
+            template<typename S>
+            constexpr CLASS( const std::initializer_list<S[n]> list )
 //            :   A (list)
 //            {}
             {
@@ -47,7 +47,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        A[i][j] = (*iter)[j];
+                        A[i][j] = static_cast<Scal>((*iter)[j]);
                     }
                     ++iter;
                 }
