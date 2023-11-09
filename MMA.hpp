@@ -178,7 +178,7 @@ namespace mma
     
     
     template<typename T>
-    inline MTensor make_MTensor( const std::initializer_list<mint> & dims )
+    inline MTensor make_MTensor( const std::initializer_list<mint> dims )
     {
         return make_MTensor<T>( static_cast<mint>(dims.size()), &dims.begin()[0] );
     }

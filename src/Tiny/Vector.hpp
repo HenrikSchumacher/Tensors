@@ -36,27 +36,40 @@ namespace Tensors
             }
             
             template<typename S>
-            CLASS( cref<std::initializer_list<S>> w )
+            constexpr CLASS( const std::initializer_list<S> w )
             {
-                const Int m = int_cast<Int>(w.size());
+                const Int n__ = std::min(n,static_cast<Int>(w.size()));
                 
-                if(m > n)
+                cptr<S> w_ = &(*w.begin());
+                
+                for( Int i = 0; i < n__; ++i )
                 {
-                    eprint(TO_STD_STRING(CLASS)+": Length of initializer list must not exceed length of n");
+                    v[i] = scalar_cast<Scal>(w_[i]);
                 }
-                else
+                for( Int i = n__; i < n; ++i )
                 {
-                    cptr<S> w_ = &(*w.begin());
-                    
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        v[i] = scalar_cast<Scal>(w_[i]);
-                    }
-                    for( Int i = m; i < n; ++i )
-                    {
-                        v[i] = Scalar::Zero<Scal>;
-                    }
+                    v[i] = Scalar::Zero<Scal>;
                 }
+                
+//                const Int m = int_cast<Int>(w.size());
+//
+//                if(m > n)
+//                {
+//                    eprint(TO_STD_STRING(CLASS)+": Length of initializer list must not exceed length of n");
+//                }
+//                else
+//                {
+//                    cptr<S> w_ = &(*w.begin());
+//                    
+//                    for( Int i = 0; i < m; ++i )
+//                    {
+//                        v[i] = scalar_cast<Scal>(w_[i]);
+//                    }
+//                    for( Int i = m; i < n; ++i )
+//                    {
+//                        v[i] = Scalar::Zero<Scal>;
+//                    }
+//                }
             }
             
             

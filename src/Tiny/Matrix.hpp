@@ -1,5 +1,7 @@
 #pragma once
 
+#include <initializer_list>
+
 namespace Tensors
 {
     namespace Tiny
@@ -32,6 +34,32 @@ namespace Tensors
             explicit CLASS( cref<Scal> init )
             :   A {{{init}}}
             {}
+            
+//            template<typename S>
+            constexpr CLASS( const std::initializer_list<Scal[n]> list )
+//            :   A (list)
+//            {}
+            {
+                const Int m__ = static_cast<Int>(list.size());
+                
+                auto iter { list.begin() };
+                for( Int i = 0; i < m__; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] = (*iter)[j];
+                    }
+                    ++iter;
+                }
+                
+                for( Int i = m__; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] = 0;
+                    }
+                }
+            }
             
 //######################################################
 //##                     Access                       ##
