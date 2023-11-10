@@ -4,6 +4,10 @@
 
 namespace Tensors
 {
+    // eq_count_ = number of right hand sides.
+    // If you know this and compile time, then enter it in the template.
+    // If you don't know this at compile time, then use eq_count_ = VarSize (==0) and specify
+    // the eq_count__ in the constructor.
     template<Size_T eq_count_, typename Scal_, typename Int_, Side side>
     class GMRES
     {
