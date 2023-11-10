@@ -258,7 +258,7 @@ namespace Tensors
         return v;
     }
     
-    template<typename Scal, typename Int, typename S, Size_T alignment = DefaultAlignment>
+    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment, typename S>
     Tensor1<Scal,Int,alignment> ToTensor1( mptr<S> a_, const Int d0 )
     {
         Tensor1<Scal,Int,alignment> result (d0);
