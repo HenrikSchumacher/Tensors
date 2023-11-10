@@ -388,7 +388,7 @@ public:
     template<typename T, typename I, Size_T align>
     force_inline mref<TENSOR_T> operator-=( cref<TENSOR_T<T,I,align>> b )
     {
-        const Size_T m = Min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
+        const Size_T m = std::min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
         
         combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus>(
             -Scalar::One<T>, b.data(), Scalar::One<T>, a, m
