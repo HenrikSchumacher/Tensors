@@ -14,18 +14,19 @@ namespace Tensors
         using Real     = Scalar::Real<Scal>;
         using Int      = Int_;
         
-        static constexpr Int K = int_cast<Int>(eq_count_);
+        static constexpr Int EQ = int_cast<Int>(eq_count_);
         
         static constexpr Int gram_schmidt_counts = 2;
         
-        using Vector_T = Tiny::Vector<K,Scal,Int>;
+        using Vector_T     = Tensor1<Scal,Int>;
         
-        using RealVector_T = Tiny::Vector<K,Real,Int>;
+        using RealVector_T = Tensor1<Real,Int>;
 
     protected:
         
         const Int n;
         const Int max_iter;
+        const Int eq;
         const Int thread_count;
         
         JobPointers<Int> job_ptr;
@@ -56,20 +57,31 @@ namespace Tensors
         
         GMRES() = delete;
         
-        GMRES( const Int n_, const Int max_iter_, const Int thread_count_ )
-        :   n               ( n_ )
-        ,   max_iter        ( Min(max_iter_,n) )
-        ,   thread_count    ( thread_count_ )
-        ,   job_ptr         ( n, thread_count )
-        ,   Q               ( max_iter + 1, n, K )
-        ,   H               ( max_iter + 1, max_iter, K )
-        ,   cs              ( max_iter,     K )
-        ,   sn              ( max_iter,     K )
-        ,   beta            ( max_iter + 1, K )
-        ,   x               ( n, K )
-        ,   z               ( n, K )
-        ,        reduction_buffer ( thread_count, K )
-        ,   real_reduction_buffer ( thread_count, K )
+        GMRES(
+            const Int n_,
+            const Int max_iter_,
+            const Size_T eq_count__ = EQ,
+            const Size_T thread_count_ = 1
+        )
+        :   n               ( n_                                    )
+        ,   max_iter        ( Min(max_iter_,n)                      )
+        ,   eq              ( COND( EQ > VarSize, EQ, eq_count__ )  )
+        ,   thread_count    ( static_cast<Int>(thread_count_)       )
+        ,   job_ptr         ( n, thread_count                       )
+        ,   Q               ( max_iter + 1, n, eq                   )
+        ,   H               ( max_iter + 1, max_iter, eq            )
+        ,   cs              ( max_iter,     eq                      )
+        ,   sn              ( max_iter,     eq                      )
+        ,   beta            ( max_iter + 1, eq                      )
+        ,   x               ( n, eq                                 )
+        ,   z               ( n, eq                                 )
+        ,        reduction_buffer ( thread_count, eq )
+        ,   real_reduction_buffer ( thread_count, eq )
+        ,   TOL             ( eq                                    )
+        ,   b_norms         ( eq                                    )
+        ,   r_norms         ( eq                                    )
+        ,   q_norms         ( eq                                    )
+        ,   h               ( eq                                    )
         {}
         
         
@@ -192,9 +204,9 @@ namespace Tensors
             
             Tensor2<Scal,Int> H_mat    (iter,iter);
             Tensor1<Scal,Int> beta_vec (iter);
-            Tensor2<Scal,Int> y        (iter,K);
+            Tensor2<Scal,Int> y        (iter,eq);
             
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 for( Int i = 0; i < iter; ++i )
                 {
@@ -228,7 +240,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < iter; ++j )
                     {
-                        for( Int k = 0; k < K; ++k )
+                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                         {
                             z(i,k) += y(j,k) * Q(j,i,k);
                         }
@@ -250,7 +262,7 @@ namespace Tensors
             
             //x_inout -= x
             combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus,VarSize,Parallel>(
-                -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * K, thread_count
+                -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * eq, thread_count
             );
             
             ptoc(ClassName()+": Synthesize solution.");
@@ -301,7 +313,7 @@ namespace Tensors
                     ComputeScalarProducts( Q.data(i), q, h );
                     
                     // H[i] += h;
-                    for( Int k = 0; k < K; ++ k )
+                    for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++ k )
                     {
                         H(i,iter,k) += h[k];
                     }
@@ -316,7 +328,7 @@ namespace Tensors
             ComputeNorms( q, q_norms );
             
             // H[iter+1][iter] += q_norms;
-            for( Int k = 0; k < K; ++ k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++ k )
             {
                 H(iter+1,iter,k) = q_norms[k];
             }
@@ -333,7 +345,7 @@ namespace Tensors
             
             for( Int i = 0; i < iter; ++ i )
             {
-                for( Int k = 0; k < K; ++k )
+                for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                 {
                     const Scal xi  = H(i  ,iter,k);
                     const Scal eta = H(i+1,iter,k);
@@ -346,7 +358,7 @@ namespace Tensors
                 }
             }
             {
-                for( Int k = 0; k < K; ++k )
+                for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                 {
                     const Scal xi  = H(iter  ,iter,k);
                     const Scal eta = H(iter+1,iter,k);
@@ -391,15 +403,15 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    RealVector_T sums;
+                    RealVector_T sums ( eq );
                     
                     sums.SetZero();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < K; ++k )
+                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                         {
-                            sums[k] += AbsSquared(v[K * i + k]);
+                            sums[k] += AbsSquared(v[COND(EQ>VarSize,EQ,eq) * i + k]);
                         }
                     }
                     
@@ -410,7 +422,7 @@ namespace Tensors
             
             real_reduction_buffer.AddReduce( norms.data(), false );
             
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 norms[k] = Sqrt( norms[k] );
             }
@@ -424,15 +436,15 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    Vector_T sums;
+                    Vector_T sums ( eq );
                     
                     sums.SetZero();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < K; ++k )
+                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                         {
-                            sums[k] += Conj(v[K * i + k]) * w[K * i + k];
+                            sums[k] += Conj(v[COND(EQ>VarSize,EQ,eq) * i + k]) * w[COND(EQ>VarSize,EQ,eq) * i + k];
                         }
                     }
                     
@@ -450,15 +462,15 @@ namespace Tensors
             ParallelDo(
                 [this,v,w,&factors]( const Int i )
                 {
-                    for( Int k = 0; k < K; ++k )
+                    for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                     {
                         if constexpr ( flag == Scalar::Flag::Minus )
                         {
-                            v[K * i + k] -= w[K * i + k] * factors[k];
+                            v[COND(EQ>VarSize,EQ,eq) * i + k] -= w[COND(EQ>VarSize,EQ,eq) * i + k] * factors[k];
                         }
                         else
                         {
-                            v[K * i + k] += w[K * i + k] * factors[k];
+                            v[COND(EQ>VarSize,EQ,eq) * i + k] += w[COND(EQ>VarSize,EQ,eq) * i + k] * factors[k];
                         }
                     }
                 },
@@ -471,9 +483,9 @@ namespace Tensors
             ParallelDo(
                 [this,q,&factors]( const Int thread )
                 {
-                    RealVector_T factors_inv;
+                    RealVector_T factors_inv ( eq );
                     
-                    for( Int k = 0; k < K; ++k )
+                    for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                     {
                         factors_inv[k] = Inv( factors[k] );
                     }
@@ -483,9 +495,9 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < K; ++k )
+                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                         {
-                            q[K * i + k] *= factors_inv[k];
+                            q[COND(EQ>VarSize,EQ,eq) * i + k] *= factors_inv[k];
                         }
                     }
                 },
@@ -507,9 +519,9 @@ namespace Tensors
         
         RealVector_T Residuals() const
         {
-            RealVector_T res;
+            RealVector_T res ( eq );
             
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 res[k] = std::abs(beta[iter][k]);
             }
@@ -519,9 +531,9 @@ namespace Tensors
         
         RealVector_T RelativeResiduals() const
         {
-            RealVector_T res;
+            RealVector_T res ( eq );
             
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 res[k] = Abs(beta[iter][k]) / b_norms[k];
             }
@@ -531,7 +543,7 @@ namespace Tensors
         bool CheckResiduals() const
         {
             bool succeeded = true;
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 succeeded = succeeded && (Abs(beta[iter][k]) <= TOL[k]);
             }
@@ -552,7 +564,7 @@ namespace Tensors
         std::string ClassName() const
         {
             return std::string(
-                "GMRES<"+ToString(K)+","+TypeName<Scal>+","+TypeName<Int>+","+COND(side==Side::Left,"Left","Right")+">"
+                "GMRES<"+ToString(EQ)+","+TypeName<Scal>+","+TypeName<Int>+","+COND(side==Side::Left,"Left","Right")+"> ( " + ToString(eq) + " )"
             );
         }
     }; // class GMRES

@@ -14,14 +14,15 @@ namespace Tensors
         using Real     = Scalar::Real<Scal>;
         using Int      = Int_;
         
-        static constexpr Int K = int_cast<Int>(eq_count_);
+        static constexpr Int EQ = int_cast<Int>(eq_count_);
         
-        using RealVector_T = Tiny::Vector<K,Real,Int>;
+        using RealVector_T = Tensor1<Real,Int>;
 
     protected:
         
         const Int n;
         const Int max_iter;
+        const Int eq;
         const Int thread_count;
         
         Tensor2<Scal,Int> r;
@@ -48,18 +49,31 @@ namespace Tensors
         
         ConjugateGradient() = delete;
         
-        ConjugateGradient( const Int n_, const Int max_iter_, const Int thread_count_ )
-        :   n               ( n_ )
-        ,   max_iter        ( Min(max_iter_,n) )
-        ,   thread_count    ( thread_count_ )
-        ,   r               ( n, K )
-        ,   u               ( n, K )
-        ,   p               ( n, K )
-        ,   x               ( n, K )
-        ,   z               ( n, K )
-        ,   reduction_buffer( thread_count, K )
-        ,   job_ptr         ( n, thread_count )
+        ConjugateGradient(
+            const Int n_,
+            const Int max_iter_,
+            const Size_T eq_count__ = EQ,
+            const Size_T thread_count_ = 1
+        )
+        :   n               ( n_                                    )
+        ,   max_iter        ( Min(max_iter_,n)                      )
+        ,   eq              ( COND( EQ > VarSize, EQ, eq_count__ )  )
+        ,   thread_count    ( static_cast<Int>(thread_count_)       )
+        ,   r               ( n, eq                                 )
+        ,   u               ( n, eq                                 )
+        ,   p               ( n, eq                                 )
+        ,   x               ( n, eq                                 )
+        ,   z               ( n, eq                                 )
+        ,   reduction_buffer( thread_count, eq                      )
+        ,   TOL             ( eq                                    )
+        ,   b_squared_norms ( eq                                    )
+        ,   alpha           ( eq                                    )
+        ,   beta            ( eq                                    )
+        ,   rho             ( eq                                    )
+        ,   rho_old         ( eq                                    )
+        ,   job_ptr         ( n, thread_count                       )
         {}
+        
         
         ~ConjugateGradient() = default;
         
@@ -67,8 +81,8 @@ namespace Tensors
         bool operator()(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cptr<Scal> b_in,       const Int ldb,
-            mptr<Scal> x_inout,    const Int ldx,
+            cptr<Scal> b_in,    const Int ldb,
+            mptr<Scal> x_inout, const Int ldx,
             const Real relative_tolerance
         )
         {
@@ -84,7 +98,7 @@ namespace Tensors
             ComputeScalarProducts( r.data(), z.data(), rho );
             
             Real factor = relative_tolerance * relative_tolerance;
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 b_squared_norms[k] = std::abs(rho[k]);
                 TOL[k] = b_squared_norms[k] * factor;
@@ -108,7 +122,7 @@ namespace Tensors
             ParallelDo(
                 [this]( const Int i )
                 {
-                    for( Int k = 0; k < K; ++k )
+                    for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                     {
                         r[i][k] -= u[i][k];
                     }
@@ -121,7 +135,7 @@ namespace Tensors
             P( r.data(), z.data() );
             ptoc(ClassName()+ ": Apply preconditioner");
             
-            p.Read( z.data(), K, thread_count );
+            p.Read( z.data(), eq, thread_count );
             
             // rho = r.z
             ComputeScalarProducts( r.data(), z.data(), rho );
@@ -138,7 +152,7 @@ namespace Tensors
                 
                 // alpha = rho / (p.u);
                 ComputeScalarProducts( p.data(), u.data(), alpha );
-                for( Int k = 0; k < K; ++k )
+                for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                 {
                     alpha[k] = rho[k] / alpha[k];
                 }
@@ -149,7 +163,7 @@ namespace Tensors
                 ParallelDo(
                     [this]( const Int i )
                     {
-                        for( Int k = 0; k < K; ++k )
+                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                         {
                             x[i][k] += alpha[k] * p[i][k];
                             r[i][k] -= alpha[k] * u[i][k];
@@ -170,7 +184,7 @@ namespace Tensors
                 ComputeScalarProducts( r.data(), z.data(), rho );
                 
                 // beta = rho / rho_old;
-                for( Int k = 0; k < K; ++k )
+                for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                 {
                     beta[k] = rho[k] / rho_old[k];
                 }
@@ -180,7 +194,7 @@ namespace Tensors
                 ParallelDo(
                     [this]( const Int i )
                     {
-                        for( Int k = 0; k < K; ++k )
+                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                         {
                             p[i][k] = z[i][k] + beta[k] * p[i][k];
                         }
@@ -203,9 +217,9 @@ namespace Tensors
         void ComputeScalarProducts( cptr<Scal> v, cptr<Scal> w, mref<RealVector_T> dots )
         {
             ParallelDo(
-                [this,v,w,&dots]( const Int thread )
+                [this,v,w]( const Int thread )
                 {
-                    RealVector_T sums;
+                    RealVector_T sums ( eq );
                     
                     sums.SetZero();
                     
@@ -214,10 +228,10 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < K; ++k )
+                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
                         {
                             // We know that all scalar products that we compute have to be real-valued.
-                            sums[k] += Re(Conj(v[K * i + k]) * w[K * i + k]);
+                            sums[k] += Re(Conj(v[COND(EQ>VarSize,EQ,eq) * i + k]) * w[COND(EQ>VarSize,EQ,eq) * i + k]);
                         }
                     }
                     
@@ -238,9 +252,9 @@ namespace Tensors
         
         RealVector_T Residuals() const
         {
-            RealVector_T res;
+            RealVector_T res (eq);
             
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) );
             }
@@ -250,9 +264,9 @@ namespace Tensors
         
         RealVector_T RelativeResiduals() const
         {
-            RealVector_T res;
+            RealVector_T res(eq);
             
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) / b_squared_norms[k] );
             }
@@ -262,7 +276,7 @@ namespace Tensors
         bool CheckResiduals() const
         {
             bool succeeded = true;
-            for( Int k = 0; k < K; ++k )
+            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
             {
                 succeeded = succeeded && ( Abs(rho[k]) <= TOL[k]);
             }
@@ -273,7 +287,7 @@ namespace Tensors
         std::string ClassName() const
         {
             return std::string(
-                "ConjugateGradient<"+ToString(K)+","+TypeName<Scal>+","+TypeName<Int>+">"
+                "ConjugateGradient<"+ToString(EQ)+","+TypeName<Scal>+","+TypeName<Int>+"> ( " + ToString(eq) + ")"
             );
         }
         
