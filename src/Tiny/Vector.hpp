@@ -16,6 +16,8 @@ namespace Tensors
 #include "Tiny_Details.hpp"
             
             static constexpr Int n = n_;
+            
+            static_assert( n > 0, "Vector dimension must be postive.");
 
             template<typename S, Size_T alignment>
             CLASS( cref<VectorList<n,S,Int,alignment>> v_list, const Int k )
@@ -42,14 +44,26 @@ namespace Tensors
 //                
                 cptr<S> w_ = &(*w.begin());
                 
-                for( Int i = 0; i < n__; ++i )
+                if( n__ == 1 )
                 {
-                    v[i] = scalar_cast<Scal>(w_[i]);
+                    const Scal value = scalar_cast<Scal>(w_[0]);
+                    
+                    for( Int i = 0; i < n; ++i )
+                    {
+                        v[i] = value;
+                    }
                 }
-                
-                for( Int i = n__; i < n; ++i )
+                else
                 {
-                    v[i] = Scalar::Zero<Scal>;
+                    for( Int i = 0; i < n__; ++i )
+                    {
+                        v[i] = scalar_cast<Scal>(w_[i]);
+                    }
+                    
+                    for( Int i = n__; i < n; ++i )
+                    {
+                        v[i] = Scalar::Zero<Scal>;
+                    }
                 }
                 
 //                const Int m = int_cast<Int>(w.size());
@@ -346,63 +360,93 @@ namespace Tensors
                 *this *= (static_cast<Scal>(1) / Norm());
             }
             
+
+            template <typename Dummy = Scal>
+            force_inline std::enable_if_t<SameQ<Real,Dummy>,void> MinMax( mref<Real> min_, mref<Real> max_ ) const
+            {
+                Real min = v[0];
+                Real max = v[0];
+                
+                for( Int i = 1; i < n; ++i )
+                {
+                    min = Tools::Min(min,v[i]);
+                    max = Tools::Max(max,v[i]);
+                }
+
+                min_ = min;
+                max_ = max;
+            }
             
             template <typename Dummy = Scal>
             force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> Min() const
             {
-                if constexpr ( n > 0 )
+                Real m = v[0];
+                for( Int i = 1; i < n; ++i )
                 {
-                    Real m = v[0];
-                    for( Int i = 1; i < n; ++i )
+                    m = Tools::Min(m,v[i]);
+                }
+                return m;
+            }
+            
+            template <typename Dummy = Scal>
+            force_inline std::enable_if_t<SameQ<Real,Dummy>,Int> MinPos() const
+            {
+                Real min = v[0];
+                Int  pos = 0;
+                
+                for( Int i = 1; i < n; ++i )
+                {
+                    if( v[i] < min )
                     {
-                        m = Tools::Min(m,v[i]);
+                        pos = i;
+                        min = v[i];
                     }
-                    return m;
                 }
-                else
-                {
-                    return std::numeric_limits<Real>::max();
-                }
+                
+                return pos;
             }
 
             template <typename Dummy = Scal>
             force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> Max() const
             {
-                if constexpr ( n > 0 )
+                Real m = v[0];
+                for( Int i = 1; i < n; ++i )
                 {
-                    Real m = v[0];
-                    for( Int i = 1; i < n; ++i )
+                    m = Tools::Max(m,v[i]);
+                }
+                return m;
+            }
+            
+            template <typename Dummy = Scal>
+            force_inline std::enable_if_t<SameQ<Real,Dummy>,Int> MaxPos() const
+            {
+                Real max = v[0];
+                Int  pos = 0;
+                
+                for( Int i = 1; i < n; ++i )
+                {
+                    if( v[i] > max )
                     {
-                        m = Tools::Max(m,v[i]);
+                        pos = i;
+                        max = v[i];
                     }
-                    return m;
                 }
-                else
-                {
-                    return std::numeric_limits<Real>::lowest();
-                }
+                
+                return pos;
             }
             
             template <typename Dummy = Scal>
             force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> MaxNorm() const
             {
-                if constexpr ( n > 0 )
+                Real m = Abs(v[0]);
+                for( Int i = 1; i < n; ++i )
                 {
-                    Real m = Abs(v[0]);
-                    for( Int i = 1; i < n; ++i )
-                    {
-                        m = Tools::Max(m,Abs(v[i]));
-                    }
-                    return m;
+                    m = Tools::Max(m,Abs(v[i]));
                 }
-                else
-                {
-                    return Scalar::Zero<Real>;
-                }
+                return m;
             }
             
-            
-            
+
             force_inline friend Scal Dot( cref<CLASS> x, cref<CLASS> y )
             {
                 Scal r (0);
@@ -411,6 +455,7 @@ namespace Tensors
                 {
                     r += x.v[i] * y.v[i];
                 }
+
                 return r;
             }
             

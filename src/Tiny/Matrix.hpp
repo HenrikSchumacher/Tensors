@@ -18,6 +18,8 @@ namespace Tensors
             static constexpr Int m = m_;
             static constexpr Int n = n_;
             
+            static_assert(m>0, "Matrix row count must be positive.");
+            static_assert(n>0, "Matrix col count  must be positive.");
             
             using ColVector_T = Vector<m,Scal,Int>;
             using RowVector_T = Vector<n,Scal,Int>;
