@@ -525,7 +525,7 @@ namespace Tensors
             
         public:
            
-            force_inline void SetIdentity()
+            constexpr force_inline void SetIdentity()
             {
                 static_assert(m==n, "SetIdentity is only defined for square matrices.");
                 
@@ -533,7 +533,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        A[i][j] = (i==j) ? static_cast<Scal>(1) : static_cast<Scal>(0);
+                        A[i][j] = (i==j) ? Scalar::One<Scal> : Scalar::Zero<Scal>;
                     }
                 }
             }

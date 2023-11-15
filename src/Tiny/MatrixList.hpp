@@ -141,7 +141,7 @@ namespace Tensors
                 return A[i][j].data();
             }
             
-            void SetZero()
+            constexpr void SetZero()
             {
                 for( Int i = 0; i < m; ++i )
                 {

@@ -119,12 +119,12 @@ namespace Tensors
             
         public:
             
-            void SetZero()
+            constexpr void SetZero()
             {
                 zerofy_buffer<n>( &v[0] );
             }
             
-            void Fill( cref<Scal> init )
+            constexpr void Fill( cref<Scal> init )
             {
                 fill_buffer<n>( &v[0], init );
             }
