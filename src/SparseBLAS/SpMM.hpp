@@ -231,7 +231,7 @@ private:
                                     // This prefetch would cause segfaults without the check.
                                     if( l + look_ahead < last_l )
                                     {
-                                        __builtin_prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
+                                        prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
                                     }
                                 }
                                 
@@ -252,7 +252,7 @@ private:
                                     // This prefetch would cause segfaults without the check.
                                     if( l + look_ahead < last_l )
                                     {
-                                        __builtin_prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
+                                        prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
                                     }
                                 }
 
@@ -385,7 +385,7 @@ void SpMM_vec(
                             // This prefetch would cause segfaults without the check.
                             if( l + look_ahead < last_l )
                             {
-                                __builtin_prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
+                                prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
                             }
                         }
 

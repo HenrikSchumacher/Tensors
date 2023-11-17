@@ -2,7 +2,9 @@
 
 namespace Tensors
 {
-    
+    namespace LAPACK
+    {
+        
 #ifndef __complex__
     using MY_COMPLEX_DOUBLE = struct{ double real; double imag; };
     using MY_COMPLEX_FLOAT  = struct{ float  real; float  imag; };
@@ -10,8 +12,6 @@ namespace Tensors
     using MY_COMPLEX_DOUBLE = __complex__ double;
     using MY_COMPLEX_FLOAT  = __complex__ float;
 #endif
-    namespace LAPACK
-    {
         
         template<Layout layout, UpLo uplo, typename Scal>
         class SelfAdjointEigensolver

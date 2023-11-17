@@ -173,7 +173,7 @@ private:
                         // This prefetch would cause segfaults without the check.
                         if( l + look_ahead < last_l )
                         {
-                            __builtin_prefetch( &x[ci[l + look_ahead]], 0, 0 );
+                            prefetch( &x[ci[l + look_ahead]], 0, 0 );
                         }
     
                         if constexpr ( a_flag == Generic )
