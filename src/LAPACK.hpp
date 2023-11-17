@@ -4,6 +4,16 @@ namespace Tensors
 {
     namespace LAPACK
     {
+        
+#ifndef __complex__
+    using COMPLEX_DOUBLE = struct{ double real; double imag; };
+    using COMPLEX_FLOAT  = struct{ float  real; float  imag; };
+#else
+    using COMPLEX_DOUBLE = __complex__ double;
+    using COMPLEX_FLOAT  = __complex__ float;
+#endif
+        
+        
         // This namespace is to provide wrappers for some LAPACK routines.
         
         constexpr int to_LAPACK( Layout layout )

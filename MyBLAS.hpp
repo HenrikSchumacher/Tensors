@@ -8,13 +8,6 @@ namespace Tensors
     }
 }
 
-//#include <complex>
-//#undef  lapack_complex_float
-//#define lapack_complex_float  std::complex<float>
-//#undef  lapack_complex_double
-//#define lapack_complex_double std::complex<double>
-
-//#include "Tiny.hpp"
 #include "src/BLAS.hpp"
 #include "src/LAPACK.hpp"
 

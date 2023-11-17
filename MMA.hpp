@@ -4,6 +4,7 @@
 
 #include "mathlink.h"
 
+// Unbelievable that they defined a function-like macro with the name `P`...
 #if defined( P )
     #undef P
 #endif

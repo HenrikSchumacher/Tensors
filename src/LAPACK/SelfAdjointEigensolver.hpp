@@ -5,14 +5,6 @@ namespace Tensors
     namespace LAPACK
     {
         
-#ifndef __complex__
-    using MY_COMPLEX_DOUBLE = struct{ double real; double imag; };
-    using MY_COMPLEX_FLOAT  = struct{ float  real; float  imag; };
-#else
-    using MY_COMPLEX_DOUBLE = __complex__ double;
-    using MY_COMPLEX_FLOAT  = __complex__ float;
-#endif
-        
         template<Layout layout, UpLo uplo, typename Scal>
         class SelfAdjointEigensolver
         {
@@ -155,17 +147,17 @@ namespace Tensors
                 else if constexpr ( SameQ<Scal,std::complex<double>> )
                 {
                     #ifdef LAPACK_zheev
-                        LAPACK_zheev( &job, &flag, &n, reinterpret_cast<MY_COMPLEX_DOUBLE*>(A.data()), &ldA, eigs.data(), reinterpret_cast<MY_COMPLEX_DOUBLE*>(work.data()), &lwork, rwork.data(), &info );
+                        LAPACK_zheev( &job, &flag, &n, reinterpret_cast<COMPLEX_DOUBLE*>(A.data()), &ldA, eigs.data(), reinterpret_cast<COMPLEX_DOUBLE*>(work.data()), &lwork, rwork.data(), &info );
                     #else
-                        zheev_      ( &job, &flag, &n, reinterpret_cast<MY_COMPLEX_DOUBLE*>(A.data()), &ldA, eigs.data(), reinterpret_cast<MY_COMPLEX_DOUBLE*>(work.data()), &lwork, rwork.data(), &info );
+                        zheev_      ( &job, &flag, &n, reinterpret_cast<COMPLEX_DOUBLE*>(A.data()), &ldA, eigs.data(), reinterpret_cast<COMPLEX_DOUBLE*>(work.data()), &lwork, rwork.data(), &info );
                     #endif
                 }
                 else if constexpr ( SameQ<Scal,std::complex<float>> )
                 {
                     #ifdef LAPACK_cheev
-                        LAPACK_cheev( &job, &flag, &n, reinterpret_cast<MY_COMPLEX_FLOAT*>(A.data()), &ldA, eigs.data(), reinterpret_cast<MY_COMPLEX_FLOAT*>(work.data()), &lwork, rwork.data(), &info );
+                        LAPACK_cheev( &job, &flag, &n, reinterpret_cast<COMPLEX_FLOAT*>(A.data()), &ldA, eigs.data(), reinterpret_cast<COMPLEX_FLOAT*>(work.data()), &lwork, rwork.data(), &info );
                     #else
-                        cheev       ( &job, &flag, &n, reinterpret_cast<MY_COMPLEX_FLOAT*>(A.data()), &ldA, eigs.data(), reinterpret_cast<MY_COMPLEX_FLOAT*>(work.data()), &lwork, rwork.data(), &info );
+                        cheev       ( &job, &flag, &n, reinterpret_cast<COMPLEX_FLOAT*>(A.data()), &ldA, eigs.data(), reinterpret_cast<COMPLEX_FLOAT*>(work.data()), &lwork, rwork.data(), &info );
                     #endif
                 }
                 else
