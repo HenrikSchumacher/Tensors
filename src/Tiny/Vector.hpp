@@ -37,6 +37,13 @@ namespace Tensors
                 Read( &matrix[n * k] );
             }
             
+            
+            template<typename S>
+            CLASS( cptr<S> vector )
+            {
+                Read( vector );
+            }
+            
             template<typename S>
             constexpr CLASS( const std::initializer_list<S> w )
             {

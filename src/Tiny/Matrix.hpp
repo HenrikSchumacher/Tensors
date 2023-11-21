@@ -28,6 +28,10 @@ namespace Tensors
             
         protected:
             
+            
+            // TODO: Switching to std::array<RowVector_T,m> A would simplify several things...
+            // TODO: But beware: Tiny::Vector has some nontrivial memory alignment!
+            
             alignas(Tools::Alignment) std::array<std::array<Scal,n>,m> A;
             
             
