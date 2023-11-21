@@ -369,8 +369,8 @@ namespace Tensors
                 
                 for( Int i = 1; i < n; ++i )
                 {
-                    min = Tools::Min(min,v[i]);
-                    max = Tools::Max(max,v[i]);
+                    min = std::min(min,v[i]);
+                    max = std::max(max,v[i]);
                 }
 
                 min_ = min;
@@ -383,7 +383,7 @@ namespace Tensors
                 Real m = v[0];
                 for( Int i = 1; i < n; ++i )
                 {
-                    m = Tools::Min(m,v[i]);
+                    m = std::min(m,v[i]);
                 }
                 return m;
             }
@@ -412,7 +412,7 @@ namespace Tensors
                 Real m = v[0];
                 for( Int i = 1; i < n; ++i )
                 {
-                    m = Tools::Max(m,v[i]);
+                    m = std::max(m,v[i]);
                 }
                 return m;
             }
@@ -441,7 +441,7 @@ namespace Tensors
                 Real m = Abs(v[0]);
                 for( Int i = 1; i < n; ++i )
                 {
-                    m = Tools::Max(m,Abs(v[i]));
+                    m = std::max(m,Abs(v[i]));
                 }
                 return m;
             }

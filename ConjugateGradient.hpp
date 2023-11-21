@@ -61,7 +61,7 @@ namespace Tensors
         )
         :   n               ( n_                                    )
         ,   max_iter        ( Min(max_iter_,n)                      )
-        ,   eq              ( COND( EQ > VarSize, EQ, eq_count__ )  )
+        ,   eq              ( COND( EQ > VarSize, EQ, static_cast<Int>(eq_count__ ) )  )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   r               ( n, eq                                 )
         ,   u               ( n, eq                                 )
