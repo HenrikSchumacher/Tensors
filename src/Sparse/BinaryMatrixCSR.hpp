@@ -298,7 +298,7 @@ namespace Tensors
             
         public:
             
-            BinaryMatrixCSR Dot( const BinaryMatrixCSR & B ) const
+            [[nodiscard]] BinaryMatrixCSR Dot( const BinaryMatrixCSR & B ) const
             {
                 BinaryMatrixCSR<Int,LInt> result;
                 
@@ -309,7 +309,7 @@ namespace Tensors
                 return result;
             }
             
-            BinaryMatrixCSR DotBinary( const BinaryMatrixCSR & B ) const
+            [[nodiscard]] BinaryMatrixCSR DotBinary( const BinaryMatrixCSR & B ) const
             {
                 BinaryMatrixCSR result;
                 

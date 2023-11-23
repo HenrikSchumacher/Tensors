@@ -286,19 +286,6 @@ public:
 //######################################################
          
 public:
-    
-    force_inline friend CLASS operator+( const CLASS & x, const CLASS & y )
-    {
-        CLASS z;
-        for( Int i = 0; i < m; ++i )
-        {
-            for( Int j = 0; j < n; ++j )
-            {
-                z.A[i][j] = x.A[i][j] + y.A[i][j];
-            }
-        }
-        return z;
-    }
 
     
     template<class T>
@@ -358,23 +345,4 @@ public:
         
         return *this;
     }
-    
-    force_inline void Conjugate( CLASS & B ) const
-    {
-        for( Int i = 0; i < m; ++i )
-        {
-            for( Int j = 0; j < n; ++j )
-            {
-                B.A[i][j] = Conj(A[i][j]);
-            }
-        }
-    }
 
-    force_inline CLASS Conjugate() const
-    {
-        CLASS B;
-        
-        Conjugate(B);
-        
-        return B;
-    }

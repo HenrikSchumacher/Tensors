@@ -51,7 +51,7 @@ namespace Tensors
             }
             
             
-            force_inline Scal Det() const
+            [[nodiscard]] force_inline Scal Det() const
             {
                 Scal det = A[0][0];
                 

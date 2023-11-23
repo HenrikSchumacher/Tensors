@@ -95,6 +95,28 @@ namespace Tensors
 //######################################################
          
         public:
+
+            force_inline friend void Plus( const CLASS & x, const CLASS & y, const CLASS & z )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        z.A[i][j] = x.A[i][j] + y.A[i][j];
+                    }
+                }
+                return z;
+            }
+            
+            
+            [[nodiscard]] force_inline friend const CLASS operator+( const CLASS & x, const CLASS & y )
+            {
+                CLASS z;
+                
+                Plus( x, y, z);
+                
+                return z;
+            }
             
             template<class T>
             force_inline
@@ -280,7 +302,7 @@ namespace Tensors
             }
             
             
-            force_inline Matrix<n,n,Scal,Int> ATA() const
+            [[nodiscard]] force_inline Matrix<n,n,Scal,Int> ATA() const
             {
                 Matrix<n,n,Scal,Int> B;
                 
@@ -306,7 +328,7 @@ namespace Tensors
                 return B;
             }
             
-            force_inline Matrix<m,m,Scal,Int> AAT() const
+            [[nodiscard]] force_inline Matrix<m,m,Scal,Int> AAT() const
             {
                 Matrix<m,m,Scal,Int> B;
                 
@@ -334,6 +356,26 @@ namespace Tensors
 
         public:
             
+            
+            force_inline void Conjugate( CLASS & B ) const
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        B.A[i][j] = Conj(A[i][j]);
+                    }
+                }
+            }
+
+            [[nodiscard]] force_inline CLASS Conjugate() const
+            {
+                CLASS B;
+                
+                Conjugate(B);
+                
+                return B;
+            }
 
             force_inline void Transpose( mref<Matrix<n,m,Scal,Int>> B ) const
             {
@@ -346,7 +388,7 @@ namespace Tensors
                 }
             }
             
-            force_inline Matrix<n,m,Scal,Int> Transpose() const
+            [[nodiscard]] force_inline Matrix<n,m,Scal,Int> Transpose() const
             {
                 Matrix<n,m,Scal,Int> B;
                 
@@ -366,7 +408,7 @@ namespace Tensors
                 }
             }
 
-            force_inline Matrix<n,m,Scal,Int> ConjugateTranspose() const
+            [[nodiscard]] force_inline Matrix<n,m,Scal,Int> ConjugateTranspose() const
             {
                 Matrix<n,m,Scal,Int> B;
                 
@@ -375,7 +417,9 @@ namespace Tensors
                 return B;
             }
             
-            force_inline Real MaxNorm() const
+            
+            
+            [[nodiscard]] force_inline Real MaxNorm() const
             {
                 Real max = 0;
                 
@@ -404,7 +448,7 @@ namespace Tensors
                 
             }
             
-            force_inline Real FrobeniusNorm() const
+            [[nodiscard]] force_inline Real FrobeniusNorm() const
             {
                 Real AA = 0;
                 
@@ -419,7 +463,7 @@ namespace Tensors
             }
 
             
-            std::string ToString() const
+            [[nodiscard]] std::string ToString() const
             {
                 std::stringstream sout;
                 sout << "{\n";

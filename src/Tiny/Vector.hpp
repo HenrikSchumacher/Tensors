@@ -72,26 +72,6 @@ namespace Tensors
                         v[i] = Scalar::Zero<Scal>;
                     }
                 }
-                
-//                const Int m = int_cast<Int>(w.size());
-//
-//                if(m > n)
-//                {
-//                    eprint(TO_STD_STRING(CLASS)+": Length of initializer list must not exceed length of n");
-//                }
-//                else
-//                {
-//                    cptr<S> w_ = &(*w.begin());
-//                    
-//                    for( Int i = 0; i < m; ++i )
-//                    {
-//                        v[i] = scalar_cast<Scal>(w_[i]);
-//                    }
-//                    for( Int i = m; i < n; ++i )
-//                    {
-//                        v[i] = Scalar::Zero<Scal>;
-//                    }
-//                }
             }
             
             
@@ -179,18 +159,6 @@ namespace Tensors
             }
             
             
-            template<
-                Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-                Op self_op, Op target_op,
-                typename R, typename S, typename T
-            >
-            void CombineInto( cref<R> alpha, cref<S> beta, mptr<T> target ) const
-            {
-                combine_buffers<alpha_flag,beta_flag,self_op,target_op,n>(
-                    alpha, data(), beta, target
-                );
-            }
-            
             template<typename T >
             void AddTo( mptr<T> target ) const
             {
@@ -236,6 +204,43 @@ namespace Tensors
 //######################################################
 //##                  Artihmethic                     ##
 //######################################################
+            
+            template<
+                typename a_T, typename x_T, typename b_T, typename y_T,
+                Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id
+            >
+            force_inline void LinearCombine(
+                cref<a_T> a, cptr<x_T> x, cref<b_T> b, cptr<y_T> y
+            )
+            {
+                // Sets z = a * x + b * y.
+                
+                combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
+                     scalar_cast<Scal>(a), x, scalar_cast<Scal>(b), y, &v[0]
+                );
+            }
+//            
+//            template<Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id>
+//            force_inline friend void LinearCombine(
+//                cref<Scal> a, cref<CLASS> x, cref<Scal> b, cref<CLASS> y, mref<CLASS> z
+//            )
+//            {
+//                // Sets z = a * x + b * y.
+//                
+//                combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
+//                    a, x.data(), b, y.data(), z.data()
+//                );
+//            }
+            
+            
+//            force_inline friend void axpy( cref<Scal> a, cref<CLASS> x, mref<CLASS> y )
+//            {
+//                combine_buffers<F_Gen, F_Plus, n, Sequential>(
+//                    a, x.data(), Scalar::One<Scal>, y.data()
+//                );
+//            }
+            
+            
             
             template<class T>
             force_inline
@@ -453,32 +458,8 @@ namespace Tensors
                 return m;
             }
             
-
-            force_inline friend Scal Dot( cref<CLASS> x, cref<CLASS> y )
-            {
-                Scal r (0);
-                
-                for( Int i = 0; i < n; ++i )
-                {
-                    r += x.v[i] * y.v[i];
-                }
-
-                return r;
-            }
             
-            force_inline friend Scal InnerProduct( cref<CLASS> x, cref<CLASS> y )
-            {
-                Scal r (0);
-                
-                for( Int i = 0; i < n; ++i )
-                {
-                    r += Conj(x.v[i]) * y.v[i];
-                }
-                return r;
-            }
-            
-            
-            force_inline friend Real AngleBetweenUnitVectors( cref<CLASS> u, cref<CLASS> w )
+            [[nodiscard]] force_inline friend Real AngleBetweenUnitVectors( cref<CLASS> u, cref<CLASS> w )
             {
                 Real a = 0;
                 Real b = 0;
@@ -492,7 +473,7 @@ namespace Tensors
                 return Scalar::Two<Real> * atan( Sqrt(a/b) );
             }
             
-            force_inline friend Real Angle( cref<CLASS> x, cref<CLASS> y )
+            [[nodiscard]] force_inline friend Real Angle( cref<CLASS> x, cref<CLASS> y )
             {
                 CLASS u = x;
                 CLASS w = y;
@@ -501,183 +482,6 @@ namespace Tensors
                 w.Normalize();
                 
                 return AngleBetweenUnitVectors(u,w);
-            }
-
-            
-            force_inline friend void Plus( cref<CLASS> x, cref<CLASS> y, mref<CLASS> z )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    z.v[i] = x.v[i] + y.v[i];
-                }
-            }
-            
-            force_inline friend CLASS Plus( cref<CLASS> x, cref<CLASS> y  )
-            {
-                CLASS z;
-                
-                Plus( x, y, z );
-  
-                return z;
-            }
-   
-            force_inline friend void Times( cref<Scal> scale, cref<CLASS> x, mref<CLASS> y )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    y.v[i] = scale * x.v[i];
-                }
-            }
-            
-            force_inline friend void axpy( cref<Scal> alpha, cref<CLASS> x, mref<CLASS> y )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    y.v[i] += alpha * x.v[i];
-                }
-            }
-
-            template<
-                Scalar::Flag alpha_flag = Scalar::Flag::Generic,
-                Scalar::Flag beta_flag  = Scalar::Flag::Generic
-            >
-            force_inline friend void LinearCombine(
-                cref<Scal> alpha, cref<CLASS> x, cref<Scal> beta, cref<CLASS> y, mref<CLASS> z
-            )
-            {
-                // Sets z = alpha * x + beta * y.
-                
-                for( Int i = 0; i < n; ++i )
-                {
-                    switch( alpha_flag )
-                    {
-                        case Scalar::Flag::Generic:
-                        {
-                            switch( beta_flag )
-                            {
-                                case Scalar::Flag::Generic:
-                                {
-                                    z.v[i] = alpha * x.v[i] + beta * y.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Plus:
-                                {
-                                    z.v[i] = alpha * x.v[i] + y.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Zero:
-                                {
-                                    z.v[i] = alpha * x.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Minus:
-                                {
-                                    z.v[i] = alpha * x.v[i] - y.v[i];
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                        case Scalar::Flag::Plus:
-                        {
-                            switch( beta_flag )
-                            {
-                                case Scalar::Flag::Generic:
-                                {
-                                    z.v[i] = x.v[i] + beta * y.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Plus:
-                                {
-                                    z.v[i] = x.v[i] + y.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Zero:
-                                {
-                                    z.v[i] = x.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Minus:
-                                {
-                                    z.v[i] = x.v[i] - y.v[i];
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                        case Scalar::Flag::Zero:
-                        {
-                            switch( beta_flag )
-                            {
-                                case Scalar::Flag::Generic:
-                                {
-                                    z.v[i] = beta * y.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Plus:
-                                {
-                                    z.v[i] = y.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Zero:
-                                {
-                                    z.v[i] = Scalar::Zero<Scal>;
-                                    break;
-                                }
-                                case Scalar::Flag::Minus:
-                                {
-                                    z.v[i] = - y.v[i];
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                        case Scalar::Flag::Minus:
-                        {
-                            switch( beta_flag )
-                            {
-                                case Scalar::Flag::Generic:
-                                {
-                                    z.v[i] = - x.v[i] + beta * y.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Plus:
-                                {
-                                    z.v[i] = - x.v[i] + y.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Zero:
-                                {
-                                    z.v[i] = - x.v[i];
-                                    break;
-                                }
-                                case Scalar::Flag::Minus:
-                                {
-                                    z.v[i] = - (x.v[i] + y.v[i]);
-                                    break;
-                                }
-                            }
-                            break;
-                        }
-                    }
-                    
-                }
-            }
-            
-            template<
-                Scalar::Flag alpha_flag = Scalar::Flag::Generic,
-                Scalar::Flag beta_flag  = Scalar::Flag::Generic
-            >
-            force_inline friend CLASS LinearCombine(
-                cref<Scal> alpha, cref<CLASS> x, cref<Scal> beta, cref<CLASS> y
-            )
-            {
-                // Returns alpha * x + beta * y.
-                CLASS z;
-                
-                LinearCombine<alpha_flag,beta_flag>( alpha, x, beta, y, z );
-                
-                return z;
             }
 
             
@@ -734,7 +538,7 @@ namespace Tensors
         }
         
         template<typename Scal, typename Int>
-        force_inline Vector<3,Scal,Int> Cross( 
+        [[nodiscard]] force_inline const Vector<3,Scal,Int> Cross(
             cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v )
         {
             Vector<3,Scal,Int> w;
@@ -743,7 +547,7 @@ namespace Tensors
         }
         
         template<typename Scal, typename Int>
-        force_inline Scal Det( 
+        [[nodiscard]] force_inline const Scal Det(
             cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v, mref<Vector<3,Scal,Int>> w
         )
         {
@@ -753,13 +557,13 @@ namespace Tensors
         }
         
         template<typename Scal, typename Int>
-        force_inline Scal Det( cref<Vector<2,Scal,Int>> u, cref<Vector<2,Scal,Int>> v )
+        [[nodiscard]] force_inline const Scal Det( cref<Vector<2,Scal,Int>> u, cref<Vector<2,Scal,Int>> v )
         {
             return u[0] * v[1] - u[1] * v[0];
         }
         
         template<int n, typename Scal, typename Int>
-        force_inline Scalar::Real<Scal> Distance( cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v )
+        [[nodiscard]] force_inline const Scalar::Real<Scal> Distance( cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v )
         {
             Scalar::Real<Scal> r2 = 0;
             
@@ -768,6 +572,160 @@ namespace Tensors
                 r2 += (u[i] - v[i]) * (u[i] - v[i]);
             }
             return Sqrt(r2);
+        }
+        
+        
+        
+        
+        template<
+            int n,
+            typename a_T, typename x_T, typename x_Int,
+            typename b_T, typename y_T, typename y_Int,
+                          typename z_T, typename z_Int,
+            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id
+        >
+        force_inline void LinearCombine(
+            cref<a_T> a, cref<Vector<n,x_T,x_Int>> x,
+            cref<b_T> b, cref<Vector<n,y_T,y_Int>> y,
+                         mref<Vector<n,z_T,z_Int>> z
+        )
+        {
+            // Computes  z = a * x + b * y.
+            
+            combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
+                scalar_cast<z_T>(a), x.data(), scalar_cast<z_T>(b), y.data(), z.data()
+            );
+        }
+        
+        
+        template<
+            int n, typename Scal, typename Int,
+            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id,
+            typename a_T, typename x_T, typename x_Int,
+            typename b_T, typename y_T, typename y_Int
+        >
+        [[nodiscard]] force_inline const Vector<n,Scal,Int> MakeVector(
+            cref<a_T> a, cref<Vector<n,x_T,x_Int>> x,
+            cref<b_T> b, cref<Vector<n,y_T,y_Int>> y
+        )
+        {
+            // Returns z = a * x + b * y.
+            Vector<n,Scal,Int> z;
+            
+            LinearCombine( a, x, b, y, z);
+            
+            return z;
+        }
+        
+        
+        
+        template<
+            int n, typename Scal, typename Int,
+            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id,
+            typename a_T, typename x_T, typename b_T, typename y_T
+        >
+        [[nodiscard]] force_inline const Vector<n,Scal,Int> MakeVector(
+            cref<a_T> a, cptr<x_T> x,
+            cref<b_T> b, cptr<y_T> y
+        )
+        {
+            // Returns z = a * x + b * y.
+            Vector<n,Scal,Int> z;
+            
+            combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
+                scalar_cast<Scal>(a), x, scalar_cast<Scal>(b), y, z.data()
+            );
+            
+            return z;
+        }
+        
+        
+         
+        
+        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int
+        >
+        [[nodiscard]] force_inline const 
+        Vector<n,decltype(x_T(0)+y_T(0)),decltype(x_Int(0)+y_Int(0))> operator+(
+            cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
+        )
+        {
+            // Returns z = x + y.
+            
+            using T = decltype(x_T  (0) + y_T  (0));
+            using I = decltype(x_Int(0) + y_Int(0));
+            
+            return MakeVector<n,T,I,F_Plus,F_Plus>(
+                Scalar::One<T>,x,Scalar::One<T>,y
+            );
+        }
+        
+        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int
+        >
+        [[nodiscard]] force_inline const
+        Vector<n,decltype(x_T(0)+y_T(0)),decltype(x_Int(0)+y_Int(0))> operator-(
+            cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
+        )
+        {
+            // Returns z = x + y.
+            
+            using T = decltype(x_T  (0) + y_T  (0));
+            using I = decltype(x_Int(0) + y_Int(0));
+            
+            return MakeVector<n,T,I,F_Plus,F_Minus>(
+                Scalar::One<T>,x,-Scalar::One<T>,y
+            );
+        }
+        
+        
+        
+
+        template<int n, typename a_T, typename x_T, typename Int>
+        [[nodiscard]] force_inline const 
+        Vector<n,decltype( x_T(1) * a_T(1) ),Int> operator*( 
+            cref<a_T> a, cref<Vector<n,x_T,Int>> x
+        )
+        {
+            // Returns z = a * x.
+            
+            using T = decltype(x_T(1) * a_T(1));
+            
+            return MakeVector<n,T,Int,F_Gen,F_Zero>(
+                scalar_cast<T>(a),x.data(),Scalar::Zero<T>,x.data()
+            );
+        }
+        
+        template<int n, typename x_T, typename Int, typename a_T>
+        [[nodiscard]] force_inline const 
+        Vector<n,decltype( x_T(1) * a_T(1) ),Int> operator*( 
+            cref<Vector<n,x_T,Int>> x, cref<a_T> a
+        )
+        {
+            // Returns z = a * x.
+            
+            using T = decltype(x_T(1) * a_T(1));
+            
+            return MakeVector<n,T,Int,F_Gen,F_Zero>(
+                scalar_cast<T>(a),x.data(),Scalar::Zero<T>,x.data()
+            );
+        }
+
+        
+        
+        
+        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
+        [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) Dot(
+            cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
+        )
+        {
+            return dot_buffers<n,Sequential,Id,Id>( x.data(), y.data() );
+        }
+        
+        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
+        [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) InnerProduct(
+            cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
+        )
+        {
+            return dot_buffers<n,Sequential,Conj,Id>( x.data(), y.data() );
         }
         
     } // namespace Tiny
