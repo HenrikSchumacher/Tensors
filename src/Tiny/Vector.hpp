@@ -1,5 +1,6 @@
 #pragma once
 
+// TODO: Expression templates: https://en.wikipedia.org/wiki/Expression_templates
 namespace Tensors
 {
     namespace Tiny
@@ -219,28 +220,6 @@ namespace Tensors
                      scalar_cast<Scal>(a), x, scalar_cast<Scal>(b), y, &v[0]
                 );
             }
-//            
-//            template<Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id>
-//            force_inline friend void LinearCombine(
-//                cref<Scal> a, cref<CLASS> x, cref<Scal> b, cref<CLASS> y, mref<CLASS> z
-//            )
-//            {
-//                // Sets z = a * x + b * y.
-//                
-//                combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
-//                    a, x.data(), b, y.data(), z.data()
-//                );
-//            }
-            
-            
-//            force_inline friend void axpy( cref<Scal> a, cref<CLASS> x, mref<CLASS> y )
-//            {
-//                combine_buffers<F_Gen, F_Plus, n, Sequential>(
-//                    a, x.data(), Scalar::One<Scal>, y.data()
-//                );
-//            }
-            
-            
             
             template<class T>
             force_inline
