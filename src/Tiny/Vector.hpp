@@ -688,6 +688,21 @@ namespace Tensors
             );
         }
         
+        
+        template<int n, typename a_T, typename x_T, typename z_T, typename Int>
+        [[nodiscard]] force_inline const
+        Vector<n,decltype( x_T(1) * a_T(1) ),Int> Times(
+            cref<a_T> a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z
+        )
+        {
+            // Returns z = a * x.
+            
+            combine_buffers<F_Gen, F_Zero, n, Sequential>(
+                scalar_cast<z_T>(a), x, scalar_cast<z_T>(0), z.data()
+            );
+        }
+        
+        
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
         [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) Dot(
             cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
