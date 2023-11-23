@@ -690,7 +690,7 @@ namespace Tensors
         
         
         template<int n, typename a_T, typename x_T, typename z_T, typename Int>
-        [[nodiscard]] force_inline const
+        force_inline const
         Vector<n,decltype( x_T(1) * a_T(1) ),Int> Times(
             cref<a_T> a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z
         )
@@ -698,7 +698,7 @@ namespace Tensors
             // Returns z = a * x.
             
             combine_buffers<F_Gen, F_Zero, n, Sequential>(
-                scalar_cast<z_T>(a), x, scalar_cast<z_T>(0), z.data()
+                scalar_cast<z_T>(a), x.data(), scalar_cast<z_T>(0), z.data()
             );
         }
         
