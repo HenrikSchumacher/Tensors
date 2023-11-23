@@ -207,7 +207,7 @@ namespace Tensors
             
             template<
                 typename a_T, typename x_T, typename b_T, typename y_T,
-                Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id
+                Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
             >
             force_inline void LinearCombine(
                 cref<a_T> a, cptr<x_T> x, cref<b_T> b, cptr<y_T> y
@@ -220,7 +220,7 @@ namespace Tensors
                 );
             }
 //            
-//            template<Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id>
+//            template<Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id>
 //            force_inline friend void LinearCombine(
 //                cref<Scal> a, cref<CLASS> x, cref<Scal> b, cref<CLASS> y, mref<CLASS> z
 //            )
@@ -582,7 +582,7 @@ namespace Tensors
             typename a_T, typename x_T, typename x_Int,
             typename b_T, typename y_T, typename y_Int,
                           typename z_T, typename z_Int,
-            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id
+            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
         >
         force_inline void LinearCombine(
             cref<a_T> a, cref<Vector<n,x_T,x_Int>> x,
@@ -600,7 +600,7 @@ namespace Tensors
         
         template<
             int n, typename Scal, typename Int,
-            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id,
+            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id,
             typename a_T, typename x_T, typename x_Int,
             typename b_T, typename y_T, typename y_Int
         >
@@ -621,7 +621,7 @@ namespace Tensors
         
         template<
             int n, typename Scal, typename Int,
-            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = Id, Op opy = Id,
+            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id,
             typename a_T, typename x_T, typename b_T, typename y_T
         >
         [[nodiscard]] force_inline const Vector<n,Scal,Int> MakeVector(
@@ -708,16 +708,13 @@ namespace Tensors
                 scalar_cast<T>(a),x.data(),Scalar::Zero<T>,x.data()
             );
         }
-
-        
-        
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
         [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) Dot(
             cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
         )
         {
-            return dot_buffers<n,Sequential,Id,Id>( x.data(), y.data() );
+            return dot_buffers<n,Sequential,O_Id,O_Id>( x.data(), y.data() );
         }
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
@@ -725,7 +722,7 @@ namespace Tensors
             cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
         )
         {
-            return dot_buffers<n,Sequential,Conj,Id>( x.data(), y.data() );
+            return dot_buffers<n,Sequential,O_Conj,O_Id>( x.data(), y.data() );
         }
         
     } // namespace Tiny

@@ -5,17 +5,17 @@ namespace Tensors
     // Never do using namespace Tiny. Chaos will break loose.
     namespace Tiny
     {
-        static constexpr Op Id        = Op::Id;
-        static constexpr Op Trans     = Op::Trans;
-        static constexpr Op Conj      = Op::Conj;
-        static constexpr Op ConjTrans = Op::ConjTrans;
+        static constexpr Op O_Id        = Op::Id;
+        static constexpr Op O_Trans     = Op::Trans;
+        static constexpr Op O_Conj      = Op::Conj;
+        static constexpr Op O_ConjTrans = Op::ConjTrans;
         
         using Flag = Scalar::Flag;
         
-        static constexpr Flag F_Plus  = Flag::Plus;
-        static constexpr Flag F_Minus = Flag::Minus;
-        static constexpr Flag F_Gen   = Flag::Generic;
-        static constexpr Flag F_Zero  = Flag::Zero;
+        static constexpr Flag F_Plus    = Flag::Plus;
+        static constexpr Flag F_Minus   = Flag::Minus;
+        static constexpr Flag F_Gen     = Flag::Generic;
+        static constexpr Flag F_Zero    = Flag::Zero;
     }
 }
 
