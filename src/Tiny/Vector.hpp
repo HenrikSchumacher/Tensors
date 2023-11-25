@@ -527,7 +527,7 @@ namespace Tensors
         
         template<typename Scal, typename Int>
         [[nodiscard]] force_inline const Scal Det(
-            cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v, mref<Vector<3,Scal,Int>> w
+            cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v, cref<Vector<3,Scal,Int>> w
         )
         {
             return w[0] * ( u[1] * v[2] - u[2] * v[1] )
@@ -536,13 +536,16 @@ namespace Tensors
         }
         
         template<typename Scal, typename Int>
-        [[nodiscard]] force_inline const Scal Det( cref<Vector<2,Scal,Int>> u, cref<Vector<2,Scal,Int>> v )
+        [[nodiscard]] force_inline const Scal Det( 
+            cref<Vector<2,Scal,Int>> u, cref<Vector<2,Scal,Int>> v )
         {
             return u[0] * v[1] - u[1] * v[0];
         }
         
         template<int n, typename Scal, typename Int>
-        [[nodiscard]] force_inline const Scalar::Real<Scal> Distance( cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v )
+        [[nodiscard]] force_inline const Scalar::Real<Scal> Distance( 
+            cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v
+        )
         {
             Scalar::Real<Scal> r2 = 0;
             

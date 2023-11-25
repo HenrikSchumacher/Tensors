@@ -12,10 +12,10 @@ namespace Tensors
         {
             // Uses only upper triangle.
             
-        public:
-            
 #include "Tiny_Details.hpp"
 
+        public:
+            
             static constexpr Int n = n_;
             
             using Vector_T = Vector<n,Scal,Int>;
@@ -679,6 +679,22 @@ namespace Tensors
             }
             
             
+            std::pair<Matrix<n,n,Scal,Int>,Vector<n,Real,Int>> Eigensystem(
+                const Real tol      = eps,
+                const Int  max_iter = 16
+            ) const
+            {
+                // Returns U and eigs such that
+                // ConjugateTranspose(U) * A * U == DiagonalMatrix(eigs);
+                // That means, the COLUMNS of U are the eigenvectors.
+                
+                std::pair<Matrix<n,n,Scal,Int>,Vector<n,Real,Int>> result;
+                
+                Eigensystem(result.first,result.second,eps,max_iter);
+                
+                return result;
+            }
+            
             void Eigensystem(
                 Matrix<n,n,Scal,Int> & U,
                 Vector<n,  Real,Int> & eigs,
@@ -687,7 +703,8 @@ namespace Tensors
             ) const
             {
                 // Returns U and eigs such that
-                // ConjugateTranspose(U) * A * U == Diagona(eigs);
+                // ConjugateTranspose(U) * A * U == DiagonalMatrix(eigs);
+                // That means, the COLUMNS of U are the eigenvectors.
                 
                 SelfAdjointTridiagonalMatrix<n, Real, Int> T;
                 
@@ -766,6 +783,69 @@ namespace Tensors
             }
             
         };
+        
+        
+        template<int m_, int n_, typename Scal, typename  Int >
+        [[nodiscard]] force_inline const
+        SelfAdjointMatrix<n_,Scal,Int> SelfAdjointAHA( const Matrix<m_,n_,Scal,Int> & A )
+        {
+            constexpr Int m = m_;
+            constexpr Int n = n_;
+            
+            SelfAdjointMatrix<n,Scal,Int> B;
+            
+            for( Int i = 0; i < n; ++i )
+            {
+                for( Int j = i; j < n; ++j )
+                {
+                    B[i][j] = Conj(A[0][i]) * A[0][j];
+                }
+            }
+            
+            for( Int k = 1; k < m; ++k )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        B[i][j] += Conj(A[k][i]) * A[k][j];
+                    }
+                }
+            }
+            
+            return B;
+        }
+        
+        template<int m_, int n_, typename Scal, typename  Int >
+        [[nodiscard]] force_inline const
+        SelfAdjointMatrix<m_,Scal,Int> SelfAdjointAAH( const Matrix<m_,n_,Scal,Int> & A )
+        {
+            constexpr Int m = m_;
+            constexpr Int n = n_;
+            
+            Matrix<m,m,Scal,Int> B;
+            
+            for( Int i = 0; i < m; ++i )
+            {
+                for( Int j = i; j < m; ++j )
+                {
+                    B[i][j] = A[i][0] * Conj(A[j][0]);
+                }
+            }
+            
+            for( Int k = 1; k < n; ++k )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = i; j < m; ++j )
+                    {
+                        B[i][j] += A[i][k] * Conj(A[j][k]);
+                    }
+                }
+            }
+            
+            return B;
+        }
         
 #undef CLASS
     } // namespace Tiny

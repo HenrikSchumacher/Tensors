@@ -196,31 +196,19 @@ namespace Tensors
             
         public:
             
-            template<
-                AddTo_T addto,
-                int K,
-                typename R, typename S
-            >
+            template< AddTo_T addto, int K, typename X_T, typename Y_T >
             force_inline
             friend
             typename std::enable_if_t<
-                (
-                    SameQ<R,Scal>
-                    ||
-                    (ComplexQ && SameQ<R,Real>)
-                )
+                ( SameQ<X_T,Scal> || (ComplexQ && SameQ<X_T,Real>) )
                 &&
-                (
-                    SameQ<S,Scal>
-                    ||
-                    (ComplexQ && SameQ<S,Real>)
-                )
+                ( SameQ<Y_T,Scal> || (ComplexQ && SameQ<Y_T,Real>) )
                 ,
                 void
             >
             Dot(
-                cref<Tiny::Matrix<m,K,R,   Int>> X,
-                cref<Tiny::Matrix<K,n,S,   Int>> Y,
+                cref<Tiny::Matrix<m,K,X_T, Int>> X,
+                cref<Tiny::Matrix<K,n,Y_T, Int>> Y,
                 mref<Tiny::Matrix<m,n,Scal,Int>> Z
             )
             {
@@ -254,36 +242,33 @@ namespace Tensors
                 
             }
             
-            template<
-                AddTo_T addto,
-                typename S, typename T
-            >
+            template<AddTo_T addto, typename x_T, typename y_T >
             friend
             force_inline
             typename std::enable_if_t<
                 (
-                    SameQ<Scal,T>
+                    SameQ<Scal,x_T>
                     ||
-                    (Scalar::ComplexQ<T> && SameQ<Scal,typename Scalar::Real<T>>)
+                    (Scalar::ComplexQ<x_T> && SameQ<Scal,typename Scalar::Real<x_T>>)
                 )
                 &&
                 (
-                    SameQ<S,T>
+                    SameQ<x_T,y_T>
                     ||
-                    (Scalar::ComplexQ<T> && SameQ<Scal,typename Scalar::Real<T>>)
+                    (Scalar::ComplexQ<y_T> && SameQ<Scal,typename Scalar::Real<y_T>>)
                 )
                 ,
                 void
             >
             Dot(
                 cref<Tiny::Matrix<m,n,Scal,Int>> M,
-                cref<Tiny::Vector<n,  S,   Int>> x,
-                mref<Tiny::Vector<m,  T,   Int>> y
+                cref<Tiny::Vector<n,  x_T, Int>> x,
+                mref<Tiny::Vector<m,  y_T, Int>> y
             )
             {
                 for( Int i = 0; i < m; ++i )
                 {
-                    T y_i (0);
+                    y_T y_i (0);
                     
                     for( Int j = 0; j < n; ++j )
                     {
@@ -752,110 +737,6 @@ namespace Tensors
                 return v;
             }
             
-            
-            
-//            void QRDecomposition( mref<Matrix<m,m,Scal,Int>> Q, mref<Matrix<m,n,Scal,Int>> R, mref<Vector<n,Int,Int>> p ) const
-//            {
-//                static_assert( m >= n, "QRDecomposition is only possible for matrices with at least many rows as columns.");
-//                
-//                // Factorize A[:,p] = Q * R with an orthogonal matrix Q and an upper triangular matrix R.
-//                
-//                
-//                ColVector_T cols [n];
-//                
-//                for( Int i = 0; i < m; ++i )
-//                {
-//                    for( Int j = 0; j < n; ++j )
-//                    {
-//                        cols[j][i] = A[i][j];
-//                    }
-//                }
-//                
-//                
-//                
-//                Q.SetIdentity();
-//                iota_buffer<n>( p.data() );
-//                
-//                RowVector_T squared_norms;
-//                
-//                ColVector_T u; // vector for the Householder reflections.
-//                ColVector_T v; // some scratch space
-//                
-//                for( Int j = 0; j < n; ++j )
-//                {
-//                    squared_norms[j] = cols[j].SquaredNorm();
-//                }
-//                
-//                Int k = 0;
-//                
-//                
-//                Int pivot = iamax_buffer<n>( squared_norms.data() );
-//                
-//                if( pivot != k )
-//                {
-//                    std::swap( p[k],             p[pivot]             );
-//                    std::swap( squared_norms[k], squared_norms[pivot] );
-//                    std::swap( cols[k],          cols[pivot]          );
-//                }
-//                
-//                for( Int i = k; i < n; ++i )
-//                {
-//                    u[i] = Conj(cols[k][i]);
-//                }
-//                
-//                Real uu = 0;
-//                for( Int i = k; i < n; ++i )
-//                {
-//                    uu += AbsSquared(u[k][i]);
-//                }
-//                
-//                if( uu < eps_squared )
-//                {
-//                    // TODO: Would be a reason to stop, no?
-//                    wprint("uu = 0.");
-//                }
-//                
-//                Real u_norm = Sqrt( uu );
-//                
-//                Scal u_pivot (u[k]);
-//                
-//                Real abs_squared_u_pivot = AbsSquared(u_pivot);
-//                
-//                const Scal rho (
-//                    COND(
-//                        Scalar::ComplexQ<Scal>
-//                        ,
-//                        ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / Sqrt(abs_squared_u_pivot)
-//                        ,
-//                        ( u_pivot > zero ) ? -one : one
-//                    )
-//                );
-//                
-//                uu -= abs_squared_u_pivot;
-//                
-//                u[k][k] -= rho * u_norm;
-//                
-//                uu += AbsSquared(u[k][k]);
-//                
-//                Real u_norm_inv ( one / Sqrt( uu ) );
-//                
-//                for( Int i = k; i < n; ++i )
-//                {
-//                    u[k][i] *= u_norm_inv;
-//                }
-//                
-//                // Now [ u[k],...,u[m-1] ] is the reflection vector.
-//                
-//                
-//                
-//                // Find Householder reflection that clears out B[k+1:m][k].
-//                
-//                // Apply Householder reflection to B.
-//                
-//                // Apply Householder reflection to Q.
-//            
-//            }
-            
         public:
 
             static constexpr Int RowCount()
@@ -890,6 +771,25 @@ namespace Tensors
         
         
     #undef CLASS
+        
+        
+        // TODO: Make this more type flexible
+        
+        
+        template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
+        [[nodiscard]] force_inline const
+        Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int> 
+        Dot(
+            cref<Tiny::Matrix<m,K,X_T,Int>> X,
+            cref<Tiny::Matrix<K,n,Y_T,Int>> Y
+        )
+        {
+            Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int> Z;
+         
+            Dot<Overwrite>(X,Y,Z);
+            
+            return Z;
+        }
         
     } // namespace Tiny
     
