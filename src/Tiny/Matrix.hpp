@@ -19,7 +19,7 @@ namespace Tensors
             static constexpr Int n = n_;
             
             static_assert(m>0, "Matrix row count must be positive.");
-            static_assert(n>0, "Matrix col count  must be positive.");
+            static_assert(n>0, "Matrix col count must be positive.");
             
             using ColVector_T = Vector<m,Scal,Int>;
             using RowVector_T = Vector<n,Scal,Int>;
@@ -414,7 +414,7 @@ namespace Tensors
                     {
                         for( Int j = 0; j < n; ++j )
                         {
-                            max = std::max( max, Abs(A[i][j]) );
+                            max = Tools::Max( max, Abs(A[i][j]) );
                         }
                     }
                     return max;
@@ -425,7 +425,7 @@ namespace Tensors
                     {
                         for( Int j = 0; j < n; ++j )
                         {
-                            max = std::max( max, AbsSquared(A[i][j]) );
+                            max = Tools::Max( max, AbsSquared(A[i][j]) );
                         }
                     }
                     return Sqrt(max);

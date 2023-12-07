@@ -211,7 +211,7 @@ private:
                     
                     const LInt last_l = rp[i_end];
                     
-                    const LInt look_ahead = int_cast<LInt>(std::max( Size_T(1), (CacheLineWidth / sizeof(Scal)) / std::max(static_cast<Size_T>(nrhs),NRHS) ));
+                    const LInt look_ahead = int_cast<LInt>(Tools::Max( Size_T(1), (CacheLineWidth / sizeof(Scal)) / Tools::Max(static_cast<Size_T>(nrhs),NRHS) ));
 
                     
                     for( Int i = i_begin; i < i_end; ++i )

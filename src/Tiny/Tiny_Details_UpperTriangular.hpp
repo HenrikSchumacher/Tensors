@@ -304,7 +304,7 @@ public:
             {
                 for( Int j = i; j < n; ++j )
                 {
-                    max = std::max( max, Abs(A[i][j]) );
+                    max = Tools::Max( max, Abs(A[i][j]) );
                 }
             }
         }
@@ -314,7 +314,7 @@ public:
             {
                 for( Int j = i; j < n; ++j )
                 {
-                    max = std::max( max, AbsSquared(A[i][j]) );
+                    max = Tools::Max( max, AbsSquared(A[i][j]) );
                 }
             }
         }

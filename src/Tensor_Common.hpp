@@ -249,7 +249,7 @@ private:
 
     force_inline void allocate()
     {
-        safe_alloc( a, std::max( static_cast<Size_T>(0), static_cast<Size_T>(n) ), Alignment );
+        safe_alloc( a, Tools::Ramp(static_cast<Size_T>(n)), Alignment );
     }
 
 public:
@@ -361,7 +361,7 @@ public:
         
         for( Int k = 0; k < last; ++k )
         {
-            max = std::max( max, Abs( x_a[k] - y_a[k] ) );
+            max = Tools::Max( max, Abs( x_a[k] - y_a[k] ) );
         }
         
         return max;
@@ -376,7 +376,7 @@ public:
     template<typename T, typename I, Size_T align>
     force_inline mref<TENSOR_T> operator+=( cref<TENSOR_T<T,I,align>> b )
     {
-        const Size_T m = std::min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
+        const Size_T m = Tools::Min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
         
         combine_buffers<Scalar::Flag::Plus,Scalar::Flag::Plus>(
             Scalar::One<T>, b.data(), Scalar::One<T>, a, m
@@ -388,7 +388,7 @@ public:
     template<typename T, typename I, Size_T align>
     force_inline mref<TENSOR_T> operator-=( cref<TENSOR_T<T,I,align>> b )
     {
-        const Size_T m = std::min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
+        const Size_T m = Tools::Min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
         
         combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus>(
             -Scalar::One<T>, b.data(), Scalar::One<T>, a, m

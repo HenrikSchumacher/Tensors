@@ -278,7 +278,7 @@ namespace Tensors
                         ++a;
                     }
                     
-                    Int b = std::min( a + 1, end );
+                    Int b = Tools::Min( a + 1, end );
                     
                     // Find the first b with upper[b] == 0.
                     while( (b < end ) && ( Abs(upper[b-1]) >= tol * ( Abs(diag[b-1]) + Abs(diag[b]) ) ) )

@@ -48,8 +48,8 @@ namespace Tensors
             template<typename S>
             constexpr CLASS( const std::initializer_list<S> w )
             {
-                const Int n__ = std::min(n,static_cast<Int>(w.size()));
-//                
+                const Int n__ = Tools::Min(n,static_cast<Int>(w.size()));
+//
                 cptr<S> w_ = &(*w.begin());
                 
                 if( n__ == 1 )
@@ -360,8 +360,8 @@ namespace Tensors
                 
                 for( Int i = 1; i < n; ++i )
                 {
-                    min = std::min(min,v[i]);
-                    max = std::max(max,v[i]);
+                    min = Tools::Min(min,v[i]);
+                    max = Tools::Max(max,v[i]);
                 }
 
                 min_ = min;
@@ -374,7 +374,7 @@ namespace Tensors
                 Real m = v[0];
                 for( Int i = 1; i < n; ++i )
                 {
-                    m = std::min(m,v[i]);
+                    m = Tools::Min(m,v[i]);
                 }
                 return m;
             }
@@ -403,7 +403,7 @@ namespace Tensors
                 Real m = v[0];
                 for( Int i = 1; i < n; ++i )
                 {
-                    m = std::max(m,v[i]);
+                    m = Tools::Max(m,v[i]);
                 }
                 return m;
             }
@@ -432,7 +432,7 @@ namespace Tensors
                 Real m = Abs(v[0]);
                 for( Int i = 1; i < n; ++i )
                 {
-                    m = std::max(m,Abs(v[i]));
+                    m = Tools::Max(m,Abs(v[i]));
                 }
                 return m;
             }

@@ -346,15 +346,15 @@ namespace Tensors
         {
 //            ptic(ClassName() + "::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
             
-            const Int d_0 = std::max( static_cast<Int>(0), d_0_ );
-            const Int d_1 = std::max( static_cast<Int>(0), d_1_ );
+            const Int d_0 = Tools::Ramp(d_0_);
+            const Int d_1 = Tools::Ramp(d_1_);
             
             TENSOR_T b ( d_0, d_1 );
             
             if( copy )
             {
-                const Int min_d_0 = std::min( b.Dimension(0), dims[0] );
-                const Int min_d_1 = std::min( b.Dimension(1), dims[1] );
+                const Int min_d_0 = Tools::Min( b.Dimension(0), dims[0] );
+                const Int min_d_1 = Tools::Min( b.Dimension(1), dims[1] );
                 
                 for( Int i = 0; i < min_d_0; ++i )
                 {

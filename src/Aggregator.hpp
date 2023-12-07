@@ -34,25 +34,25 @@ namespace Tensors
         ~Aggregator() = default;
 
         explicit Aggregator( const LInt n )
-        :   current_size ( Scalar::Zero<LInt>            )
-        ,   capacity     ( std::max(Scalar::One<LInt>,n) )
-        ,   container_0  ( std::max(Scalar::One<LInt>,n) )
-        ,   thread_count ( 1                             )
+        :   current_size ( Scalar::Zero<LInt>       )
+        ,   capacity     ( Max(Scalar::One<LInt>,n) )
+        ,   container_0  ( Max(Scalar::One<LInt>,n) )
+        ,   thread_count ( 1                        )
         {}
         
         explicit Aggregator( const LInt n, const Size_T thread_count_ )
-        :   current_size ( Scalar::Zero<LInt>            )
-        ,   capacity     ( std::max(Scalar::One<LInt>,n) )
-        ,   container_0  ( std::max(Scalar::One<LInt>,n) )
-        ,   thread_count ( thread_count_                 )
+        :   current_size ( Scalar::Zero<LInt>       )
+        ,   capacity     ( Max(Scalar::One<LInt>,n) )
+        ,   container_0  ( Max(Scalar::One<LInt>,n) )
+        ,   thread_count ( thread_count_            )
         {}
 
         // Copy contructor
         Aggregator( const Aggregator & other )
-        :   current_size ( other.current_size               )
-        ,   capacity     ( other.capacity                   )
-        ,   container_0  ( other.container_0                )
-        ,   thread_count ( other.thread_count               )
+        :   current_size ( other.current_size       )
+        ,   capacity     ( other.capacity           )
+        ,   container_0  ( other.container_0        )
+        ,   thread_count ( other.thread_count       )
         {}
 
         friend void swap ( Aggregator & A, Aggregator & B ) noexcept
@@ -103,7 +103,7 @@ namespace Tensors
         {
             if( current_size + n >= capacity )
             {
-                RequireCapacity( std::max( current_size + n, static_cast<LInt>(2) * capacity ) );
+                RequireCapacity( Max( current_size + n, static_cast<LInt>(2) * capacity ) );
             }
 
             copy_buffer( a, &container_0[current_size], n );
