@@ -126,7 +126,7 @@ namespace Tensors
             if constexpr ( op == Op::Id )
             {
                 ParallelDo(
-                    [=,this]( const Int i )
+                    [=]( const Int i )
                     {
                         copy_buffer<VarSize,Sequential>( &B[ld_B * i], &a[d_1 * i], d_1 );
                     },
@@ -136,7 +136,7 @@ namespace Tensors
             else if constexpr ( op == Op::Conj )
             {
                 ParallelDo(
-                    [=,this]( const Int i )
+                    [=]( const Int i )
                     {
                         for( Int j = 0; j < d_1; ++j )
                         {
@@ -149,7 +149,7 @@ namespace Tensors
             else if constexpr ( op == Op::Trans )
             {
                 ParallelDo(
-                    [=,this]( const Int j )
+                    [=]( const Int j )
                     {
                         for( Int i = 0; i < d_0; ++i )
                         {
@@ -162,7 +162,7 @@ namespace Tensors
             else if constexpr ( op == Op::ConjTrans )
             {
                 ParallelDo(
-                    [=,this]( const Int j )
+                    [=]( const Int j )
                     {
                         for( Int i = 0; i < d_0; ++i )
                         {
@@ -217,7 +217,7 @@ namespace Tensors
             if constexpr ( op == Op::Id )
             {
                 ParallelDo(
-                    [=,this]( const Int i )
+                    [=]( const Int i )
                     {
                         copy_buffer<VarSize,Sequential>( &a[d_1 * i], &B[ld_B * i], d_1 );
                     },
@@ -227,7 +227,7 @@ namespace Tensors
             else if constexpr ( op == Op::Conj )
             {
                 ParallelDo(
-                    [=,this]( const Int i )
+                    [=]( const Int i )
                     {
                         for( Int j = 0; j < d_1; ++j )
                         {
@@ -240,7 +240,7 @@ namespace Tensors
             else if constexpr ( op == Op::Trans )
             {
                 ParallelDo(
-                    [=,this]( const Int j )
+                    [=]( const Int j )
                     {
                         for( Int i = 0; i < d_0; ++i )
                         {
@@ -253,7 +253,7 @@ namespace Tensors
             else if constexpr ( op == Op::ConjTrans )
             {
                 ParallelDo(
-                    [=,this]( const Int j )
+                    [=]( const Int j )
                     {
                         for( Int i = 0; i < d_0; ++i )
                         {
@@ -476,7 +476,7 @@ namespace Tensors
 //        {
 //            for( Int j = 0; j < n; ++j )
 //            {
-//                b[ n * i + j ] = static_cast<double>(i==j);
+//                b[ n * i + j ] = KroneckerDelta<double>(i,j);
 //            }
 //        }
 //        // LAPACKE_dgesv does not like its 4-th argument to be const.

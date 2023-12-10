@@ -566,7 +566,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < n; ++j )
                     {
-                        A[i][j] = (i==j) ? Scalar::One<Scal> : Scalar::Zero<Scal>;
+                        A[i][j] = KroneckerDelta<Real>(i,j);
                     }
                 }
             }
