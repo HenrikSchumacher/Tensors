@@ -288,7 +288,7 @@ int main(int argc, const char * argv[])
         {
             for( Int j = 0; j < n; ++j )
             {
-                A[i][j] = i==j;
+                A[i][j] = KroneckerDelta<double>(i,j);
             }
         }
         A[1][1] =  0.0001;
