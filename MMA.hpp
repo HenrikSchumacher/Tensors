@@ -9,6 +9,18 @@
     #undef P
 #endif
 
+#if defined( FAR )
+    #undef FAR
+#endif
+
+#if defined( E )
+    #undef E
+#endif
+
+#if defined( Pi )
+    #undef Pi
+#endif
+
 #include <string>
 #include <cstdint>
 #include <ostream>
@@ -16,9 +28,14 @@
 #include <complex>
 
 
+using Real    = mreal;
+using Complex = std::complex<Real>;
+using Int     = mint;
 
 namespace mma
 {
+    
+    
     WolframLibraryData libData;
     
     inline void print(const char *msg)
@@ -46,21 +63,21 @@ namespace mma
         }
     }
 
-    /// Call _Mathematica_'s `Print[]`, `std::string` argument version.
+    // Call _Mathematica_'s `Print[]`, `std::string` argument version.
     inline void print(const std::string &msg)
     {
         print(msg.c_str());
     }
     
     
-    template<typename T> inline T & get( MArgument marg );
+    template<typename Scal> inline Scal & get( MArgument marg );
     
-    template<> inline mint & get<mint>( MArgument marg )
+    template<> inline Int & get<Int>( MArgument marg )
     {
         return *((marg).integer);
     }
     
-    template<> inline mreal & get<mreal>( MArgument marg )
+    template<> inline Real & get<Real>( MArgument marg )
     {
         return *((marg).real);
     }
@@ -70,9 +87,9 @@ namespace mma
         return *((marg).cmplex);
     }
     
-    template<> inline std::complex<mreal> & get<std::complex<mreal>>( MArgument marg )
+    template<> inline Complex & get<Complex>( MArgument marg )
     {
-        return *(reinterpret_cast<std::complex<mreal>*>((marg).cmplex));
+        return *(reinterpret_cast<Complex*>((marg).cmplex));
     }
     
     template<> inline MTensor & get<MTensor>( MArgument marg )
@@ -96,14 +113,14 @@ namespace mma
     }
     
     
-    template<typename T> inline T * data( MTensor & M );
+    template<typename Scal> inline Scal * data( MTensor & M );
     
-    template<> inline mreal * data<mreal>( MTensor & M )
+    template<> inline Real * data<Real>( MTensor & M )
     {
         return libData->MTensor_getRealData(M);
     }
     
-    template<> inline mint * data<mint>( MTensor & M )
+    template<> inline Int * data<Int>( MTensor & M )
     {
         return libData->MTensor_getIntegerData(M);
     }
@@ -113,34 +130,34 @@ namespace mma
         return libData->MTensor_getComplexData(M);
     }
     
-    template<> inline std::complex<mreal> * data<std::complex<mreal>>( MTensor & M )
+    template<> inline Complex * data<Complex>( MTensor & M )
     {
-        return reinterpret_cast<std::complex<mreal>*>( libData->MTensor_getComplexData(M) );
+        return reinterpret_cast<Complex *>( libData->MTensor_getComplexData(M) );
     }
     
     
     
-    inline const mint * dimensions( MTensor & M )
+    inline const Int * dimensions( MTensor & M )
     {
         return libData->MTensor_getDimensions(M);
     }
     
-    inline mint rank( MTensor & M )
+    inline Int rank( MTensor & M )
     {
         return libData->MTensor_getRank(M);
     }
     
     
-    template<typename T> inline T * data( MArgument marg )
+    template<typename Scal> inline Scal * data( MArgument marg )
     {
-        return data<T>(get<MTensor>(marg));
+        return data<Scal>(get<MTensor>(marg));
     }
     
     
-    template<typename T>
-    inline MTensor make_MTensor( const mint rank, const mint * dims );
+    template<typename Scal>
+    inline MTensor make_MTensor( const Int rank, const Int * dims );
     
-    template<> inline MTensor make_MTensor<mint>( const mint rank, const mint * dims )
+    template<> inline MTensor make_MTensor<Int>( const Int rank, const Int * dims )
     {
         MTensor M;
         
@@ -149,7 +166,7 @@ namespace mma
         return M;
     }
     
-    template<> inline MTensor make_MTensor<mreal>( const mint rank, const mint * dims )
+    template<> inline MTensor make_MTensor<Real>( const Int rank, const Int * dims )
     {
         MTensor M;
         
@@ -159,7 +176,7 @@ namespace mma
     }
     
     
-    template<> inline MTensor make_MTensor<mcomplex>( const mint rank, const mint * dims )
+    template<> inline MTensor make_MTensor<mcomplex>( const Int rank, const Int * dims )
     {
         MTensor M;
         
@@ -168,7 +185,7 @@ namespace mma
         return M;
     }
     
-    template<> inline MTensor make_MTensor<std::complex<mreal>>( const mint rank, const mint * dims )
+    template<> inline MTensor make_MTensor<Complex>( const Int rank, const Int * dims )
     {
         MTensor M;
         
@@ -178,10 +195,10 @@ namespace mma
     }
     
     
-    template<typename T>
-    inline MTensor make_MTensor( const std::initializer_list<mint> dims )
+    template<typename Scal>
+    inline MTensor make_MTensor( const std::initializer_list<Int> dims )
     {
-        return make_MTensor<T>( static_cast<mint>(dims.size()), &dims.begin()[0] );
+        return make_MTensor<Scal>( static_cast<Int>(dims.size()), &dims.begin()[0] );
     }
     
     
@@ -189,10 +206,150 @@ namespace mma
     {
         libData->MTensor_disown(M);
     }
+    
+    
+    template<typename Scal>
+    class MTensorWrapper
+    {
+        static_assert( 
+            std::is_same_v<Scal,Real> || std::is_same_v<Scal,Int> || std::is_same_v<Scal,Complex>,
+            "Only the types Real (double), Int (int64_t), and Complex (std::complex<double>) are allowed."
+        );
+        
+    private: 
+        
+        MTensor tensor;
+        
+        Scal * tensor_data;
+        
+    public:
+        
+        MTensorWrapper()
+        :   tensor      {nullptr}
+        ,   tensor_data {nullptr}
+        {}
+                    
+        MTensorWrapper( const MTensor & A )
+        :   tensor      { A }
+        ,   tensor_data { mma::data<Scal>(tensor) }
+        {}
+        
+        MTensorWrapper( MArgument arg )
+        :   tensor      { get<MTensor>(arg) }
+        ,   tensor_data { mma::data<Scal>(tensor) }
+        {}
+        
+        MTensorWrapper( const std::initializer_list<Int> dims )
+        :   tensor      { make_MTensor<Scal>(dims) }
+        ,   tensor_data { mma::data<Scal>(tensor) }
+        {}
+        
+        MTensorWrapper( const std::initializer_list<Int> dims, const Scal * a )
+        :   tensor      { make_MTensor<Scal>(dims) }
+        ,   tensor_data { mma::data<Scal>(tensor) }
+        {
+            copy_buffer( a, tensor_data, Size() );
+        }
+        
+        MTensor Tensor() const
+        {
+            return tensor;
+        }
+
+        Int Rank() const 
+        {
+            return libData->MTensor_getRank(tensor);
+        }
+
+        Int Size() const 
+        {
+            return libData->MTensor_getFlattenedLength(tensor);
+        }
+
+        std::size_t size() const
+        {
+            return static_cast<std::size_t>(libData->MTensor_getFlattenedLength(tensor));
+        }
+
+        /// Free the referenced Tensor; same as \c MTensor_free
+        /**
+         * Tensors created by the library with functions such as \ref makeVector() must be freed
+         * after use unless they are returned to _Mathematica_.
+         *
+         * Warning: multiple \ref TensorRef objects may reference the same \c MTensor.
+         * Freeing the \c MTensor invalidates all references to it.
+         */
+        void Free() const 
+        {
+            libData->MTensor_free(tensor);
+        }
+
+        void Disown() const
+        {
+            libData->MTensor_disown(tensor);
+        }
+
+        void DisownAll() const 
+        {
+            libData->MTensor_disownAll(tensor);
+        }
+
+        mint ShareCount() const {
+            return libData->MTensor_shareCount(tensor);
+        }
+
+        MTensorWrapper Clone() const
+        {
+            MTensor C = nullptr;
+            
+            (void)libData->MTensor_clone(tensor, &C);
+            
+//            int err = libData->MTensor_clone(tensor, &C);
+//            
+//            if (err) 
+//            {
+//                throw LibraryError("MTensor_clone() failed.", err);
+//            }
+            
+            return MTensorWrapper( C );
+        }
+
+        const Int * Dimensions() const 
+        {
+            return libData->MTensor_getDimensions(tensor);
+        }
+        
+        Int Dimension( const Int i ) const
+        {
+            return libData->MTensor_getDimensions(tensor)[i];
+        }
+
+        Scal * data()
+        {
+            return tensor_data;
+        }
+        
+        const Scal * data() const
+        {
+            return tensor_data;
+        }
+
+
+        Scal & operator[]( const Int i )
+        {
+            return tensor_data[i];
+        }
+        
+        const Scal & operator[]( const Int i ) const
+        {
+            return tensor_data[i];
+        }
+        
+    };
 }
 
 
-extern "C" DLLEXPORT mint WolframLibrary_getVersion()
+extern "C" DLLEXPORT Int WolframLibrary_getVersion()
 {
     return WolframLibraryVersion;
 }

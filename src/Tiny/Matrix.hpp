@@ -6,6 +6,8 @@ namespace Tensors
 {
     namespace Tiny
     {
+        template< int n_, typename Scal_, typename Int_> class SelfAdjointMatrix;
+        
 #define CLASS Matrix
         
         template< int m_, int n_, typename Scal_, typename Int_>
@@ -287,9 +289,10 @@ namespace Tensors
             }
             
             
-            [[nodiscard]] force_inline Matrix<n,n,Scal,Int> ATA() const
+//            [[nodiscard]] force_inline Matrix<n,n,Scal,Int> ATA() const
+            [[nodiscard]] force_inline SelfAdjointMatrix<n,Scal,Int> ATA() const
             {
-                Matrix<n,n,Scal,Int> B;
+                SelfAdjointMatrix<n,Scal,Int> B;
                 
                 for( Int i = 0; i < n; ++i )
                 {
@@ -313,9 +316,10 @@ namespace Tensors
                 return B;
             }
             
-            [[nodiscard]] force_inline Matrix<m,m,Scal,Int> AAT() const
+//            [[nodiscard]] force_inline Matrix<m,m,Scal,Int> AAT() const
+            [[nodiscard]] force_inline SelfAdjointMatrix<m,Scal,Int> AAT() const
             {
-                Matrix<m,m,Scal,Int> B;
+                SelfAdjointMatrix<m,Scal,Int> B;
                 
                 for( Int i = 0; i < m; ++i )
                 {

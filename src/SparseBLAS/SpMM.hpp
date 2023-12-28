@@ -1,9 +1,12 @@
 public:
 
-    template<Size_T NRHS = VarSize, typename alpha_T_, typename X_T, typename beta_T_, typename Y_T>
+    template<
+        Size_T NRHS = VarSize, bool base,
+        typename alpha_T_, typename X_T, typename beta_T_, typename Y_T
+    >
     void SpMM(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<alpha_T_> alpha_, cptr<X_T>  X, const Int ldX,
+        cref<alpha_T_> alpha_, cptr<X_T> X, const Int ldX,
         cref<beta_T_ > beta_,  mptr<Y_T> Y, const Int ldY,
         cref<JobPointers<Int>> job_ptr,
         const Int nrhs = NRHS
@@ -70,15 +73,15 @@ public:
             {
                 if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMM_impl<Generic,One    ,Zero   ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,Zero   ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMM_impl<Generic,One    ,One    ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,One    ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<Generic,One    ,Generic,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,Generic,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
             else
@@ -86,15 +89,15 @@ public:
                 // general alpha
                 if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMM_impl<Generic,Generic,One    ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,One    ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMM_impl<Generic,Generic,Zero   ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<Generic,Generic,Generic,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Generic,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
         }
@@ -104,16 +107,16 @@ public:
             {
                 if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMM_impl<One    ,One    ,Zero   ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<One    ,One    ,Zero   ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMM_impl<One    ,One    ,One    ,NRHS>(
+                    SpMM_impl<One    ,One    ,One    ,NRHS,base>(
                     rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<One    ,One    ,Generic,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<One    ,One    ,Generic,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
             else
@@ -121,15 +124,15 @@ public:
                 // general alpha
                 if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMM_impl<Generic,Generic,One    ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,One    ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMM_impl<Generic,Generic,Zero   ,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<Generic,Generic,Generic,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Generic,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
         }
@@ -138,7 +141,9 @@ public:
 private:
   
 
-    template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, Size_T NRHS = VarSize,
+    template<
+        Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+        Size_T NRHS = VarSize, bool base = 0,
         typename alpha_T, typename X_T, typename beta_T, typename Y_T
     >
     void SpMM_impl(
@@ -153,7 +158,7 @@ private:
         
         if constexpr( (NRHS > 0) && ( a_flag == Scalar::Flag::Zero || VectorizableQ<Scal> ) && VectorizableQ<Y_T> )
         {
-            SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+            SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
         }
         else
         {
@@ -165,7 +170,8 @@ private:
                 +TypeName<X_T>+","
                 +TypeName<beta_T>+","
                 +TypeName<Y_T>+ ","
-                + ( ( NRHS == VarSize ) ? std::string("VarSize") : ToString(NRHS) )
+                + ( ( NRHS == VarSize ) ? std::string("VarSize") : ToString(NRHS) ) + ","
+                + ToString(base)
                 +">("+ToString(nrhs)+")";
 
             ptic(tag);
@@ -224,14 +230,14 @@ private:
                             // Overwrite for first element in row.
                             {
                                 const LInt l = l_begin;
-                                const Int  j = ci[l];
+                                const Int  j = ci[l] - base;
 
                                 if constexpr ( prefetchQ )
                                 {
                                     // This prefetch would cause segfaults without the check.
                                     if( l + look_ahead < last_l )
                                     {
-                                        prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
+                                        prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
                                     }
                                 }
                                 
@@ -245,14 +251,14 @@ private:
                             // Add for first entry.
                             for( LInt l = l_begin + static_cast<LInt>(1); l < l_end; ++l )
                             {
-                                const Int j = ci[l];
+                                const Int j = ci[l] - base;
 
                                 if constexpr ( prefetchQ )
                                 {
                                     // This prefetch would cause segfaults without the check.
                                     if( l + look_ahead < last_l )
                                     {
-                                        prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
+                                        prefetch( &X[ldX * (ci[l + look_ahead]- base)], 0, 0 );
                                     }
                                 }
 
@@ -300,7 +306,9 @@ private:
 #if defined(__clang__)
     #if( __has_attribute(ext_vector_type) )
 
-template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, Size_T NRHS = VarSize,
+template<
+    Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+    Size_T NRHS = VarSize, bool base,
     typename alpha_T, typename X_T, typename beta_T, typename Y_T
 >
 void SpMM_vec(
@@ -315,6 +323,7 @@ void SpMM_vec(
         +ToString(alpha_flag)+","
         +ToString(beta_flag)+","
         +ToString(NRHS)+","
+        +ToString(base)+","
         +TypeName<alpha_T>+","
         +TypeName<X_T>+","
         +TypeName<beta_T>+","
@@ -324,7 +333,7 @@ void SpMM_vec(
     ptic(tag);
     
     
-    static_assert(NRHS!=0, "SpMM_vec only implement static size behavior.");
+    static_assert(NRHS!=0, "SpMM_vec only implements static size behavior.");
     
     // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
     //  - a_flag     == Generic
@@ -378,14 +387,14 @@ void SpMM_vec(
                     // Add for first entry.
                     for( LInt l = l_begin; l < l_end; ++l )
                     {
-                        const Int j = ci[l];
+                        const Int j = ci[l] - base;
 
                         if constexpr ( prefetchQ )
                         {
                             // This prefetch would cause segfaults without the check.
                             if( l + look_ahead < last_l )
                             {
-                                prefetch( &X[ldX * ci[l + look_ahead]], 0, 0 );
+                                prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
                             }
                         }
 

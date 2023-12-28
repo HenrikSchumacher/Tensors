@@ -1,6 +1,6 @@
 public:
 
-    template<typename R_out, typename T_in, typename S_out, typename T_out>
+    template<bool base, typename R_out, typename T_in, typename S_out, typename T_out>
     void SpMV(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
         cref<R_out> alpha_, cptr<T_in>  X,
@@ -44,15 +44,15 @@ public:
             {
                 if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMV_impl<Generic,One,Zero>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<Generic,One,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
                 else if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMV_impl<Generic,One,One>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<Generic,One,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
                 else
                 {
-                    SpMV_impl<Generic,One,Generic>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<Generic,One,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
             }
             else
@@ -60,15 +60,15 @@ public:
                 // general alpha
                 if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMV_impl<Generic,Generic,One>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<Generic,Generic,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
                 else if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMV_impl<Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<Generic,Generic,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
                 else
                 {
-                    SpMV_impl<Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<Generic,Generic,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
             }
         }
@@ -78,15 +78,15 @@ public:
             {
                 if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMV_impl<One,One,Zero>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<One,One,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
                 else if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMV_impl<One,One,One>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<One,One,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
                 else
                 {
-                    SpMV_impl<One,One,Generic>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<One,One,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
             }
             else
@@ -94,15 +94,15 @@ public:
                 // general alpha
                 if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMV_impl<One,Generic,One>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<One,Generic,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
                 else if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMV_impl<One,Generic,Zero>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<One,Generic,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
                 else
                 {
-                    SpMV_impl<One,Generic,Generic>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    SpMV_impl<One,Generic,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
             }
         }
@@ -110,7 +110,9 @@ public:
 
 private:
 
-    template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R_out, typename T_in, typename S_out, typename T_out>
+    template<
+        Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, bool base = 0,
+        typename R_out, typename T_in, typename S_out, typename T_out>
     void SpMV_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
         cref<R_out> alpha, cptr<T_in>  x,
@@ -122,6 +124,7 @@ private:
             +ToString(a_flag)+","
             +ToString(alpha_flag)+","
             +ToString(beta_flag)+","
+            +ToString(base)+","
             +TypeName<R_out>+","
             +TypeName<T_in >+","
             +TypeName<S_out>+","
@@ -168,12 +171,12 @@ private:
                     
                     for( LInt l = l_begin; l < l_end; ++l )
                     {
-                        const Int j = ci[l];
+                        const Int j = ci[l] - base;
     
                         // This prefetch would cause segfaults without the check.
                         if( l + look_ahead < last_l )
                         {
-                            prefetch( &x[ci[l + look_ahead]], 0, 0 );
+                            prefetch( &x[ci[l + look_ahead] - base], 0, 0 );
                         }
     
                         if constexpr ( a_flag == Generic )
