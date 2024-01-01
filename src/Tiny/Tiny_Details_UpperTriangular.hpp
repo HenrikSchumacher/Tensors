@@ -13,18 +13,47 @@ public:
     {
         if constexpr ( n > 0 )
         {
-            setZero<0>();
+            zerofyUpper<0>();
+        }
+    }
+
+    force_inline void ZerofyUpper()
+    {
+        if constexpr ( n > 0 )
+        {
+            zerofyUpper<0>();
+        }
+    }
+
+    force_inline void ZerofyLower()
+    {
+        if constexpr ( n > 0 )
+        {
+            zerofyLower<0>();
         }
     }
     
     force_inline void Fill( cref<Scal> init )
     {
-        if constexpr ( n > 0 )
-        {
-            fill<0>(init);
-        }
+        FillUpper(init);
     }
     
+
+    force_inline void FillUpper( cref<Scal> init )
+    {
+        if constexpr ( n > 0 )
+        {
+            fillUpper<0>(init);
+        }
+    }
+
+    force_inline void FillLower( cref<Scal> init )
+    {
+        if constexpr ( n > 0 )
+        {
+            fillLower<0>(init);
+        }
+    }
     template<typename S>
     force_inline void Read( cptr<S> B )
     {
@@ -66,24 +95,46 @@ protected:
     // Trying to use compile-time loops to unroll these operations.
     
     template<Int k>
-    force_inline void setZero()
+    force_inline void zerofyUpper()
     {
         zerofy_buffer<n-k>( &A[k][k] );
         
-        if constexpr ( n > k+1 )
+        if constexpr ( k+1 < n )
         {
             setZero<k+1>();
         }
     }
+
+    template<Int k>
+    force_inline void zerofyLower()
+    {
+        zerofy_buffer<k>( &A[k][0] );
+        
+        if constexpr ( k+1 < n )
+        {
+            zerofyLower<k+1>();
+        }
+    }
     
     template<Int k>
-    force_inline void fill( const Scal init )
+    force_inline void fillUpper( const Scal init )
     {
-        fill_buffer<n-k>( &A[k][k],init );
+        fill_buffer<n-k>( &A[k][k], init );
         
-        if constexpr ( n > k+1 )
+        if constexpr ( k+1 < n )
         {
-            fill<k+1>(init);
+            fillUpper<k+1>(init);
+        }
+    }
+
+    template<Int k>
+    force_inline void fillLower( const Scal init )
+    {
+        fill_buffer<k>( &A[k][0], init );
+        
+        if constexpr ( k+1 < n )
+        {
+            fillLower<k+1>(init);
         }
     }
     

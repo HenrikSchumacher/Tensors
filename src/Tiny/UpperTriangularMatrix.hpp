@@ -122,6 +122,7 @@ namespace Tensors
             void Solve( Matrix<n,nrhs,Scal,Int> & B )
             {
                 // Solves op(A) * X == B and overwrites B the solution with X.
+                
                 if constexpr ( op == Op::Id )
                 {
                     // Upper triangular back substitution from the left

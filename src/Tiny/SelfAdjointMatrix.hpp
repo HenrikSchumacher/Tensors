@@ -83,11 +83,11 @@ namespace Tensors
                 // In-place Cholesky factorization.
                 for( Int k = 0; k < n; ++k )
                 {
-                    const Real a ( Sqrt( Abs(A[k][k]) ) );
+                    const Real a { Sqrt( Abs(A[k][k]) ) };
                     
                     A[k][k] = a;
                     
-                    const Real ainv ( one/a );
+                    const Real ainv { Inv(a) };
                     
                     for( Int j = k+1; j < n; ++j )
                     {
@@ -98,13 +98,13 @@ namespace Tensors
                     {
                         for( Int j = i; j < n; ++j )
                         {
-                            A[i][j] -= A[k][i] * A[k][j];
+                            A[i][j] -= Conj(A[k][i]) * A[k][j];
                         }
                     }
                 }
             }
             
-            void Cholesky( UpperTriangularMatrix<n, Scal, Int> & U ) const
+            void Cholesky( UpperTriangularMatrix<n,Scal,Int> & U ) const
             {
                 // Computes and returns the upper factor U = L ^H such that A = U^H * U.
                 
@@ -112,11 +112,11 @@ namespace Tensors
                 
                 for( Int k = 0; k < n; ++k ) // for each row
                 {
-                    const Real u ( Sqrt( Abs(U[k][k]) ) );
+                    const Real u { Sqrt( Abs(U[k][k]) ) };
                     
                     U[k][k] = u;
                     
-                    const Real uinv ( one/u );
+                    const Real uinv { Inv(u) };
                     
                     // scale_buffer( uinv, &U[k][k+1], n-k-1 );
                     for( Int j = k+1; j < n; ++j )
@@ -129,7 +129,7 @@ namespace Tensors
                     {
                         for( Int j = i; j < n; ++j )
                         {
-                            U[i][j] -= U[k][i] * U[k][j];
+                            U[i][j] -= Conj(U[k][i]) * U[k][j];
                         }
                     }
                 }
@@ -168,7 +168,7 @@ namespace Tensors
             }
             
             template< int K >
-            void CholeskySolve(Tiny::Matrix<n,K,Real,Int> & X) const
+            void CholeskySolve(Tiny::Matrix<n,K,Scal,Int> & X) const
             {
                 //In-place solve.
                 
