@@ -601,8 +601,8 @@ namespace Tensors
                         Tensor1<LInt,Int> new_outer (outer.Size(),0);
                         
                         cptr<LInt> outer__     = outer.data();
-                        mptr<Int > inner__      = inner.data();
-                        mptr<Scal> values__  = values.data();
+                        mptr<Int > inner__     = inner.data();
+                        mptr<Scal> values__    = values.data();
                         mptr<LInt> new_outer__ = new_outer.data();
                         
                         ParallelDo(
@@ -610,14 +610,7 @@ namespace Tensors
                             {
                                 const Int i_begin = job_ptr[thread  ];
                                 const Int i_end   = job_ptr[thread+1];
-                                
-                                //                // Starting position of thread in inner list.
-                                //                thread_info(thread,0)= outer[i_begin];
-                                //                // End position of thread in inner list (not important).
-                                //                thread_info(thread,1)= outer[i_end  ];
-                                //                // Number of nonzeroes in thread after compression.
-                                //                thread_info(thread,2)= static_cast<Int>(0);
-                                
+      
                                 // To where we write.
                                 LInt jj_new        = outer__[i_begin];
                                 LInt next_jj_begin = outer__[i_begin];
@@ -627,10 +620,10 @@ namespace Tensors
                                     const LInt jj_begin = next_jj_begin;
                                     const LInt jj_end   = outer__[i+1];
                                     
-                                    // Memoize the next entry in outer because outer will be overwritten
+                                    // Memorize the next entry in outer because outer will be overwritten
                                     next_jj_begin = jj_end;
                                     
-                                    LInt row_nonzero_counter = static_cast<Int>(0);
+                                    LInt row_nonzero_counter = 0;
                                     
                                     // From where we read.
                                     LInt jj = jj_begin;
@@ -642,8 +635,8 @@ namespace Tensors
                                         
                                         if( jj > jj_new )
                                         {
-                                            inner__ [jj] = static_cast<Int>(0);
-                                            values__[jj] = static_cast<Scal>(0);
+                                            inner__ [jj] = 0;
+                                            values__[jj] = 0;
                                         }
                                         
                                         ++jj;
@@ -651,11 +644,13 @@ namespace Tensors
                                         while( (jj < jj_end) && (j == inner__[jj]) )
                                         {
                                             a+= values__[jj];
+                                            
                                             if( jj > jj_new )
                                             {
-                                                inner__ [jj] = static_cast<Int>(0);
-                                                values__[jj] = static_cast<Scal>(0);
+                                                inner__ [jj] = 0;
+                                                values__[jj] = 0;
                                             }
+                                            
                                             ++jj;
                                         }
                                         
@@ -667,8 +662,6 @@ namespace Tensors
                                     }
                                     
                                     new_outer__[i+1] = row_nonzero_counter;
-                                    
-                                    //                    thread_info(thread,2) += row_nonzero_counter;
                                 }
                             },
                             thread_count
@@ -679,8 +672,11 @@ namespace Tensors
                         
                         const LInt nnz = new_outer[m];
                         
-                        Tensor1< Int,LInt> new_inner  (nnz,0);
-                        Tensor1<Scal,LInt> new_values (nnz,0);
+//                        Tensor1< Int,LInt> new_inner  (nnz,0);
+//                        Tensor1<Scal,LInt> new_values (nnz,0);
+                        
+                        Tensor1< Int,LInt> new_inner  (nnz);
+                        Tensor1<Scal,LInt> new_values (nnz);
                         
                         mptr<Int > new_inner__  = new_inner.data();
                         mptr<Scal> new_values__ = new_values.data();

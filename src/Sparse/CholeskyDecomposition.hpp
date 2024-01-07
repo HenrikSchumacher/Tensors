@@ -115,7 +115,7 @@ namespace Tensors
             const Int n = 0;
             const Int thread_count = 1;
             
-            Permutation<Int>  perm;           // row and column permutation the nonzeros of the matrix.
+            Permutation<Int>  perm;          // row and column permutation of the nonzeros of the matrix.
             
             BinaryMatrix_T A;
             
@@ -144,11 +144,11 @@ namespace Tensors
             
             // Pointers from supernodes to their rows.
             // k-th supernode has rows [ SN_rp[k],SN_rp[k]+1,...,SN_rp[k+1] [
-            Tensor1<   Int, Int> SN_rp;
+            Tensor1< Int, Int> SN_rp;
             // Pointers from supernodes to their starting position in SN_inner.
-            Tensor1<  LInt, Int> SN_outer;
+            Tensor1<LInt, Int> SN_outer;
             // The column indices of rectangular part of the supernodes.
-            Tensor1<   Int,LInt> SN_inner;
+            Tensor1< Int,LInt> SN_inner;
             
             // Hence k-th supernode has the following column indices:
             // triangular  part = [ i_begin, i_begin+1,...,i_end [
@@ -165,7 +165,7 @@ namespace Tensors
             //       j_end   = SN_outer[SN_outer[k+1]].
             
             // i-th row of U belongs to supernode row_to_SN[i].
-            Tensor1<   Int, Int> row_to_SN;
+            Tensor1< Int, Int> row_to_SN;
             
             // Hence the column indices of U for row i can are:
             // triangular  part = [ i_begin,i_begin+1,...,i_end [
@@ -224,10 +224,12 @@ namespace Tensors
             ,   thread_count    ( Max( ione, thread_count_)          )
             ,   perm            ( n_, thread_count                   ) // use identity permutation
             ,   A               ( outer_, inner_, n, n, thread_count )
-            ,   A_inner_perm    ( A.Permute( perm, perm )            )
-            ,   A_val           ( outer_[n]                          )
+            ,   A_inner_perm    ( A.NonzeroCount()                   )
+            ,   A_val           ( A.NonzeroCount()                   )
             {
                 Init();
+                
+                A_inner_perm.iota( thread_count );
             }
             
             template<typename ExtLInt, typename ExtInt, typename ExtInt2>
@@ -242,7 +244,7 @@ namespace Tensors
             ,   perm            ( p_, n, Inverse::False, thread_count )
             ,   A               ( outer_, inner_, n, n, thread_count  )
             ,   A_inner_perm    ( A.Permute( perm, perm )             )
-            ,   A_val           ( outer_[n]                           )
+            ,   A_val           ( A.NonzeroCount()                    )
             {
                 Init();
             }
@@ -258,7 +260,7 @@ namespace Tensors
             ,   perm            ( std::move( perm_)                          )
             ,   A               ( outer_, inner_, n, n, perm.ThreadCount()   )
             ,   A_inner_perm    ( A.Permute( perm, perm )                    )
-            ,   A_val           ( outer_[n]                                  )
+            ,   A_val           ( A.NonzeroCount()                           )
             {
                 Init();
             }
