@@ -220,13 +220,13 @@ namespace Tensors
                         if constexpr ( addto == Tensors::AddTo )
                         {
                             combine_buffers<F_Gen,F_Plus,n>(
-                                X.A[i][k], Y[k], one, Z[i]
+                                X[i][k], Y[k], one, Z[i]
                             );
                         }
                         else
                         {
                             combine_buffers<F_Gen,F_Zero,n>(
-                                X.A[i][k], Y[k], zero, Z[i]
+                                X[i][k], Y[k], zero, Z[i]
                             );
                         }
                     }
@@ -238,7 +238,7 @@ namespace Tensors
                     for( Int i = 0; i < m; ++i )
                     {
                         combine_buffers<F_Gen,F_Plus,n>(
-                            X.A[i][k], Y[k], one, Z[i]
+                            X[i][k], Y[k], one, Z[i]
                         );
                     }
                 }
