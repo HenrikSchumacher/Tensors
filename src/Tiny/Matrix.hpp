@@ -11,9 +11,11 @@ namespace Tensors
 #define CLASS Matrix
         
         template< int m_, int n_, typename Scal_, typename Int_>
-        class CLASS
+        class Matrix
         {
         public:
+            
+            using Class_T = Matrix;
             
 #include "Tiny_Details.hpp"
             
@@ -39,12 +41,12 @@ namespace Tensors
             
         public:
             
-            explicit CLASS( cref<Scal> init )
+            explicit Matrix( cref<Scal> init )
             :   A {{{init}}}
             {}
             
             template<typename S>
-            constexpr CLASS( const std::initializer_list<S[n]> list )
+            constexpr Matrix( const std::initializer_list<S[n]> list )
 //            :   A (list)
 //            {}
             {
@@ -198,147 +200,262 @@ namespace Tensors
             
         public:
             
-            template< AddTo_T addto, int K, typename X_T, typename Y_T >
-            force_inline
-            friend
-            typename std::enable_if_t<
-                ( SameQ<X_T,Scal> || (ComplexQ && SameQ<X_T,Real>) )
-                &&
-                ( SameQ<Y_T,Scal> || (ComplexQ && SameQ<Y_T,Real>) )
-                ,
-                void
-            >
+            template<AddTo_T addto, int K_, typename X_T, typename Y_T >
+            force_inline friend void
             Dot(
-                cref<Tiny::Matrix<m,K,X_T, Int>> X,
-                cref<Tiny::Matrix<K,n,Y_T, Int>> Y,
-                mref<Tiny::Matrix<m,n,Scal,Int>> Z
+                cref<Tiny::Matrix<m_,K_,X_T ,Int>> X,
+                cref<Tiny::Matrix<K_,n_,Y_T ,Int>> Y,
+                mref<Tiny::Matrix<m_,n_,Scal,Int>> Z
             )
             {
+                constexpr Int K = K_;
+                
+                
                 // First pass to overwrite (if desired).
-                for( Int i = 0; i < m; ++i )
                 {
-                    for( Int j = 0; j < n; ++j )
+                    constexpr Int k = 0;
+                    
+                    for( Int i = 0; i < m; ++i )
                     {
                         if constexpr ( addto == Tensors::AddTo )
                         {
-                            Z[i][j] += X[i][0] * Y[0][j];
+                            combine_buffers<F_Gen,F_Plus,n>(
+                                X.A[i][k], Y[k], one, Z[i]
+                            );
                         }
                         else
                         {
-                            Z[i][j] = X[i][0] * Y[0][j];
+                            combine_buffers<F_Gen,F_Zero,n>(
+                                X.A[i][k], Y[k], zero, Z[i]
+                            );
                         }
                     }
                 }
-                
+    
                 // Now add-in the rest.
                 for( Int k = 1; k < K; ++k )
                 {
                     for( Int i = 0; i < m; ++i )
                     {
-                        for( Int j = 0; j < n; ++j )
+                        combine_buffers<F_Gen,F_Plus,n>(
+                            X.A[i][k], Y[k], one, Z[i]
+                        );
+                    }
+                }
+            }
+            
+//            template< AddTo_T addto, int K, typename X_T, typename Y_T >
+//            force_inline
+//            friend
+//            typename std::enable_if_t<
+//                ( SameQ<X_T,Scal> || (ComplexQ && SameQ<X_T,Real>) )
+//                &&
+//                ( SameQ<Y_T,Scal> || (ComplexQ && SameQ<Y_T,Real>) )
+//                ,
+//                void
+//            >
+//            Dot_old(
+//                cref<Tiny::Matrix<m,K,X_T, Int>> X,
+//                cref<Tiny::Matrix<K,n,Y_T, Int>> Y,
+//                mref<Tiny::Matrix<m,n,Scal,Int>> Z
+//            )
+//            {
+//                // First pass to overwrite (if desired).
+//                for( Int i = 0; i < m; ++i )
+//                {
+//                    for( Int j = 0; j < n; ++j )
+//                    {
+//                        if constexpr ( addto == Tensors::AddTo )
+//                        {
+//                            Z[i][j] += X[i][0] * Y[0][j];
+//                        }
+//                        else
+//                        {
+//                            Z[i][j] = X[i][0] * Y[0][j];
+//                        }
+//                    }
+//                }
+//
+//                // Now add-in the rest.
+//                for( Int k = 1; k < K; ++k )
+//                {
+//                    for( Int i = 0; i < m; ++i )
+//                    {
+//                        for( Int j = 0; j < n; ++j )
+//                        {
+//                            Z[i][j] += X[i][k] * Y[k][j];
+//                        }
+//                    }
+//                }
+//            }
+            
+            template<AddTo_T addto, typename x_T, typename y_T
+            >
+            force_inline friend void
+            Dot(
+                cref<Tiny::Matrix<m_,n_,Scal,Int>> M,
+                cref<Tiny::Vector<n_,   x_T, Int>> x,
+                mref<Tiny::Vector<m_,   y_T, Int>> y
+            )
+            {
+                if constexpr ( addto == Tensors::AddTo )
+                {
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        y[i] += dot_buffers<n>( M[i], x.data() );
+                    }
+                }
+                else
+                {
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        y[i]  = dot_buffers<n>( M[i], x.data() );
+                    }
+                }
+            }
+            
+//            template<AddTo_T addto, typename x_T, typename y_T >
+//            friend
+//            force_inline
+//            typename std::enable_if_t<
+//                (
+//                    SameQ<Scal,x_T>
+//                    ||
+//                    (Scalar::ComplexQ<x_T> && SameQ<Scal,typename Scalar::Real<x_T>>)
+//                )
+//                &&
+//                (
+//                    SameQ<x_T,y_T>
+//                    ||
+//                    (Scalar::ComplexQ<y_T> && SameQ<Scal,typename Scalar::Real<y_T>>)
+//                )
+//                ,
+//                void
+//            >
+//            Dot_old(
+//                cref<Tiny::Matrix<m,n,Scal,Int>> M,
+//                cref<Tiny::Vector<n,  x_T, Int>> x,
+//                mref<Tiny::Vector<m,  y_T, Int>> y
+//            )
+//            {
+//                for( Int i = 0; i < m; ++i )
+//                {
+//                    y_T y_i (0);
+//                    
+//                    for( Int j = 0; j < n; ++j )
+//                    {
+//                        y_i += M.A[i][j] * x[j];
+//                    }
+//                    
+//                    if constexpr ( addto == Tensors::AddTo )
+//                    {
+//                        y[i] += y_i;
+//                    }
+//                    else
+//                    {
+//                        y[i] = y_i;
+//                    }
+//                }
+//            }
+        
+            
+            template<Op op>
+            void LowerFromUpper()
+            {
+                if constexpr ( op == Op::Conj )
+                {
+                    for( Int i = 0; i < n; ++i )
+                    {
+                        for( Int j = 0; j < i; ++j )
                         {
-                            Z[i][j] += X[i][k] * Y[k][j];
+                            A[i][j] = Conj(A[j][i]);
                         }
                     }
                 }
-                
-            }
-            
-            template<AddTo_T addto, typename x_T, typename y_T >
-            friend
-            force_inline
-            typename std::enable_if_t<
-                (
-                    SameQ<Scal,x_T>
-                    ||
-                    (Scalar::ComplexQ<x_T> && SameQ<Scal,typename Scalar::Real<x_T>>)
-                )
-                &&
-                (
-                    SameQ<x_T,y_T>
-                    ||
-                    (Scalar::ComplexQ<y_T> && SameQ<Scal,typename Scalar::Real<y_T>>)
-                )
-                ,
-                void
-            >
-            Dot(
-                cref<Tiny::Matrix<m,n,Scal,Int>> M,
-                cref<Tiny::Vector<n,  x_T, Int>> x,
-                mref<Tiny::Vector<m,  y_T, Int>> y
-            )
-            {
-                for( Int i = 0; i < m; ++i )
+                else
                 {
-                    y_T y_i (0);
-                    
-                    for( Int j = 0; j < n; ++j )
+                    for( Int i = 0; i < n; ++i )
                     {
-                        y_i += M[i][j] * x[j];
-                    }
-                    
-                    if constexpr ( addto == Tensors::AddTo )
-                    {
-                        y[i] += y_i;
-                    }
-                    else
-                    {
-                        y[i] = y_i;
+                        for( Int j = 0; j < i; ++j )
+                        {
+                            A[i][j] = A[j][i];
+                        }
                     }
                 }
             }
-            
-            
-//            [[nodiscard]] force_inline Matrix<n,n,Scal,Int> ATA() const
-            [[nodiscard]] force_inline SelfAdjointMatrix<n,Scal,Int> ATA() const
+           
+        public:
+
+            template<bool upper_triangle_only = false>
+            [[nodiscard]] force_inline std::conditional_t<
+                upper_triangle_only,
+                SelfAdjointMatrix<n,Scal,Int>,
+                Matrix<n,n,Scal,Int>
+            > AHA() const
             {
-                SelfAdjointMatrix<n,Scal,Int> B;
+                std::conditional_t<
+                    upper_triangle_only,
+                    SelfAdjointMatrix<n,Scal,Int>,
+                    Matrix<n,n,Scal,Int>
+                > B;
                 
-                for( Int i = 0; i < n; ++i )
                 {
-                    for( Int j = 0; j < n; ++j )
+                    constexpr Int k = 0;
+                    
+                    for( Int i = 0; i < n; ++i )
                     {
-                        B[i][j] = A[0][i] * A[0][j];
+                        const Scal Conj_A_ki = Conj(A[k][i]);
+                        
+                        for( Int j = i; j < n; ++j )
+                        {
+                            B[i][j] = Conj_A_ki * A[k][j];
+                        }
                     }
+                    
                 }
                 
                 for( Int k = 1; k < m; ++k )
                 {
                     for( Int i = 0; i < n; ++i )
                     {
-                        for( Int j = 0; j < n; ++j )
+                        const Scal Conj_A_ki = Conj(A[k][i]);
+                        
+                        for( Int j = i; j < n; ++j )
                         {
-                            B[i][j] += A[k][i] * A[k][j];
+                            B[i][j] += Conj_A_ki * A[k][j];
                         }
                     }
                 }
+
+                B.template LowerFromUpper<Op::Conj>();
                 
                 return B;
             }
             
-//            [[nodiscard]] force_inline Matrix<m,m,Scal,Int> AAT() const
-            [[nodiscard]] force_inline SelfAdjointMatrix<m,Scal,Int> AAT() const
+            template<bool upper_triangle_only = false>
+            [[nodiscard]] force_inline std::conditional_t<
+                upper_triangle_only,
+                SelfAdjointMatrix<m,Scal,Int>,
+                Matrix<m,m,Scal,Int>
+            > AAH() const
             {
-                SelfAdjointMatrix<m,Scal,Int> B;
-                
+                std::conditional_t<
+                    upper_triangle_only,
+                    SelfAdjointMatrix<m,Scal,Int>,
+                    Matrix<m,m,Scal,Int>
+                > B;
+
                 for( Int i = 0; i < m; ++i )
                 {
-                    for( Int j = 0; j < m; ++j )
+                    B[i][i] = dot_buffers<n,Sequential,Op::Id,Op::Conj>( &A[i][0], &A[i][0] );
+                    
+                    for( Int j = i + 1; j < m; ++j )
                     {
-                        B[i][j] = A[i][0] * A[j][0];
+                        B[i][j] = dot_buffers<n,Sequential,Op::Id,Op::Conj>( &A[i][0], &A[j][0] );
                     }
                 }
                 
-                for( Int k = 1; k < n; ++k )
-                {
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        for( Int j = 0; j < m; ++j )
-                        {
-                            B[i][j] += A[i][k] * A[j][k];
-                        }
-                    }
-                }
+                B.template LowerFromUpper<Op::Conj>();
                 
                 return B;
             }
@@ -365,7 +482,9 @@ namespace Tensors
                 
                 return B;
             }
-
+            
+        public:
+            
             force_inline void Transpose( mref<Matrix<n,m,Scal,Int>> B ) const
             {
                 for( Int j = 0; j < n; ++j )
@@ -410,31 +529,7 @@ namespace Tensors
             
             [[nodiscard]] force_inline Real MaxNorm() const
             {
-                Real max = 0;
-                
-                if constexpr ( Scalar::RealQ<Scal> )
-                {
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        for( Int j = 0; j < n; ++j )
-                        {
-                            max = Tools::Max( max, Abs(A[i][j]) );
-                        }
-                    }
-                    return max;
-                }
-                else
-                {
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        for( Int j = 0; j < n; ++j )
-                        {
-                            max = Tools::Max( max, AbsSquared(A[i][j]) );
-                        }
-                    }
-                    return Sqrt(max);
-                }
-                
+                return norm_max<m*n>( *A[0][0] );
             }
             
             [[nodiscard]] force_inline Real FrobeniusNorm() const
@@ -448,6 +543,7 @@ namespace Tensors
                         AA += AbsSquared(A[i][j]);
                     }
                 }
+                
                 return Sqrt(AA);
             }
 
@@ -768,7 +864,7 @@ namespace Tensors
             
             [[nodiscard]] static std::string ClassName()
             {
-                return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::Matrix") + "<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };
@@ -779,10 +875,8 @@ namespace Tensors
         
         // TODO: Make this more type flexible
         
-        
         template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
-        [[nodiscard]] force_inline const
-        Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int> 
+        [[nodiscard]] force_inline Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
         Dot(
             cref<Tiny::Matrix<m,K,X_T,Int>> X,
             cref<Tiny::Matrix<K,n,Y_T,Int>> Y

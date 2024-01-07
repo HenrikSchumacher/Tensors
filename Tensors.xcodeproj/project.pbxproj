@@ -275,7 +275,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 1510;
 				TargetAttributes = {
 					AF8BDDDE295A1FBD001D8CCF = {
 						CreatedOnToolsVersion = 14.2;
@@ -483,8 +483,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
-					/opt/homebrew/Cellar/lapack/3.11/lib,
-					/opt/homebrew/Cellar/openblas/0.3.24/lib,
+					/opt/homebrew/Cellar/lapack/3.12.0/lib,
+					/opt/homebrew/Cellar/openblas/0.3.25/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -572,8 +572,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
-					/opt/homebrew/Cellar/lapack/3.11/lib,
-					/opt/homebrew/Cellar/openblas/0.3.24/lib,
+					/opt/homebrew/Cellar/lapack/3.12.0/lib,
+					/opt/homebrew/Cellar/openblas/0.3.25/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -615,7 +615,6 @@
 				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
-				LIBRARY_SEARCH_PATHS = /opt/homebrew/lib;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-ffast-math",
@@ -637,7 +636,6 @@
 				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
-				LIBRARY_SEARCH_PATHS = /opt/homebrew/lib;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-ffast-math",

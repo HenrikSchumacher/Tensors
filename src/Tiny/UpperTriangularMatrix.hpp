@@ -35,6 +35,20 @@ namespace Tensors
             
         public:
             
+            force_inline Real FrobeniusNorm() const
+            {
+                Real AA = 0;
+                
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        AA += AbsSquared(A[i][j]);
+                    }
+                }
+                return Sqrt(AA);
+            }
+            
             force_inline friend void Dot( const CLASS & M, const Vector_T & x, Vector_T & y )
             {
                 for( Int i = 0; i < n; ++i )

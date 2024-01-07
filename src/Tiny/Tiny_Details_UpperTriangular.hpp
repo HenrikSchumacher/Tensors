@@ -358,6 +358,8 @@ public:
                     max = Tools::Max( max, Abs(A[i][j]) );
                 }
             }
+            
+            return max;
         }
         else
         {
@@ -368,21 +370,9 @@ public:
                     max = Tools::Max( max, AbsSquared(A[i][j]) );
                 }
             }
+            
+            return Sqrt(max);
         }
 
-        return max;
-    }
-
-    force_inline Real FrobeniusNorm() const
-    {
-        Real AA = 0;
         
-        for( Int i = 0; i < n; ++i )
-        {
-            for( Int j = i; j < n; ++j )
-            {
-                AA += AbsSquared(A[i][j]);
-            }
-        }
-        return Sqrt(AA);
     }

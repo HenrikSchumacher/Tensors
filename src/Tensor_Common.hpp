@@ -325,24 +325,27 @@ public:
     }
 
 
-    std::pair<Real,Real> MinMax() const
+    template <typename Dummy = Scal>
+    std::enable_if_t<SameQ<Real,Dummy>,std::pair<Real,Real>> MinMax( Int thread_count = 1 ) const
     {
-        return minmax_buffer( a, n );
+        return minmax_buffer( a, n, thread_count );
     }
 
-    Real Min() const
+    template <typename Dummy = Scal>
+    std::enable_if_t<SameQ<Real,Dummy>,Real> Min( Int thread_count = 1 ) const
     {
-        return MinMax().first;
+        return min_buffer( a, n, thread_count );
     }
 
-    Real Max() const
+    template <typename Dummy = Scal>
+    std::enable_if_t<SameQ<Real,Dummy>,Real> Max( Int thread_count = 1 ) const
     {
-        return MinMax().second;
+        return max_buffer( a, n, thread_count );
     }
 
-    Real MaxNorm() const
+    Real MaxNorm( Int thread_count = 1 ) const
     {
-        return norm_max( a, n );
+        return norm_max( a, n, thread_count );
     }
 
     Real FrobeniusNorm() const

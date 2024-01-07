@@ -32,11 +32,35 @@ namespace Tensors
             }
             else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
-                return cblas_cdot( n, x, inc_x, y, inc_y );
+#if defined(cblas_zdot)
+                return cblas_zdot( n, x, inc_x, y, inc_y );
+#else
+                Scal result {0};
+                
+                cblas_zdotu_sub(
+                    __LAPACK_int(n), x, __LAPACK_int(inc_x), y, __LAPACK_int(inc_y),
+                    &result
+                );
+                
+                return result;
+#endif
             }
             else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
-                return cblas_zdot( n, x, inc_x, y, inc_y );
+                return cblas_cdot( n, x, inc_x, y, inc_y );
+                
+#if defined(cblas_cdot)
+                return cblas_cdot( n, x, inc_x, y, inc_y );
+#else
+                Scal result {0};
+                
+                cblas_cdotu_sub(
+                    __LAPACK_int(n), x, __LAPACK_int(inc_x), y, __LAPACK_int(inc_y),
+                    &result
+                );
+                
+                return result;
+#endif
             }
             else
             {

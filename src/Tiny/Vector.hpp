@@ -328,17 +328,12 @@ namespace Tensors
 
             force_inline Real SquaredNorm() const
             {
-                Real r = 0;
-                for( Int i = 0; i < n; ++i )
-                {
-                    r += AbsSquared(v[i]);
-                }
-                return r;
+                return norm_2_squared<n>( &v[0] );
             }
             
             force_inline Real Norm() const
             {
-                return Sqrt( SquaredNorm() );
+                return norm_2<n>( &v[0] );
             }
             
             force_inline friend Real Norm( cref<CLASS> u )
@@ -348,107 +343,52 @@ namespace Tensors
             
             force_inline void Normalize()
             {
-                *this *= (static_cast<Scal>(1) / Norm());
+                *this *= Inv(Norm());
             }
             
-
+            
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<SameQ<Real,Dummy>,void> MinMax( mref<Real> min_, mref<Real> max_ ) const
+            force_inline std::enable_if_t<SameQ<Real,Dummy>,std::pair<Real,Real>> MinMax() const
             {
-                Real min = v[0];
-                Real max = v[0];
-                
-                for( Int i = 1; i < n; ++i )
-                {
-                    min = Tools::Min(min,v[i]);
-                    max = Tools::Max(max,v[i]);
-                }
-
-                min_ = min;
-                max_ = max;
+                return minmax_buffer<n>(&v[0]);
             }
             
             template <typename Dummy = Scal>
             force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> Min() const
             {
-                Real m = v[0];
-                for( Int i = 1; i < n; ++i )
-                {
-                    m = Tools::Min(m,v[i]);
-                }
-                return m;
+                return min_buffer<n>(&v[0]);
             }
             
             template <typename Dummy = Scal>
             force_inline std::enable_if_t<SameQ<Real,Dummy>,Int> MinPos() const
             {
-                Real min = v[0];
-                Int  pos = 0;
-                
-                for( Int i = 1; i < n; ++i )
-                {
-                    if( v[i] < min )
-                    {
-                        pos = i;
-                        min = v[i];
-                    }
-                }
-                
-                return pos;
+                return min_pos_buffer<n>(&v[0]);
             }
 
             template <typename Dummy = Scal>
             force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> Max() const
             {
-                Real m = v[0];
-                for( Int i = 1; i < n; ++i )
-                {
-                    m = Tools::Max(m,v[i]);
-                }
-                return m;
+                return max_buffer<n>(&v[0]);
             }
             
             template <typename Dummy = Scal>
             force_inline std::enable_if_t<SameQ<Real,Dummy>,Int> MaxPos() const
             {
-                Real max = v[0];
-                Int  pos = 0;
-                
-                for( Int i = 1; i < n; ++i )
-                {
-                    if( v[i] > max )
-                    {
-                        pos = i;
-                        max = v[i];
-                    }
-                }
-                
-                return pos;
+                return max_pos_buffer<n>(&v[0]);
             }
             
             template <typename Dummy = Scal>
             force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> MaxNorm() const
             {
-                Real m = Abs(v[0]);
-                for( Int i = 1; i < n; ++i )
-                {
-                    m = Tools::Max(m,Abs(v[i]));
-                }
-                return m;
+                return norm_max<n>( &v[0] );
             }
             
-            
+  
             [[nodiscard]] force_inline friend Real AngleBetweenUnitVectors( cref<CLASS> u, cref<CLASS> w )
             {
-                Real a = 0;
-                Real b = 0;
-                
-                for( int i = 0; i < n; ++i )
-                {
-                    a += Re( Conj(u[i]-w[i]) * (u[i]-w[i]) );
-                    b += Re( Conj(u[i]+w[i]) * (u[i]+w[i]) );
-                }
-                
+                const Real a = (u-w).SquaredNorm();
+                const Real b = (u+w).SquaredNorm();
+                                
                 return Scalar::Two<Real> * atan( Sqrt(a/b) );
             }
             
@@ -541,19 +481,21 @@ namespace Tensors
         {
             return u[0] * v[1] - u[1] * v[0];
         }
+
+        template<int n, typename Scal, typename Int>
+        [[nodiscard]] force_inline const Scalar::Real<Scal> SquaredDistance(
+            cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v
+        )
+        {
+            return (u-v).SquaredNorm();
+        }
         
         template<int n, typename Scal, typename Int>
         [[nodiscard]] force_inline const Scalar::Real<Scal> Distance( 
             cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v
         )
         {
-            Scalar::Real<Scal> r2 = 0;
-            
-            for( Int i = 0; i < n; ++i )
-            {
-                r2 += (u[i] - v[i]) * (u[i] - v[i]);
-            }
-            return Sqrt(r2);
+            return Sqrt(SquaredDistance(u,v));
         }
         
         
@@ -594,7 +536,7 @@ namespace Tensors
             // Returns z = a * x + b * y.
             Vector<n,Scal,Int> z;
             
-            LinearCombine( a, x, b, y, z);
+            LinearCombine( a, x, b, y, z );
             
             return z;
         }

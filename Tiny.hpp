@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    // Never do using namespace Tiny. Chaos will break loose.
+    // Never do `using namespace Tiny`. Chaos will break loose.
     namespace Tiny
     {
         static constexpr Op O_Id        = Op::Id;
