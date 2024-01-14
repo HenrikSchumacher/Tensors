@@ -31,7 +31,7 @@ public:
     :   n    ( other.n    )
     ,   dims ( other.dims )
     {
-//        logprint("Copy of "+ClassName()+" of size "+Tools::ToString(other.Size()) );
+//        logprint("Copy of "+ClassName()+" of size "+ToString(other.Size()) );
         
         allocate();
         Read(other.a);
@@ -44,7 +44,7 @@ public:
     ,   dims ( other.dims )
     {
         ASSERT_INT(J)
-//        logprint("Copy-cast of "+ClassName()+" of size "+Tools::ToString(other.Size()) );
+//        logprint("Copy-cast of "+ClassName()+" of size "+ToString(other.Size()) );
         
         allocate();
         Read(other.a);
@@ -105,14 +105,14 @@ public:
     {
         if( this != &other )
         {
-//            logprint(other.ClassName()+": Copy-assignment of size "+Tools::ToString( other.n ));
+//            logprint(other.ClassName()+": Copy-assignment of size "+ToString( other.n ));
             
             if( dims != other.dims )
             {
                 n    = other.n;
                 dims = other.dims;
                 
-//                logprint(other.ClassName()+": Reallocation of size "+Tools::ToString( n ) );
+//                logprint(other.ClassName()+": Reallocation of size "+ToString( n ) );
                 
                 safe_free(a);
                 allocate();
@@ -484,7 +484,7 @@ public:
         file.close();
     }
 
-    std::string ToString( int prec = 16 ) const
+    [[nodiscard]] std::string CreateString( int prec = 16 ) const
     {
         return ArrayToString( a, dims.data(), Rank(), prec );
     }

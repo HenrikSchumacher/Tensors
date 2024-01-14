@@ -739,28 +739,28 @@ namespace Tensors
                 return Sqrt(AA);
             }
             
-            std::string ToString() const
+            [[nodiscard]] std::string friend ToString( cref<CLASS> M )
             {
                 std::stringstream sout;
 
                 sout << "{\n";
                 sout << "\t{ ";
                 
-                sout << Tools::ToString(A[0][0]);
+                sout << ToString(M.A[0][0]);
                 for( Int j = 1; j < n; ++j )
                 {
-                    sout << ", " << Tools::ToString(A[0][j]);
+                    sout << ", " << ToString(M.A[0][j]);
                 }
                 
                 for( Int i = 1; i < n; ++i )
                 {
                     sout << " },\n\t{ ";
                     
-                    sout << Tools::ToString(A[i][0]);
+                    sout << ToString(M.A[i][0]);
                     
                     for( Int j = 1; j < n; ++j )
                     {
-                        sout << ", " << Tools::ToString(A[i][j]);
+                        sout << ", " << ToString(M.A[i][j]);
                     }
                 }
                 sout << " }\n}";

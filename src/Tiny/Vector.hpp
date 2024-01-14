@@ -404,14 +404,14 @@ namespace Tensors
             }
 
             
-            std::string ToString() const
+            [[nodiscard]] friend std::string ToString( cref<CLASS> x )
             {
                 std::stringstream sout;
                 sout << "{ ";
-                sout << Tools::ToString(v[0]);
+                sout << ToString(x.v[0]);
                 for( Int i = 1; i < n; ++i )
                 {
-                    sout << ", " << Tools::ToString(v[i]);
+                    sout << ", " << ToString(x.v[i]);
                 }
                 sout << " }";
                 return sout.str();
@@ -421,10 +421,10 @@ namespace Tensors
             Stream_T & ToStream( mref<Stream_T> s ) const
             {
                 s << "{ ";
-                s << Tools::ToString(v[0]);
+                s << ToString(v[0]);
                 for( Int i = 1; i < n; ++i )
                 {
-                    s << ", " << Tools::ToString(v[i]);
+                    s << ", " << ToString(v[i]);
                 }
                 s << " }";
                 

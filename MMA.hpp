@@ -239,6 +239,11 @@ namespace mma
         ,   tensor_data { mma::data<Scal>(tensor) }
         {}
         
+        MTensorWrapper( const Int rank, const Int * dims )
+        :   tensor      { make_MTensor<Scal>( rank, dims ) }
+        ,   tensor_data { mma::data<Scal>(tensor) }
+        {}
+        
         MTensorWrapper( const std::initializer_list<Int> dims )
         :   tensor      { make_MTensor<Scal>(dims) }
         ,   tensor_data { mma::data<Scal>(tensor) }

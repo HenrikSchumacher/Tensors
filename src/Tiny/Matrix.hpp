@@ -208,39 +208,47 @@ namespace Tensors
                 mref<Tiny::Matrix<m_,n_,Scal,Int>> Z
             )
             {
-                constexpr Int K = K_;
-                
-                
-                // First pass to overwrite (if desired).
+                if constexpr( mat_enabledQ && (SameQ<Scal,double> || SameQ<Scal,float>) )
                 {
-                    constexpr Int k = 0;
-                    
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        if constexpr ( addto == Tensors::AddTo )
-                        {
-                            combine_buffers<F_Gen,F_Plus,n>(
-                                X[i][k], Y[k], one, Z[i]
-                            );
-                        }
-                        else
-                        {
-                            combine_buffers<F_Gen,F_Zero,n>(
-                                X[i][k], Y[k], zero, Z[i]
-                            );
-                        }
-                    }
+                    fixed_dot_mm_clang_2<m_,K_,n_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
                 }
-    
-                // Now add-in the rest.
-                for( Int k = 1; k < K; ++k )
+                else
                 {
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        combine_buffers<F_Gen,F_Plus,n>(
-                            X[i][k], Y[k], one, Z[i]
-                        );
-                    }
+                    fixed_dot_mm_vec<m_,K_,n_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
+                    
+//                    constexpr Int K = K_;
+//                    
+//                    // First pass to overwrite (if desired).
+//                    {
+//                        constexpr Int k = 0;
+//                        
+//                        for( Int i = 0; i < m; ++i )
+//                        {
+//                            if constexpr ( addto == Tensors::AddTo )
+//                            {
+//                                combine_buffers<F_Gen,F_Plus,n>(
+//                                    X[i][k], Y[k], one, Z[i]
+//                                );
+//                            }
+//                            else
+//                            {
+//                                combine_buffers<F_Gen,F_Zero,n>(
+//                                    X[i][k], Y[k], zero, Z[i]
+//                                );
+//                            }
+//                        }
+//                    }
+//        
+//                    // Now add-in the rest.
+//                    for( Int k = 1; k < K; ++k )
+//                    {
+//                        for( Int i = 0; i < m; ++i )
+//                        {
+//                            combine_buffers<F_Gen,F_Plus,n>(
+//                                X[i][k], Y[k], one, Z[i]
+//                            );
+//                        }
+//                    }
                 }
             }
             
@@ -548,27 +556,27 @@ namespace Tensors
             }
 
             
-            [[nodiscard]] std::string ToString() const
+            [[nodiscard]] friend std::string ToString( cref<Matrix> M )
             {
                 std::stringstream sout;
                 sout << "{\n";
                 sout << "\t{ ";
                 if( (m > 0) && (n > 0) )
                 {
-                    sout << Tools::ToString(A[0][0]);
+                    sout << ToString(M.A[0][0]);
                     for( Int j = 1; j < n; ++j )
                     {
-                        sout << ", " << Tools::ToString(A[0][j]);
+                        sout << ", " << ToString(M.A[0][j]);
                     }
                     for( Int i = 1; i < m; ++i )
                     {
                         sout << " },\n\t{ ";
                         
-                        sout << Tools::ToString(A[i][0]);
+                        sout << ToString(M.A[i][0]);
                         
                         for( Int j = 1; j < n; ++j )
                         {
-                            sout << ", " << Tools::ToString(A[i][j]);
+                            sout << ", " << ToString(M.A[i][j]);
                         }
                     }
                 }

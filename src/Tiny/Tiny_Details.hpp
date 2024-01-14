@@ -41,8 +41,8 @@ public:
         return (*this) *= ( static_cast<T>(1)/lambda );
     }
 
-    inline friend std::ostream & operator<<( std::ostream & s, const CLASS & M )
+    inline friend std::ostream & operator<<( std::ostream & s, cref<CLASS> M )
     {
-        s << M.ToString();
+        s << ToString(M);
         return s;
     }

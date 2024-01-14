@@ -344,7 +344,7 @@ namespace Tensors
         
         void Resize( const Int d_0_, const Int d_1_, bool copy = true )
         {
-//            ptic(ClassName() + "::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
+//            ptic(ClassName() + "::Resize(" + ToString(d_0_) + "," + ToString(d_1_) + ")");
             
             const Int d_0 = Tools::Ramp(d_0_);
             const Int d_1 = Tools::Ramp(d_1_);
@@ -366,7 +366,7 @@ namespace Tensors
             swap( *this, b );
                 
             
-//            ptoc(ClassName()+"::Resize(" + Tools::ToString(d_0_) + "," + Tools::ToString(d_1_) + ")");
+//            ptoc(ClassName()+"::Resize(" + ToString(d_0_) + "," + ToString(d_1_) + ")");
         }
         
         void RequireSize( const Int d_0, const Int d_1, bool copy = false )
@@ -379,7 +379,7 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return std::string("Tensor2<")+TypeName<Scal>+","+TypeName<Int>+","+Tools::ToString(alignment)+">";
+            return std::string("Tensor2<")+TypeName<Scal>+","+TypeName<Int>+","+ToString(alignment)+">";
         }
         
     }; // Tensor2

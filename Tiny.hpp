@@ -19,6 +19,10 @@ namespace Tensors
     }
 }
 
+#include "src/Tiny/ffixed_dot_mm_naive.hpp"
+#include "src/Tiny/ffixed_dot_mm_vec.hpp"
+#include "src/Tiny/ffixed_dot_mm_clang.hpp"
+
 #include "src/Tiny/Vector.hpp"
 #include "src/Tiny/VectorList.hpp"
 #include "src/Tiny/Matrix.hpp"

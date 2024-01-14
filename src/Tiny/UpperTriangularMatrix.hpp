@@ -196,28 +196,28 @@ namespace Tensors
             }
 
             
-            std::string ToString( const int p = 16) const
+            [[nodiscard]] friend std::string ToString( cref<CLASS> M, const int p = 16)
             {
                 std::stringstream sout;
 
                 sout << "{\n";
                 sout << "\t{ ";
                 
-                sout << ToString(A[0][0],p);
+                sout << ToString(M.A[0][0],p);
                 for( Int j = 1; j < n; ++j )
                 {
-                    sout << ", " << ToString(A[0][j],p);
+                    sout << ", " << ToString(M.A[0][j],p);
                 }
                 
                 for( Int i = 1; i < n; ++i )
                 {
                     sout << " },\n\t{ ";
                     
-                    sout << ToString(A[i][0],p);
+                    sout << ToString(M.A[i][0],p);
                     
                     for( Int j = 1; j < n; ++j )
                     {
-                        sout << ", " << ToString(A[i][j],p);
+                        sout << ", " << ToString(M.A[i][j],p);
                     }
                 }
                 sout << " }\n}";

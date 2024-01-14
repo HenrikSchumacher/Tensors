@@ -126,27 +126,27 @@ namespace Tensors
                 }
             }
             
-            std::string ToString() const
+            [[nodiscard]] std::string friend ToString( cref<CLASS> M )
             {
                 std::stringstream sout;
                 sout << "{\n";
                 sout << "\tdiag  = { ";
                 
-                sout << Tools::ToString(diag[0]);
+                sout << ToString(M.diag[0]);
                 for( Int j = 1; j < n; ++j )
                 {
-                    sout << ", " << Tools::ToString(diag[j]);
+                    sout << ", " << ToString(M.diag[j]);
                 }
                 
                 sout << " },\n\tupper = { ";
                 
                 if( n > 1 )
                 {
-                    sout << Tools::ToString(upper[0]);
+                    sout << ToString(M.upper[0]);
                     
                     for( Int j = 1; j < n-1; ++j )
                     {
-                        sout << ", " << Tools::ToString(upper[j]);
+                        sout << ", " << ToString(M.upper[j]);
                     }
                 }
                 sout << " }\n}";

@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		AF5D050E2B52F09000E946CA /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF5D050D2B52F09000E946CA /* main.cpp */; };
+		AF5D05122B52F09E00E946CA /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF1F64E42933800900146E64 /* Accelerate.framework */; };
 		AF8BDDE2295A1FBE001D8CCF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF8BDDE1295A1FBE001D8CCF /* main.cpp */; };
 		AF9A9289298E5BF600242813 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF9A9288298E5BF600242813 /* main.cpp */; };
 		AF9A928D298E5C0000242813 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF1F64E42933800900146E64 /* Accelerate.framework */; };
@@ -17,6 +19,15 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		AF5D05092B52F09000E946CA /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
 		AF8BDDDD295A1FBD001D8CCF /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -65,6 +76,8 @@
 		AF1F64E42933800900146E64 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		AF339C682AE49AEF000681CC /* MMA.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MMA.hpp; sourceTree = "<group>"; };
 		AF41D3E029E557F200B8D6A8 /* scribble.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = scribble.hpp; sourceTree = "<group>"; };
+		AF5D050B2B52F09000E946CA /* DenseBLAS */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DenseBLAS; sourceTree = BUILT_PRODUCTS_DIR; };
+		AF5D050D2B52F09000E946CA /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AF8BDDDF295A1FBD001D8CCF /* SparseCholesky */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SparseCholesky; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF8BDDE1295A1FBE001D8CCF /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Tiny.hpp; sourceTree = "<group>"; };
@@ -84,6 +97,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		AF5D05082B52F09000E946CA /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AF5D05122B52F09E00E946CA /* Accelerate.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AF8BDDDC295A1FBD001D8CCF /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -126,6 +147,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		AF5D050C2B52F09000E946CA /* DenseBLAS */ = {
+			isa = PBXGroup;
+			children = (
+				AF5D050D2B52F09000E946CA /* main.cpp */,
+			);
+			path = DenseBLAS;
+			sourceTree = "<group>";
+		};
 		AF8BDDE0295A1FBE001D8CCF /* SparseCholesky */ = {
 			isa = PBXGroup;
 			children = (
@@ -164,6 +193,7 @@
 				AF8BDDE0295A1FBE001D8CCF /* SparseCholesky */,
 				AF9A9287298E5BF600242813 /* UnitTests */,
 				AFFAC625298ECE5900A2CF4B /* Unit_Test_SpMM */,
+				AF5D050C2B52F09000E946CA /* DenseBLAS */,
 				AFD9E9FC29337F5000FC8A85 /* Products */,
 				AF1F64E32933800900146E64 /* Frameworks */,
 			);
@@ -176,6 +206,7 @@
 				AF8BDDDF295A1FBD001D8CCF /* SparseCholesky */,
 				AF9A9286298E5BF600242813 /* UnitTests */,
 				AFFAC624298ECE5800A2CF4B /* Unit_Test_SpMM */,
+				AF5D050B2B52F09000E946CA /* DenseBLAS */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -200,6 +231,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		AF5D050A2B52F09000E946CA /* DenseBLAS */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AF5D05112B52F09000E946CA /* Build configuration list for PBXNativeTarget "DenseBLAS" */;
+			buildPhases = (
+				AF5D05072B52F09000E946CA /* Sources */,
+				AF5D05082B52F09000E946CA /* Frameworks */,
+				AF5D05092B52F09000E946CA /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = DenseBLAS;
+			productName = DenseBLAS;
+			productReference = AF5D050B2B52F09000E946CA /* DenseBLAS */;
+			productType = "com.apple.product-type.tool";
+		};
 		AF8BDDDE295A1FBD001D8CCF /* SparseCholesky */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AF8BDDE5295A1FBE001D8CCF /* Build configuration list for PBXNativeTarget "SparseCholesky" */;
@@ -275,8 +323,11 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1510;
+				LastUpgradeCheck = 1520;
 				TargetAttributes = {
+					AF5D050A2B52F09000E946CA = {
+						CreatedOnToolsVersion = 15.2;
+					};
 					AF8BDDDE295A1FBD001D8CCF = {
 						CreatedOnToolsVersion = 14.2;
 					};
@@ -308,11 +359,20 @@
 				AF8BDDDE295A1FBD001D8CCF /* SparseCholesky */,
 				AF9A9285298E5BF600242813 /* UnitTests */,
 				AFFAC623298ECE5800A2CF4B /* Unit_Test_SpMM */,
+				AF5D050A2B52F09000E946CA /* DenseBLAS */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXSourcesBuildPhase section */
+		AF5D05072B52F09000E946CA /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AF5D050E2B52F09000E946CA /* main.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		AF8BDDDB295A1FBD001D8CCF /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -348,6 +408,44 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		AF5D050F2B52F09000E946CA /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = Y6DQ749ZRT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				OTHER_LDFLAGS = (
+					"-lm",
+					"-ldl",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		AF5D05102B52F09000E946CA /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = Y6DQ749ZRT;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
+				OTHER_LDFLAGS = (
+					"-lm",
+					"-ldl",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		AF8BDDE3295A1FBE001D8CCF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -355,7 +453,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lm",
@@ -374,7 +472,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lm",
@@ -396,7 +494,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -414,7 +512,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -496,6 +594,7 @@
 					"-fno-math-errno",
 					"-flto",
 					"-pthread",
+					"-fenable-matrix",
 				);
 				OTHER_LDFLAGS = (
 					"-lm",
@@ -584,6 +683,7 @@
 					"-fno-math-errno",
 					"-flto",
 					"-pthread",
+					"-fenable-matrix",
 				);
 				OTHER_LDFLAGS = (
 					"-lm",
@@ -615,6 +715,7 @@
 				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-ffast-math",
@@ -636,6 +737,7 @@
 				ENABLE_HARDENED_RUNTIME = NO;
 				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				OTHER_CPLUSPLUSFLAGS = (
 					"$(OTHER_CFLAGS)",
 					"-ffast-math",
@@ -654,7 +756,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -667,7 +769,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				MACOSX_DEPLOYMENT_TARGET = 13.1;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -676,6 +778,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		AF5D05112B52F09000E946CA /* Build configuration list for PBXNativeTarget "DenseBLAS" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				AF5D050F2B52F09000E946CA /* Debug */,
+				AF5D05102B52F09000E946CA /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		AF8BDDE5295A1FBE001D8CCF /* Build configuration list for PBXNativeTarget "SparseCholesky" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

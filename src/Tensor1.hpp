@@ -123,7 +123,7 @@ namespace Tensors
         
         void Resize( const Int m_, const bool copy = true )
         {
-//            ptic(ClassName()+"::Resize(" + Tools::ToString(m_) + ")");
+//            ptic(ClassName()+"::Resize(" + ToString(m_) + ")");
             const Int m = Tools::Ramp(m_);
             
             TENSOR_T b (m);
@@ -141,7 +141,7 @@ namespace Tensors
             }
             
             swap( *this, b );
-//            ptoc(ClassName()+"::Resize(" + Tools::ToString(m_) + ")");
+//            ptoc(ClassName()+"::Resize(" + ToString(m_) + ")");
         }
         
         void Resize( const Int m_, const Int thread_count, const bool copy = true )
@@ -225,24 +225,24 @@ namespace Tensors
         
     public:
         
-        std::string ToString( const Int i_begin, const Int i_end ) const
+        [[nodiscard]] std::string friend ToString( cref<TENSOR_T> T, const Int i_begin, const Int i_end )
         {
-            if( (i_begin >= 0) && ( i_end <= n) )
+            if( (i_begin >= 0) && ( i_end <= T.n) )
             {
                 return ToString(
-                    &a[i_begin],
+                    &T.a[i_begin],
                     {Tools::Max(int_cast<Size_T>(0),int_cast<Size_T>(i_end-i_begin))}
                 );
             }
             else
             {
-                return ToString(a,0);
+                return ToString(T.a,0);
             }
         }
         
         static std::string ClassName()
         {
-            return std::string("Tensor1<")+TypeName<Scal>+","+TypeName<Int>+","+Tools::ToString(alignment)+">";
+            return std::string("Tensor1<")+TypeName<Scal>+","+TypeName<Int>+","+ToString(alignment)+">";
         }
         
         

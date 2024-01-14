@@ -4,31 +4,6 @@ namespace Tensors
 {
     namespace Tiny
     {
-//        template<
-//            const Op opA, const Op opB,
-//            int M, int N, int K,
-//            Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-//            typename Scal_A, typename Scal_B, typename Scal_C
-//        >
-//        void gemm(
-//            cref<Scal_C> alpha,
-//            cptr<Scal_A> A_,
-//            cptr<Scal_B> B_,
-//            cref<Scal_C> beta,
-//            mptr<Scal_C> C_
-//        )
-//        {
-//            // Computes C = alpha * opA(A) * opB(B) + beta * C.
-//            Tiny::Matrix<M,K,Scal_A,int> A;
-//            Tiny::Matrix<K,N,Scal_B,int> B;
-//            Tiny::Matrix<M,N,Scal_C,int> C;
-//            
-//            A.template Read<opA>(A_);
-//            B.template Read<opB>(B_);
-//            Dot<0>(A,B,C);
-//            C.template Write<alpha_flag,beta_flag>(alpha,beta,C_);
-//        }
-        
         
         template<
             const Op opA, const Op opB,
