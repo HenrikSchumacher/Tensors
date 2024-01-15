@@ -77,6 +77,10 @@ namespace Tensors
             using A_Block_T = A_Storage_T::Block_T;
             using B_Block_T = B_Storage_T::Block_T;
             using C_Block_T = C_Storage_T::Block_T;
+                        
+            using a_T = mat_T<k,m,A_T>;
+            using b_T = mat_T<n,k,B_T>;
+            using c_T = mat_T<n,m,C_T>;
             
         private:
             
@@ -154,6 +158,7 @@ namespace Tensors
 //#include "BLAS_3/DotBlocks_mat_T.hpp"
 //#include "BLAS_3/DotBlocks_with_pointers.hpp"
             
+#include "BLAS_3/DotBlocksRecursive.hpp"
 #include "BLAS_3/gemm.hpp"
 
             

@@ -74,20 +74,22 @@ int main(int argc, const char * argv[])
     constexpr Size_T M = 1024 * 2 * 2;
     constexpr Size_T K = 1024 * 2 * 2;
     constexpr Size_T N = 1024 * 2 * 2;
-    constexpr Size_T m = 16;
-    constexpr Size_T k =  8;
-    constexpr Size_T n =  4;
+    
+//    constexpr Size_T m = 16;
+//    constexpr Size_T k =  8;
+//    constexpr Size_T n =  4;
+    
+//    constexpr Size_T m = 4;
+//    constexpr Size_T k = 4;
+//    constexpr Size_T n = 4;
     
 //    constexpr Size_T M = 32;
 //    constexpr Size_T K = 32;
 //    constexpr Size_T N = 32;
 
-//    constexpr Size_T m = 16;
-//    constexpr Size_T k =  8;
-//    constexpr Size_T n =  4;
-    
-
-    
+    constexpr Size_T m = 16;
+    constexpr Size_T k =  8;
+    constexpr Size_T n =  4;
     
 //    constexpr Size_T m = 8;
 //    constexpr Size_T k = 8;
@@ -202,6 +204,22 @@ int main(int argc, const char * argv[])
         beta,  C.data(), N
     );
     toc("blas3.gemm");
+    
+//    tic("blas3.gemm_recursive");
+//    blas3.gemm_recursive(
+//        alpha, A.data(), K,
+//               B.data(), N,
+//        beta,  C.data(), N
+//    );
+//    toc("blas3.gemm_recursive");
+//    
+//    tic("blas3.gemm_recursive");
+//    blas3.gemm_recursive(
+//        alpha, A.data(), K,
+//               B.data(), N,
+//        beta,  C.data(), N
+//    );
+//    toc("blas3.gemm_recursive");
     
 //    tic("Dense::gemm");
 //    Dense::gemm<Layout::RowMajor,opA,opB>(

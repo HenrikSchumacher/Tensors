@@ -5,7 +5,7 @@ namespace Tensors
         
     namespace Tiny
     {
-        template<Size_T M, Size_T K, Size_T N, AddTo_T addto, typename Scal>
+        template<Size_T M, Size_T N, Size_T K, AddTo_T addto, typename Scal>
         void fixed_dot_mm_clang( cptr<Scal> A, cptr<Scal> B, mptr<Scal> C )
         {
             static_assert( mat_enabledQ && (SameQ<Scal,double> || SameQ<Scal,float>), "Chosen scalar type is illegal for clang matrix extension." );
@@ -32,7 +32,7 @@ namespace Tensors
         }
         
         
-        template<Size_T M, Size_T K, Size_T N, AddTo_T addto, typename Scal>
+        template<Size_T M, Size_T N, Size_T K, AddTo_T addto, typename Scal>
         void fixed_dot_mm_clang_2( cptr<Scal> A, cptr<Scal> B, mptr<Scal> C )
         {
             static_assert( mat_enabledQ && (SameQ<Scal,double> || SameQ<Scal,float>), "Chosen scalar type is illegal for clang matrix extension." );

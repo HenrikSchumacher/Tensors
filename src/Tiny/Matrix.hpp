@@ -208,13 +208,13 @@ namespace Tensors
                 mref<Tiny::Matrix<m_,n_,Scal,Int>> Z
             )
             {
-                if constexpr( mat_enabledQ && (SameQ<Scal,double> || SameQ<Scal,float>) )
+                if constexpr( mat_enabledQ && (SameQ<X_T,double> || SameQ<X_T,float>) && (SameQ<Y_T,double> || SameQ<Y_T,float>) && (SameQ<Scal,double> || SameQ<Scal,float>) )
                 {
-                    fixed_dot_mm_clang_2<m_,K_,n_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
+                    fixed_dot_mm_clang_2<m_,n_,K_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
                 }
                 else
                 {
-                    fixed_dot_mm_vec<m_,K_,n_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
+                    fixed_dot_mm_vec<m_,n_,K_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
                     
 //                    constexpr Int K = K_;
 //                    
