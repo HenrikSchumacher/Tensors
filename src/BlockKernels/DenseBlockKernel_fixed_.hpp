@@ -156,45 +156,6 @@ namespace Tensors
                 {
                     a.template Read<Op::Trans>( a_from );
                 }
-                
-//                if constexpr ( a_RM )
-//                {
-//                    if constexpr ( a_intRM )
-//                    {
-//                        a.Read( a_from );
-//                    }
-//                    else
-//                    {
-//                        LOOP_UNROLL_FULL
-//                        for( Int i = 0; i < ROWS; ++i )
-//                        {
-//                            LOOP_UNROLL_FULL
-//                            for( Int j = 0; j < COLS; ++j )
-//                            {
-//                                a[j][i] = a_from[COLS*i+j];
-//                            }
-//                        }
-//                    }
-//                }
-//                else // !a_RM
-//                {
-//                    if constexpr ( a_intRM )
-//                    {
-//                        LOOP_UNROLL_FULL
-//                        for( Int j = 0; j < COLS; ++j )
-//                        {
-//                            LOOP_UNROLL_FULL
-//                            for( Int i = 0; i < ROWS; ++i )
-//                            {
-//                                a[i][j] = a_from[ROWS*j+i];
-//                            }
-//                        }
-//                    }
-//                    else
-//                    {
-//                        a.Read( a_from );
-//                    }
-//                }
             }
             else
             {

@@ -18,7 +18,6 @@ namespace Tensors
             
             static constexpr Int n = n_;
             
-            static_assert( n > 0, "Vector dimension must be postive.");
 
             template<typename S, Size_T alignment>
             CLASS( cref<VectorList<n,S,Int,alignment>> v_list, const Int k )

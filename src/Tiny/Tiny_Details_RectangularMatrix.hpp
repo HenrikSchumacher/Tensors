@@ -99,7 +99,7 @@ public:
             
             for( Int j = 0; j < n; ++j )
             {
-                mptr<B_T> B_j = &B[n * j];
+                cptr<B_T> B_j = &B[n * j];
                 
                 for( Int i = 0; i < m; ++i )
                 {

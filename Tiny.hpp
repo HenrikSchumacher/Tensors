@@ -21,7 +21,12 @@ namespace Tensors
 
 #include "src/Tiny/ffixed_dot_mm_naive.hpp"
 #include "src/Tiny/ffixed_dot_mm_vec.hpp"
-#include "src/Tiny/ffixed_dot_mm_clang.hpp"
+
+#if defined(__clang__)
+    #if ( __has_attribute(matrix_type) )
+        #include "src/Tiny/ffixed_dot_mm_clang.hpp"
+    #endif
+#endif
 
 #include "src/Tiny/Vector.hpp"
 #include "src/Tiny/VectorList.hpp"

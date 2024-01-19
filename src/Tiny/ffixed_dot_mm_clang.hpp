@@ -30,8 +30,7 @@ namespace Tensors
                 (*reinterpret_cast<const mat_T<K,M,Scal>*>(A));
             }
         }
-        
-        
+
         template<Size_T M, Size_T N, Size_T K, AddTo_T addto, typename Scal>
         void fixed_dot_mm_clang_2( cptr<Scal> A, cptr<Scal> B, mptr<Scal> C )
         {
