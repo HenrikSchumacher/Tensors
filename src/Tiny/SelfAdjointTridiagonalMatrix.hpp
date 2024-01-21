@@ -102,7 +102,7 @@ namespace Tensors
                 return z;
             }
             
-            force_inline void operator+=( const SelfAdjointTridiagonalMatrix & B )
+            force_inline mref<SelfAdjointTridiagonalMatrix> operator+=( const SelfAdjointTridiagonalMatrix & B )
             {
                 add_to_buffer<n>  ( &B.diag[0],  &diag[0]       );
                 add_to_buffer<n-1>( &B.upper[0], &diag.upper[0] );

@@ -3,7 +3,7 @@ public:
 #include "Tiny_Constants.hpp"
 
     template<class T>
-    force_inline Class_T operator/=( const T lambda )
+    force_inline mref<Class_T> operator/=( const T lambda )
     {
         return (*this) *= ( scalar_cast<Scal>(Inv<T>(lambda)) );
     }

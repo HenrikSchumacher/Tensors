@@ -535,7 +535,7 @@ namespace Tensors
         public:
             
             template<class T>
-            force_inline Matrix operator+=( const T lambda_ )
+            force_inline mref<Matrix> operator+=( const T lambda_ )
             {
                 const auto lambda = scalar_cast<Scal>(lambda_);
                 
@@ -551,7 +551,7 @@ namespace Tensors
             }
 
             template<class T>
-            force_inline Matrix operator-=( const T lambda_ )
+            force_inline mref<Matrix> operator-=( const T lambda_ )
             {
                 const auto lambda = scalar_cast<Scal>(lambda_);
                 
@@ -567,7 +567,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline Matrix operator*=( const T lambda_ )
+            force_inline mref<Matrix> operator*=( const T lambda_ )
             {
                 const auto lambda = scalar_cast<Scal>(lambda_);
                 
@@ -583,7 +583,7 @@ namespace Tensors
             }
 
             template<class T>
-            force_inline Matrix operator/=( const T lambda )
+            force_inline mref<Matrix> operator/=( const T lambda )
             {
                 return (*this) *= ( scalar_cast<Scal>(Inv<T>(lambda)) );
             }
@@ -619,7 +619,7 @@ namespace Tensors
             
             template<class T>
             force_inline
-            Matrix & operator+=( cref<Tiny::Matrix<m,n,T,Int>> B )
+            mref<Matrix> operator+=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -634,7 +634,7 @@ namespace Tensors
             
             template<class T>
             force_inline
-            Matrix & operator-=( cref<Tiny::Matrix<m,n,T,Int>> B )
+            mref<Matrix> operator-=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -650,7 +650,7 @@ namespace Tensors
             // TODO: Not sure whether I want * to represent compontenwise multiplication.
             template<class T>
             force_inline
-            Matrix & operator*=( cref<Tiny::Matrix<m,n,T,Int>> B )
+            mref<Matrix> operator*=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -666,7 +666,7 @@ namespace Tensors
             // TODO: Not sure whether I want / to represent compontenwise division.
             template<class T>
             force_inline
-            Matrix & operator/=( cref<Tiny::Matrix<m,n,T,Int>> B )
+            mref<Matrix> operator/=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {

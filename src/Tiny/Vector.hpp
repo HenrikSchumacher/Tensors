@@ -240,7 +240,7 @@ namespace Tensors
                 typename a_T, typename x_T, typename b_T, typename y_T,
                 Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
             >
-            force_inline void LinearCombine(
+            force_inline Vector & LinearCombine(
                 cref<a_T> a, cptr<x_T> x, cref<b_T> b, cptr<y_T> y
             )
             {
@@ -252,7 +252,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline Vector operator+=( cref<Tiny::Vector<n,T,Int>> s )
+            force_inline mref<Vector> operator+=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -267,7 +267,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline Vector operator-=( cref<Tiny::Vector<n,T,Int>> s )
+            force_inline mref<Vector> operator-=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -286,7 +286,7 @@ namespace Tensors
             // TODO: Vectorize all these.
             
             template<class T>
-            force_inline Vector operator*=( cref<Tiny::Vector<n,T,Int>> s )
+            force_inline mref<Vector> operator*=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -296,7 +296,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline Vector operator/=( cref<Tiny::Vector<n,T,Int>> s )
+            force_inline mref<Vector> operator/=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -308,7 +308,7 @@ namespace Tensors
             
             
             template<class T>
-            force_inline Vector operator+=( cref<T> s )
+            force_inline mref<Vector> operator+=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -318,7 +318,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline Vector operator-=( cref<T> s )
+            force_inline mref<Vector> operator-=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -328,7 +328,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline Vector operator*=( cref<T> s )
+            force_inline mref<Vector> operator*=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {

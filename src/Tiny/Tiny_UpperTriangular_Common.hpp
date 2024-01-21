@@ -11,7 +11,7 @@ public:
     CLASS(std::nullptr_t) = delete;
 
     // Copy constructor
-    explicit CLASS( const CLASS & other )
+    explicit CLASS( const Class_T & other )
     {
         Read( &other.A[0][0] );
     }
@@ -22,7 +22,7 @@ public:
     }
 
     // Copy assignment operator
-    CLASS & operator=( CLASS other )
+    mref<CLASS> operator=( const Class_T other )
     {
         // copy-and-swap idiom
         // see https://stackoverflow.com/a/3279550/8248900 for details
@@ -32,7 +32,7 @@ public:
     }
 
     /* Move constructor */
-    CLASS( CLASS && other ) noexcept
+    CLASS( Class_T && other ) noexcept
     {
         swap(*this, other);
     }
@@ -226,9 +226,9 @@ protected:
        
 public:
 
-    friend CLASS operator+( cref<CLASS> x, cref<CLASS> y )
+    friend Class_T operator+( cref<Class_T> x, cref<Class_T> y )
     {
-        CLASS z;
+        Class_T z;
         for( Int i = 0; i < n; ++i )
         {
             for( Int j = i; j < n; ++j )
@@ -239,7 +239,7 @@ public:
         return z;
     }
     
-    force_inline void Conjugate( mref<CLASS> B ) const
+    force_inline void Conjugate( mref<Class_T> B ) const
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -251,7 +251,7 @@ public:
     }
     
     template<class T>
-    force_inline CLASS operator+=( cref<CLASS<n,T,Int>> B )
+    force_inline mref<Class_T> operator+=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -264,7 +264,7 @@ public:
     }
     
     template<class T>
-    force_inline CLASS operator-=( cref<CLASS<n,T,Int>> B )
+    force_inline mref<Class_T> operator-=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -277,7 +277,7 @@ public:
     }
     
     template<class T>
-    force_inline CLASS operator*=( cref<CLASS<n,T,Int>> B )
+    force_inline mref<Class_T> operator*=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -290,7 +290,7 @@ public:
     }
     
     template<class T>
-    force_inline CLASS operator/=( cref<CLASS<n,T,Int>> B )
+    force_inline mref<Class_T> operator/=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -304,7 +304,7 @@ public:
     
     
     template<class T>
-    force_inline CLASS operator+=( cref<T> lambda )
+    force_inline mref<Class_T> operator+=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -318,7 +318,7 @@ public:
     }
 
     template<class T>
-    force_inline CLASS operator-=( cref<T> lambda )
+    force_inline mref<Class_T> operator-=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -332,7 +332,7 @@ public:
     }
     
     template<class T>
-    force_inline CLASS operator*=( cref<T> lambda )
+    force_inline mref<Class_T> operator*=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
