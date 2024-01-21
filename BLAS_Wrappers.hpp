@@ -73,17 +73,17 @@ namespace Tensors
     }
 }
 
-#include "BLAS/scal.hpp"
-#include "BLAS/dot.hpp"
-#include "BLAS/axpy.hpp"
-#include "BLAS/copy.hpp"
+#include "src/BLAS/scal.hpp"
+#include "src/BLAS/dot.hpp"
+#include "src/BLAS/axpy.hpp"
+#include "src/BLAS/copy.hpp"
 
-#include "BLAS/gemv.hpp"
-#include "BLAS/gemm.hpp"
+#include "src/BLAS/gemv.hpp"
+#include "src/BLAS/gemm.hpp"
 
-#include "BLAS/trsv.hpp"
-#include "BLAS/trsm.hpp"
+#include "src/BLAS/trsv.hpp"
+#include "src/BLAS/trsm.hpp"
 
-#include "BLAS/ger.hpp"
-#include "BLAS/her.hpp"
-#include "BLAS/herk.hpp"
+#include "src/BLAS/ger.hpp"
+#include "src/BLAS/her.hpp"
+#include "src/BLAS/herk.hpp"

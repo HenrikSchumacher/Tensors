@@ -5,47 +5,78 @@ namespace Tensors
 {
     namespace Tiny
     {
-#define CLASS Vector
-        
         template<int n_, typename Scal_, typename Int_, Size_T alignment> class VectorList;
         
-        template< int n_, typename Scal_, typename Int_>
-        class CLASS
+        template<int n_, typename Scal_, typename Int_>
+        class Vector
         {
-            // Very slim vector type of fixed length, with basic arithmetic operations.
+            /// Very slim vector type of fixed length, with basic arithmetic operations.
+            
+        public:
+            
+            using Class_T = Vector;
             
 #include "Tiny_Details.hpp"
             
+        public:
+            
             static constexpr Int n = n_;
+            
+            Vector() = default;
+
+            ~Vector() = default;
+
+            Vector(std::nullptr_t) = delete;
+
+            explicit Vector( const Scal * a )
+            {
+                Read(a);
+            }
+
+            // Copy assignment operator
+            Vector & operator=( Vector other )
+            {
+                // copy-and-swap idiom
+                // see https://stackoverflow.com/a/3279550/8248900 for details
+                swap(*this, other);
+
+                return *this;
+            }
+
+            /* Move constructor */
+            Vector( Vector && other ) noexcept
+            {
+                swap(*this, other);
+            }
             
 
             template<typename S, Size_T alignment>
-            CLASS( cref<VectorList<n,S,Int,alignment>> v_list, const Int k )
+            Vector( cref<VectorList<n,S,Int,alignment>> v_list, const Int k )
             {
                 Read(v_list, k);
             }
             
             template<typename S>
-            CLASS( cref<Tensor2<S,Int>> matrix, const Int k )
+            Vector( cref<Tensor2<S,Int>> matrix, const Int k )
             {
                 Read(matrix.data(k));
             }
             
             template<typename S>
-            CLASS( cptr<S> matrix, const Int k )
+            Vector( cptr<S> matrix, const Int k )
             {
                 Read( &matrix[n * k] );
             }
             
             
             template<typename S>
-            CLASS( cptr<S> vector )
+            Vector( cptr<S> vector )
             {
                 Read( vector );
             }
             
             template<typename S>
-            constexpr CLASS( const std::initializer_list<S> w )
+            constexpr Vector( const std::initializer_list<S> w )
             {
                 const Int n__ = Tools::Min(n,static_cast<Int>(w.size()));
 //
@@ -86,17 +117,17 @@ namespace Tensors
             
         public:
             
-            explicit CLASS( const Scal init )
+            explicit Vector( const Scal init )
             :   v {{init}}
             {}
             
             // Copy constructor
-            CLASS( const CLASS & other )
+            Vector( const Vector & other )
             {
                 Read( &other.v[0] );
             }
 
-            friend void swap( CLASS & A, CLASS & B ) noexcept
+            friend void swap( Vector & A, Vector & B ) noexcept
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
@@ -201,9 +232,9 @@ namespace Tensors
                 return v[i];
             }
             
-//######################################################
-//##                  Artihmethic                     ##
-//######################################################
+///######################################################
+///##                  Artihmethic                     ##
+///######################################################
             
             template<
                 typename a_T, typename x_T, typename b_T, typename y_T,
@@ -221,42 +252,41 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline
-            std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator+=( cref<Tiny::Vector<n,T,Int>> s )
+            force_inline Vector operator+=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
                     v[i] += s[i];
                 }
+                // TODO: Compare to
+//                combine_buffers<F_Plus,F_Plus,n>(
+//                     Scalar::One<Scal>, x, Scalar::One<Scal>, y, &v[0]
+//                );
+                
                 return *this;
             }
             
             template<class T>
-            force_inline
-            std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator-=( cref<Tiny::Vector<n,T,Int>> s )
+            force_inline Vector operator-=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
                     v[i] -= s[i];
                 }
+  
+                // TODO: Compare to
+//                combine_buffers<F_Plus,F_Minus,n>(
+//                     Scalar::One<Scal>, x, -Scalar::One<Scal>, y, &v[0]
+//                );
+                
                 return *this;
             }
             
+            
+            // TODO: Vectorize all these.
+            
             template<class T>
-            force_inline
-            std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator*=( cref<Tiny::Vector<n,T,Int>> s )
+            force_inline Vector operator*=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -266,12 +296,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline
-            std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator/=( cref<Tiny::Vector<n,T,Int>> s )
+            force_inline Vector operator/=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -280,13 +305,10 @@ namespace Tensors
                 return *this;
             }
             
+            
+            
             template<class T>
-            force_inline
-            std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator+=( cref<T> s )
+            force_inline Vector operator+=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -296,12 +318,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline
-            std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator-=( cref<T> s )
+            force_inline Vector operator-=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -311,12 +328,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline
-            std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator*=( cref<T> s )
+            force_inline Vector operator*=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -324,6 +336,7 @@ namespace Tensors
                 }
                 return *this;
             }
+            
 
             force_inline Real SquaredNorm() const
             {
@@ -335,7 +348,7 @@ namespace Tensors
                 return norm_2<n>( &v[0] );
             }
             
-            force_inline friend Real Norm( cref<CLASS> u )
+            force_inline friend Real Norm( cref<Vector> u )
             {
                 return u.Norm();
             }
@@ -383,7 +396,7 @@ namespace Tensors
             }
             
   
-            [[nodiscard]] force_inline friend Real AngleBetweenUnitVectors( cref<CLASS> u, cref<CLASS> w )
+            [[nodiscard]] force_inline friend Real AngleBetweenUnitVectors( cref<Vector> u, cref<Vector> w )
             {
                 const Real a = (u-w).SquaredNorm();
                 const Real b = (u+w).SquaredNorm();
@@ -391,10 +404,10 @@ namespace Tensors
                 return Scalar::Two<Real> * atan( Sqrt(a/b) );
             }
             
-            [[nodiscard]] force_inline friend Real Angle( cref<CLASS> x, cref<CLASS> y )
+            [[nodiscard]] force_inline friend Real Angle( cref<Vector> x, cref<Vector> y )
             {
-                CLASS u = x;
-                CLASS w = y;
+                Vector u = x;
+                Vector w = y;
                 
                 u.Normalize();
                 w.Normalize();
@@ -403,7 +416,7 @@ namespace Tensors
             }
 
             
-            [[nodiscard]] friend std::string ToString( cref<CLASS> x )
+            [[nodiscard]] friend std::string ToString( cref<Vector> x )
             {
                 std::stringstream sout;
                 sout << "{ ";
@@ -439,13 +452,10 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::Vector") + "<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
         };
-        
-#undef CLASS
-        
-        
+                
         template<typename Scal, typename Int>
         force_inline void Cross( 
             cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v, mref<Vector<3,Scal,Int>> w )

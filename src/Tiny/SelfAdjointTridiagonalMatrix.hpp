@@ -5,16 +5,20 @@ namespace Tensors
     namespace Tiny
     {
         
-#define CLASS SelfAdjointTridiagonalMatrix
-        
         template< int n_, typename Scal_, typename Int_ >
-        class CLASS
+        class SelfAdjointTridiagonalMatrix
         {
             // Uses only upper triangle.
             
+            // TODO: Add value semantics?
+            
         public:
             
+            using Class_T = SelfAdjointTridiagonalMatrix;
+            
 #include "Tiny_Details.hpp"
+            
+        public:
             
             static constexpr Int n = n_;
             
@@ -32,11 +36,15 @@ namespace Tensors
             
         public:
             
-            //######################################################
-            //##                     Memory                       ##
-            //######################################################
+///######################################################
+///##                     Memory                       ##
+///######################################################
             
-            explicit CLASS( cref<Scal> init )
+            
+            SelfAdjointTridiagonalMatrix() = default;
+            ~SelfAdjointTridiagonalMatrix() = default;
+            
+            explicit SelfAdjointTridiagonalMatrix( cref<Scal> init )
             :   diag  { init }
             ,   upper { init }
             {}
@@ -48,9 +56,9 @@ namespace Tensors
                 zerofy_buffer<n-1>( &upper[0] );
             }
             
-            //######################################################
-            //##                     Access                       ##
-            //######################################################
+///######################################################
+///##                     Access                       ##
+///######################################################
             
             
             force_inline mref<Real> Diag( const Int i )
@@ -79,9 +87,9 @@ namespace Tensors
             }
             
             
-            force_inline friend CLASS operator+( const CLASS & x, const CLASS & y )
+            force_inline friend SelfAdjointTridiagonalMatrix operator+( const SelfAdjointTridiagonalMatrix & x, const SelfAdjointTridiagonalMatrix & y )
             {
-                CLASS z;
+                SelfAdjointTridiagonalMatrix z;
                 for( Int i = 0; i < n; ++i )
                 {
                     z.diag[i] = x.diag[i] + y.diag[i];
@@ -94,7 +102,7 @@ namespace Tensors
                 return z;
             }
             
-            force_inline void operator+=( const CLASS & B )
+            force_inline void operator+=( const SelfAdjointTridiagonalMatrix & B )
             {
                 add_to_buffer<n>  ( &B.diag[0],  &diag[0]       );
                 add_to_buffer<n-1>( &B.upper[0], &diag.upper[0] );
@@ -126,7 +134,7 @@ namespace Tensors
                 }
             }
             
-            [[nodiscard]] std::string friend ToString( cref<CLASS> M )
+            [[nodiscard]] std::string friend ToString( cref<SelfAdjointTridiagonalMatrix> M )
             {
                 std::stringstream sout;
                 sout << "{\n";
@@ -528,12 +536,10 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::")+TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::SelfAdjointTridiagonalMatrix")+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };
-        
-#undef CLASS
         
     } // namespace Tiny
     

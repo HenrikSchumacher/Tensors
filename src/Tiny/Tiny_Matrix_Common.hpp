@@ -1,12 +1,6 @@
 public:
 
-    // Copy constructor
-    CLASS( const CLASS & other )
-    {
-        Read( &other.A[0][0] );
-    }
-
-    friend void swap( CLASS & X, CLASS & Y ) noexcept
+    friend void swap( Class_T & X, Class_T & Y ) noexcept
     {
         // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
         using std::swap;
@@ -15,9 +9,9 @@ public:
     }
 
 
-//######################################################
-//##                     Access                       ##
-//######################################################
+///######################################################
+///##                     Access                       ##
+///######################################################
             
 public:
     

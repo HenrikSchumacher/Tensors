@@ -8,8 +8,6 @@ namespace Tensors
     {
         template< int n_, typename Scal_, typename Int_> class SelfAdjointMatrix;
         
-#define CLASS Matrix
-        
         template< int m_, int n_, typename Scal_, typename Int_>
         class Matrix
         {
@@ -17,8 +15,8 @@ namespace Tensors
             
             using Class_T = Matrix;
             
-#include "Tiny_Details.hpp"
-            
+#include "Tiny_Constants.hpp"
+                        
             static constexpr Int m = m_;
             static constexpr Int n = n_;
             
@@ -39,14 +37,24 @@ namespace Tensors
             
         public:
             
+
+            Matrix() = default;
+
+            ~Matrix() = default;
+
+            Matrix(std::nullptr_t) = delete;
+
+            explicit Matrix( const Scal * a )
+            {
+                Read(a);
+            }
+            
             explicit Matrix( cref<Scal> init )
             :   A {{{init}}}
             {}
             
             template<typename S>
             constexpr Matrix( const std::initializer_list<S[n]> list )
-//            :   A (list)
-//            {}
             {
                 const Int m__ = static_cast<Int>(list.size());
                 
@@ -69,15 +77,59 @@ namespace Tensors
                 }
             }
             
+            // Copy Matrix
+            Matrix( const Matrix & other )
+            {
+                Read( &other.A[0][0] );
+            }
+            
+            /* Move constructor */
+            Matrix( Matrix && other ) noexcept
+            {
+                swap(*this, other);
+            }
+            
+            // Copy assignment operator
+            Matrix & operator=( Matrix other )
+            {
+                // copy-and-swap idiom
+                // see https://stackoverflow.com/a/3279550/8248900 for details
+                swap(*this, other);
+
+                return *this;
+            }
+
+            
 //######################################################
 //##                     Access                       ##
 //######################################################
 
-#include "Tiny_Details_Matrix.hpp"
-#include "Tiny_Details_RectangularMatrix.hpp"
+#include "Tiny_Matrix_Common.hpp"
             
-            
+///######################################################
+///##                     Memory                       ##
+///######################################################
+                
         public:
+
+            void SetZero()
+            {
+                zerofy_buffer<m*n>( &A[0][0] );
+            }
+            
+            template<typename T>
+            void Fill( cref<T> init )
+            {
+                fill_buffer<m*n>( &A[0][0], static_cast<T>(init) );
+            }
+
+
+            template<typename B_T>
+            void AddTo( mptr<B_T> B ) const
+            {
+                add_to_buffer<m*n>( &A[0][0], B );
+            }
+                
             
             void WriteRow( mref<RowVector_T> u, const Int i )
             {
@@ -92,13 +144,457 @@ namespace Tensors
                 }
             }
             
-//######################################################
-//##                  Arithmetic                      ##
-//######################################################
+            
+///######################################################
+///##             Reading from raw buffers             ##
+///######################################################
+
+            /// BLAS-like read-modify method _with stride_.
+            /// Reads the full matrix.
+            template<
+                Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+                Op opA = Op::Id, Op opB = Op::Id,
+                typename alpha_T, typename beta_T, typename B_T
+            >
+            void Read(
+                cref<alpha_T> alpha, cref<beta_T> beta, cptr<B_T> B, const Int ldB
+            )
+            {
+                /// Compute `alpha * opA(A) + beta * opB(B)` and store it in `A`.
+                /// `opA` can only be `Op::Id` or `Op::Conj`.
+                
+                constexpr Op op = ConjugatedQ(opB) ? Op::Conj : Op::Id;
+                
+                if constexpr ( NotTransposedQ(opB) )
+                {
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        combine_buffers<beta_flag,alpha_flag,n,Sequential,op,opA>(
+                            beta, &B[ldB*i], alpha, &A[i][0]
+                        );
+                    }
+
+                }
+                else if constexpr ( TransposedQ(opB) )
+                {
+                    // TODO: Compare with reverse ordering of loops.
+                    
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        mptr<B_T> B_j = &B[ldB * j];
+                        
+                        for( Int i = 0; i < m; ++i )
+                        {
+                            combine_scalars<beta_flag,alpha_flag,op,opA>(
+                                beta, B_j[i], alpha, A[i][j]
+                            );
+                        }
+                    }
+                }
+            }
+
+            /// BLAS-like read-modify method _without stride_.
+            template<
+                Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+                Op opA = Op::Id, Op opB = Op::Id,
+                typename alpha_T, typename beta_T, typename B_T
+            >
+            void Read(
+                cref<alpha_T> alpha, cref<beta_T> beta, cptr<B_T> B
+            )
+            {
+                /// Compute `alpha * opA(A) + beta * opB(B)` and store it in `A`.
+                /// `opA` can only be `Op::Id` or `Op::Conj`.
+
+                constexpr Op op = ConjugatedQ(opB) ? Op::Conj : Op::Id;
+                
+                if constexpr ( NotTransposedQ(opB) )
+                {
+                    combine_buffers<beta_flag,alpha_flag,m*n,Sequential,op,opA>(
+                        beta, B, alpha, &A[0][0]
+                    );
+                }
+                else if constexpr ( TransposedQ(opB) )
+                {
+                    // TODO: Compare with reverse ordering of loops.
+                    
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        cptr<B_T> B_j = &B[n * j];
+                        
+                        for( Int i = 0; i < m; ++i )
+                        {
+                            combine_scalars<alpha_flag,beta_flag,op,opA>(
+                                beta, B_j[i], alpha, A[i][j]
+                            );
+                        }
+                    }
+                }
+            }
+
+            /// BLAS-like read-modify method _without stride_.
+            template<Op opB = Op::Id, typename B_T>
+            void Read( cptr<B_T> B )
+            {
+                /// Compute `opB(B)` and store it in `A`.
+                
+                Read<Scalar::Flag::Zero,Scalar::Flag::Plus,Op::Id,opB>(
+                    Scal(0), Scal(1), B
+                );
+            }
+
+            /// BLAS-like read-modify method _with stride_.
+            template<Op opB = Op::Id, typename B_T>
+            void Read( cptr<B_T> B, const Int ldB )
+            {
+                /// Compute `opB(B)` and store it in `A`.
+                
+                Read<Scalar::Flag::Zero,Scalar::Flag::Plus,Op::Id,opB>(
+                    Scal(0), Scal(1), B, ldB
+                );
+            }
+
+
+            /// BLAS-like read-modify method _with stride_.
+            /// Reads only the top left portion.
+            /// It is meant to read from the right and bottom boundaries of a large matrix.
+            template<
+                bool chop_m_Q, bool chop_n_Q,
+                Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+                Op opA = Op::Id, Op opB = Op::Id,
+                typename alpha_T, typename beta_T, typename B_T
+            >
+            void ReadChopped(
+                const Int m_max, const Int n_max,
+                cref<alpha_T> alpha, cref<beta_T> beta, cptr<B_T> B, const Int ldB = n
+            )
+            {
+                /// Compute `alpha * opA(A) + beta * opB(B)` and store it in `A`.
+                /// `opA` can only be `Op::Id` or `Op::Conj`.
+                
+                constexpr Op op = ConjugatedQ(opB) ? Op::Conj : Op::Id;
+                
+                const Int m_c = Min(m,m_max);
+                const Int n_c = Min(n,n_max);
+
+                if constexpr ( NotTransposedQ(opB) )
+                {
+                    for( Int i = 0; i < COND(chop_m_Q,m_c,m); ++i )
+                    {
+                        combine_buffers<beta_flag,alpha_flag,COND(chop_n_Q,0,n),Sequential,op,opA>(
+                            beta, &B[ldB*i], alpha, &A[i][0], n_c
+                        );
+                    }
+                }
+                else if constexpr ( TransposedQ(opB) )
+                {
+                    // TODO: Compare with reverse ordering of loops.
+                    
+                    /// TODO:
+                    /// I think best performance should be obtained
+                    /// by making the fixed-size loop the inner loop.
+                    
+                    for( Int j = 0; j < COND(chop_n_Q,n_c,n); ++j )
+                    {
+                        mptr<B_T> B_j = &B[ldB * j];
+                        
+                        for( Int i = 0; i < COND(chop_m_Q,m_c,m); ++i )
+                        {
+                            combine_scalars<beta_flag,alpha_flag,op,opA>(
+                                beta, B_j[i], alpha, A[i][j]
+                            );
+                        }
+                    }
+                }
+            }
+
+        //    // Scattered read-modify method.
+        //    // Might be useful in supernodal arithmetic for sparse matrices.
+        //    template<Scalar::Flag a_flag, Op op, typename alpha_T, typename B_T>
+        //    void Read( const alpha_T alpha, cptr<B_T> B, const Int ldB, cptr<Int> idx  )
+        //    {
+        //        // Reading A = alpha * op(B)
+        //
+        //        if constexpr ( op == Op::Id )
+        //        {
+        //            if constexpr ( a_flag == Scalar::Flag::Plus )
+        //            {
+        //                for( Int i = 0; i < m; ++i )
+        //                {
+        //                    copy_buffer<n>( &B[ldB*idx[i]], &A[i][0] );
+        //                }
+        //            }
+        //        }
+        //        else if constexpr ( op == Op::Conj )
+        //        {
+        //            for( Int i = 0; i < m; ++i )
+        //            {
+        //                for( Int j = 0; j < n; ++j )
+        //                {
+        //                    A[i][j] = ScalarOperator<a_flag,op>( alpha, B[i][j] );
+        //                }
+        //            }
+        //        }
+        //        else
+        //        {
+        //            // TODO: Not sure whether it would be better to swap the two loops here...
+        //            for( Int j = 0; j < n; ++j )
+        //            {
+        //                cptr<B_T> B_j = &B[ldB*idx[j]];
+        //
+        //                for( Int i = 0; i < m; ++i )
+        //                {
+        //                    A[i][j] = ScalarOperator<a_flag,op>( alpha, B_j[i] );
+        //                }
+        //            }
+        //        }
+        //    }
+
+        ///######################################################
+        ///##              Writing to raw buffers              ##
+        ///######################################################
+
+            /// BLAS-like write-modify method _with stride_.
+            template<
+                Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+                Op opA = Op::Id, Op opB = Op::Id,
+                typename alpha_T, typename beta_T, typename B_T
+            >
+            void Write(
+                cref<alpha_T> alpha, cref<beta_T> beta, mptr<B_T> B, const Int ldB
+            ) const
+            {
+                /// Computes `B = alpha * opA(A) + beta * opB(B)`.
+                /// `opB` can only be `Op::Id` or `Op::Conj`.
+                
+                constexpr Op op = ConjugatedQ(opA) ? Op::Conj : Op::Id;
+                
+                if constexpr ( NotTransposedQ(opA) )
+                {
+                    for( Int i = 0; i < m; ++i )
+                    {
+                        combine_buffers<alpha_flag,beta_flag,n,Sequential,op,opB>(
+                            alpha, &A[i][0], beta, &B[ldB*i]
+                        );
+                    }
+                }
+                else if constexpr ( TransposedQ(opA) )
+                {
+                    // TODO: Compare with reverse ordering of loops.
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        mptr<B_T> B_j = &B[ldB * j];
+                        
+                        for( Int i = 0; i < m; ++i )
+                        {
+                            combine_scalars<alpha_flag,beta_flag,op,opB>(
+                                alpha, A[i][j], beta, B_j[i]
+                            );
+                        }
+                    }
+                }
+            }
+
+
+
+            /// BLAS-like write-modify method _without stride_.
+            template<
+                Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+                Op opA = Op::Id, Op opB = Op::Id,
+                typename alpha_T, typename beta_T, typename B_T
+            >
+            void Write(
+                cref<alpha_T> alpha, cref<beta_T> beta, mptr<B_T> B
+            ) const
+            {
+                /// Computes `B = alpha * opA(A) + beta * opB(B)`.
+                /// `opB` can only be `Op::Id` or `Op::Conj`.
+
+                constexpr Op op = ConjugatedQ(opA) ? Op::Conj : Op::Id;
+                
+                if constexpr ( NotTransposedQ(opA) )
+                {
+                    /// This is the only reason we use a version without stride:
+                    /// If the whole matrix is stored contiguously, we can vectorize over
+                    /// row-ends!
+                    combine_buffers<alpha_flag,beta_flag,m*n,Sequential,op,opB>(
+                        alpha, &A[0][0], beta, B
+                    );
+                }
+                else if constexpr ( TransposedQ(opA) )
+                {
+                    /// I think that no real optimizations can be made here.
+                    /// Nonetheless, we let the compiler know that the stride is a
+                    /// compile-time constant. But since the alignment of B is unknown to
+                    /// the compiler, this might be quite useless.
+
+                    // TODO: Compare with reverse ordering of loops.
+                    
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        mptr<B_T> B_j = &B[n * j];
+                        
+                        for( Int i = 0; i < m; ++i )
+                        {
+                            combine_scalars<alpha_flag,beta_flag,op,opB>(
+                                alpha, A[i][j], beta, B_j[i]
+                            );
+                        }
+                    }
+                }
+            }
+
+
+            /// BLAS-like write-modify method _with stride_.
+            template<Op opA = Op::Id, typename B_T>
+            void Write( mptr<B_T> B, const Int ldB ) const
+            {
+                /// Compute `B = opA(A)`.
+
+                Write<Scalar::Flag::Plus,Scalar::Flag::Zero,opA,Op::Id>( B_T(1), B_T(0), B, ldB );
+            }
+
+            /// BLAS-like write-modify method _without stride_.
+            template<Op op = Op::Id, typename B_T>
+            void Write( mptr<B_T> B ) const
+            {
+                /// B = opA(A)
+                Write<Scalar::Flag::Plus,Scalar::Flag::Zero,op,Op::Id>( B_T(1), B_T(0), B );
+            }
+
+        //    /// Row-scattered write-modify method.
+        //    /// Might be useful in supernodal arithmetic for sparse matrices.
+        //    template<
+        //        Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+        //        typename alpha_T, typename beta_T, typename B_T
+        //    >
+        //    void Write( cref<alpha_T> alpha, cref<beta_T> beta, mptr<B_T> B, const Int ldB, cptr<Int> idx ) const
+        //    {
+        //
+        //        // Writing B[idx[i]][j] = alpha * A[i][j] + beta * B[idx[i]][j]
+        //        for( Int i = 0; i < m; ++i )
+        //        {
+        //            combine_buffers<alpha_flag,beta_flag,n>(
+        //                alpha, &A[i][0], beta, &B[ldB*idx[i]]
+        //            );
+        //        }
+        //    }
+
+            /// BLAS-like write-modify method _with stride_.
+            /// Writes only the top left portion.
+            /// It is meant to write to the right and bottom boundaries of a large matrix.
+            template<
+                bool chop_m_Q, bool chop_n_Q,
+                Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+                Op opA = Op::Id, Op opB = Op::Id,
+                typename alpha_T, typename beta_T, typename B_T
+            >
+            void WriteChopped(
+                const Int m_max, const Int n_max,
+                cref<alpha_T> alpha, cref<beta_T> beta, cptr<B_T> B, const Int ldB = n
+            ) const
+            {
+                /// Computes `B = alpha * opA(A) + beta * opB(B)`.
+                /// `opB` can only be `Op::Id` or `Op::Conj`.
+                
+                constexpr Op op = ConjugatedQ(opA) ? Op::Conj : Op::Id;
+                
+                const Int m_c = Min( m, m_max );
+                const Int n_c = Min( n, n_max );
+                
+                if constexpr ( NotTransposedQ(opA) )
+                {
+                    for( Int i = 0; i < COND(chop_m_Q,m_c,m); ++i )
+                    {
+                        combine_buffers<alpha_flag,beta_flag,COND(chop_n_Q,0,n),Sequential,op,opB>(
+                            alpha, &A[i][0], beta, &B[ldB*i], n_c
+                        );
+                    }
+                }
+                else if constexpr ( TransposedQ(opA) )
+                {
+                    // TODO: Compare with reverse ordering of loops.
+                    for( Int j = 0; j < COND(chop_n_Q,n_c,n); ++j )
+                    {
+                        mptr<B_T> B_j = &B[ldB * j];
+                        
+                        for( Int i = 0; i < COND(chop_m_Q,m_c,m); ++i )
+                        {
+                            combine_scalars<alpha_flag,beta_flag,op,opB>(
+                                alpha, A[i][j], beta, B_j[i]
+                            );
+                        }
+                    }
+                }
+            }
+            
+///######################################################
+///##             Arithmetic with scalars              ##
+///######################################################
          
         public:
+            
+            template<class T>
+            force_inline Matrix operator+=( const T lambda_ )
+            {
+                const auto lambda = scalar_cast<Scal>(lambda_);
+                
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] += lambda;
+                    }
+                }
+                
+                return *this;
+            }
 
-            force_inline friend void Plus( const CLASS & x, const CLASS & y, const CLASS & z )
+            template<class T>
+            force_inline Matrix operator-=( const T lambda_ )
+            {
+                const auto lambda = scalar_cast<Scal>(lambda_);
+                
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] -= lambda;
+                    }
+                }
+                
+                return *this;
+            }
+            
+            template<class T>
+            force_inline Matrix operator*=( const T lambda_ )
+            {
+                const auto lambda = scalar_cast<Scal>(lambda_);
+                
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        A[i][j] *= lambda;
+                    }
+                }
+                
+                return *this;
+            }
+
+            template<class T>
+            force_inline Matrix operator/=( const T lambda )
+            {
+                return (*this) *= ( scalar_cast<Scal>(Inv<T>(lambda)) );
+            }
+            
+///######################################################
+///##                   Arithmetic                     ##
+///######################################################
+
+            // TODO: Make this more type flexible.
+            // TODO: Also, where is Minus?
+            force_inline friend void Plus( const Matrix & x, const Matrix & y, const Matrix & z )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -110,10 +606,11 @@ namespace Tensors
                 return z;
             }
             
-            
-            [[nodiscard]] force_inline friend const CLASS operator+( const CLASS & x, const CLASS & y )
+            // TODO: Make this more type flexible.
+            // TODO: Also, where is operator-?
+            [[nodiscard]] force_inline friend const Matrix operator+( const Matrix & x, const Matrix & y )
             {
-                CLASS z;
+                Matrix z;
                 
                 Plus( x, y, z);
                 
@@ -122,11 +619,7 @@ namespace Tensors
             
             template<class T>
             force_inline
-            typename std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator+=( cref<Tiny::Matrix<m,n,T,Int>> B )
+            Matrix & operator+=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -141,11 +634,7 @@ namespace Tensors
             
             template<class T>
             force_inline
-            typename std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator-=( cref<Tiny::Matrix<m,n,T,Int>> B )
+            Matrix & operator-=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -158,13 +647,10 @@ namespace Tensors
                 return *this;
             }
             
+            // TODO: Not sure whether I want * to represent compontenwise multiplication.
             template<class T>
             force_inline
-            typename std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator*=( cref<Tiny::Matrix<m,n,T,Int>> B )
+            Matrix & operator*=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -177,13 +663,10 @@ namespace Tensors
                 return *this;
             }
             
+            // TODO: Not sure whether I want / to represent compontenwise division.
             template<class T>
             force_inline
-            typename std::enable_if_t<
-                SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-                CLASS &
-            >
-            operator/=( cref<Tiny::Matrix<m,n,T,Int>> B )
+            Matrix & operator/=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -213,87 +696,8 @@ namespace Tensors
                 else
                 {
                     fixed_dot_mm_vec<m_,n_,K_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
-                    
-//                    constexpr Int K = K_;
-//                    
-//                    // First pass to overwrite (if desired).
-//                    {
-//                        constexpr Int k = 0;
-//                        
-//                        for( Int i = 0; i < m; ++i )
-//                        {
-//                            if constexpr ( addto == Tensors::AddTo )
-//                            {
-//                                combine_buffers<F_Gen,F_Plus,n>(
-//                                    X[i][k], Y[k], one, Z[i]
-//                                );
-//                            }
-//                            else
-//                            {
-//                                combine_buffers<F_Gen,F_Zero,n>(
-//                                    X[i][k], Y[k], zero, Z[i]
-//                                );
-//                            }
-//                        }
-//                    }
-//        
-//                    // Now add-in the rest.
-//                    for( Int k = 1; k < K; ++k )
-//                    {
-//                        for( Int i = 0; i < m; ++i )
-//                        {
-//                            combine_buffers<F_Gen,F_Plus,n>(
-//                                X[i][k], Y[k], one, Z[i]
-//                            );
-//                        }
-//                    }
                 }
             }
-            
-//            template< AddTo_T addto, int K, typename X_T, typename Y_T >
-//            force_inline
-//            friend
-//            typename std::enable_if_t<
-//                ( SameQ<X_T,Scal> || (ComplexQ && SameQ<X_T,Real>) )
-//                &&
-//                ( SameQ<Y_T,Scal> || (ComplexQ && SameQ<Y_T,Real>) )
-//                ,
-//                void
-//            >
-//            Dot_old(
-//                cref<Tiny::Matrix<m,K,X_T, Int>> X,
-//                cref<Tiny::Matrix<K,n,Y_T, Int>> Y,
-//                mref<Tiny::Matrix<m,n,Scal,Int>> Z
-//            )
-//            {
-//                // First pass to overwrite (if desired).
-//                for( Int i = 0; i < m; ++i )
-//                {
-//                    for( Int j = 0; j < n; ++j )
-//                    {
-//                        if constexpr ( addto == Tensors::AddTo )
-//                        {
-//                            Z[i][j] += X[i][0] * Y[0][j];
-//                        }
-//                        else
-//                        {
-//                            Z[i][j] = X[i][0] * Y[0][j];
-//                        }
-//                    }
-//                }
-//
-//                // Now add-in the rest.
-//                for( Int k = 1; k < K; ++k )
-//                {
-//                    for( Int i = 0; i < m; ++i )
-//                    {
-//                        for( Int j = 0; j < n; ++j )
-//                        {
-//                            Z[i][j] += X[i][k] * Y[k][j];
-//                        }
-//                    }
-//                }
-//            }
             
             template<AddTo_T addto, typename x_T, typename y_T
             >
@@ -320,72 +724,15 @@ namespace Tensors
                 }
             }
             
-//            template<AddTo_T addto, typename x_T, typename y_T >
-//            friend
-//            force_inline
-//            typename std::enable_if_t<
-//                (
-//                    SameQ<Scal,x_T>
-//                    ||
-//                    (Scalar::ComplexQ<x_T> && SameQ<Scal,typename Scalar::Real<x_T>>)
-//                )
-//                &&
-//                (
-//                    SameQ<x_T,y_T>
-//                    ||
-//                    (Scalar::ComplexQ<y_T> && SameQ<Scal,typename Scalar::Real<y_T>>)
-//                )
-//                ,
-//                void
-//            >
-//            Dot_old(
-//                cref<Tiny::Matrix<m,n,Scal,Int>> M,
-//                cref<Tiny::Vector<n,  x_T, Int>> x,
-//                mref<Tiny::Vector<m,  y_T, Int>> y
-//            )
-//            {
-//                for( Int i = 0; i < m; ++i )
-//                {
-//                    y_T y_i (0);
-//                    
-//                    for( Int j = 0; j < n; ++j )
-//                    {
-//                        y_i += M.A[i][j] * x[j];
-//                    }
-//                    
-//                    if constexpr ( addto == Tensors::AddTo )
-//                    {
-//                        y[i] += y_i;
-//                    }
-//                    else
-//                    {
-//                        y[i] = y_i;
-//                    }
-//                }
-//            }
-        
-            
             template<Op op>
             void LowerFromUpper()
             {
-                if constexpr ( op == Op::Conj )
+                for( Int i = 0; i < n; ++i )
                 {
-                    for( Int i = 0; i < n; ++i )
+                    // TODO: Unroll this loop trough templates?
+                    for( Int j = 0; j < i; ++j )
                     {
-                        for( Int j = 0; j < i; ++j )
-                        {
-                            A[i][j] = Conj(A[j][i]);
-                        }
-                    }
-                }
-                else
-                {
-                    for( Int i = 0; i < n; ++i )
-                    {
-                        for( Int j = 0; j < i; ++j )
-                        {
-                            A[i][j] = A[j][i];
-                        }
+                        A[i][j] = ScalarOperator<Scalar::Flag::Plus,op>(A[j][i]);
                     }
                 }
             }
@@ -405,6 +752,8 @@ namespace Tensors
                     Matrix<n,n,Scal,Int>
                 > B;
                 
+                
+                // TODO: Not sure whether this is faster than using Dot + ConjugateTranspose.
                 {
                     constexpr Int k = 0;
                     
@@ -412,6 +761,7 @@ namespace Tensors
                     {
                         const Scal Conj_A_ki = Conj(A[k][i]);
                         
+                        // TODO: Unroll this loop trough templates?
                         for( Int j = i; j < n; ++j )
                         {
                             B[i][j] = Conj_A_ki * A[k][j];
@@ -426,6 +776,7 @@ namespace Tensors
                     {
                         const Scal Conj_A_ki = Conj(A[k][i]);
                         
+                        // TODO: Unroll this loop trough templates?
                         for( Int j = i; j < n; ++j )
                         {
                             B[i][j] += Conj_A_ki * A[k][j];
@@ -450,11 +801,12 @@ namespace Tensors
                     SelfAdjointMatrix<m,Scal,Int>,
                     Matrix<m,m,Scal,Int>
                 > B;
-
+                
                 for( Int i = 0; i < m; ++i )
                 {
                     B[i][i] = dot_buffers<n,Sequential,Op::Id,Op::Conj>( &A[i][0], &A[i][0] );
                     
+                    // TODO: Unroll this loop trough templates?
                     for( Int j = i + 1; j < m; ++j )
                     {
                         B[i][j] = dot_buffers<n,Sequential,Op::Id,Op::Conj>( &A[i][0], &A[j][0] );
@@ -469,7 +821,7 @@ namespace Tensors
         public:
             
             
-            force_inline void Conjugate( CLASS & B ) const
+            force_inline void Conjugate( Matrix & B ) const
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -480,9 +832,9 @@ namespace Tensors
                 }
             }
 
-            [[nodiscard]] force_inline CLASS Conjugate() const
+            [[nodiscard]] force_inline Matrix Conjugate() const
             {
-                CLASS B;
+                Matrix B;
                 
                 Conjugate(B);
                 
@@ -500,6 +852,9 @@ namespace Tensors
                         B[j][i] = A[i][j];
                     }
                 }
+                
+                // TODO: Test whether the following is as fast; if yes, then simply.
+//                Write<Op::Trans,Op::Id>( &B[0][0] );
             }
             
             [[nodiscard]] force_inline Matrix<n,m,Scal,Int> Transpose() const
@@ -520,6 +875,10 @@ namespace Tensors
                         B[j][i] = Conj(A[i][j]);
                     }
                 }
+                
+                // TODO: Test whether the following is as fast; if yes, then simply.
+                
+//                Write<Op::ConjTrans,Op::Id>( &B[0][0] );
             }
 
             [[nodiscard]] force_inline Matrix<n,m,Scal,Int> ConjugateTranspose() const
@@ -535,7 +894,7 @@ namespace Tensors
             
             [[nodiscard]] force_inline Real MaxNorm() const
             {
-                return norm_max<m*n>( *A[0][0] );
+                return norm_max<m*n>( &A[0][0] );
             }
             
             [[nodiscard]] force_inline Real FrobeniusNorm() const
@@ -551,6 +910,9 @@ namespace Tensors
                 }
                 
                 return Sqrt(AA);
+
+                // TODO: Test whether the following is as fast; if yes, then simply.
+//                norm_2<m*n>(&A[0][0]);
             }
 
             
@@ -582,6 +944,13 @@ namespace Tensors
                 return sout.str();
             }
         
+            
+            inline friend std::ostream & operator<<( std::ostream & s, cref<Matrix> M )
+            {
+                s << ToString(M);
+                return s;
+            }
+            
         public:
             
             void Threshold( const Real threshold )
@@ -874,13 +1243,7 @@ namespace Tensors
             }
             
         };
-        
-        
-    #undef CLASS
-        
-        
-        // TODO: Make this more type flexible
-        
+                
         template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
         [[nodiscard]] force_inline Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
         Dot(

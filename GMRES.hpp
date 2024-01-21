@@ -381,7 +381,7 @@ namespace Tensors
                     {
                         const Real r_inv = Inv(r);
                         
-                        cos =  Abs(xi) * r_inv;
+                        cos = Abs(xi) * r_inv;
                         sin = (xi / Abs(xi)) * Conj(eta) * r_inv;
                     }
                     

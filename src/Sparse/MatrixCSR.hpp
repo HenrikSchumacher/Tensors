@@ -984,7 +984,7 @@ namespace Tensors
                 {
                     RequireJobPtr();
                     
-                    Tensor2<LInt,Int> counters ( thread_count, m, static_cast<Int>(0) );
+                    Tensor2<LInt,Int> counters ( thread_count, m );
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort
@@ -1004,6 +1004,8 @@ namespace Tensors
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
+                                Int c_i = 0;
+                                
                                 const LInt jj_begin = A_outer[i  ];
                                 const LInt jj_end   = A_outer[i+1];
                                 
@@ -1011,8 +1013,10 @@ namespace Tensors
                                 {
                                     const Int j = A_inner[jj];
                                     
-                                    c[i] += (B_outer[j+1] - B_outer[j]);
+                                    c_i += (B_outer[j+1] - B_outer[j]);
                                 }
+                                
+                                c[i] = c_i;
                             }
                         },
                         thread_count

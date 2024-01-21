@@ -15,7 +15,8 @@
 //#include <lapack.h>
 
 #include "Tensors.hpp"
-#include "MyBLAS.hpp"
+#include "BLAS_Wrappers.hpp"
+#include "LAPACK_Wrappers.hpp"
 #include "Dense.hpp"
 
 

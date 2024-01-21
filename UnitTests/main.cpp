@@ -209,38 +209,20 @@ void Test_combine_buffers( Size_T n )
 
 int main(int argc, const char * argv[])
 {
-    const Size_t n = 200000000;
+    const Size_T n = 200000000;
     
     Test_combine_buffers<Real32    ,Real32    ,Real32    ,Real32    >(n);
     Test_combine_buffers<Real32    ,Real64    ,Real32    ,Real32    >(n);
-    Test_combine_buffers<Real32    ,Real128   ,Real32    ,Real32    >(n);
     Test_combine_buffers<Real64    ,Real32    ,Real64    ,Real64    >(n);
     Test_combine_buffers<Real64    ,Real64    ,Real64    ,Real64    >(n);
-//    Test_combine_buffers<Real64    ,Real128   ,Real64    ,Real64    >(n);
-//    Test_combine_buffers<Real128   ,Real32    ,Real128   ,Real128   >(n);
-//    Test_combine_buffers<Real128   ,Real64    ,Real128   ,Real128   >(n);
-//    Test_combine_buffers<Real128   ,Real128   ,Real128   ,Real128   >(n);
     Test_combine_buffers<Complex32 ,Real32    ,Complex32 ,Complex32 >(n);
     Test_combine_buffers<Complex32 ,Real64    ,Complex32 ,Complex32 >(n);
-//    Test_combine_buffers<Complex32 ,Real128   ,Complex32 ,Complex32 >(n);
     Test_combine_buffers<Complex32 ,Complex32 ,Complex32 ,Complex32 >(n);
     Test_combine_buffers<Complex32 ,Complex64 ,Complex32 ,Complex32 >(n);
-//    Test_combine_buffers<Complex32 ,Complex128,Complex32 ,Complex32 >(n);
     Test_combine_buffers<Complex64 ,Real32    ,Complex64 ,Complex64 >(n);
     Test_combine_buffers<Complex64 ,Real64    ,Complex64 ,Complex64 >(n);
-//    Test_combine_buffers<Complex64 ,Real128   ,Complex64 ,Complex64 >(n);
     Test_combine_buffers<Complex64 ,Complex32 ,Complex64 ,Complex64 >(n);
     Test_combine_buffers<Complex64 ,Complex64 ,Complex64 ,Complex64 >(n);
-//    Test_combine_buffers<Complex64 ,Complex128,Complex64 ,Complex64 >(n);
-//    Test_combine_buffers<Complex128,Real32    ,Complex128,Complex128>(n);
-//    Test_combine_buffers<Complex128,Real64    ,Complex128,Complex128>(n);
-//    Test_combine_buffers<Complex128,Real128   ,Complex128,Complex128>(n);
-//    Test_combine_buffers<Complex128,Complex32 ,Complex128,Complex128>(n);
-//    Test_combine_buffers<Complex128,Complex64 ,Complex128,Complex128>(n);
-//    Test_combine_buffers<Complex128,Complex128,Complex128,Complex128>(n);
-
-
-
 
     valprint("Total error count", error_count);
     valprint("Total ineff count", ineff_count);

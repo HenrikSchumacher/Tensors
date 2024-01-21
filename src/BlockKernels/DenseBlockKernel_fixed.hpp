@@ -23,14 +23,18 @@
 
 namespace Tensors
 {
-    // I picked the default values from benchmarks for
-    // ROWS_ = 4, COLS_ = 4, NRHS_ = 3, alpha_flag = 1, beta_flag = 0, and doubles for all floating point types.
+    /// I picked the default values from benchmarks for
+    /// ROWS_ = 4, COLS_ = 4, NRHS_ = 3, alpha_flag = 1, beta_flag = 0, and doubles for all floating point types.
+    
+    /// Note: We use the template parameters a_intRM and a_copy only for backwards 
+    /// compatibility! The implementation uses internally row-major and copies the
+    /// a-block in any case.
     template<
         int ROWS_, int COLS_, int NRHS_,
         typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-        bool a_RM, bool a_intRM,   bool a_copy,
+        bool a_RM, bool a_intRM, bool a_copy,
         bool x_RM, bool x_prefetch,
         bool y_RM
     >
@@ -42,8 +46,8 @@ namespace Tensors
         using Scal_out = Scal_out_;
         using Scal_in  = Scal_in_;
 
-        using Int        = Int_;
-        using LInt       = LInt_;
+        using Int      = Int_;
+        using LInt     = LInt_;
         
         using BASE::ROWS;
         using BASE::COLS;
@@ -53,6 +57,8 @@ namespace Tensors
         using BASE::COLS_SIZE;
         
         static constexpr LInt BLOCK_NNZ = ROWS * COLS;
+        
+        static constexpr Op opA = a_RM ? Op::Id : Op::Trans;
         
     protected:
         
@@ -127,22 +133,25 @@ namespace Tensors
         
         force_inline void ReadA( const LInt k_global )
         {
-            a_from = &A_const[BLOCK_NNZ * k_global];
             
-            // Read matrix.
-            if constexpr ( a_copy )
-            {
-                
-                
-                if constexpr ( a_RM == a_intRM )
-                {
-                    a.template Read<Op::Id>( a_from );
-                }
-                else
-                {
-                    a.template Read<Op::Trans>( a_from );
-                }
-            }
+            a.Read( &A_const[BLOCK_NNZ * k_global] );
+//
+//            a_from = &A_const[BLOCK_NNZ * k_global];
+//            
+//            // Read matrix.
+//            if constexpr ( a_copy )
+//            {
+//                
+//                
+//                if constexpr ( a_RM == a_intRM )
+//                {
+//                    a.template Read<Op::Id>( a_from );
+//                }
+//                else
+//                {
+//                    a.template Read<Op::Trans>( a_from );
+//                }
+//            }
         }
         
         force_inline Scal get_a( const Int i, const Int j ) const
@@ -175,33 +184,12 @@ namespace Tensors
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );
+            
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.
             // Probably the copy has to be done anyways and this way the compiler has better guarantees.
-            
             ReadA( k_global );
-
-            if constexpr ( a_copy )
-            {
-                Dot<AddTo>(a,x,y);
-            }
-            else
-            {
-                for( Int j = 0; j < COLS; ++j )
-                {
-                    for( Int i = 0; i < ROWS; ++i )
-                    {
-//                        combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Plus,NRHS>(
-//                            get_a(i,j), &x[j][0], Scalar::One<Scal>, &y[i][0]
-//                        );
-                        
-                        for( Int k = 0; k < NRHS; ++k )
-                        {
-                            y[i][k] += get_a(i,j) * x[j][k];
-                        }
-                    }
-                }
-            }
-
+            
+            Dot<AddTo>(a,x,y);
         }
         
     public:

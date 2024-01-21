@@ -183,10 +183,9 @@ namespace Tensors
                         const Int i_begin = job_ptr[thread  ];
                         const Int i_end   = job_ptr[thread+1];
                         
-                        
                         const LInt last_k = rp[i_end];
                         
-                        const LInt look_ahead = 1;
+                        constexpr LInt look_ahead = 1;
                         
                         for( Int i = i_begin; i < i_end; ++i )
                         {
@@ -198,7 +197,7 @@ namespace Tensors
                             {
                                 // Clear the local vector chunk of the kernel.
                                 ker.CleanseY();
-                                
+
                                 for( LInt k = k_begin; k < k_end; ++k )
                                 {
                                     const Int j = ci[k];
@@ -209,12 +208,11 @@ namespace Tensors
                                     }
                                     
                                     // Let the kernel apply to the k-th block to the j-th chunk of the input.
-                                    // The result is stored in the kernel's local vector chunk X.
+                                    // The result is stored in the kernel's local matrix chunk of X.
                                     ker.ApplyBlock(k,j);
                                 }
-                                
-                                // Incorporate the kernel's local vector chunk into the i-th chunk if the output Y.
-                                
+
+                                // Incorporate the kernel's local matrix chunk into the i-th chunk in the output Y.
                                 ker.WriteY(i);
                             }
                             else

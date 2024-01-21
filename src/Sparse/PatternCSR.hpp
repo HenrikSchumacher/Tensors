@@ -800,7 +800,7 @@ namespace Tensors
                                 const Int i_end   = job_ptr[thread+1];
                                 
                                 // To where we write.
-                                LInt jj_new        = outer__[i_begin];
+                                LInt jj_new       = outer__[i_begin];
                                 
                                 // Memoize the next entry in outer because outer will be overwritten
                                 LInt next_jj_begin = outer__[i_begin];
@@ -813,19 +813,20 @@ namespace Tensors
                                     // Memoize the next entry in outer because outer will be overwritten
                                     next_jj_begin = jj_end;
                                     
-                                    LInt row_nonzero_counter = static_cast<Int>(0);
+                                    LInt row_nonzero_counter = 0;
                                     
                                     // From where we read.
                                     LInt jj = jj_begin;
                                     
-                                    while( jj< jj_end )
+                                    while( jj < jj_end )
                                     {
                                         Int j = inner__[jj];
                                         
                                         {
+                                            // TODO: Can we remove the overwrite?
                                             if( jj > jj_new )
                                             {
-                                                inner__[jj] = static_cast<Int>(0);
+                                                inner__[jj] = 0;
                                             }
                                             
                                             ++jj;
@@ -833,10 +834,12 @@ namespace Tensors
                                         
                                         while( (jj < jj_end) && (j == inner__[jj]) )
                                         {
+                                            // TODO: Can we remove the overwrite?
                                             if( jj > jj_new )
                                             {
-                                                inner__[jj] = static_cast<Int>(0);
+                                                inner__[jj] = 0;
                                             }
+                                            
                                             ++jj;
                                         }
                                         
@@ -906,7 +909,7 @@ namespace Tensors
                     
                     ptic("Create counters for counting sort");
                     
-                    Tensor2<LInt,Int> counters ( thread_count, m, static_cast<Int>(0) );
+                    Tensor2<LInt,Int> counters ( thread_count, m );
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort
@@ -926,6 +929,8 @@ namespace Tensors
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
+                                LInt c_i = 0;
+                                
                                 const LInt jj_begin = A_outer[i  ];
                                 const LInt jj_end   = A_outer[i+1];
                                 
@@ -933,8 +938,10 @@ namespace Tensors
                                 {
                                     const Int j = A_inner[jj];
                                     
-                                    c[i] += (B_outer[j+1] - B_outer[j]);
+                                    c_i += (B_outer[j+1] - B_outer[j]);
                                 }
+                                
+                                c[i] = c_i;
                             }
                         },
                         thread_count

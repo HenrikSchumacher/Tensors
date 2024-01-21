@@ -4,10 +4,46 @@
     
 public:
 
+    CLASS() = default;
+
+    ~CLASS() = default;
+
+    CLASS(std::nullptr_t) = delete;
+
+    // Copy constructor
+    explicit CLASS( const CLASS & other )
+    {
+        Read( &other.A[0][0] );
+    }
+
+    explicit CLASS( const Scal * a )
+    {
+        Read(a);
+    }
+
+    // Copy assignment operator
+    CLASS & operator=( CLASS other )
+    {
+        // copy-and-swap idiom
+        // see https://stackoverflow.com/a/3279550/8248900 for details
+        swap(*this, other);
+
+        return *this;
+    }
+
+    /* Move constructor */
+    CLASS( CLASS && other ) noexcept
+    {
+        swap(*this, other);
+    }
+
     explicit CLASS( cref<Scal> init )
     {
         Fill(init);
     }
+
+
+
 
     force_inline void SetZero()
     {
@@ -101,7 +137,7 @@ protected:
         
         if constexpr ( k+1 < n )
         {
-            setZero<k+1>();
+            zerofyUpper<k+1>();
         }
     }
 
@@ -215,12 +251,7 @@ public:
     }
     
     template<class T>
-    force_inline
-    std::enable_if_t<
-        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-        CLASS &
-    >
-    operator+=( cref<CLASS<n,T,Int>> B )
+    force_inline CLASS operator+=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -233,12 +264,7 @@ public:
     }
     
     template<class T>
-    force_inline
-    std::enable_if_t<
-        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-        CLASS &
-    >
-    operator-=( cref<CLASS<n,T,Int>> B )
+    force_inline CLASS operator-=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -251,12 +277,7 @@ public:
     }
     
     template<class T>
-    force_inline
-    std::enable_if_t<
-        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-        CLASS &
-    >
-    operator*=( cref<CLASS<n,T,Int>> B )
+    force_inline CLASS operator*=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -269,12 +290,7 @@ public:
     }
     
     template<class T>
-    force_inline
-    std::enable_if_t<
-        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-        CLASS &
-    >
-    operator/=( cref<CLASS<n,T,Int>> B )
+    force_inline CLASS operator/=( cref<CLASS<n,T,Int>> B )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -288,12 +304,7 @@ public:
     
     
     template<class T>
-    force_inline
-    std::enable_if_t<
-        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-        CLASS &
-    >
-    operator+=( cref<T> lambda )
+    force_inline CLASS operator+=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -307,12 +318,7 @@ public:
     }
 
     template<class T>
-    force_inline
-    std::enable_if_t<
-        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-        CLASS &
-    >
-    operator-=( cref<T> lambda )
+    force_inline CLASS operator-=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -326,12 +332,7 @@ public:
     }
     
     template<class T>
-    force_inline
-    std::enable_if_t<
-        SameQ<T,Scal> || (Scalar::ComplexQ<Scal> && SameQ<T,Real>),
-        CLASS &
-    >
-    operator*=( cref<T> lambda )
+    force_inline CLASS operator*=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -372,7 +373,5 @@ public:
             }
             
             return Sqrt(max);
-        }
-
-        
+        }   
     }

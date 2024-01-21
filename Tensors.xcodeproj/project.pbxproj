@@ -69,6 +69,8 @@
 /* Begin PBXFileReference section */
 		AF07F1FD2957022B00A82341 /* Dense.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Dense.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		AF07F1FE2957025400A82341 /* Sparse.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Sparse.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		AF13DAEC2B5D94B00040B903 /* BLAS_Wrappers.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BLAS_Wrappers.hpp; sourceTree = "<group>"; };
+		AF13DAED2B5D94F80040B903 /* LAPACK_Wrappers.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = LAPACK_Wrappers.hpp; sourceTree = "<group>"; };
 		AF1F64DD29337FEF00146E64 /* Tensors.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Tensors.hpp; sourceTree = "<group>"; };
 		AF1F64DE29337FEF00146E64 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AF1F64DF29337FEF00146E64 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
@@ -81,7 +83,6 @@
 		AF8BDDDF295A1FBD001D8CCF /* SparseCholesky */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SparseCholesky; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF8BDDE1295A1FBE001D8CCF /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Tiny.hpp; sourceTree = "<group>"; };
-		AF8BDDE8295CEC08001D8CCF /* MyBLAS.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MyBLAS.hpp; sourceTree = "<group>"; };
 		AF8EE2602A80038100BF6799 /* submodules */ = {isa = PBXFileReference; lastKnownFileType = folder; path = submodules; sourceTree = "<group>"; };
 		AF99BC1629F4432F007CE9D7 /* GMRES.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = GMRES.hpp; sourceTree = "<group>"; };
 		AF99BC1729F7BF3A007CE9D7 /* ConjugateGradient.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = ConjugateGradient.hpp; sourceTree = "<group>"; };
@@ -184,9 +185,10 @@
 				AF1F64DF29337FEF00146E64 /* src */,
 				AF1F64DD29337FEF00146E64 /* Tensors.hpp */,
 				AF07F1FD2957022B00A82341 /* Dense.hpp */,
+				AF13DAEC2B5D94B00040B903 /* BLAS_Wrappers.hpp */,
+				AF13DAED2B5D94F80040B903 /* LAPACK_Wrappers.hpp */,
 				AF99BC1629F4432F007CE9D7 /* GMRES.hpp */,
 				AF99BC1729F7BF3A007CE9D7 /* ConjugateGradient.hpp */,
-				AF8BDDE8295CEC08001D8CCF /* MyBLAS.hpp */,
 				AF07F1FE2957025400A82341 /* Sparse.hpp */,
 				AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */,
 				AFD9EA0A29337F7E00FC8A85 /* QRAlgorithm */,
@@ -412,17 +414,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				OTHER_LDFLAGS = (
-					"-lm",
-					"-ldl",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -431,17 +427,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				OTHER_LDFLAGS = (
-					"-lm",
-					"-ldl",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -449,11 +439,9 @@
 		AF8BDDE3295A1FBE001D8CCF /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lm",
@@ -468,11 +456,9 @@
 		AF8BDDE4295A1FBE001D8CCF /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lm",
@@ -487,14 +473,12 @@
 		AF9A928A298E5BF600242813 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = UnitTests/UnitTests.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -505,14 +489,12 @@
 		AF9A928B298E5BF600242813 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CODE_SIGN_ENTITLEMENTS = UnitTests/UnitTests.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -526,7 +508,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -584,7 +566,7 @@
 					/opt/homebrew/Cellar/lapack/3.12.0/lib,
 					/opt/homebrew/Cellar/openblas/0.3.25/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -599,12 +581,6 @@
 				OTHER_LDFLAGS = (
 					"-lm",
 					"-ldl",
-					"-lmetis",
-					"-lcholmod",
-					"-lamd",
-					"-lcamd",
-					"-lcolamd",
-					"-lccolamd",
 				);
 				SDKROOT = macosx;
 				SYSTEM_HEADER_SEARCH_PATHS = (
@@ -621,7 +597,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -674,7 +650,7 @@
 					/opt/homebrew/Cellar/lapack/3.12.0/lib,
 					/opt/homebrew/Cellar/openblas/0.3.25/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -688,12 +664,6 @@
 				OTHER_LDFLAGS = (
 					"-lm",
 					"-ldl",
-					"-lmetis",
-					"-lcholmod",
-					"-lamd",
-					"-lcamd",
-					"-lcolamd",
-					"-lccolamd",
 				);
 				SDKROOT = macosx;
 				SYSTEM_HEADER_SEARCH_PATHS = (
@@ -713,15 +683,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-ffast-math",
-					"-fno-math-errno",
-					"-flto",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -735,15 +697,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				GCC_ENABLE_CPP_EXCEPTIONS = NO;
 				GCC_WARN_ABOUT_DEPRECATED_FUNCTIONS = NO;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
-				OTHER_CPLUSPLUSFLAGS = (
-					"$(OTHER_CFLAGS)",
-					"-ffast-math",
-					"-fno-math-errno",
-					"-flto",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -751,12 +705,10 @@
 		AFFAC629298ECE5900A2CF4B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CODE_SIGN_ENTITLEMENTS = Unit_Test_SpMM/Unit_Test_SpMM.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -764,12 +716,10 @@
 		AFFAC62A298ECE5900A2CF4B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CODE_SIGN_ENTITLEMENTS = Unit_Test_SpMM/Unit_Test_SpMM.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};

@@ -81,11 +81,6 @@ namespace Tensors
                 iperm_ptr = perm.GetInversePermutation().data();
             }
             
-//            dump( rp_ptr );
-//            dump( ci_ptr );
-//            dump( perm_ptr );
-//            dump( iperm_ptr );
-            
             
             ptic("METIS_NodeND");
             METIS_NodeND(&n, rp_ptr, ci_ptr, nullptr, &opts[0], perm_ptr, iperm_ptr );

@@ -10,7 +10,11 @@ namespace Tensors
         template< int n_, typename Scal_, typename Int_>
         class CLASS
         {
-            // Uses only upper triangle.
+            /// This class uses only upper triangle.
+            
+        public:
+            
+            using Class_T = SelfAdjointMatrix;
             
 #include "Tiny_Details.hpp"
 
@@ -24,14 +28,12 @@ namespace Tensors
             
             std::array<std::array<Scal,n>,n> A;
 
-#include "Tiny_Details_Matrix.hpp"
-#include "Tiny_Details_UpperTriangular.hpp"
+#include "Tiny_Matrix_Common.hpp"
+#include "Tiny_UpperTriangular_Common.hpp"
             
-
-            
-//######################################################
-//##                  Arithmetic                      ##
-//######################################################
+///######################################################
+///##                  Arithmetic                      ##
+///######################################################
             
         public:
 
@@ -797,9 +799,24 @@ namespace Tensors
                 return n;
             }
             
+            static constexpr Int Dimension()
+            {
+                return n;
+            }
+            
+            static constexpr Int RowCount()
+            {
+                return n;
+            }
+            
+            static constexpr Int ColCount()
+            {
+                return n;
+            }
+            
             static std::string ClassName()
             {
-                return "Tiny::"+TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::") + TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };

@@ -14,8 +14,8 @@
 //  #include <lapack.h>
 //
 
-#include "../BLAS.hpp"
-#include "../LAPACK.hpp"
+#include "../../BLAS_Wrappers.hpp"
+#include "../../LAPACK_Wrappers.hpp"
 
 #include "CholeskyDecomposition/Factorizer.hpp"
 #include "CholeskyDecomposition/UpperSolver.hpp"

@@ -18,3 +18,8 @@ public:
     static constexpr Real eps_squared = eps * eps;
     static constexpr Real eps_sqrt    = cSqrt(eps);
     static constexpr Real infty       = Scalar::Infty<Scal>;
+
+    static constexpr Scalar::Flag F_Plus    = Scalar::Flag::Plus;
+    static constexpr Scalar::Flag F_Minus   = Scalar::Flag::Minus;
+    static constexpr Scalar::Flag F_Zero    = Scalar::Flag::Zero;
+    static constexpr Scalar::Flag F_Generic = Scalar::Flag::Generic;

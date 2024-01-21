@@ -8,13 +8,17 @@ namespace Tensors
 #define CLASS UpperTriangularMatrix
         
         template< int n_, typename Scal_, typename Int_>
-        class CLASS
+        class UpperTriangularMatrix
         {
             // Allocates a square array, but accesses only upper triangle.
             
         public:
-
+            
+            using Class_T = UpperTriangularMatrix;
+            
 #include "Tiny_Details.hpp"
+            
+        public:
             
             static constexpr Int n = n_;
             
@@ -25,13 +29,12 @@ namespace Tensors
             std::array<std::array<Scal,n>,n> A;
 
 
-#include "Tiny_Details_Matrix.hpp"
-#include "Tiny_Details_UpperTriangular.hpp"
-            
+#include "Tiny_Matrix_Common.hpp"
+#include "Tiny_UpperTriangular_Common.hpp"
 
-//######################################################
-//##                  Arithmetic                      ##
-//######################################################
+///######################################################
+///##                  Arithmetic                      ##
+///######################################################
             
         public:
             
@@ -255,7 +258,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::") + TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };

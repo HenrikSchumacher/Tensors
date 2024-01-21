@@ -59,7 +59,7 @@ namespace Tensors
     }
 }
 
-#include "LAPACK/potrf.hpp"
+#include "src/LAPACK/potrf.hpp"
 
-#include "LAPACK/SelfAdjointEigensolver.hpp"
+#include "src/LAPACK/SelfAdjointEigensolver.hpp"
 

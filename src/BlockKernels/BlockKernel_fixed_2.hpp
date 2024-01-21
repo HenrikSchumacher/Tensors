@@ -28,8 +28,6 @@ namespace Tensors
         using Int      = Int_;
         using LInt     = LInt_;
         
-        static constexpr bool fixed = true;
-        
         static constexpr Int MAX_RHS_COUNT = NRHS_;
         static constexpr Int NRHS = NRHS_;
         static constexpr Int ROWS = ROWS_;
@@ -40,6 +38,10 @@ namespace Tensors
         static constexpr Scalar::Flag Zero    = Scalar::Flag::Zero;
         static constexpr Scalar::Flag Plus    = Scalar::Flag::Plus;
         static constexpr Scalar::Flag Generic = Scalar::Flag::Generic;
+        
+        static constexpr Op opX = x_RM ? Op::Id : Op::Trans;
+        static constexpr Op opY = y_RM ? Op::Id : Op::Trans;
+
         
     protected:
         
@@ -129,82 +131,24 @@ namespace Tensors
             return RhsCount();
         }
         
-//        LInt NonzeroCount() const = 0;
-        
-//        void TransposeBlock( const LInt from, const LInt to ) const = 0;
-        
-        
-        
         force_inline Int ColsSize() const
         {
-            if constexpr ( fixed )
-            {
-                return COLS_SIZE;
-            }
-            else
-            {
-                return cols_size;
-            }
+            return COLS_SIZE;
         }
     
         force_inline Int RowsSize() const
         {
-            if constexpr ( fixed )
-            {
-                return ROWS_SIZE;
-            }
-            else
-            {
-                return rows_size;
-            }
+            return ROWS_SIZE;
         }
 
         force_inline Int RhsCount() const
         {
-            if constexpr ( fixed )
-            {
-                return NRHS;
-            }
-            else
-            {
-                return rhs_count;
-            }
+            return NRHS;
         }
         
         force_inline void ReadX( const Int j_global ) const
         {
-            if constexpr ( x_RM )
-            {
-                x.template Read<Op::Id>( &X[COLS_SIZE * j_global] );
-            }
-            else
-            {
-                x.template Read<Op::Trans>( &X[COLS_SIZE * j_global] );
-            }
-            
-//            cptr<Scal_in> x_from = &X[COLS_SIZE * j_global];
-//
-//            if constexpr ( x_RM )
-//            {
-//                for( Int j = 0; j < COLS; ++j )
-//                {
-//                    for( Int k = 0; k < NRHS; ++k )
-//                    {
-//                        x[j][k] = static_cast<x_T>( x_from[NRHS*j+k] );
-//                    }
-//                }
-//            }
-//            else
-//            {
-//                // Transpose.
-//                for( Int k = 0; k < NRHS; ++k )
-//                {
-//                    for( Int j = 0; j < COLS; ++j )
-//                    {
-//                        x[j][k] = static_cast<x_T>( x_from[COLS*k+j] );
-//                    }
-//                }
-//            }
+            x.template Read<opX>( &X[COLS_SIZE * j_global] );
         }
         
         force_inline void Prefetch( const LInt k_global, const Int j_next ) const
@@ -220,40 +164,24 @@ namespace Tensors
         
         force_inline void CleanseY() const
         {
-            // Clear the local vector chunk of the kernel.
+            // Clear the local m x nrhs chunk of y.
             y.SetZero();
         }
         
-    private:
-        
-
-        
-    public:
-        
         force_inline void WriteY( const Int i_global ) const
-        {            
-            combine_buffers<alpha_flag,beta_flag,ROWS_SIZE>(
-                alpha, y.data(), beta, &Y[ROWS_SIZE * i_global]
+        {
+            // Clear the local m x nrhs chunk y to destination in Y.
+            y.template Write<alpha_flag,beta_flag,opY,Op::Id>(
+                alpha, beta, &Y[ ROWS_SIZE * i_global ]
             );
         }
         
         force_inline void WriteYZero( const Int i_global ) const
         {
-            // CAUTION! We cannot use i_global here because BeginRow() has not been in an empty row!
-            mptr<Scal_out> y_to = &Y[ ROWS_SIZE * i_global ];
-            
-            if constexpr ( beta_flag == Zero )
-            {
-                zerofy_buffer<ROWS_SIZE>( y_to );
-            }
-            else if constexpr ( beta_flag == Plus )
-            {
-                // do nothing;
-            }
-            else // beta_flag == Generic or beta_flag == Minus
-            {
-                scale_buffer<ROWS_SIZE>( beta, y_to );
-            }
+            // We don't have to transpose, thus we use Op::Id instead of opY.
+            y.template Write<Zero,beta_flag,Op::Id,Op::Id>(
+                Scal(0), beta, &Y[ ROWS_SIZE * i_global ]
+            );
         }
 
         
