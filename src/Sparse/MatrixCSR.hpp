@@ -984,7 +984,7 @@ namespace Tensors
                 {
                     RequireJobPtr();
                     
-                    Tensor2<LInt,Int> counters ( thread_count, m );
+                    Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort

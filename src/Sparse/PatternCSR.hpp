@@ -909,7 +909,7 @@ namespace Tensors
                     
                     ptic("Create counters for counting sort");
                     
-                    Tensor2<LInt,Int> counters ( thread_count, m );
+                    Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort
@@ -951,7 +951,7 @@ namespace Tensors
                     
                     AccumulateAssemblyCounters_Parallel<LInt,Int>(counters);
                     
-                    const LInt nnz = counters.data(thread_count-1)[m-1];
+                    const LInt nnz = counters[thread_count-1][m-1];
                     
                     PatternCSR C ( m, B.ColCount(), nnz, thread_count );
                     
@@ -1032,7 +1032,8 @@ namespace Tensors
                     SparseBLAS<T_out,Int,LInt> sblas ( thread_count );
                     
                     sblas.template Multiply_DenseMatrix<NRHS>(
-                        outer.data(),inner.data(),nullptr,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,JobPtr()
+                        outer.data(), inner.data(), nullptr,
+                        m, n, alpha, X, ldX, beta, Y, ldY, nrhs, JobPtr()
                     );
                 }
                 else
@@ -1055,7 +1056,8 @@ namespace Tensors
                     auto sblas = SparseBLAS<T_ext,Int,LInt>( thread_count );
                     
                     sblas.template Multiply_DenseMatrix<NRHS>(
-                        outer.data(),inner.data(),values,m,n,alpha,X,ldX,beta,Y,ldY,nrhs,JobPtr()
+                        outer.data(), inner.data(), values,
+                        m, n, alpha, X, ldX, beta, Y, ldY, nrhs, JobPtr()
                     );
                 }
                 else
