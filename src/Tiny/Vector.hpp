@@ -305,8 +305,6 @@ namespace Tensors
                 return *this;
             }
             
-            
-            
             template<class T>
             force_inline mref<Vector> operator+=( cref<T> s )
             {
@@ -575,12 +573,10 @@ namespace Tensors
         
          
         
-        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int
-        >
+        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
         [[nodiscard]] force_inline const 
-        Vector<n,decltype(x_T(0)+y_T(0)),decltype(x_Int(0)+y_Int(0))> operator+(
-            cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
-        )
+        Vector<n,decltype(x_T(0)+y_T(0)),decltype(x_Int(0)+y_Int(0))> 
+        operator+( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
             // Returns z = x + y.
             
@@ -592,12 +588,10 @@ namespace Tensors
             );
         }
         
-        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int
-        >
+        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
         [[nodiscard]] force_inline const
-        Vector<n,decltype(x_T(0)+y_T(0)),decltype(x_Int(0)+y_Int(0))> operator-(
-            cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
-        )
+        Vector<n,decltype(x_T(0)+y_T(0)),decltype(x_Int(0)+y_Int(0))> 
+        operator-( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
             // Returns z = x + y.
             
@@ -609,16 +603,36 @@ namespace Tensors
             );
         }
         
+        template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
+        [[nodiscard]] force_inline const
+        Vector<n,decltype(x_T(1)*y_T(1)),decltype(x_Int(0)+y_Int(0))>
+        operator*( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
+        {
+            // Returns z = x + y.
+            
+            using T = decltype(x_T  (1) * y_T  (1));
+            using I = decltype(x_Int(0) + y_Int(0));
+            
+            Vector<n,T,I> z;
+            
+            for( I i = 0; i < n; ++i )
+            {
+                z[i] = x[i] * y[i];
+            }
+            
+            return z;
+        }
         
         
 
         template<int n, typename a_T, typename x_T, typename Int>
         [[nodiscard]] force_inline const 
-        Vector<n,decltype( x_T(1) * a_T(1) ),Int> operator*( 
-            cref<a_T> a, cref<Vector<n,x_T,Int>> x
-        )
+        std::enable_if_t<Scalar::ScalarQ<a_T>, Vector<n,decltype( x_T(1) * a_T(1) ),Int>>
+        operator*( cref<a_T> a, cref<Vector<n,x_T,Int>> x )
         {
             // Returns z = a * x.
+         
+            static_assert(Scalar::ScalarQ<a_T>, "a_T must be a scalar type.");
             
             using T = decltype(x_T(1) * a_T(1));
             
@@ -629,11 +643,10 @@ namespace Tensors
         
         template<int n, typename x_T, typename Int, typename a_T>
         [[nodiscard]] force_inline const 
-        Vector<n,decltype( x_T(1) * a_T(1) ),Int> operator*( 
-            cref<Vector<n,x_T,Int>> x, cref<a_T> a
-        )
+        std::enable_if_t<Scalar::ScalarQ<a_T>, Vector<n,decltype( x_T(1) * a_T(1) ),Int>>
+        operator*( cref<Vector<n,x_T,Int>> x, cref<a_T> a )
         {
-            // Returns z = a * x.
+            // Returns a * x.
             
             using T = decltype(x_T(1) * a_T(1));
             
@@ -642,13 +655,24 @@ namespace Tensors
             );
         }
         
+        template<int n, typename x_T, typename Int, typename a_T>
+        [[nodiscard]] force_inline const
+        std::enable_if_t<Scalar::ScalarQ<a_T>, Vector<n,decltype( x_T(1) * a_T(1) ),Int>>
+        operator/( cref<Vector<n,x_T,Int>> x, cref<a_T> a )
+        {
+            // Returns x/a.
+            
+            return x * Inv<a_T>(a);
+        }
+        
         
         template<int n, typename a_T, typename x_T, typename z_T, typename Int>
-        force_inline void Times(
-            cref<a_T> a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z
-        )
+        force_inline std::enable_if_t<Scalar::ScalarQ<a_T>, void> 
+        Times( cref<a_T> a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z )
         {
             // Returns z = a * x.
+            
+            static_assert(Scalar::ScalarQ<a_T>, "a_T must be a scalar type.");
             
             combine_buffers<F_Gen, F_Zero, n, Sequential>(
                 scalar_cast<z_T>(a), x.data(), scalar_cast<z_T>(0), z.data()
@@ -657,17 +681,15 @@ namespace Tensors
         
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
-        [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) Dot(
-            cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
-        )
+        [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) 
+        Dot( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
             return dot_buffers<n,Sequential,O_Id,O_Id>( x.data(), y.data() );
         }
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
-        [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) InnerProduct(
-            cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y
-        )
+        [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) 
+        InnerProduct( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
             return dot_buffers<n,Sequential,O_Conj,O_Id>( x.data(), y.data() );
         }

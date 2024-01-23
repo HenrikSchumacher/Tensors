@@ -28,8 +28,6 @@ namespace Tensors
             
             std::array<std::array<Scal,n>,n> A;
 
-
-#include "Tiny_Matrix_Common.hpp"
 #include "Tiny_UpperTriangular_Common.hpp"
 
 ///######################################################

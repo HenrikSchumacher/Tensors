@@ -1,3 +1,5 @@
+#include "Tiny_Matrix_Common.hpp"
+
 //######################################################
 //##                     Memory                       ##
 //######################################################
@@ -10,15 +12,15 @@ public:
 
     CLASS(std::nullptr_t) = delete;
 
+    explicit CLASS( const Scal * a )
+    {
+        Read(a);
+    }
+
     // Copy constructor
     explicit CLASS( const Class_T & other )
     {
         Read( &other.A[0][0] );
-    }
-
-    explicit CLASS( const Scal * a )
-    {
-        Read(a);
     }
 
     // Copy assignment operator

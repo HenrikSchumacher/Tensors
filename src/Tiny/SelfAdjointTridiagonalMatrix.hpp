@@ -42,6 +42,7 @@ namespace Tensors
             
             
             SelfAdjointTridiagonalMatrix() = default;
+            
             ~SelfAdjointTridiagonalMatrix() = default;
             
             explicit SelfAdjointTridiagonalMatrix( cref<Scal> init )

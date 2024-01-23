@@ -269,7 +269,7 @@ int main(int argc, const char * argv[])
             error_1 = Max( error_1, C.MaxNorm() );
             
             Dot<Overwrite>(U,UH,C);
-            C-=Id;
+            C -= Id;
             error_2 = Max( error_2, C.MaxNorm() );
             
             eigs.Write( eigs_list.data(rep) );
