@@ -451,7 +451,9 @@ namespace Tensors
             {
                 /// Compute `B = opA(A)`.
 
-                Write<Scalar::Flag::Plus,Scalar::Flag::Zero,opA,Op::Id>( B_T(1), B_T(0), B, ldB );
+                Write<Scalar::Flag::Plus,Scalar::Flag::Zero,opA,Op::Id>( 
+                    Scalar::One<B_T>, Scalar::Zero<B_T>, B, ldB
+                );
             }
 
             /// BLAS-like write-modify method _without stride_.
@@ -459,7 +461,9 @@ namespace Tensors
             void Write( mptr<B_T> B ) const
             {
                 /// B = opA(A)
-                Write<Scalar::Flag::Plus,Scalar::Flag::Zero,op,Op::Id>( B_T(1), B_T(0), B );
+                Write<Scalar::Flag::Plus,Scalar::Flag::Zero,op,Op::Id>(
+                    Scalar::One<B_T>, Scalar::Zero<B_T>, B
+                );
             }
 
         //    /// Row-scattered write-modify method.
