@@ -24,8 +24,9 @@
     #include "src/ThreadTensor2.hpp"
     #include "src/ThreadTensor3.hpp"
 
-    #include "src/Sorting/TwoArrayQuickSort.hpp"
+//    #include "src/Sorting/TwoArrayQuickSort.hpp"
     #include "src/Sorting/TwoArraySort.hpp"
+    #include "src/Sorting/ThreeArraySort.hpp"
     #include "src/Sorting/NextPermutation.hpp"
 
     #include "Tiny.hpp"
