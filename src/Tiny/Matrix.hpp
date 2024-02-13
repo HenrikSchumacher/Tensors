@@ -8,6 +8,8 @@ namespace Tensors
     {
         template< int n_, typename Scal_, typename Int_> class SelfAdjointMatrix;
         
+        template< int m_, int n_, typename Scal_, typename Int_, Size_T alignment> class MatrixList;
+        
         template< int m_, int n_, typename Scal_, typename Int_>
         class Matrix
         {
@@ -97,6 +99,18 @@ namespace Tensors
                 swap(*this, other);
 
                 return *this;
+            }
+            
+            template<typename S, Size_T alignment>
+            Matrix( cref<MatrixList<m,n,S,Int,alignment>> m_list, const Int k )
+            {
+                Read(m_list, k);
+            }
+            
+            template<typename S>
+            Matrix( cref<Tensor3<S,Int>> tensor, const Int k )
+            {
+                Read(tensor.data(k));
             }
 
             
