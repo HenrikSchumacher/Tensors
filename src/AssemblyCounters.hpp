@@ -49,6 +49,7 @@ namespace Tensors {
         
         if( (m <= 0) || (thread_count <= 0) )
         {
+            ptoc("AccumulateAssemblyCounters (parallel)");
             return;
         }
         
