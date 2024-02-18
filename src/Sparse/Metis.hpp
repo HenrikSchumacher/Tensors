@@ -1,27 +1,32 @@
 #pragma once
 
+
 extern "C" {
     #include <metis.h>
 }
 
 namespace Tensors
 {
+    
+    template<typename I_0>
     class Metis
     {
-        
     public:
+        
+        using Int  = idx_t;
+        using LInt = idx_t;
         
         Metis() = default;
         
         ~Metis() = default;
         
         
-        template<typename ExtInt1, typename ExtInt2, typename Int>
-        void operator()(
-            mptr<ExtInt1> rp, mptr<ExtInt2> ci, Permutation<Int> & perm
+        template<typename I_1, typename I_2, typename I_3, typename I_4>
+        Permutation<I_0> operator()(
+            mptr<I_1> rp_, mptr<I_2> ci_, const I_3 n_, const I_4 final_thread_count = 1
         )
         {
-            idx_t opts [METIS_NOPTIONS] = {};
+            Int opts [METIS_NOPTIONS] = {};
 
             METIS_SetDefaultOptions(&opts[0]);
             
@@ -34,63 +39,44 @@ namespace Tensors
             
 //            opts[METIS_OPTION_DBGLVL]    = 256;
             
-            idx_t n = perm.Size();
+            Int n = static_cast<Int>(n_);
             
-            Tensor1<idx_t,idx_t> rp_buffer;
-            Tensor1<idx_t,idx_t> ci_buffer;
-            Tensor1<idx_t,idx_t> perm_buffer;
-            Tensor1<idx_t,idx_t> iperm_buffer;
+            Tensor1<Int,Int> rp    ( n + 1 );
+            Tensor1<Int,Int> ci    ( rp[n] );
+            Tensor1<Int,Int> perm  ( n );
+            Tensor1<Int,Int> iperm ( n );
             
-            idx_t * rp_ptr    = nullptr;
-            idx_t * ci_ptr    = nullptr;
-            idx_t * perm_ptr  = nullptr;
-            idx_t * iperm_ptr = nullptr;
+            Int nnz_counter = 0;
             
-            if constexpr ( !SameQ<idx_t,ExtInt1> )
-            {
-                rp_buffer = Tensor1<idx_t,idx_t>( n + 1 );
-                rp_buffer.Read(rp);
-                rp_ptr    = rp_buffer.data();
-            }
-            else
-            {
-                rp_ptr = rp;
-            }
+            rp[0] = 0;
             
-            if constexpr ( !SameQ<idx_t,ExtInt2>)
+            // We need to eliminate the diagonal entries.
+            for( Int i = 0; i < n; ++i )
             {
-                ci_buffer = Tensor1<idx_t,idx_t>( rp[n] );
-                ci_buffer.Read(ci);
-                ci_ptr    = ci_buffer.data();
-            }
-            else
-            {
-                ci_ptr    = ci;
-            }
-            
-            if constexpr ( !SameQ<idx_t,Int>)
-            {
-                perm_buffer  = Tensor1<idx_t,idx_t>( n );
-                iperm_buffer = Tensor1<idx_t,idx_t>( n );
-                 perm_ptr = perm_buffer.data();
-                iperm_ptr = iperm_buffer.data();
-            }
-            else
-            {
-                 perm_ptr = perm.GetPermutation().data();
-                iperm_ptr = perm.GetInversePermutation().data();
+                const Int k_begin = rp_[i    ];
+                const Int k_end   = rp_[i + 1];
+                
+                for( Int k = k_begin; k < k_end; ++k )
+                {
+                    const Int j = static_cast<Int>(ci_[k]);
+                    
+                    if( i != j )
+                    {
+                        ci[nnz_counter] = j;
+                    }
+                }
+                
+                rp[i+1] = nnz_counter;
             }
             
             
             ptic("METIS_NodeND");
-            METIS_NodeND(&n, rp_ptr, ci_ptr, nullptr, &opts[0], perm_ptr, iperm_ptr );
+            METIS_NodeND(
+                &n, rp.data(), ci.data(), nullptr, &opts[0], perm.data(), iperm.data()
+            );
             ptoc("METIS_NodeND");
             
-            if constexpr ( !SameQ<idx_t,Int> )
-            {
-                 perm_buffer.Write( perm.GetPermutation().data() );
-                iperm_buffer.Write( perm.GetInversePermutation().data() );
-            }
+            return Permutation<I_0>( perm.data(), n, Inverse::False, final_thread_count );
         }
     }; // class Metis
     
