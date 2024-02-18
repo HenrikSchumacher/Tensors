@@ -207,7 +207,7 @@ namespace Tensors
             // Factorization routine.
             void operator()( const Int s )
             {
-//                valprint("factorizing supernode",s);
+//                logvalprint("factorizing supernode",s);
                 
                 const  Int i_begin = SN_rp[s  ];
                 const  Int i_end   = SN_rp[s+1];
@@ -222,7 +222,7 @@ namespace Tensors
                 
                 if( n_0 <= izero )
                 {
-                    eprint("n_0<=0");
+                    eprint(ClassName()+"::operator(): n_0<=0");
                     dump(s);
                     dump(SN_rp[s  ]);
                     dump(SN_rp[s+1]);
@@ -246,6 +246,10 @@ namespace Tensors
                 FetchFromDescendants( s, t_begin, t_end, n_0, n_1, U_0, U_1 );
                 
                 FactorizeSupernode( n_0, n_1, U_0, U_1 );
+                
+                
+//                logdump(SN_tri_val);
+//                logdump(SN_rec_val);
             }
             
         protected:

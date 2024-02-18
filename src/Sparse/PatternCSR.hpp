@@ -1067,6 +1067,36 @@ namespace Tensors
             }
             
 //##########################################################################################
+//####          Conversion Operations
+//##########################################################################################
+            
+            // Supply an external list of values.
+            template<typename T_ext>
+            Tensor2<T_ext,Int> ToTensor2_( cptr<T_ext> values ) const
+            {
+                
+                Tensor2<T_ext,Int> A ( m, n, Scalar::Zero<T_ext> );
+                
+                ParallelDo(
+                    [this,values]( const Int i )
+                    {
+                        const Int k_begin = outer[i    ];
+                        const Int k_end   = outer[i + 1];
+                        
+                        for( Int k = k_begin; k < k_end; ++k )
+                        {
+                            
+                            A(i,inner[k]) = values[k];
+                            
+                        } // for( Int k = k_begin; k < k_end; ++k )
+                    },
+                    JobPtr()
+                );
+                
+                return A;
+            }
+            
+//##########################################################################################
 //####          Lookup Operations
 //##########################################################################################
             
