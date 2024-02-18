@@ -137,7 +137,7 @@ namespace Tensors
         ~Permutation() = default;
         
         
-        // Copy constructor
+        /* Copy constructor */
         Permutation( const Permutation & other )
         :   n                 ( other.n                 )
         ,   p                 ( other.p                 )
@@ -152,6 +152,7 @@ namespace Tensors
         
         // We could also simply use the implicitly created copy constructor.
         
+        /* Swap function */
         friend void swap (Permutation &A, Permutation &B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
@@ -168,7 +169,7 @@ namespace Tensors
             swap( A.is_valid,          B.is_valid          );
         }
         
-        // Copy assignment operator
+        /* Copy assignment operator */
         Permutation & operator=(Permutation other)
         {
             // copy-and-swap idiom
@@ -179,7 +180,7 @@ namespace Tensors
             return *this;
         }
 
-        // Move constructor
+        /* Move constructor */
         Permutation( Permutation && other ) noexcept : Permutation()
         {
             swap(*this, other);

@@ -79,7 +79,7 @@ namespace Tensors
                 }
             }
             
-            // Copy Matrix
+            // Copy constructor
             Matrix( const Matrix & other )
             {
                 Read( &other.A[0][0] );

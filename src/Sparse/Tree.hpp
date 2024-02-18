@@ -93,16 +93,16 @@ namespace Tensors
         Tree( const Tree & other )
         :   n                 ( other.n                 )
         ,   thread_count      ( other.thread_count      )
-        ,   A                 ( other.A                 )
         ,   parents           ( other.parents           )
-        ,   desc_counts       ( other.desc_counts )
-        ,   post              ( other.post              )
         ,   costs             ( other.costs             )
-        ,   desc_costs        ( other.desc_costs  )
+        ,   desc_costs        ( other.desc_costs        )
+        ,   A                 ( other.A                 )
+        ,   desc_counts       ( other.desc_counts       )
+        ,   post              ( other.post              )
         ,   levels            ( other.levels            )
+        ,   tree_top_levels   ( other.tree_top_levels   )
         ,   tree_top_vertices ( other.tree_top_vertices )
         ,   subtrees          ( other.subtrees          )
-        ,   tree_top_levels   ( other.tree_top_levels   )
         {}
 
         // We could also simply use the implicitly created copy constructor.

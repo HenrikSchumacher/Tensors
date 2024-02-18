@@ -265,12 +265,106 @@ namespace Tensors
                 Init();
             }
             
+            /* Copy constructor */
+            CholeskyDecomposition( const CholeskyDecomposition & other )
+            :   CachedObject        ( other                     )
+            ,   n                   ( other.n                   )
+            ,   thread_count        ( other.thread_count        )
+            ,   perm                ( other.perm                )
+            ,   A                   ( other.A                   )
+            ,   A_inner_perm        ( other.A_inner_perm        )
+            ,   A_val               ( other.A_val               )
+            ,   eTree_initialized   ( other.eTree_initialized   )
+            ,   eTree               ( other.eTree               )
+            ,   aTree               ( other.aTree               )
+            ,   SN_initialized      ( other.SN_initialized      )
+            ,   SN_count            ( other.SN_count            )
+            ,   SN_rp               ( other.SN_rp               )
+            ,   SN_outer            ( other.SN_outer            )
+            ,   SN_inner            ( other.SN_inner            )
+            ,   row_to_SN           ( other.row_to_SN           )
+            ,   SN_tri_ptr          ( other.SN_tri_ptr          )
+            ,   SN_tri_val          ( other.SN_tri_val          )
+            ,   SN_rec_ptr          ( other.SN_rec_ptr          )
+            ,   SN_rec_val          ( other.SN_rec_val          )
+            ,   max_n_0             ( other.max_n_0             )
+            ,   max_n_1             ( other.max_n_1             )
+            ,   nrhs                ( other.nrhs                )
+            ,   X                   ( other.X                   )
+            ,   X_scratch           ( other.X_scratch           )
+            {
+                Init();
+            }
+            
+            /* Swap function */
+            friend void swap (CholeskyDecomposition & A, CholeskyDecomposition & B ) noexcept
+            {
+                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+                using std::swap;
+                
+                swap( static_cast<CachedObject&>(A), static_cast<CachedObject&>(B) );
+                swap( A.m,                  B.m                     );
+                swap( A.thread_count,       B.thread_count          );
+                swap( A.A,                  B.A                     );
+                swap( A.A_inner_perm,       B.A_inner_perm          );
+                swap( A.A_val,              B.A_val                 );
+                swap( A.eTree_initialized,  B.eTree_initialized     );
+                swap( A.eTree,              B.eTree                 );
+                swap( A.aTree,              B.aTree                 );
+                swap( A.SN_initialized,     B.SN_initialized        );
+                swap( A.SN_count,           B.SN_count              );
+                swap( A.SN_rp,              B.SN_rp                 );
+                swap( A.SN_outer,           B.SN_outer              );
+                swap( A.SN_inner,           B.SN_inner              );
+                swap( A.row_to_SN,          B.row_to_SN             );
+                swap( A.SN_tri_ptr,         B.SN_tri_ptr            );
+                swap( A.SN_tri_val,         B.SN_tri_val            );
+                swap( A.SN_rec_ptr,         B.SN_rec_ptr            );
+                swap( A.SN_rec_val,         B.SN_rec_val            );
+                swap( A.max_n_0,            B.max_n_0               );
+                swap( A.max_n_1,            B.max_n_1               );
+                swap( A.nrhs,               B.nrhs                  );
+                swap( A.X,                  B.X                     );
+                swap( A.X_scratch,          B.X_scratch             );
+                swap( A.max_n_0,            B.max_n_0               );
+                swap( A.max_n_0,            B.max_n_0               );
+            }
+            
+            
+            /* Copy assignment operator */
+            CholeskyDecomposition & operator=( CholeskyDecomposition other )
+            {
+                // copy-and-swap idiom
+                // see https://stackoverflow.com/a/3279550/8248900 for details
+                swap(*this, other);
+
+                return *this;
+            }
+            
+            /* Move constructor */
+            CholeskyDecomposition( CholeskyDecomposition && other ) noexcept
+            {
+                swap(*this, other);
+            }
+            
+            /* Move assignment operator */
+            CholeskyDecomposition & operator=( CholeskyDecomposition && other ) noexcept
+            {
+                if( this == &other )
+                {
+                    wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
+                }
+                swap( *this, other );
+                return *this;
+            }
+            
+            
             
         protected:
             
             void Init()
             {
-                ptic(ClassName());
+                ptic(ClassName()+"::Init");
                 if( n <= izero )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
@@ -283,7 +377,7 @@ namespace Tensors
                 
                 row_mutexes = std::vector<std::mutex> ( n );
                 
-                ptoc(ClassName());
+                ptoc(ClassName()+"::Init");
             }
             
             
