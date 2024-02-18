@@ -31,8 +31,8 @@ namespace Tensors
             static constexpr Int izero = 0;
             static constexpr Int ione  = 1;
             
-            static constexpr Real zero = 0;
-            static constexpr Real one  = 1;
+            static constexpr Scal zero = 0;
+            static constexpr Scal one  = 1;
 
             const Int n;
             
