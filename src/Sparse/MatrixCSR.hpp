@@ -1031,7 +1031,7 @@ namespace Tensors
                     copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
                     
                     ParallelDo(
-                        [=,this,&B,&counters]( const Int thread )
+                        [&,this]( const Int thread )
                         {
                             const Int i_begin = job_ptr[thread  ];
                             const Int i_end   = job_ptr[thread+1];
@@ -1039,15 +1039,15 @@ namespace Tensors
                             mptr<LInt> c        = counters.data(thread);
                             
                             cptr<LInt> A_outer  = Outer().data();
-                            cptr<Int > A_inner  = Inner().data();
+                            cptr< Int> A_inner  = Inner().data();
                             cptr<Scal> A_values = Value().data();
                             
                             cptr<LInt> B_outer  = B.Outer().data();
-                            cptr<Int > B_inner  = B.Inner().data();
+                            cptr< Int> B_inner  = B.Inner().data();
                             cptr<Scal> B_values = B.Value().data();
                             
-                            mptr<LInt> C_inner  = C.Inner().data();
-                            cptr<Scal> C_values = C.Value().data();
+                            mptr< Int> C_inner  = C.Inner().data();
+                            mptr<Scal> C_values = C.Value().data();
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
