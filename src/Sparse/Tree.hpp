@@ -242,6 +242,26 @@ namespace Tensors
             return subtrees;
         }
         
+//        bool PostOrderedQ() const
+//        {
+//            return ParallelDoReduce(
+//                [=,this]( const Int i ) -> bool
+//                {
+//                    const Int p_i = parents[i];
+//
+//                    return (i < p_i) && (i >= p_i - DescendantCount(p_i) );
+//                },
+//                AndReducer(),
+//                true,
+//                zero, Root(), thread_count
+//            );
+//            
+//            return true;
+//        }
+        
+        
+        
+        
         bool PostOrderedQ() const
         {
             return ParallelDoReduce(
@@ -249,12 +269,17 @@ namespace Tensors
                 {
                     const Int p_i = parents[i];
 
-                    return (i < p_i) && (i >= p_i - DescendantCount(p_i) );
+                    return
+                    (i < p_i)
+                    &&
+                    (i - DescendantCount(i) >= p_i - DescendantCount(p_i) );
                 },
                 AndReducer(),
                 true,
                 zero, Root(), thread_count
             );
+            
+            return true;
         }
         
         

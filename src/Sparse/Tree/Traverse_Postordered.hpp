@@ -63,6 +63,7 @@ public:
     void Traverse_Postordered( mref<std::vector<std::unique_ptr<Worker_T>>> workers ) const
     {
         std::string tag = ClassName() + "::Traverse_Postordered<" + (parQ == Parallel ? "Parallel" : "Sequential") + ">";
+        
         if( !PostOrderedQ() )
         {
             eprint(tag+" requires postordered tree! Doing nothing.");

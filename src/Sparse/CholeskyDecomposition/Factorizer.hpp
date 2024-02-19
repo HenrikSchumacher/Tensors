@@ -34,6 +34,7 @@ namespace Tensors
             static constexpr Scal zero = 0;
             static constexpr Scal one  = 1;
 
+
             const Int n;
             
             // shared data
@@ -42,7 +43,7 @@ namespace Tensors
             cptr<Int>        A_ci;   // column indices of upper triangle of A
             cptr<Scal>       A_val;  // values of upper triangle of A
             
-            Scal            reg;     // Regularization parameter for the diagonal.
+            Scal             reg;     // Regularization parameter for the diagonal.
             
             cptr<Int>        child_ptr;
             cptr<Int>        child_idx;
@@ -105,6 +106,9 @@ namespace Tensors
             float herk_time     = 0;
             float chol_time     = 0;
             
+            
+//            CholeskyDecomposition<Scal,Int,LInt> & C;
+            
         public:
             
 //            ~CholeskyFactorizer() = default;
@@ -119,7 +123,7 @@ namespace Tensors
 //                dump(IL_len_small);
 //                dump(JL_len_small);
 //                dump(IL_len_and_JL_len_small);
-                
+//                
 //                dump(intersec_time);
 //                dump(scatter_time);
 //                dump(herk_time);
@@ -166,6 +170,7 @@ namespace Tensors
             ,   B_1             ( B_1_buffer.data()                             )
             ,   C_0             ( C_0_buffer.data()                             )
             ,   C_1             ( C_1_buffer.data()                             )
+            ,   C               ( chol                                          )
             {
 //                valprint(
 //                    "scratch memory of type "+TypeName<Int>,
@@ -177,6 +182,11 @@ namespace Tensors
 //                    "scratch memory of type "+TypeName<Scal>,
 //                    2 * (chol.max_n_0 * chol.max_n_0 + chol.max_n_0 * chol.max_n_1)
 //                );
+                
+//                dump( C.AssemblyTree().PostOrderedQ() );
+//                
+//                dump( ToString(C.AssemblyTree().PostOrdering().GetPermutation()) );
+//                dump( ToString(C.AssemblyTree().Parents()) );
             }
             
         protected:
@@ -234,28 +244,57 @@ namespace Tensors
                 mptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                 
                 FetchFromA( i_begin, i_end, l_begin, l_end, U_0, U_1);
+//
+//                print("FetchFromA");
+//                valprint("U_0", ArrayToString(U_0, {n_0,n_0}), 6);
+//                valprint("U_1", ArrayToString(U_1, {n_0,n_1}), 6);
                 
                 // We have to fetch the row updates of all descendants of s.
                 // We assume that the descendants of s are already factorized.
+                
                 // Since aTree is postordered, we can exploit that all descendants of s lie
                 // contiguously in memory directly before s.
+                
+                // TODO: BUG: This assumption is apparently wrong!!!
+                
                 const Int t_begin = s - desc_counts[s];
                 const Int t_end   = s;
                 
+//                dump(t_begin)
+//                dump(t_end)
+                
                 // TODO: This could be parallelized by adding into local buffers V_0 and V_1 and reducing them into U_0 and U_1.
+
                 FetchFromDescendants( s, t_begin, t_end, n_0, n_1, U_0, U_1 );
+
+//                print("FetchFromDescendants");
+//                valprint("U_0", ArrayToString(U_0, {n_0,n_0}), 6);
+//                valprint("U_1", ArrayToString(U_1, {n_0,n_1}), 6);
+                
+//                logdump(n_0);
+//                logdump(n_1);
                 
                 FactorizeSupernode( n_0, n_1, U_0, U_1 );
                 
-                
-//                logdump(SN_tri_val);
-//                logdump(SN_rec_val);
+//                print("FactorizeSupernode");
+//                valprint("U_0", ArrayToString(U_0, {n_0,n_0}), 6);
+//                valprint("U_1", ArrayToString(U_1, {n_0,n_1}), 6);
+//
+
+//                C.ClearCache("U");
+//                C.GetU();
+//                
+//                logvalprint("factorized supernode",s);
+//                valprint( "U", ToString(C.GetU().template ToTensor2<Scal>(), 6) );
+            
             }
             
         protected:
             
             void FetchFromA(
-                Int i_begin, Int i_end, LInt l_begin, LInt l_end, mptr<Scal> U_0, mptr<Scal> U_1
+                Int  i_begin,  Int i_end,
+                LInt l_begin, LInt l_end,
+                mptr<Scal> U_0, mptr<Scal> U_1
             )
             {
                 // Read the values of A into U_0 and U_1.
@@ -263,10 +302,22 @@ namespace Tensors
                 const  Int n_0 = i_end - i_begin;
                 const  Int n_1 = int_cast<Int>(l_end - l_begin);
                 
+//                print("FetchFromA");
+//                
+//                dump( i_begin );
+//                dump( i_end   );
+//                
+//                dump( l_begin );
+//                dump( l_end   );
+
+                
                 for( Int i = i_begin; i < i_end; ++i )
                 {
                     const LInt k_begin = A_diag[i  ];
                     const LInt k_end   = A_rp  [i+1];
+                                        
+//                    dump( k_begin );
+//                    dump( k_end   );
                     
                     LInt k;
                     
@@ -299,6 +350,10 @@ namespace Tensors
                         continue;
                     }
                     
+                    
+//                    print("Start rectangular part");
+                    
+                    
                     // If we arrive here, then there are still a few entries of A to be sorted in.
                     // From now on the insertion position must be in the rectangular part.
                     
@@ -310,6 +365,9 @@ namespace Tensors
                     {
                         const Int j = A_ci [k];
                         
+//                        dump(k);
+//                        dump(j);
+                        
                         // Find the position l of j in SN_inner, then write into U_1[l - l_begin].
                         // Remark: We don't need a check l < l_end here, because we know that we find an l.
                         while( col_l < j )
@@ -317,6 +375,8 @@ namespace Tensors
                             col_l = SN_inner[++l];
                         }
                         U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scal>(A_val[k]);
+                        
+//                        dump(A_val[k]);
                     }
                 }
             }
@@ -368,7 +428,6 @@ namespace Tensors
 //                        ++IL_len_and_JL_len_small;
 //                    }
                     
-                    
                     if( m_0 > ione )
                     {
                         // Update triangular block U_0.
@@ -414,7 +473,8 @@ namespace Tensors
                             }
                             
                             scatter_time += _toc();
-                        }
+                            
+                        } // if( IL_len > izero )
 
                         // Update rectangular block U_1.
                         if( (IL_len > izero) && (JL_len > izero) )
@@ -435,14 +495,15 @@ namespace Tensors
                             //          B_0 is a matrix of size m_0    x IL_len,
                             //          B_1 is a matrix of size m_0    x JL_len,
                             //          C_1 is a matrix of size IL_len x JL_len.
-
+                            
                             _tic();
+                            
                             if( JL_len > ione )
                             {
                                 if( IL_len > ione )
                                 {
                                     // IL_len > ione amnd JL_len > ione: Use BLAS 3
-                                    
+
                                     BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(
                                         IL_len, JL_len, m_0,
                                         -one, B_0, IL_len,
@@ -452,7 +513,6 @@ namespace Tensors
                                 }
                                 else // IL_len == ione
                                 {
-                                    
                                     // IL_len == ione amnd JL_len > ione: Use BLAS 2
                                     //
                                     // Do C_1 = - B_0^H * B_1,
@@ -495,7 +555,7 @@ namespace Tensors
                                     }
                                 }
                                 
-
+                                
                             }
                             else // JL_len == ione -- But this specialization does not seem to make a big difference.
                             {
@@ -519,7 +579,6 @@ namespace Tensors
                                     
                                     C_1[0] = 0;
                                     
-
                                     for( Int i = 0; i < m_0; ++i )
                                     {
                                         C_1[0] -= Conj(B_0[i]) * B_1[i];
@@ -527,7 +586,7 @@ namespace Tensors
                                 }
                             }
                             gemm_time += _toc();
-
+                            
                             _tic();
                             // Row-col-scatter-add C_1 into U_1,
                             // where U_1 is a matrix of size n_0 x n_1.
@@ -542,7 +601,8 @@ namespace Tensors
                                 }
                             }
                             scatter_time += _toc();
-                        }
+                            
+                        } // if( (IL_len > izero) && (JL_len > izero) )
                     }
                     else // m_0 == ione
                     {
@@ -596,6 +656,18 @@ namespace Tensors
                         }
                         
                     } // if( m_0 > ione )
+                    
+                    
+//                    {
+//                        Int dims [2] = {m_0,IL_len};
+//                        valprint("B_0", ArrayToString( B_0,&dims[0],2) );
+//                    }
+//                    
+//                    
+//                    {
+//                        Int dims [2] = {m_0,JL_len};
+//                        valprint("B_1", ArrayToString( B_1, &dims[0], 2 ) );
+//                    }
                         
                 } // for( Int t = t_begin; t < t_end; ++t )
             }
@@ -648,6 +720,7 @@ namespace Tensors
                 for( ; N --> izero; ) { y[idx[N]] += x[N]; }
             }
             
+
             void ComputeIntersection( const Int s, const Int t )
             {
 //                _tic();
@@ -655,10 +728,22 @@ namespace Tensors
                 // Compute the intersecting column indices of s-th and t-th supernode.
                 // We assume that t < s.
                 
-                // s-th supernode has triangular part I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
-                // and rectangular part J = [SN_inner[SN_outer[s]],[SN_inner[SN_outer[s]+1],...,[
-                // t-th supernode has triangular part K = [SN_rp[t],SN_rp[t]+1,...,SN_rp[t+1][
-                // and rectangular part L = [SN_inner[SN_outer[t]],[SN_inner[SN_outer[t]+1],...,[
+                // s-th supernode has triangular part
+                //
+                //  I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
+                //
+                // and rectangular part
+                //
+                //  J = [SN_inner[SN_outer[s]],[SN_inner[SN_outer[s]+1],...,[
+                //
+                // t-th supernode has triangular part
+                //
+                //  K = [SN_rp[t],SN_rp[t]+1,...,SN_rp[t+1][
+                //
+                // and rectangular part 
+                //
+                //  L = [SN_inner[SN_outer[t]],[SN_inner[SN_outer[t]+1],...,[
+                //
                 
                 // We have to compute
                 // - the positions II_pos of I \cap L in I,
@@ -667,6 +752,7 @@ namespace Tensors
                 // - the positions JL_pos of J \cap L in L.
 
                 // On return the numbers IL_len, JL_len contain the lengths of the respective lists.
+  
 
                 IL_len = 0;
                 JL_len = 0;
@@ -717,6 +803,7 @@ namespace Tensors
                         
                         if( l >= l_end )
                         {
+//                            PrintIntersection( s, t );
                             return;
                         }
                         else
@@ -734,6 +821,7 @@ namespace Tensors
                         
                         if( l >= l_end )
                         {
+//                            PrintIntersection( s, t );
                             return;
                         }
                         else
@@ -753,6 +841,7 @@ namespace Tensors
                 
                 if( j_begin == j_end )
                 {
+//                    PrintIntersection( s, t );
                     return;
                 }
                 
@@ -774,6 +863,7 @@ namespace Tensors
                         }
                         else
                         {
+//                            PrintIntersection( s, t );
                             return;
                         }
                     }
@@ -787,6 +877,7 @@ namespace Tensors
                         }
                         else
                         {
+//                            PrintIntersection( s, t );
                             return;
                         }
                     }
@@ -805,16 +896,68 @@ namespace Tensors
                         }
                         else
                         {
+//                            PrintIntersection( s, t );
                             return;
                         }
                     }
                 }
+                
 //                intersec_time += _toc();
 //
 //                if( (IL_len == izero) && (JL_len == izero) )
 //                {
 //                    ++empty_intersec_undetected;
 //                }
+            }
+            
+            // For debugging reasons only.
+            void PrintIntersection( const Int s, const Int t )
+            {
+                print("");
+                
+                dump(s);
+                dump(t);
+
+                //I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
+                
+                Tensor1<Int,Int> I ( SN_rp[s+1] - SN_rp[s] );
+                fill_range_buffer( I.data(), SN_rp[s], SN_rp[s+1] - SN_rp[s] );
+                
+                Tensor1<Int,Int> J ( &SN_inner[SN_outer[s]], SN_outer[s+1] - SN_outer[s] );
+                
+                Tensor1<Int,Int> K ( SN_rp[t+1] - SN_rp[t] );
+                fill_range_buffer( K.data(), SN_rp[t], SN_rp[t+1] - SN_rp[t] );
+                
+                Tensor1<Int,Int> L ( &SN_inner[SN_outer[t]], SN_outer[t+1] - SN_outer[t] );
+
+                Tensor1<Int,Int> I_cap_L_0( IL_len );
+                Tensor1<Int,Int> I_cap_L_1( IL_len );
+                Tensor1<Int,Int> J_cap_L_0( JL_len );
+                Tensor1<Int,Int> J_cap_L_1( JL_len );
+                
+                for( Int idx = 0; idx < IL_len; ++idx )
+                {
+                    I_cap_L_0[idx] = I[ II_pos[idx] ];
+                    I_cap_L_1[idx] = L[ IL_pos[idx] ];
+                }
+                
+                for( Int idx = 0; idx < JL_len; ++idx )
+                {
+                    I_cap_L_0[idx] = J[ JJ_pos[idx] ];
+                    I_cap_L_1[idx] = L[ JL_pos[idx] ];
+                }
+                
+                dump(I);
+                dump(J);
+                dump(K);
+                dump(L);
+                
+                dump(I_cap_L_0);
+                dump(I_cap_L_1);
+                dump(J_cap_L_0);
+                dump(J_cap_L_1);
+                
+                print("");
             }
             
             

@@ -1070,6 +1070,8 @@ namespace Tensors
 //####          Conversion Operations
 //##########################################################################################
             
+        public:
+            
             // Supply an external list of values.
             template<typename T_ext>
             Tensor2<T_ext,Int> ToTensor2_( cptr<T_ext> values ) const
@@ -1078,7 +1080,7 @@ namespace Tensors
                 Tensor2<T_ext,Int> A ( m, n, Scalar::Zero<T_ext> );
                 
                 ParallelDo(
-                    [this,values]( const Int i )
+                    [this,values,&A]( const Int i )
                     {
                         const Int k_begin = outer[i    ];
                         const Int k_end   = outer[i + 1];

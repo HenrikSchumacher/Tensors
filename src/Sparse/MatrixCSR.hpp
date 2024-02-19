@@ -453,13 +453,6 @@ namespace Tensors
             
         protected:
             
-            // Supply an external list of values.
-            template<typename T_ext>
-            Tensor2<T_ext,Int> ToTensor2(  ) const
-            {
-                return this->ToTensor2_( values.data() );
-            }
-            
             template< bool conjugate>
             MatrixCSR transpose() const
             {
@@ -544,6 +537,13 @@ namespace Tensors
             }
             
         public:
+            
+            // Supply an external list of values.
+            template<typename T_ext>
+            Tensor2<T_ext,Int> ToTensor2(  ) const
+            {
+                return this->ToTensor2_( values.data() );
+            }
             
             MatrixCSR Transpose() const
             {
