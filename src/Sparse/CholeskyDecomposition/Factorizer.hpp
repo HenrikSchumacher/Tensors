@@ -170,7 +170,7 @@ namespace Tensors
             ,   B_1             ( B_1_buffer.data()                             )
             ,   C_0             ( C_0_buffer.data()                             )
             ,   C_1             ( C_1_buffer.data()                             )
-            ,   C               ( chol                                          )
+//            ,   C               ( chol                                          )
             {
 //                valprint(
 //                    "scratch memory of type "+TypeName<Int>,
