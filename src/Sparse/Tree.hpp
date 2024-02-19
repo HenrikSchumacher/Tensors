@@ -264,6 +264,7 @@ namespace Tensors
         
         bool PostOrderedQ() const
         {
+            // TODO: Is this test good enough to indeed guarantee that the tree is postordered, when passed?
             return ParallelDoReduce(
                 [=,this]( const Int i ) -> bool
                 {
