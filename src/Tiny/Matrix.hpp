@@ -1276,6 +1276,12 @@ namespace Tensors
             return Z;
         }
         
+        template<typename Scal, typename Int>
+        [[nodiscard]] force_inline Scal Det_Kahan( cref<Tiny::Matrix<2,2,Scal,Int>> A )
+        {
+            return Det2D_Kahan( &A[0][0] );
+        }
+        
     } // namespace Tiny
     
     
