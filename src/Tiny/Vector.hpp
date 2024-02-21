@@ -463,12 +463,30 @@ namespace Tensors
             w[2] = u[0] * v[1] - u[1] * v[0];
         }
         
+        template<typename Real, typename Int>
+        force_inline void Cross_Kahan(
+            cref<Vector<3,Real,Int>> u, cref<Vector<3,Real,Int>> v, mref<Vector<3,Real,Int>> w )
+        {
+            w[0] = Det2D_Kahan( u[1], u[2], v[1], v[2] );
+            w[1] = Det2D_Kahan( u[2], u[0], v[2], v[0] );
+            w[2] = Det2D_Kahan( u[0], u[1], v[0], v[1] );
+        }
+        
         template<typename Scal, typename Int>
         [[nodiscard]] force_inline const Vector<3,Scal,Int> Cross(
             cref<Vector<3,Scal,Int>> u, cref<Vector<3,Scal,Int>> v )
         {
             Vector<3,Scal,Int> w;
             Cross( u, v, w );
+            return w;
+        }
+        
+        template<typename Real, typename Int>
+        [[nodiscard]] force_inline const Vector<3,Real,Int> Cross_Kahan(
+            cref<Vector<3,Real,Int>> u, cref<Vector<3,Real,Int>> v )
+        {
+            Vector<3,Real,Int> w;
+            Cross_Kahan( u, v, w );
             return w;
         }
         
@@ -482,6 +500,9 @@ namespace Tensors
                 +  w[2] * ( u[0] * v[1] - u[1] * v[0] );
         }
         
+        
+        
+        
         template<typename Scal, typename Int>
         [[nodiscard]] force_inline const Scal Det( 
             cref<Vector<2,Scal,Int>> u, cref<Vector<2,Scal,Int>> v )
@@ -489,6 +510,21 @@ namespace Tensors
             return u[0] * v[1] - u[1] * v[0];
         }
 
+        template<typename Real, typename Int>
+        [[nodiscard]] force_inline Real
+        Dot_Kahan( cref<Vector<2,Real,Int>> x, cref<Vector<2,Real,Int>> y )
+        {
+            return Dot2D_Kahan( x[0], x[1], y[0], y[1] );
+        }
+        
+        template<typename Real, typename Int>
+        [[nodiscard]] force_inline Real
+        Det_Kahan( cref<Vector<2,Real,Int>> x, cref<Vector<2,Real,Int>> y )
+        {
+            return Det2D_Kahan( x[0], x[1], y[0], y[1] );
+        }
+        
+        
         template<int n, typename Scal, typename Int>
         [[nodiscard]] force_inline const Scalar::Real<Scal> SquaredDistance(
             cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v
@@ -681,7 +717,7 @@ namespace Tensors
         
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
-        [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) 
+        [[nodiscard]] force_inline decltype( x_T(1) * y_T(1) )
         Dot( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
             return dot_buffers<n,Sequential,O_Id,O_Id>( x.data(), y.data() );
