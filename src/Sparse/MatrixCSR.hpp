@@ -987,7 +987,7 @@ namespace Tensors
             {
                 ptic(ClassName()+"::Dot");
                 
-                if(WellFormed() )
+                if( WellFormed() )
                 {
                     RequireJobPtr();
                     
@@ -1093,6 +1093,10 @@ namespace Tensors
                 }
                 else
                 {
+                    eprint(ClassName()+"::Dot: Matrix is not well-formed.");
+                    
+                    ptoc(ClassName()+"::Dot");
+                    
                     return MatrixCSR ();
                 }
             }

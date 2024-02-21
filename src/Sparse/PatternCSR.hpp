@@ -1263,7 +1263,14 @@ namespace Tensors
             
             bool WellFormed() const
             {
-                return ( ( outer.Size() > 1 ) && ( outer.Last() > 0 ) );
+                bool wellformed = ( ( outer.Size() > 1 ) && ( outer.Last() > 0 ) );
+                
+                if( !wellformed )
+                {
+                    wprint(ClassName()+"::WellFormed: Matrix is not well formed");
+                }
+                
+                return wellformed;
             }
             
         public:
