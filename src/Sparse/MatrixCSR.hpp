@@ -547,9 +547,9 @@ namespace Tensors
             
             // Supply an external list of values.
             template<typename A_T = Scal>
-            Tensor2<A_T,LInt> ToTensor2(  ) const
+            Tensor2<A_T,LInt> ToTensor2() const
             {
-                return this->ToTensor2_( values.data() );
+                return this->template ToTensor2_<A_T>( values.data() );
             }
             
             MatrixCSR Transpose() const
