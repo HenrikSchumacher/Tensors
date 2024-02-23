@@ -1089,6 +1089,12 @@ namespace Tensors
             
             [[nodiscard]] Scal Det() const
             {
+//                Scal M [n][n];
+//
+//                Write( &M[0][0] );
+//                
+//                return Det_Bareiss(n, &M[0][0], n);
+                
                 if constexpr ( m != n )
                 {
                     return 0;
@@ -1107,8 +1113,12 @@ namespace Tensors
                 if constexpr ( n == 3 )
                 {
                     return (
-                          A[0][0]*A[1][1]*A[2][2] + A[0][1]*A[1][2]*A[2][0] + A[0][2]*A[1][0]*A[2][1]
-                        - A[0][0]*A[1][2]*A[2][1] - A[0][1]*A[1][0]*A[2][2] - A[0][2]*A[1][1]*A[2][0]
+                          A[0][0] * A[1][1] * A[2][2]
+                        + A[0][1] * A[1][2] * A[2][0]
+                        + A[0][2] * A[1][0] * A[2][1]
+                        - A[0][0] * A[1][2] * A[2][1]
+                        - A[0][1] * A[1][0] * A[2][2]
+                        - A[0][2] * A[1][1] * A[2][0]
                     );
                 }
                 
@@ -1124,26 +1134,33 @@ namespace Tensors
                     
                     for(Int k = 0; k < n - 1; ++k )
                     {
-                        //Pivot - row swap needed
-                        if( M[k][k] == zero )
+                        //Pivot column swap.
+                        
+                        const Int l = k + iamax_buffer( &M[k][k], n-k );
+                        
+                        if( l != k )
                         {
-                            Int l = 0;
-                            for( l = k + 1; l < n; ++l )
-                            {
-                                if( M[l][k] != zero )
-                                {
-                                    std::swap_ranges( &M[l][0], &M[l][n], &M[k][0] );
-                                    sign = -sign;
-                                    break;
-                                }
-                            }
+                            sign = -sign;
                             
-                            //No entries != 0 found in column k -> det = 0
-                            if(l == n)
+                            for( Int i = 0; i < n; ++i )
                             {
-                                return zero;
+                                std::swap(M[i][k],M[i][l]);
                             }
                         }
+                        
+                        const Scal A_k_k = M[k][k];
+                        
+                        if( A_k_k == zero )
+                        {
+                            return zero;
+                        };
+                            
+                        
+                        // When not working with integers, we want to compute 1/a only once.
+                        
+                        
+                        const Scal a = std::numeric_limits<Scal>::is_integer ? M[k-1][k-1] : Inv(M[k-1][k-1]);
+                        
                         
                         //Apply formula
                         for( Int i = k + 1; i < n; ++i )
@@ -1153,7 +1170,14 @@ namespace Tensors
                                 M[i][j] = M[k][k] * M[i][j] - M[i][k] * M[k][j];
                                 if(k != 0)
                                 {
-                                    M[i][j] /= M[k-1][k-1];
+                                    if constexpr( std::numeric_limits<Scal>::is_integer )
+                                    {
+                                        M[i][j] /= a;
+                                    }
+                                    else
+                                    {
+                                        M[i][j] *= a;
+                                    }
                                 }
                             }
                         }
