@@ -539,8 +539,15 @@ namespace Tensors
         public:
             
             // Supply an external list of values.
-            template<typename T_ext>
-            Tensor2<T_ext,Int> ToTensor2(  ) const
+            template<typename A_T = Scal>
+            void WriteDense( mptr<A_T> A, const Int ldA ) const
+            {
+                return this->WriteDense_( values.data(), A, ldA );
+            }
+            
+            // Supply an external list of values.
+            template<typename A_T = Scal>
+            Tensor2<A_T,LInt> ToTensor2(  ) const
             {
                 return this->ToTensor2_( values.data() );
             }

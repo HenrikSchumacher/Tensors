@@ -1073,27 +1073,36 @@ namespace Tensors
         public:
             
             // Supply an external list of values.
-            template<typename T_ext>
-            Tensor2<T_ext,Int> ToTensor2_( cptr<T_ext> values ) const
+            template<typename A_T, typename values_T>
+            void WriteDense_( cptr<values_T> values, mptr<A_T> A, const Int ldA ) const
             {
-                
-                Tensor2<T_ext,Int> A ( m, n, Scalar::Zero<T_ext> );
-                
                 ParallelDo(
-                    [this,values,&A]( const Int i )
+                    [this,values,A,ldA]( const Int i )
                     {
-                        const Int k_begin = outer[i    ];
-                        const Int k_end   = outer[i + 1];
+                        const LInt k_begin = outer[i    ];
+                        const LInt k_end   = outer[i + 1];
                         
-                        for( Int k = k_begin; k < k_end; ++k )
+                        zerofy_buffer( &A[i * ldA], n );
+                        
+                        for( LInt k = k_begin; k < k_end; ++k )
                         {
-                            
-                            A(i,inner[k]) = values[k];
-                            
+                            A[i * ldA + inner[k]] = values[k];
                         } // for( Int k = k_begin; k < k_end; ++k )
                     },
                     JobPtr()
                 );
+                
+                return A;
+            }
+            
+            // Supply an external list of values.
+            template<typename A_T, typename values_T>
+            Tensor2<A_T,LInt> ToTensor2_( cptr<values_T> values ) const
+            {
+                
+                Tensor2<A_T,LInt> A ( m, n );
+                
+                WriteDense_( values, A.data(), n );
                 
                 return A;
             }
