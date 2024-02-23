@@ -1091,8 +1091,6 @@ namespace Tensors
                     },
                     JobPtr()
                 );
-                
-                return A;
             }
             
             // Supply an external list of values.
