@@ -256,6 +256,26 @@ namespace mma
             copy_buffer( a, tensor_data, Size() );
         }
         
+        Scal * begin()
+        {
+            return this->data();
+        }
+        
+        const Scal * begin() const
+        {
+            return this->data();
+        }
+        
+        Scal * end()
+        {
+            return &tensor_data[Size()];
+        }
+        
+        const Scal * end() const
+        {
+            return &tensor_data[Size()];
+        }
+        
         MTensor Tensor() const
         {
             return tensor;

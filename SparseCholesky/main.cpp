@@ -138,9 +138,9 @@ int main(int argc, const char * argv[])
 
     S.AssemblyTree().Traverse_Postordered_Test();
 
-    print("");
-
-    S.AssemblyTree().Traverse_Preordered_Test();
+//    print("");
+//
+//    S.AssemblyTree().Traverse_Preordered_Test();
 
     print("");
 

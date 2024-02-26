@@ -297,37 +297,37 @@ namespace Tensors
             }
             
             /* Swap function */
-            friend void swap (CholeskyDecomposition & A, CholeskyDecomposition & B ) noexcept
+            friend void swap (CholeskyDecomposition & A_, CholeskyDecomposition & B_ ) noexcept
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
                 
-                swap( static_cast<CachedObject&>(A), static_cast<CachedObject&>(B) );
-                swap( A.m,                  B.m                     );
-                swap( A.thread_count,       B.thread_count          );
-                swap( A.A,                  B.A                     );
-                swap( A.A_inner_perm,       B.A_inner_perm          );
-                swap( A.A_val,              B.A_val                 );
-                swap( A.eTree_initialized,  B.eTree_initialized     );
-                swap( A.eTree,              B.eTree                 );
-                swap( A.aTree,              B.aTree                 );
-                swap( A.SN_initialized,     B.SN_initialized        );
-                swap( A.SN_count,           B.SN_count              );
-                swap( A.SN_rp,              B.SN_rp                 );
-                swap( A.SN_outer,           B.SN_outer              );
-                swap( A.SN_inner,           B.SN_inner              );
-                swap( A.row_to_SN,          B.row_to_SN             );
-                swap( A.SN_tri_ptr,         B.SN_tri_ptr            );
-                swap( A.SN_tri_val,         B.SN_tri_val            );
-                swap( A.SN_rec_ptr,         B.SN_rec_ptr            );
-                swap( A.SN_rec_val,         B.SN_rec_val            );
-                swap( A.max_n_0,            B.max_n_0               );
-                swap( A.max_n_1,            B.max_n_1               );
-                swap( A.nrhs,               B.nrhs                  );
-                swap( A.X,                  B.X                     );
-                swap( A.X_scratch,          B.X_scratch             );
-                swap( A.max_n_0,            B.max_n_0               );
-                swap( A.max_n_0,            B.max_n_0               );
+                swap( static_cast<CachedObject&>(A_), static_cast<CachedObject&>(B_) );
+                swap( A_.m,                  B_.m                     );
+                swap( A_.thread_count,       B_.thread_count          );
+                swap( A_.A,                  B_.A                     );
+                swap( A_.A_inner_perm,       B_.A_inner_perm          );
+                swap( A_.A_val,              B_.A_val                 );
+                swap( A_.eTree_initialized,  B_.eTree_initialized     );
+                swap( A_.eTree,              B_.eTree                 );
+                swap( A_.aTree,              B_.aTree                 );
+                swap( A_.SN_initialized,     B_.SN_initialized        );
+                swap( A_.SN_count,           B_.SN_count              );
+                swap( A_.SN_rp,              B_.SN_rp                 );
+                swap( A_.SN_outer,           B_.SN_outer              );
+                swap( A_.SN_inner,           B_.SN_inner              );
+                swap( A_.row_to_SN,          B_.row_to_SN             );
+                swap( A_.SN_tri_ptr,         B_.SN_tri_ptr            );
+                swap( A_.SN_tri_val,         B_.SN_tri_val            );
+                swap( A_.SN_rec_ptr,         B_.SN_rec_ptr            );
+                swap( A_.SN_rec_val,         B_.SN_rec_val            );
+                swap( A_.max_n_0,            B_.max_n_0               );
+                swap( A_.max_n_1,            B_.max_n_1               );
+                swap( A_.nrhs,               B_.nrhs                  );
+                swap( A_.X,                  B_.X                     );
+                swap( A_.X_scratch,          B_.X_scratch             );
+                swap( A_.max_n_0,            B_.max_n_0               );
+                swap( A_.max_n_0,            B_.max_n_0               );
             }
             
             
