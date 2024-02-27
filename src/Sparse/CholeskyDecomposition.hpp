@@ -112,8 +112,8 @@ namespace Tensors
             static constexpr Real zero = 0;
             static constexpr Real one  = 1;
             
-            const Int n = 0;
-            const Int thread_count = 1;
+            Int n = 0;
+            Int thread_count = 1;
             
             Permutation<Int>  perm;          // row and column permutation of the nonzeros of the matrix.
             
@@ -292,6 +292,7 @@ namespace Tensors
             ,   nrhs                ( other.nrhs                )
             ,   X                   ( other.X                   )
             ,   X_scratch           ( other.X_scratch           )
+            ,   row_mutexes         ( n                         )
             {
                 Init();
             }
@@ -303,7 +304,7 @@ namespace Tensors
                 using std::swap;
                 
                 swap( static_cast<CachedObject&>(A_), static_cast<CachedObject&>(B_) );
-                swap( A_.m,                  B_.m                     );
+                swap( A_.n,                  B_.n                     );
                 swap( A_.thread_count,       B_.thread_count          );
                 swap( A_.A,                  B_.A                     );
                 swap( A_.A_inner_perm,       B_.A_inner_perm          );
@@ -326,8 +327,7 @@ namespace Tensors
                 swap( A_.nrhs,               B_.nrhs                  );
                 swap( A_.X,                  B_.X                     );
                 swap( A_.X_scratch,          B_.X_scratch             );
-                swap( A_.max_n_0,            B_.max_n_0               );
-                swap( A_.max_n_0,            B_.max_n_0               );
+                swap( A_.row_mutexes,        B_.row_mutexes           );
             }
             
             

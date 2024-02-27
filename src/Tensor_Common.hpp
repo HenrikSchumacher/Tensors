@@ -318,7 +318,7 @@ public:
         
         for( Int i = 0 ; i < n; ++i )
         {
-            counter += std::isnan(a[i]);
+            counter += NaNQ(a[i]);
         }
         
         return counter;
