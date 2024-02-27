@@ -19,6 +19,8 @@ public:
         
         SymbolicFactorization();
 
+        this->ClearCache();
+        
         reg = reg_;
 //        A_inner_perm.Permute( A_val_, A_val.data(), Inverse::False );
         

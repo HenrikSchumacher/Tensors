@@ -99,7 +99,7 @@ public:
 
                     const Time stop_time = Clock::now();
                     
-                    logprint(
+                    pprint(
                         tag + ": Worker " + ToString(thread) + " required " +
                              ToString(Tools::Duration(start_time,stop_time)) +
                             " s for the " + ToString(DescendantCount(node)) + " descendants of node " + ToString(node) + "."
@@ -133,7 +133,7 @@ public:
                     worker( node );
 
                     const Time stop_time = Clock::now();
-                    logprint(
+                    pprint(
                         tag + ": Worker " + ToString(thread) + " required " +
                              ToString(Tools::Duration(start_time,stop_time)) +
                             " s for completing node " + ToString(node) + "."
