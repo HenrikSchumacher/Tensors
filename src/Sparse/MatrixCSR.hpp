@@ -294,20 +294,20 @@ namespace Tensors
                 
                 if( symmetrize )
                 {
-                    logprint(ClassName()+"::FromTriples symmetrize");
+                    pprint(ClassName()+"::FromTriples symmetrize");
                 }
                 else
                 {
-                    logprint(ClassName()+"::FromTriples no symmetrize");
+                    pprint(ClassName()+"::FromTriples no symmetrize");
                 }
                 
                 if( compressQ )
                 {
-                    logprint(ClassName()+"::FromTriples compressQ");
+                    pprint(ClassName()+"::FromTriples compressQ");
                 }
                 else
                 {
-                    logprint(ClassName()+"::FromTriples no compressQ");
+                    pprint(ClassName()+"::FromTriples no compressQ");
                 }
                 
                 Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(

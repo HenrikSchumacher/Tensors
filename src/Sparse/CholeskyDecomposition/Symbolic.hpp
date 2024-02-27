@@ -195,8 +195,8 @@ protected:
         SN_tri_val = Tensor1<Scal,LInt> (SN_tri_ptr[SN_count]);
         SN_rec_val = Tensor1<Scal,LInt> (SN_rec_ptr[SN_count]);
         
-        logvalprint("triangle_nnz ", SN_tri_val.Size());
-        logvalprint("rectangle_nnz", SN_rec_val.Size());
+        pvalprint("triangle_nnz ", SN_tri_val.Size());
+        pvalprint("rectangle_nnz", SN_rec_val.Size());
         
         ptoc(ClassName()+"::SN_Allocate");
     }
