@@ -121,10 +121,10 @@ namespace Tensors
                 
                 const Int n_1 = int_cast<Int>(l_end - l_begin);
                 
-                // U_0 is the triangular part of U that belongs to the supernode, size = n_0 x n_0
+                // U_0 is the triangular part of U belonging to the supernode, size = n_0 x n_0
                 cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
                 
-                // U_1 is the rectangular part of U that belongs to the supernode, size = n_0 x n_1
+                // U_1 is the rectangular part of U belonging to the supernode, size = n_0 x n_1
                 cptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
 
                 
@@ -140,8 +140,6 @@ namespace Tensors
                         
                         scale_buffer( Inv(U_0[0]), X_0, nrhs );
                         
-//                        BLAS::scal( nrhs, Inv(U_0[0]), X_0, 1 );
-                        
                         if( n_1 > izero )
                         {
                             // Compute X_1 = - U_1^H * X_0
@@ -149,19 +147,6 @@ namespace Tensors
                             //  U_1 is a matrix of size 1   x n_1.
                             //  X_1 is a matrix of size n_1 x nrhs.
                             //  X_0 is a matrix of size 1   x nrhs.
-
-                            // TODO: It is really a shame, that we have to zerofy X_1 and cannot overwrite it.
-                            
-//                            zerofy_buffer(X_1, n_1 * nrhs );
-                            
-                            // Most curiously, copying is faster than zeroing out - just because we can use BLAS.
-//                            BLAS::copy( n_1 * nrhs, Zero, 1, X_1, 1 );
-                            
-//                            BLAS::scal( n_1 * nrhs, zero, X_1, 1 );
-//
-//                            BLAS::ger<Layout::RowMajor,Op::Conj,Op::Id>(
-//                                n_1, nrhs, -one, U_1, 1, X_0, 1, X_1, nrhs
-//                            );
                             
                             for( LInt i = 0; i < int_cast<LInt>(n_1); ++i )
                             {

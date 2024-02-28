@@ -127,8 +127,6 @@ namespace Tensors
                     for( Int j = 0; j < n_1; ++j )
                     {
                         copy_buffer( &X[nrhs * SN_inner[l_begin+j]], &X_1[nrhs * j], nrhs );
-                        
-//                        BLAS::copy( nrhs, &X[nrhs * SN_inner[l_begin+j]], 1, &X_1[nrhs * j], 1 );
                     }
 
                     if( n_0 == ione )
@@ -154,8 +152,6 @@ namespace Tensors
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
                         
                         scale_buffer( Inv(U_0[0]), X_0, nrhs );
-                        
-//                        BLAS::scal( nrhs,Inv(U_0[0]), X_0, 1 );
                     }
                     else // using BLAS3 routines.
                     {
