@@ -5,8 +5,8 @@ namespace Tensors
     namespace LAPACK
     {
         template< typename Scal, typename I0, typename I1, typename I2 >
-        force_inline int getrf(
-            const I0 m_, const I1 n_, Scal * A, const I2 ldA_, int * perm
+        force_inline Int getrf(
+            const I0 m_, const I1 n_, Scal * A_, const I2 ldA_, Int * perm
         )
         {
             ASSERT_INT(I0);
@@ -15,10 +15,12 @@ namespace Tensors
             
 //            fill_range_buffer ( perm, 1, n_ );
             
-            int m    = int_cast<int>(m_);
-            int n    = int_cast<int>(n_);
-            int ldA  = int_cast<int>(ldA_);
-            int info = 0;
+            Int m    = int_cast<Int>(m_);
+            Int n    = int_cast<Int>(n_);
+            Int ldA  = int_cast<Int>(ldA_);
+            Int info = 0;
+            
+            auto * A = to_LAPACK(A_);
             
             assert_positive(n);
             assert_positive(ldA);

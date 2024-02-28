@@ -6,17 +6,20 @@ namespace Tensors
     {
         template<typename Scal, typename I0, typename I1, typename I2>
         [[nodiscard]] force_inline Scal dot(
-            const I0 n_, cptr<Scal> x, const I1 inc_x_,
-                         cptr<Scal> y, const I2 inc_y_
+            const I0 n_, cptr<Scal> x_, const I1 inc_x_,
+                         cptr<Scal> y_, const I2 inc_y_
         )
         {
             ASSERT_INT(I0);
             ASSERT_INT(I1);
             ASSERT_INT(I2);
             
-            int n      = int_cast<int>(n_);
-            int inc_x  = int_cast<int>(inc_x_);
-            int inc_y  = int_cast<int>(inc_y_);
+            Int n      = int_cast<Int>(n_);
+            Int inc_x  = int_cast<Int>(inc_x_);
+            Int inc_y  = int_cast<Int>(inc_y_);
+            
+            auto * x = to_BLAS(x_);
+            auto * y = to_BLAS(y_);
             
             assert_positive(n);
             assert_positive(inc_x);
@@ -35,13 +38,9 @@ namespace Tensors
 #if defined(ACCELERATE_NEW_LAPACK)
                 Scal result {0};
                 
-                cblas_zdotu_sub(
-                    __LAPACK_int(n), x, __LAPACK_int(inc_x), y, __LAPACK_int(inc_y),
-                    &result
-                );
+                cblas_zdotu_sub( n, x, inc_x, y, inc_y, &result );
                 
                 return result;
-
 #else
                 return cblas_zdot( n, x, inc_x, y, inc_y );
 #endif
@@ -53,10 +52,7 @@ namespace Tensors
 #if defined(ACCELERATE_NEW_LAPACK)
                 Scal result {0};
                 
-                cblas_cdotu_sub(
-                    __LAPACK_int(n), x, __LAPACK_int(inc_x), y, __LAPACK_int(inc_y),
-                    &result
-                );
+                cblas_cdotu_sub( n, x, inc_x, y, inc_y, &result );
                 
                 return result;
 #else

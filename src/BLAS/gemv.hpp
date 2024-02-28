@@ -10,9 +10,9 @@ namespace Tensors
         >
         force_inline void gemv(
             const I0 m_, const I1 n_,
-            cref<Scal> alpha, cptr<Scal> A, const I2 ldA_,
-                              cptr<Scal> x, const I3 incx_,
-            cref<Scal> beta,  mptr<Scal> y, const I4 incy_
+            cref<Scal> alpha, cptr<Scal> A_, const I2 ldA_,
+                              cptr<Scal> x_, const I3 incx_,
+            cref<Scal> beta,  mptr<Scal> y_, const I4 incy_
         )
         {
             ASSERT_INT(I0);
@@ -21,11 +21,15 @@ namespace Tensors
             ASSERT_INT(I3);
             ASSERT_INT(I4);
             
-            int m    = int_cast<int>(m_);
-            int n    = int_cast<int>(n_);
-            int ldA  = int_cast<int>(ldA_);
-            int incx = int_cast<int>(incx_);
-            int incy = int_cast<int>(incy_);
+            Int m    = int_cast<Int>(m_);
+            Int n    = int_cast<Int>(n_);
+            Int ldA  = int_cast<Int>(ldA_);
+            Int incx = int_cast<Int>(incx_);
+            Int incy = int_cast<Int>(incy_);
+            
+            auto * A = to_BLAS(A_);
+            auto * x = to_BLAS(x_);
+            auto * y = to_BLAS(y_);
             
             assert_positive(m);
             assert_positive(n);
@@ -46,12 +50,12 @@ namespace Tensors
             else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
                 return cblas_zgemv(
-                    to_BLAS(layout), to_BLAS(opA), m, n, &alpha, A, ldA, x, incx, &beta, y, incy );
+                    to_BLAS(layout), to_BLAS(opA), m, n, to_BLAS(&alpha), A, ldA, x, incx, &beta, y, incy );
             }
             else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
                 return cblas_cgemv(
-                    to_BLAS(layout), to_BLAS(opA), m, n, &alpha, A, ldA, x, incx, &beta, y, incy );
+                    to_BLAS(layout), to_BLAS(opA), m, n, to_BLAS(&alpha), A, ldA, x, incx, &beta, y, incy );
             }
             else
             {

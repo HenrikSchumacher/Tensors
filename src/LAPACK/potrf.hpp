@@ -5,14 +5,16 @@ namespace Tensors
     namespace LAPACK
     {
         template<Layout layout, UpLo uplo, typename Scal, typename I0, typename I1>
-        force_inline int potrf( const I0 n_, Scal * A, const I1 ldA_ )
+        force_inline Int potrf( const I0 n_, Scal * A_, const I1 ldA_ )
         {
             ASSERT_INT(I0);
             ASSERT_INT(I1);
             
-            int n    = int_cast<int>(n_);
-            int ldA  = int_cast<int>(ldA_);
-            int info = 0;
+            Int n    = int_cast<Int>(n_);
+            Int ldA  = int_cast<Int>(ldA_);
+            Int info = 0;
+            
+            auto * A = to_LAPACK(A_);
             
             constexpr char flag = to_LAPACK(
                 layout == Layout::ColMajor

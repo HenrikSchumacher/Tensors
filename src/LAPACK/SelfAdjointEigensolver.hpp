@@ -23,32 +23,32 @@ namespace Tensors
                 : ( uplo == UpLo::Upper ) ? UpLo::Lower : UpLo::Upper
             );
             
-            int n;
+            Int n;
             
-            int ldA;
+            Int ldA;
             
-            int lwork;
+            Int lwork;
             
-            Tensor1<Scalar::Real<Scal>,int> eigs;
+            Tensor1<Scalar::Real<Scal>,Int> eigs;
             
-            Tensor2<Scal,int> A;
+            Tensor2<Scal,Int> A;
             
-            Tensor1<Scal,int> work;
+            Tensor1<Scal,Int> work;
             
-            Tensor1<Scalar::Real<Scal>,int> rwork;
+            Tensor1<Scalar::Real<Scal>,Int> rwork;
             
         public:
             
             template< typename I0, typename I1>
-            int Eigenvalues( const I0 n_, mptr<Scal> A_, const I1 ldA_, mptr<Scalar::Real<Scal>> eigs_ )
+            Int Eigenvalues( const I0 n_, mptr<Scal> A_, const I1 ldA_, mptr<Scalar::Real<Scal>> eigs_ )
             {
                 ASSERT_INT(I0);
                 ASSERT_INT(I1);
                 
-                n    = int_cast<int>(n_);
-                ldA  = int_cast<int>(ldA_);
+                n    = int_cast<Int>(n_);
+                ldA  = int_cast<Int>(ldA_);
                 
-                int info = Prepare( 'N', A_ );
+                Int info = Prepare( 'N', A_ );
                 
                 info = heev( 'N');
                 
@@ -58,17 +58,17 @@ namespace Tensors
             }
             
             template< typename S, typename I0, typename I1, typename I2>
-            int Eigensystem( const I0 n_, mptr<S> A_, const I1 ldA_, mptr<Scalar::Real<S>> eigs_, mptr<S> Q_, const I2 ldQ )
+            Int Eigensystem( const I0 n_, mptr<S> A_, const I1 ldA_, mptr<Scalar::Real<S>> eigs_, mptr<S> Q_, const I2 ldQ )
             {
                 // Returns Q and eigs such that ConjugateTranspose(Q) * A * Q == Diagona(eigs);
                 
                 ASSERT_INT(I0);
                 ASSERT_INT(I1);
                 
-                n    = int_cast<int>(n_);
-                ldA  = int_cast<int>(ldA_);
+                n    = int_cast<Int>(n_);
+                ldA  = int_cast<Int>(ldA_);
                 
-                int info = Prepare( 'V', A_ );
+                Int info = Prepare( 'V', A_ );
                 
                 info = heev( 'V' );
                 
@@ -76,11 +76,11 @@ namespace Tensors
                 
                 if constexpr ( layout == Layout::RowMajor )
                 {
-                    A.template Write<Op::ConjTrans>( Q_, int_cast<int>(ldQ) );
+                    A.template Write<Op::ConjTrans>( Q_, int_cast<Int>(ldQ) );
                 }
                 else
                 {
-                    A.template Write<Op::Id>( Q_, int_cast<int>(ldQ) );
+                    A.template Write<Op::Id>( Q_, int_cast<Int>(ldQ) );
                 }
                 
                 return info;
@@ -126,38 +126,43 @@ namespace Tensors
             
             force_inline int heev( char job  )
             {
-                int info = 0;
+                Int info = 0;
+                
+                auto * A_     = to_LAPACK(A.data());
+                auto * eigs_  = to_LAPACK(eigs.data());
+                auto * work_  = to_LAPACK(work.data());
+                auto * rwork_ = to_LAPACK(rwork.data());
                                 
                 if constexpr ( SameQ<Scal,double> )
                 {
                     #ifdef LAPACK_dsyev
-                        LAPACK_dsyev( &job, &flag, &n, A.data(), &ldA, eigs.data(), work.data(), &lwork, &info );
+                        LAPACK_dsyev( &job, &flag, &n, A_, &ldA, eigs_, work_, &lwork, &info );
                     #else
-                        dsyev_      ( &job, &flag, &n, A.data(), &ldA, eigs.data(), work.data(), &lwork, &info );
+                        dsyev_      ( &job, &flag, &n, A_, &ldA, eigs_, work_, &lwork, &info );
                     #endif
                 }
                 else if constexpr ( SameQ<Scal,float> )
                 {
                     #ifdef LAPACK_ssyev
-                        LAPACK_ssyev( &job, &flag, &n, A.data(), &ldA, eigs.data(), work.data(), &lwork, &info );
+                        LAPACK_ssyev( &job, &flag, &n, A_, &ldA, eigs_, work_, &lwork, &info );
                     #else
-                        ssyev_      ( &job, &flag, &n, A.data(), &ldA, eigs.data(), work.data(), &lwork, &info );
+                        ssyev_      ( &job, &flag, &n, A_, &ldA, eigs_, work_, &lwork, &info );
                     #endif
                 }
                 else if constexpr ( SameQ<Scal,std::complex<double>> )
                 {
                     #ifdef LAPACK_zheev
-                        LAPACK_zheev( &job, &flag, &n, reinterpret_cast<COMPLEX_DOUBLE*>(A.data()), &ldA, eigs.data(), reinterpret_cast<COMPLEX_DOUBLE*>(work.data()), &lwork, rwork.data(), &info );
+                        LAPACK_zheev( &job, &flag, &n, A_, &ldA, eigs_, work_, &lwork, rwork_, &info );
                     #else
-                        zheev_      ( &job, &flag, &n, reinterpret_cast<COMPLEX_DOUBLE*>(A.data()), &ldA, eigs.data(), reinterpret_cast<COMPLEX_DOUBLE*>(work.data()), &lwork, rwork.data(), &info );
+                        zheev_      ( &job, &flag, &n, A_, &ldA, eigs_, work_, &lwork, rwork_, &info );
                     #endif
                 }
                 else if constexpr ( SameQ<Scal,std::complex<float>> )
                 {
                     #ifdef LAPACK_cheev
-                        LAPACK_cheev( &job, &flag, &n, reinterpret_cast<COMPLEX_FLOAT*>(A.data()), &ldA, eigs.data(), reinterpret_cast<COMPLEX_FLOAT*>(work.data()), &lwork, rwork.data(), &info );
+                        LAPACK_cheev( &job, &flag, &n, A_, &ldA, eigs_, work_, &lwork, rwork_, &info );
                     #else
-                        cheev       ( &job, &flag, &n, reinterpret_cast<COMPLEX_FLOAT*>(A.data()), &ldA, eigs.data(), reinterpret_cast<COMPLEX_FLOAT*>(work.data()), &lwork, rwork.data(), &info );
+                        cheev       ( &job, &flag, &n, A_, &ldA, eigs_, work_, &lwork, rwork_, &info );
                     #endif
                 }
                 else

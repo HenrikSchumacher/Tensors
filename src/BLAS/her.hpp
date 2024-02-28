@@ -12,17 +12,20 @@ namespace Tensors
         
         force_inline void her(
             const I0 n_,
-            cref<Scalar::Real<Scal>> alpha, cptr<Scal> x, const I2 incx_,
-                                            mptr<Scal> A, const I3 ldA_
+            cref<Scalar::Real<Scal>> alpha, cptr<Scal> x_, const I2 incx_,
+                                            mptr<Scal> A_, const I3 ldA_
         )
         {
             ASSERT_INT(I0);
             ASSERT_INT(I2);
             ASSERT_INT(I3);
             
-            int n    = int_cast<int>(n_);
-            int incx = int_cast<int>(incx_);
-            int ldA  = int_cast<int>(ldA_);
+            Int n    = int_cast<Int>(n_);
+            Int incx = int_cast<Int>(incx_);
+            Int ldA  = int_cast<Int>(ldA_);
+            
+            auto * x = to_BLAS(x_);
+            auto * A = to_BLAS(A_);
             
             assert_positive(n);
             assert_positive(incx);

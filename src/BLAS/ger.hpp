@@ -10,9 +10,9 @@ namespace Tensors
         >
         force_inline void ger(
             const I0 m_, const I1 n_,
-            cref<Scal> alpha, cptr<Scal> x, const I2 inc_x_,
-                              cptr<Scal> y, const I3 inc_y_,
-                              mptr<Scal> A, const I4 ldA_
+            cref<Scal> alpha, cptr<Scal> x_, const I2 inc_x_,
+                              cptr<Scal> y_, const I3 inc_y_,
+                              mptr<Scal> A_, const I4 ldA_
         )
         {
             // A := alpha * opx(x) * opx(y^T) + A,
@@ -26,11 +26,15 @@ namespace Tensors
             ASSERT_INT(I3);
             ASSERT_INT(I4);
             
-            int m     = int_cast<int>(m_);
-            int n     = int_cast<int>(n_);
-            int ldA   = int_cast<int>(ldA_);
-            int inc_x = int_cast<int>(inc_x_);
-            int inc_y = int_cast<int>(inc_y_);
+            Int m     = int_cast<Int>(m_);
+            Int n     = int_cast<Int>(n_);
+            Int ldA   = int_cast<Int>(ldA_);
+            Int inc_x = int_cast<Int>(inc_x_);
+            Int inc_y = int_cast<Int>(inc_y_);
+            
+            auto * A = to_BLAS(A_);
+            auto * x = to_BLAS(x_);
+            auto * y = to_BLAS(y_);
             
             assert_positive(m);
             assert_positive(n);
@@ -49,25 +53,25 @@ namespace Tensors
             }
             else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
-                if constexpr ( (opx == Op::Id) && ((opy == Op::Id)) )
+                if constexpr ( (opx == Op::Id) && (opy == Op::Id) )
                 {
                     return cblas_zgeru(
                         (layout == Layout::RowMajor) ? Layout::ColMajor : Layout::RowMajor,
                         m, n, &alpha, x, inc_x, y, inc_y, A, ldA
                     );
                 }
-                else if constexpr ( (opx == Op::Conj) && ((opy == Op::Id)) )
+                else if constexpr ( (opx == Op::Conj) && (opy == Op::Id) )
                 {
                     return cblas_zgerc(
                         (layout == Layout::RowMajor) ? Layout::ColMajor : Layout::RowMajor,
-                        m, n, &alpha, x, inc_x, y, inc_y, A, ldA
+                        m, n, to_BLAS(&alpha), x, inc_x, y, inc_y, A, ldA
                     );
                 }
-                else if constexpr ( (opx == Op::Id) && ((opy == Op::Conj)) )
+                else if constexpr ( (opx == Op::Id) && (opy == Op::Conj) )
                 {
                     return cblas_zgerc(
                         to_BLAS(layout),
-                        m, n, &alpha, x, inc_x, y, inc_y, A, ldA
+                        m, n, to_BLAS(&alpha), x, inc_x, y, inc_y, A, ldA
                     );
                 }
                 else
@@ -78,25 +82,25 @@ namespace Tensors
             }
             else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
-                if constexpr ( (opx == Op::Id) && ((opy == Op::Id)) )
+                if constexpr ( (opx == Op::Id) && (opy == Op::Id) )
                 {
                     return cblas_cgeru(
                         (layout == Layout::RowMajor) ? Layout::ColMajor : Layout::RowMajor,
-                        m, n, &alpha, x, inc_x, y, inc_y, A, ldA
+                        m, n, to_BLAS(&alpha), x, inc_x, y, inc_y, A, ldA
                     );
                 }
-                else if constexpr ( (opx == Op::Conj) && ((opy == Op::Id)) )
+                else if constexpr ( (opx == Op::Conj) && (opy == Op::Id) )
                 {
                     return cblas_cgerc(
                         (layout == Layout::RowMajor) ? Layout::ColMajor : Layout::RowMajor,
-                        m, n, &alpha, x, inc_x, y, inc_y, A, ldA
+                        m, n, to_BLAS(&alpha), x, inc_x, y, inc_y, A, ldA
                     );
                 }
-                else if constexpr ( (opx == Op::Id) && ((opy == Op::Conj)) )
+                else if constexpr ( (opx == Op::Id) && (opy == Op::Conj) )
                 {
                     return cblas_cgerc(
                         to_BLAS(layout),
-                        m, n, &alpha, x, inc_x, y, inc_y, A, ldA
+                        m, n, to_BLAS(&alpha), x, inc_x, y, inc_y, A, ldA
                     );
                 }
             }

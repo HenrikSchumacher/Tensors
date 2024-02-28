@@ -11,8 +11,8 @@ namespace Tensors
         >
         force_inline void herk(
             const I0 n_, const I1 k_,
-            cref<Scalar::Real<Scal>> alpha, cptr<Scal> A, const I2 ldA_,
-            cref<Scalar::Real<Scal>> beta , mptr<Scal> C, const I3 ldC_
+            cref<Scalar::Real<Scal>> alpha, cptr<Scal> A_, const I2 ldA_,
+            cref<Scalar::Real<Scal>> beta , mptr<Scal> C_, const I3 ldC_
         )
         {
             ASSERT_INT(I0);
@@ -20,10 +20,13 @@ namespace Tensors
             ASSERT_INT(I2);
             ASSERT_INT(I3);
             
-            int n    = int_cast<int>(n_);
-            int k    = int_cast<int>(k_);
-            int ldA  = int_cast<int>(ldA_);
-            int ldC  = int_cast<int>(ldC_);
+            Int n    = int_cast<Int>(n_);
+            Int k    = int_cast<Int>(k_);
+            Int ldA  = int_cast<Int>(ldA_);
+            Int ldC  = int_cast<Int>(ldC_);
+            
+            auto * A = to_BLAS(A_);
+            auto * C = to_BLAS(C_);
                         
             assert_positive(n);
             assert_positive(k);

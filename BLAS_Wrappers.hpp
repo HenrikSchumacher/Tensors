@@ -6,6 +6,59 @@ namespace Tensors
     {
         // This namespace is to provide wrappers for some BLAS routines.
         
+        using Int = int;
+        
+#ifdef lapack_complex_double
+        using ComplexDouble = lapack_complex_double;
+#else
+        using ComplexDouble = std::complex<double>;
+#endif
+        
+#ifdef lapack_complex_float
+        using ComplexFloat  = lapack_complex_float;
+#else
+        using ComplexFloat  = std::complex<float>;
+#endif
+        
+        inline double * to_BLAS( double * x )
+        {
+            return x;
+        }
+        
+        inline const double * to_BLAS( const double * x )
+        {
+            return x;
+        }
+        
+        inline float * to_BLAS( float * x )
+        {
+            return x;
+        }
+        
+        inline const float * to_BLAS( const float * x )
+        {
+            return x;
+        }
+        
+        inline ComplexDouble * to_BLAS( std::complex<double> * z )
+        {
+            return reinterpret_cast<ComplexDouble*>(z);
+        }
+        
+        inline const ComplexDouble * to_BLAS( const std::complex<double> * z )
+        {
+            return reinterpret_cast<const ComplexDouble*>(z);
+        }
+        
+        inline ComplexFloat * to_BLAS( std::complex<float> * z )
+        {
+            return reinterpret_cast<ComplexFloat*>(z);
+        }
+        
+        inline const ComplexFloat * to_BLAS( const std::complex<float> * z )
+        {
+            return reinterpret_cast<const ComplexFloat*>(z);
+        }
         
         constexpr CBLAS_ORDER to_BLAS( Layout layout )
         {
