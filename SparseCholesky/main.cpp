@@ -7,11 +7,11 @@
 //#define TOOLS_DEBUG
 
 
-#include "Tensors.hpp"
-
 #include "../Accelerate.hpp"
 //#include "../OpenBLAS.hpp"
 
+
+#include "Tensors.hpp"
 #include "Sparse.hpp"
 
 #include "../src/Sparse/Metis.hpp"

@@ -76,7 +76,6 @@
 		AF1F64DF29337FEF00146E64 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
 		AF1F64E229337FEF00146E64 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		AF1F64E42933800900146E64 /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
-		AF339C682AE49AEF000681CC /* MMA.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MMA.hpp; sourceTree = "<group>"; };
 		AF41D3E029E557F200B8D6A8 /* scribble.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = scribble.hpp; sourceTree = "<group>"; };
 		AF5D050B2B52F09000E946CA /* DenseBLAS */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DenseBLAS; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF5D050D2B52F09000E946CA /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
@@ -91,6 +90,8 @@
 		AF9A928E298E63C500242813 /* UnitTests.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UnitTests.entitlements; sourceTree = "<group>"; };
 		AFAD0F812B8ED004002B7179 /* OpenBLAS.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = OpenBLAS.hpp; sourceTree = "<group>"; };
 		AFAD0F822B8ED004002B7179 /* Accelerate.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Accelerate.hpp; sourceTree = "<group>"; };
+		AFD2569A2B8ED72000245E2B /* Base.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Base.hpp; sourceTree = "<group>"; };
+		AFD2569B2B8ED7EE00245E2B /* MMA.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MMA.hpp; sourceTree = "<group>"; };
 		AFD9EA0929337F7E00FC8A85 /* QRAlgorithm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = QRAlgorithm; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFD9EA0B29337F7E00FC8A85 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AFFAC624298ECE5800A2CF4B /* Unit_Test_SpMM */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Unit_Test_SpMM; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -179,22 +180,23 @@
 		AFD9E9F229337F5000FC8A85 = {
 			isa = PBXGroup;
 			children = (
-				AF339C682AE49AEF000681CC /* MMA.hpp */,
 				AF1F64DE29337FEF00146E64 /* LICENSE */,
+				AF1F64E229337FEF00146E64 /* README.md */,
 				AF8EE2602A80038100BF6799 /* submodules */,
 				AFFB63192A49BB8900F90D2D /* SparseMatrices */,
-				AF1F64E229337FEF00146E64 /* README.md */,
 				AF1F64DF29337FEF00146E64 /* src */,
-				AF1F64DD29337FEF00146E64 /* Tensors.hpp */,
-				AF07F1FD2957022B00A82341 /* Dense.hpp */,
 				AFAD0F822B8ED004002B7179 /* Accelerate.hpp */,
 				AFAD0F812B8ED004002B7179 /* OpenBLAS.hpp */,
+				AFD2569A2B8ED72000245E2B /* Base.hpp */,
 				AF13DAEC2B5D94B00040B903 /* BLAS_Wrappers.hpp */,
 				AF13DAED2B5D94F80040B903 /* LAPACK_Wrappers.hpp */,
-				AF99BC1629F4432F007CE9D7 /* GMRES.hpp */,
 				AF99BC1729F7BF3A007CE9D7 /* ConjugateGradient.hpp */,
+				AF99BC1629F4432F007CE9D7 /* GMRES.hpp */,
+				AF07F1FD2957022B00A82341 /* Dense.hpp */,
 				AF07F1FE2957025400A82341 /* Sparse.hpp */,
+				AF1F64DD29337FEF00146E64 /* Tensors.hpp */,
 				AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */,
+				AFD2569B2B8ED7EE00245E2B /* MMA.hpp */,
 				AFD9EA0A29337F7E00FC8A85 /* QRAlgorithm */,
 				AF8BDDE0295A1FBE001D8CCF /* SparseCholesky */,
 				AF9A9287298E5BF600242813 /* UnitTests */,

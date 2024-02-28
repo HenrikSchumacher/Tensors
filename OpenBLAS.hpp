@@ -1,11 +1,6 @@
 #pragma once
 
-//#include "submodules/Tools/Tools.hpp"
-//
-//namespace Tensors
-//{
-//    using namespace Tools;
-//}
+#include "Base.hpp"
 
 #if defined(TENSORS_ILP64)
 
