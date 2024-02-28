@@ -20,12 +20,12 @@
 
 #endif
 
-#define openblas_complex_double std::complex<double>
-#define openblas_complex_float  std::complex<float>
+//#define openblas_complex_double std::complex<double>
+//#define openblas_complex_float  std::complex<float>
 
 #define LAPACK_DISABLE_NAN_CHECK
-#define lapack_complex_double std::complex<double>
-#define lapack_complex_float  std::complex<float>
+//#define lapack_complex_double std::complex<double>
+//#define lapack_complex_float  std::complex<float>
 
 #include <cblas.h>
 #include <lapack.h>
