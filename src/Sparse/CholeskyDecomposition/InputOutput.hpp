@@ -187,6 +187,49 @@ public:
         return std::any_cast<Matrix_T &>( this->GetCache(tag) );
     }
 
+    cref<Matrix_T> GetFactor() const
+    {
+        return GetU();
+    }
+
+    cref<Tensor1<Real,Int>> GetFactorDiagonal() const
+    {
+        std::string tag ( "FactorDiagonal" );
+        
+        if( !InCacheQ(tag) )
+        {
+            // TODO: Debug this.
+            
+            Tensor1<Real,Int> diag ( n );
+            
+            mptr<Real> d = diag.data();
+            
+            JobPointers<LInt> job_ptr ( SN_count, SN_rp.data(), thread_count, false );
+            
+            ParallelDo(
+                [&,this,d]( const Int s )
+                {
+                    const Int i_begin  = SN_rp[s  ];
+                    const Int i_end    = SN_rp[s+1];
+                    
+                    const Int n_0 = i_end - i_begin;
+
+                    cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                    
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        d[i] = Re( U_0[(n_0+1) * (i-i_begin)] );
+                    }
+                },
+                job_ptr
+            );
+            
+            this->SetCache( tag, std::move(diag) );
+        }
+        
+        return std::any_cast<Tensor1<Real,Int> &>( this->GetCache(tag) );
+    }
+
     cref<BinaryMatrix_T> GetA() const
     {
         return A;
