@@ -12,11 +12,11 @@
 
     #if defined(OPENBLAS_USE64BITINT)
         #undef OPENBLAS_USE64BITINT
-    #endfif
+    #endif
 
     #if defined(LAPACK_ILP64)
         #undef LAPACK_ILP64
-    #endfif
+    #endif
 
 #endif
 
