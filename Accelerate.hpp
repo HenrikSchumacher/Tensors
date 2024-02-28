@@ -6,11 +6,19 @@
 
     #define ACCELERATE_LAPACK_ILP64
 
+    #define blasint __LAPACK_int
+
+    #define lapack_int __LAPACK_int
+
 #else
 
     #ifndef ACCELERATE_LAPACK_ILP64
         #undef ACCELERATE_LAPACK_ILP64
     #endif
+
+    #define blasint __LAPACK_int
+
+    #define lapack_int __LAPACK_int
 
 #endif
 
