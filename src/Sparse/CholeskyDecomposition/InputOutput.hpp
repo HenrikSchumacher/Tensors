@@ -192,42 +192,79 @@ public:
         return GetU();
     }
 
-    cref<Tensor1<Real,Int>> GetFactorDiagonal() const
+    cref<JobPointers<Int>> UJobPointers() const
     {
-        std::string tag ( "FactorDiagonal" );
+        std::string tag ( "UJobPointers" );
         
-        if( !InCacheQ(tag) )
+        if( !InPersistentCacheQ(tag) )
         {
-            // TODO: Debug this.
-            
-            Tensor1<Real,Int> diag ( n );
-            
-            mptr<Real> d = diag.data();
-            
-            JobPointers<LInt> job_ptr ( SN_count, SN_rp.data(), thread_count, false );
-            
-            ParallelDo(
-                [&,this,d]( const Int s )
+            this->SetPersistentCache( tag,
+                std::make_any<JobPointers<Int>>( SN_count, SN_rp.data(), thread_count, false )
+            );
+        }
+        
+        return std::any_cast<JobPointers<Int> &>( this->GetPersistentCache(tag) );
+    }
+
+    void WriteFactorDiagonal( mptr<Real> diag ) const
+    {
+        ParallelDo(
+            [&,this,diag]( const Int s )
+            {
+                const Int i_begin  = SN_rp[s  ];
+                const Int i_end    = SN_rp[s+1];
+                
+                const Int n_0 = i_end - i_begin;
+
+                cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                
+                for( Int i = i_begin; i < i_end; ++i )
+                {
+                    diag[i] = Re( U_0[(n_0+1) * (i-i_begin)] );
+                }
+            },
+            UJobPointers()
+        );
+    }
+
+    Real FactorLogDeterminant() const
+    {
+        const auto & job_ptr = UJobPointers();
+        
+        return ParallelDoReduce(
+            [&job_ptr,this]( const Int thread )
+            {
+                Real log_det_local = 0;
+                
+                const Int s_begin  = job_ptr[thread  ];
+                const Int s_end    = job_ptr[thread+1];
+                
+                for( Int s = s_begin; s < s_end; ++s )
                 {
                     const Int i_begin  = SN_rp[s  ];
                     const Int i_end    = SN_rp[s+1];
-                    
+
                     const Int n_0 = i_end - i_begin;
 
                     cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
-                    
+
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        d[i] = Re( U_0[(n_0+1) * (i-i_begin)] );
+                        log_det_local += std::log( Re( U_0[(n_0+1) * (i-i_begin)] ) );
                     }
-                },
-                job_ptr
-            );
-            
-            this->SetCache( tag, std::move(diag) );
-        }
-        
-        return std::any_cast<Tensor1<Real,Int> &>( this->GetCache(tag) );
+                }
+                
+                return log_det_local;
+            },
+            AddReducer<Real,Real>(),
+            Scalar::Zero<Real>,
+            thread_count
+        );
+    }
+
+    Real LogDeterminant() const
+    {
+        return Scalar::Two<Real> * FactorLogDeterminant();
     }
 
     cref<BinaryMatrix_T> GetA() const
