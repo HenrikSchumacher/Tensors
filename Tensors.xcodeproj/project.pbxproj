@@ -89,6 +89,8 @@
 		AF9A9286298E5BF600242813 /* UnitTests */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = UnitTests; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF9A9288298E5BF600242813 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AF9A928E298E63C500242813 /* UnitTests.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UnitTests.entitlements; sourceTree = "<group>"; };
+		AFAD0F812B8ED004002B7179 /* OpenBLAS.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = OpenBLAS.hpp; sourceTree = "<group>"; };
+		AFAD0F822B8ED004002B7179 /* Accelerate.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Accelerate.hpp; sourceTree = "<group>"; };
 		AFD9EA0929337F7E00FC8A85 /* QRAlgorithm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = QRAlgorithm; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFD9EA0B29337F7E00FC8A85 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AFFAC624298ECE5800A2CF4B /* Unit_Test_SpMM */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Unit_Test_SpMM; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -185,6 +187,8 @@
 				AF1F64DF29337FEF00146E64 /* src */,
 				AF1F64DD29337FEF00146E64 /* Tensors.hpp */,
 				AF07F1FD2957022B00A82341 /* Dense.hpp */,
+				AFAD0F822B8ED004002B7179 /* Accelerate.hpp */,
+				AFAD0F812B8ED004002B7179 /* OpenBLAS.hpp */,
 				AF13DAEC2B5D94B00040B903 /* BLAS_Wrappers.hpp */,
 				AF13DAED2B5D94F80040B903 /* LAPACK_Wrappers.hpp */,
 				AF99BC1629F4432F007CE9D7 /* GMRES.hpp */,

@@ -1,6 +1,11 @@
 #pragma once
 
-#include <complex>
+//#include "submodules/Tools/Tools.hpp"
+//
+//namespace Tensors
+//{
+//    using namespace Tools;
+//}
 
 #if defined(TENSORS_ILP64)
 
@@ -34,20 +39,6 @@ namespace Tensors
 {
     constexpr bool AppleAccelerateQ = false;
     constexpr bool OpenBLASQ        = true;
-    
-    namespace BLAS
-    {
-        
-        using Int = blasint;
-        
-    } // namespace BLAS
-    
-    namespace LAPACK
-    {
-        
-        using Int = lapack_int;
-        
-    } // namespace LAPACK
 }
 
 #include "BLAS_Wrappers.hpp"

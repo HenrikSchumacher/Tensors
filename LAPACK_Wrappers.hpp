@@ -4,7 +4,11 @@ namespace Tensors
 {
     namespace LAPACK
     {
-        using Int = int;
+#if defined(TENSORS_ILP64)
+        using Int = int64_t;
+#else
+        using Int = int32_t;
+#endif
         
 #ifdef lapack_complex_double
         using ComplexDouble = lapack_complex_double;
@@ -57,16 +61,6 @@ namespace Tensors
         {
             return reinterpret_cast<const ComplexFloat*>(z);
         }
-        
-        
-        
-//#ifndef __complex__
-//    using COMPLEX_DOUBLE = struct{ double real; double imag; };
-//    using COMPLEX_FLOAT  = struct{ float  real; float  imag; };
-//#else
-//    using COMPLEX_DOUBLE = __complex__ double;
-//    using COMPLEX_FLOAT  = __complex__ float;
-//#endif
         
         // This namespace is to provide wrappers for some LAPACK routines.
         

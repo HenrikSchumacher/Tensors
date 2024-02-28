@@ -1,36 +1,22 @@
 #pragma once
 
-#include <complex>
+//#include "submodules/Tools/Tools.hpp"
+//
+//namespace Tensors
+//{
+//    using namespace Tools;
+//}
+
 
 #if defined(TENSORS_ILP64)
 
     #define ACCELERATE_LAPACK_ILP64
-
-namespace Tensors
-{
-    namespace BLAS
-    {
-        
-        using Int = Int64;
-        
-    } // namespace BLAS
-}
 
 #else
 
     #ifndef ACCELERATE_LAPACK_ILP64
         #undef ACCELERATE_LAPACK_ILP64
     #endif
-
-namespace Tensors
-{
-    namespace LAPACK
-    {
-        
-        using Int = Int32;
-        
-    } // namespace BLAS
-}
 
 #endif
 

@@ -5,8 +5,12 @@ namespace Tensors
     namespace BLAS
     {
         // This namespace is to provide wrappers for some BLAS routines.
-        
-        using Int = int;
+                
+#if defined(TENSORS_ILP64)
+        using Int = int64_t;
+#else
+        using Int = int32_t;
+#endif
         
 #ifdef lapack_complex_double
         using ComplexDouble = lapack_complex_double;
