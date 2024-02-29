@@ -1,19 +1,5 @@
 #pragma once
 
-//How to use:
-
-// Under macos simply include the following and link `-framework Accelerate`:
-//
-//  #define LAPACK_DISABLE_NAN_CHECK
-//  #define ACCELERATE_NEW_LAPACK
-//  #include <Accelerate/Accelerate.h>
-//
-// Alternatively (and on other operating systems), include the following and link `-lcblas -llapack`:
-//
-//  #include <cblas.h>
-//  #include <lapack.h>
-//
-
 #include "../../BLAS_Wrappers.hpp"
 #include "../../LAPACK_Wrappers.hpp"
 
@@ -373,7 +359,6 @@ namespace Tensors
                 A.RequireDiag();
                 
                 CheckDiagonal();
-                
                 
                 row_mutexes = std::vector<std::mutex> ( n );
                 
