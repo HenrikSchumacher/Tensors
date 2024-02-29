@@ -62,12 +62,9 @@ public:
         }
         else
         {
-            //        std::swap_ranges( &A.dims[0], &A.dims[Rank()], &B.dims[0] );
+
             
-            for( Int i = 0; i < Rank(); ++i )
-            {
-                std::swap( A.dims[i], B.dims[i] );
-            }
+            swap( A.dims, B.dims );
             
             swap( A.n, B.n );
             
