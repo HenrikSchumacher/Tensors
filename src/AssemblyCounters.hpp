@@ -55,9 +55,10 @@ namespace Tensors {
         
         const Int line_count = int_cast<Int>( (m * sizeof(LInt) + CacheLineWidth - 1 ) / CacheLineWidth );
         
-        LInt * S_buffer = nullptr;
-        safe_alloc(S_buffer,thread_count+1);
-        mptr<LInt> S = S_buffer;
+        std::vector<LInt> S_buffer (thread_count+1);
+        
+        mptr<LInt> S = &S_buffer[0];
+        
         S[0] = static_cast<LInt>(0);
 
         const Int step = line_count / thread_count;
