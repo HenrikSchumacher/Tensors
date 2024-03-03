@@ -242,7 +242,7 @@ private:
                                 }
                                 
                                 combine_buffers<a_flag,Zero,NRHS,Sequential>(
-                                  COND(a_flag == Generic,a[l],Scalar::One<T>), &X[ldX * j],
+                                  (a_flag == Generic ? a[l] : Scalar::One<T>), &X[ldX * j],
                                   Scalar::Zero<T>,                             &y[0],
                                   nrhs
                                 );
@@ -264,7 +264,7 @@ private:
 
                                 // Add-in
                                 combine_buffers<a_flag,One,NRHS,Sequential>(
-                                  COND(a_flag == Generic,a[l],Scalar::One<T>), &X[ldX * j],
+                                  (a_flag == Generic ? a[l] : Scalar::One<T>), &X[ldX * j],
                                   Scalar::One<T>,                              &y[0],
                                   nrhs
                                 );

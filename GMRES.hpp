@@ -69,7 +69,7 @@ namespace Tensors
         )
         :   n               ( n_                                    )
         ,   max_iter        ( Min(max_iter_,n)                      )
-        ,   eq              ( COND( EQ > VarSize, EQ, eq_count__ )  )
+        ,   eq              ( ( EQ > VarSize ? EQ : eq_count__ )    )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   job_ptr         ( n, thread_count                       )
         ,   Q               ( max_iter + 1, n, eq                   )
@@ -210,7 +210,7 @@ namespace Tensors
             Tensor1<Scal,Int> beta_vec (iter);
             Tensor2<Scal,Int> y        (iter,eq);
             
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 for( Int i = 0; i < iter; ++i )
                 {
@@ -244,7 +244,7 @@ namespace Tensors
                 {
                     for( Int j = 0; j < iter; ++j )
                     {
-                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
                             z(i,k) += y(j,k) * Q(j,i,k);
                         }
@@ -317,7 +317,7 @@ namespace Tensors
                     ComputeScalarProducts( Q.data(i), q, h );
                     
                     // H[i] += h;
-                    for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++ k )
+                    for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++ k )
                     {
                         H(i,iter,k) += h[k];
                     }
@@ -332,7 +332,7 @@ namespace Tensors
             ComputeNorms( q, q_norms );
             
             // H[iter+1][iter] += q_norms;
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++ k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++ k )
             {
                 H(iter+1,iter,k) = q_norms[k];
             }
@@ -349,7 +349,7 @@ namespace Tensors
             
             for( Int i = 0; i < iter; ++ i )
             {
-                for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                 {
                     const Scal xi  = H(i  ,iter,k);
                     const Scal eta = H(i+1,iter,k);
@@ -362,7 +362,7 @@ namespace Tensors
                 }
             }
             {
-                for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                 {
                     const Scal xi  = H(iter  ,iter,k);
                     const Scal eta = H(iter+1,iter,k);
@@ -413,9 +413,9 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
-                            sums[k] += AbsSquared(v[COND(EQ>VarSize,EQ,eq) * i + k]);
+                            sums[k] += AbsSquared(v[(EQ>VarSize ? EQ : eq) * i + k]);
                         }
                     }
                     
@@ -426,7 +426,7 @@ namespace Tensors
             
             real_reduction_buffer.AddReduce( norms.data(), false );
             
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 norms[k] = Sqrt( norms[k] );
             }
@@ -446,9 +446,9 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
-                            sums[k] += Conj(v[COND(EQ>VarSize,EQ,eq) * i + k]) * w[COND(EQ>VarSize,EQ,eq) * i + k];
+                            sums[k] += Conj(v[(EQ>VarSize ? EQ : eq) * i + k]) * w[(EQ>VarSize ? EQ : eq) * i + k];
                         }
                     }
                     
@@ -466,15 +466,15 @@ namespace Tensors
             ParallelDo(
                 [this,v,w,&factors]( const Int i )
                 {
-                    for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                    for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                     {
                         if constexpr ( flag == Scalar::Flag::Minus )
                         {
-                            v[COND(EQ>VarSize,EQ,eq) * i + k] -= w[COND(EQ>VarSize,EQ,eq) * i + k] * factors[k];
+                            v[(EQ>VarSize ? EQ : eq) * i + k] -= w[(EQ>VarSize ? EQ : eq) * i + k] * factors[k];
                         }
                         else
                         {
-                            v[COND(EQ>VarSize,EQ,eq) * i + k] += w[COND(EQ>VarSize,EQ,eq) * i + k] * factors[k];
+                            v[(EQ>VarSize ? EQ : eq) * i + k] += w[(EQ>VarSize ? EQ : eq) * i + k] * factors[k];
                         }
                     }
                 },
@@ -489,7 +489,7 @@ namespace Tensors
                 {
                     RealVector_T factors_inv ( eq );
                     
-                    for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                    for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                     {
                         factors_inv[k] = Inv( factors[k] );
                     }
@@ -499,9 +499,9 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
-                            q[COND(EQ>VarSize,EQ,eq) * i + k] *= factors_inv[k];
+                            q[(EQ>VarSize ? EQ : eq) * i + k] *= factors_inv[k];
                         }
                     }
                 },
@@ -525,7 +525,7 @@ namespace Tensors
         {
             RealVector_T res ( eq );
             
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 res[k] = std::abs(beta[iter][k]);
             }
@@ -537,7 +537,7 @@ namespace Tensors
         {
             RealVector_T res ( eq );
             
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 res[k] = Abs(beta[iter][k]) / b_norms[k];
             }
@@ -547,7 +547,7 @@ namespace Tensors
         bool CheckResiduals() const
         {
             bool succeeded = true;
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 succeeded = succeeded && (Abs(beta[iter][k]) <= TOL[k]);
             }
@@ -568,7 +568,7 @@ namespace Tensors
         std::string ClassName() const
         {
             return std::string(
-                "GMRES<"+ToString(EQ)+","+TypeName<Scal>+","+TypeName<Int>+","+COND(side==Side::Left,"Left","Right")+"> ( " + ToString(eq) + " )"
+                "GMRES<"+ToString(EQ)+","+TypeName<Scal>+","+TypeName<Int>+","+(side==Side::Left ? "Left" : "Right")+"> ( " + ToString(eq) + " )"
             );
         }
     }; // class GMRES

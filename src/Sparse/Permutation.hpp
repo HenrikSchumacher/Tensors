@@ -718,7 +718,7 @@ namespace Tensors
                 
                 for( Int i = i_begin; i < i_end; ++i )
                 {
-                    const LInt begin = outer[ COND( P_TrivialQ, i, p[i] ) ];
+                    const LInt begin = outer[ P_TrivialQ ? i : p[i] ];
                     
                     const LInt new_begin = new_outer[i  ];
                     const LInt new_end   = new_outer[i+1];

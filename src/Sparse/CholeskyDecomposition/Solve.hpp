@@ -165,7 +165,7 @@ protected:
         // Solves L * X = B and stores the result back into B.
         // Assumes that B has size n x rhs_count.
         
-        using Solver_T = LowerSolver<mult_rhsQ,COND( parQ == Parallel,true,false),Scal,Int,LInt>;
+        using Solver_T = LowerSolver<mult_rhsQ,( parQ == Parallel ? true : false),Scal,Int,LInt>;
         
         const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         

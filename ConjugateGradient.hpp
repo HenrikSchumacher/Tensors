@@ -60,7 +60,7 @@ namespace Tensors
         )
         :   n               ( n_                                    )
         ,   max_iter        ( Min(max_iter_,n)                      )
-        ,   eq              ( COND( EQ > VarSize, EQ, static_cast<Int>(eq_count__ ) )  )
+        ,   eq              ( ( EQ > VarSize ? EQ : static_cast<Int>(eq_count__ ) )  )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   r               ( n, eq                                 )
         ,   u               ( n, eq                                 )
@@ -101,7 +101,7 @@ namespace Tensors
             ComputeScalarProducts( r.data(), z.data(), rho );
             
             Real factor = relative_tolerance * relative_tolerance;
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 b_squared_norms[k] = std::abs(rho[k]);
                 TOL[k] = b_squared_norms[k] * factor;
@@ -125,7 +125,7 @@ namespace Tensors
             ParallelDo(
                 [this]( const Int i )
                 {
-                    for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                    for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                     {
                         r[i][k] -= u[i][k];
                     }
@@ -155,7 +155,7 @@ namespace Tensors
                 
                 // alpha = rho / (p.u);
                 ComputeScalarProducts( p.data(), u.data(), alpha );
-                for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                 {
                     alpha[k] = rho[k] / alpha[k];
                 }
@@ -166,7 +166,7 @@ namespace Tensors
                 ParallelDo(
                     [this]( const Int i )
                     {
-                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
                             x[i][k] += alpha[k] * p[i][k];
                             r[i][k] -= alpha[k] * u[i][k];
@@ -187,7 +187,7 @@ namespace Tensors
                 ComputeScalarProducts( r.data(), z.data(), rho );
                 
                 // beta = rho / rho_old;
-                for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                 {
                     beta[k] = rho[k] / rho_old[k];
                 }
@@ -197,7 +197,7 @@ namespace Tensors
                 ParallelDo(
                     [this]( const Int i )
                     {
-                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
                             p[i][k] = z[i][k] + beta[k] * p[i][k];
                         }
@@ -231,10 +231,10 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
                             // We know that all scalar products that we compute have to be real-valued.
-                            sums[k] += Re(Conj(v[COND(EQ>VarSize,EQ,eq) * i + k]) * w[COND(EQ>VarSize,EQ,eq) * i + k]);
+                            sums[k] += Re(Conj(v[(EQ>VarSize ? EQ : eq) * i + k]) * w[(EQ>VarSize ? EQ : eq) * i + k]);
                         }
                     }
                     
@@ -257,7 +257,7 @@ namespace Tensors
         {
             RealVector_T res (eq);
             
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) );
             }
@@ -269,7 +269,7 @@ namespace Tensors
         {
             RealVector_T res(eq);
             
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) / b_squared_norms[k] );
             }
@@ -279,7 +279,7 @@ namespace Tensors
         bool CheckResiduals() const
         {
             bool succeeded = true;
-            for( Int k = 0; k < COND(EQ>VarSize,EQ,eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 succeeded = succeeded && ( Abs(rho[k]) <= TOL[k]);
             }

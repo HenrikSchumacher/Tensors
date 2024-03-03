@@ -64,9 +64,9 @@ int main(int argc, const char * argv[])
         {
             for( Int j = i; j < n; ++j )
             {
-                A_list(k,i,j) = COND(
-                     Scalar::ComplexQ<Scal>,
-                     std::complex<Real> ( unif(engine), unif(engine) ),
+                A_list(k,i,j) = (
+                     Scalar::ComplexQ<Scal> ?
+                     std::complex<Real> ( unif(engine), unif(engine) ) :
                      unif(engine);
                  );
             }

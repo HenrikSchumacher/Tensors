@@ -23,6 +23,7 @@
 //    bool useFMA = false
 //>
 
+// TODO: This one needs a great overhaul in terms of Tiny::Matrix routines.
 namespace Tensors
 {
     // I picked the default values from benchmarks for
@@ -218,7 +219,7 @@ namespace Tensors
                                 for( Int j = 0; j < COLS; ++j )
                                 {
                                     LOOP_UNROLL_FULL
-                                    for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
+                                    for( Int k = 0; k < (fixed ? RHS_COUNT : rhs_count); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
@@ -232,7 +233,7 @@ namespace Tensors
                             for( Int i = 0; i < ROWS; ++i )
                             {
                                 LOOP_UNROLL_FULL
-                                for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
+                                for( Int k = 0; k < (fixed ? RHS_COUNT : rhs_count); ++k )
                                 {
                                     LOOP_UNROLL_FULL
                                     for( Int j = 0; j < COLS; ++j )
@@ -252,7 +253,7 @@ namespace Tensors
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
                                     LOOP_UNROLL_FULL
-                                    for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
+                                    for( Int k = 0; k < (fixed ? RHS_COUNT : rhs_count); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
                                     }
@@ -266,7 +267,7 @@ namespace Tensors
                             for( Int j = 0; j < COLS; ++j )
                             {
                                 LOOP_UNROLL_FULL
-                                for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
+                                for( Int k = 0; k < (fixed ? RHS_COUNT : rhs_count); ++k )
                                 {
                                     LOOP_UNROLL_FULL
                                     for( Int i = 0; i < ROWS; ++i )
@@ -280,7 +281,7 @@ namespace Tensors
                         case 4:
                         {
                             LOOP_UNROLL_FULL
-                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
+                            for( Int k = 0; k < (fixed ? RHS_COUNT : rhs_count); ++k )
                             {
                                 LOOP_UNROLL_FULL
                                 for( Int i = 0; i < ROWS; ++i )
@@ -297,7 +298,7 @@ namespace Tensors
                         case 5:
                         {
                             LOOP_UNROLL_FULL
-                            for( Int k = 0; k < COND(fixed,RHS_COUNT,rhs_count); ++k )
+                            for( Int k = 0; k < (fixed ? RHS_COUNT : rhs_count); ++k )
                             {
                                 LOOP_UNROLL_FULL
                                 for( Int j = 0; j < COLS; ++j )

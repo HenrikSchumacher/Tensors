@@ -367,11 +367,11 @@ namespace Tensors
                         Real abs_squared_u_pivot = AbsSquared(u_pivot);
                         
                         const Scal rho (
-                            COND(
+                            (
                                 Scalar::ComplexQ<Scal>
-                                ,
+                                ?
                                 ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / Sqrt(abs_squared_u_pivot)
-                                ,
+                                :
                                 ( u_pivot > zero ) ? -one : one
                             )
                         );
@@ -464,7 +464,7 @@ namespace Tensors
                     for( Int i = 0; i < n-1; ++i )
                     {
                         T.Diag(i)  = Re(B[i][i]);
-                        T.Upper(i) = COND( Scalar::ComplexQ<Scal>, Abs(B[i][i+1]), B[i][i+1] );
+                        T.Upper(i) = ( Scalar::ComplexQ<Scal>? Abs(B[i][i+1]): B[i][i+1] );
                     }
                     T.Diag(n-1)  = Re(B[n-1][n-1]);
                     
@@ -567,11 +567,11 @@ namespace Tensors
                         Real abs_squared_u_pivot = AbsSquared(u_pivot);
                         
                         const Scal rho (
-                            COND(
+                            (
                                 Scalar::ComplexQ<Scal>
-                                ,
+                                ?
                                 ( abs_squared_u_pivot <= eps_squared * uu ) ? one : -u_pivot / Sqrt(abs_squared_u_pivot)
-                                ,
+                                :
                                 ( u_pivot > zero ) ? -one : one
                             )
                         );
@@ -664,7 +664,7 @@ namespace Tensors
                     for( Int i = 0; i < n-1; ++i )
                     {
                         T.Diag(i)  = Re(B[i][i]);
-                        T.Upper(i) = COND( Scalar::ComplexQ<Scal>, Abs(B[i][i+1]), B[i][i+1] );
+                        T.Upper(i) = ( Scalar::ComplexQ<Scal> ? Abs(B[i][i+1]) : B[i][i+1] );
                     }
                     T.Diag(n-1)  = Re(B[n-1][n-1]);
                 }

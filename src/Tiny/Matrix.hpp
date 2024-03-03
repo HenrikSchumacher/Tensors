@@ -293,9 +293,9 @@ namespace Tensors
 
                 if constexpr ( NotTransposedQ(opB) )
                 {
-                    for( Int i = 0; i < COND(chop_m_Q,m_c,m); ++i )
+                    for( Int i = 0; i < (chop_m_Q ? m_c : m); ++i )
                     {
-                        combine_buffers<beta_flag,alpha_flag,COND(chop_n_Q,0,n),Sequential,op,opA>(
+                        combine_buffers<beta_flag,alpha_flag,(chop_n_Q ? 0 : n),Sequential,op,opA>(
                             beta, &B[ldB*i], alpha, &A[i][0], n_c
                         );
                     }
@@ -308,11 +308,11 @@ namespace Tensors
                     /// I think best performance should be obtained
                     /// by making the fixed-size loop the inner loop.
                     
-                    for( Int j = 0; j < COND(chop_n_Q,n_c,n); ++j )
+                    for( Int j = 0; j < (chop_n_Q ? n_c : n); ++j )
                     {
                         mptr<B_T> B_j = &B[ldB * j];
                         
-                        for( Int i = 0; i < COND(chop_m_Q,m_c,m); ++i )
+                        for( Int i = 0; i < (chop_m_Q ? m_c : m); ++i )
                         {
                             combine_scalars<beta_flag,alpha_flag,op,opA>(
                                 beta, B_j[i], alpha, A[i][j]
@@ -522,9 +522,9 @@ namespace Tensors
                 
                 if constexpr ( NotTransposedQ(opA) )
                 {
-                    for( Int i = 0; i < COND(chop_m_Q,m_c,m); ++i )
+                    for( Int i = 0; i < (chop_m_Q ? m_c : m); ++i )
                     {
-                        combine_buffers<alpha_flag,beta_flag,COND(chop_n_Q,0,n),Sequential,op,opB>(
+                        combine_buffers<alpha_flag,beta_flag,(chop_n_Q ? 0 : n),Sequential,op,opB>(
                             alpha, &A[i][0], beta, &B[ldB*i], n_c
                         );
                     }
@@ -532,11 +532,11 @@ namespace Tensors
                 else if constexpr ( TransposedQ(opA) )
                 {
                     // TODO: Compare with reverse ordering of loops.
-                    for( Int j = 0; j < COND(chop_n_Q,n_c,n); ++j )
+                    for( Int j = 0; j < (chop_n_Q ? n_c : n); ++j )
                     {
                         mptr<B_T> B_j = &B[ldB * j];
                         
-                        for( Int i = 0; i < COND(chop_m_Q,m_c,m); ++i )
+                        for( Int i = 0; i < (chop_m_Q ? m_c : m); ++i )
                         {
                             combine_scalars<alpha_flag,beta_flag,op,opB>(
                                 alpha, A[i][j], beta, B_j[i]
