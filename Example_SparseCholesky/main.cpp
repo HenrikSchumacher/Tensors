@@ -6,10 +6,11 @@
 #define TOOLS_ENABLE_PROFILER
 //#define TOOLS_DEBUG
 
-
-#include "../Accelerate.hpp"
-//#include "../OpenBLAS.hpp"
-
+#ifdef __APPLE__
+    #include "../Accelerate.hpp"
+#else
+    #include "../OpenBLAS.hpp"
+#endif
 
 #include "Tensors.hpp"
 #include "Sparse.hpp"
@@ -32,7 +33,7 @@ using Int    = int32_t;
 int main(int argc, const char * argv[])
 {
     //    print("Hello world!");
-    constexpr Int thread_count   = 8;
+    constexpr Int thread_count   = 1;
     
     const char * homedir = getenv("HOME");
     
@@ -61,19 +62,12 @@ int main(int argc, const char * argv[])
         path + name + "_Matrix.txt", thread_count
     );
 
+    dump(A.ThreadCount());
     dump(A.RowCount());
     dump(A.NonzeroCount());
-
+    dump(nrhs);
+    
     const Int n = A.RowCount();
-
-    Tensor1<Int,Int> p ( n );
-
-    p.ReadFromFile(path + name + "_Permutation.txt");
-
-
-    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
-
-
 
     Tensor1<Scal,Int> b (n);
     Tensor2<Scal,Int> B (n,nrhs);
@@ -88,19 +82,25 @@ int main(int argc, const char * argv[])
 
 
     Scal reg = 0;
+    
+    
+    
+    // Using a matrix reordering created by TAUCS works splendidly.
+    Tensor1<Int,Int> p ( n );
+    p.ReadFromFile(path + name + "_Permutation.txt");
+    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
 
-
-//    Permutation<Int> perm ( perm_array, n, Inverse::False, thread_count );
-
-//    Permutation<Int> perm ( n, thread_count );
-
-//    Metis_Wrapper()( &rp[0], &ci[0], perm );
-
+    
 //    ptic("Metis");
-//    Metis()( A.Outer().data(), A.Inner().data(), perm );
+//    // Corrently, I do not know how to convert metis reordings to ones that are good for parallelization.
+//
+//    Permutation<Int> perm = Metis<Int>()(
+//        A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
+//    );
 //    ptoc("Metis");
-//    print( perm.GetPermutation().ToString() );
 
+    
+    
 //    tic("CHOLMOD::ApproximateMinimumDegree");
 //    Permutation<Int> perm = CHOLMOD::ApproximateMinimumDegree<Int>()(
 //        A.Outer().data(), A.Inner().data(), n, thread_count

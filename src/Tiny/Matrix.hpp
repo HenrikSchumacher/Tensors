@@ -1189,6 +1189,24 @@ namespace Tensors
                 return static_cast<Scal>(0);
             }
             
+            void LUDecomposition_PivotFree()
+            {
+                for( Int k = 0; k < std::min(m,n)-1; ++k )
+                {
+                    const Scal A_kk_inv = Inv( A[k][k] );
+                    
+                    for( Int i = k+1; i < m; ++i )
+                    {
+                        A[i][k] *= A_kk_inv;
+                        
+                        for( Int j = k+1; j < n; ++j )
+                        {
+                            A[i][j] -= A[i][k] * A[k][j];
+                        }
+                    }
+                }
+            }
+            
             
         public:
             

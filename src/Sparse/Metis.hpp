@@ -14,7 +14,6 @@ namespace Tensors
     public:
         
         using Int  = idx_t;
-        using LInt = idx_t;
         
         Metis() = default;
         
@@ -34,10 +33,10 @@ namespace Tensors
             
             Int n = static_cast<Int>(n_);
             
-            Tensor1<Int,Int> rp    ( n + 1  );
-            Tensor1<Int,Int> ci    ( rp_[n] );
-            Tensor1<Int,Int> perm  ( n );
-            Tensor1<Int,Int> iperm ( n );
+            Tensor1<Int,Int> rp    ( static_cast<Int>( n + 1  ) );
+            Tensor1<Int,Int> ci    ( static_cast<Int>( rp_[n] ) );
+            Tensor1<Int,Int> perm  ( static_cast<Int>( n      ) );
+            Tensor1<Int,Int> iperm ( static_cast<Int>( n      ) );
             
             Int nnz_counter = 0;
             
@@ -46,8 +45,8 @@ namespace Tensors
             // We need to eliminate the diagonal entries.
             for( Int i = 0; i < n; ++i )
             {
-                const Int k_begin = rp_[i    ];
-                const Int k_end   = rp_[i + 1];
+                const Int k_begin = static_cast<Int>(rp_[i    ]);
+                const Int k_end   = static_cast<Int>(rp_[i + 1]);
                 
                 for( Int k = k_begin; k < k_end; ++k )
                 {
