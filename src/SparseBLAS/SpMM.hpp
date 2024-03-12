@@ -73,15 +73,21 @@ public:
             {
                 if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMM_impl<Generic,One    ,Zero   ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,Zero   ,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
                 else if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMM_impl<Generic,One    ,One    ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,One    ,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
                 else
                 {
-                    SpMM_impl<Generic,One    ,Generic,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,One    ,Generic,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
             }
             else
@@ -89,15 +95,21 @@ public:
                 // general alpha
                 if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMM_impl<Generic,Generic,One    ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,One    ,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
                 else if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
                 else
                 {
-                    SpMM_impl<Generic,Generic,Generic,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Generic,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
             }
         }
@@ -107,16 +119,21 @@ public:
             {
                 if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMM_impl<One    ,One    ,Zero   ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<One    ,One    ,Zero   ,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
                 else if( beta == static_cast<beta_T>(1) )
                 {
                     SpMM_impl<One    ,One    ,One    ,NRHS,base>(
-                    rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
                 else
                 {
-                    SpMM_impl<One    ,One    ,Generic,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<One    ,One    ,Generic,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
             }
             else
@@ -124,15 +141,21 @@ public:
                 // general alpha
                 if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMM_impl<Generic,Generic,One    ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,One    ,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
                 else if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
                 else
                 {
-                    SpMM_impl<Generic,Generic,Generic,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    SpMM_impl<Generic,Generic,Generic,NRHS,base>(
+                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
+                    );
                 }
             }
         }
@@ -241,11 +264,24 @@ private:
                                     }
                                 }
                                 
-                                combine_buffers<a_flag,Zero,NRHS,Sequential>(
-                                  (a_flag == Generic ? a[l] : Scalar::One<T>), &X[ldX * j],
-                                  Scalar::Zero<T>,                             &y[0],
-                                  nrhs
-                                );
+                                if constexpr ( a_flag == Generic )
+                                {
+                                    combine_buffers<a_flag,Zero,NRHS,Sequential>(
+                                        a[l],            &X[ldX * j],
+                                        Scalar::Zero<T>, &y[0],
+                                        nrhs
+                                    );
+                                }
+                                else if constexpr ( a_flag == One )
+                                {
+                                    // We use if constexpr here so that we do not read from a when it is a nullptr
+                                    combine_buffers<a_flag,Zero,NRHS,Sequential>(
+                                        Scalar::One<T>,  &X[ldX * j],
+                                        Scalar::Zero<T>, &y[0],
+                                        nrhs
+                                    );
+                                }
+                                
                             }
                             
                             // Add for first entry.
@@ -263,11 +299,23 @@ private:
                                 }
 
                                 // Add-in
-                                combine_buffers<a_flag,One,NRHS,Sequential>(
-                                  (a_flag == Generic ? a[l] : Scalar::One<T>), &X[ldX * j],
-                                  Scalar::One<T>,                              &y[0],
-                                  nrhs
-                                );
+                                if constexpr ( a_flag == Generic )
+                                {
+                                    combine_buffers<a_flag,One,NRHS,Sequential>(
+                                        a[l],           &X[ldX * j],
+                                        Scalar::One<T>, &y[0],
+                                        nrhs
+                                    );
+                                }
+                                else if constexpr ( a_flag == One )
+                                {
+                                    // We use if constexpr here so that we do not read from a when it is a nullptr
+                                    combine_buffers<a_flag,One,NRHS,Sequential>(
+                                        Scalar::One<T>, &X[ldX * j],
+                                        Scalar::One<T>, &y[0],
+                                        nrhs
+                                    );
+                                }
                             }
 
                             // Incorporate the local updates into Y-buffer.
@@ -376,7 +424,6 @@ void SpMM_vec(
 
             for( Int i = i_begin; i < i_end; ++i )
             {
-                
                 vec_T<NRHS,y_T> y ( Scalar::Zero<y_T> );
                 
                 const LInt l_begin = rp[i  ];
@@ -401,13 +448,14 @@ void SpMM_vec(
                         copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
                         
                         
-                        if constexpr( a_flag == One )
-                        {
-                            y += x;
-                        }
-                        else if constexpr( a_flag == Generic )
+                        
+                        if constexpr ( a_flag == Generic )
                         {
                             y += a[l] * x;
+                        }
+                        else if constexpr ( a_flag == One )
+                        {
+                            y += x;
                         }
                     }
 
