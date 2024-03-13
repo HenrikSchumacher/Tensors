@@ -15,8 +15,8 @@ public:
         // This is basically a large switch to determine at runtime, which instantiation of SpMM_impl is to be invoked.
         // In particular, this implies that all relevant cases of SpMM_impl are instantiated.
 
-        using alpha_T = std::conditional_t< Scalar::RealQ<alpha_T_>, Scalar::Real<Y_T>, Y_T>;
-        using beta_T  = std::conditional_t< Scalar::RealQ<beta_T_ >, Scalar::Real<Y_T>, Y_T>;
+        using alpha_T = std::conditional_t<Scalar::RealQ<alpha_T_>,Scalar::Real<Y_T>,Y_T>;
+        using beta_T  = std::conditional_t<Scalar::RealQ< beta_T_>,Scalar::Real<Y_T>,Y_T>;
         
         StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
         
@@ -24,9 +24,9 @@ public:
         const beta_T  beta  = scalar_cast<beta_T>(beta_);
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
-        if( alpha == static_cast<alpha_T>(0) )
+        if( alpha == Scalar::Zero<alpha_T> )
         {
-            if( beta == static_cast<beta_T>(0) )
+            if( beta == Scalar::Zero<beta_T> )
             {
                 if( ldY == nrhs )
                 {
@@ -37,13 +37,13 @@ public:
                     ParallelDo(
                         [&]( const Int i )
                         {
-                            zerofy_buffer<NRHS,Sequential>( &Y[ldY*i], nrhs );
+                            zerofy_buffer<NRHS,Seq>( &Y[ldY*i], nrhs );
                         },
                         m, job_ptr.ThreadCount()
                     );
                 }
             }
-            else if( beta == static_cast<beta_T>(1) )
+            else if( beta == Scalar::One<beta_T> )
             {
                 // Do nothing.
             }
@@ -58,7 +58,7 @@ public:
                     ParallelDo(
                         [&]( const Int i )
                         {
-                            scale_buffer<NRHS,Sequential>( beta, &Y[ldY*i], nrhs );
+                            scale_buffer<NRHS,Seq>( beta, &Y[ldY*i], nrhs );
                         },
                         m, job_ptr.ThreadCount()
                     );
@@ -69,15 +69,15 @@ public:
         
         if( a != nullptr )
         {
-            if( alpha == static_cast<alpha_T>(1) )
+            if( alpha == Scalar::One<alpha_T> )
             {
-                if( beta == static_cast<beta_T>(0) )
+                if( beta == Scalar::Zero<beta_T> )
                 {
                     SpMM_impl<Generic,One    ,Zero   ,NRHS,base>(
                         rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
                     );
                 }
-                else if( beta == static_cast<beta_T>(1) )
+                else if( beta == Scalar::One<beta_T> )
                 {
                     SpMM_impl<Generic,One    ,One    ,NRHS,base>(
                         rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
@@ -93,13 +93,13 @@ public:
             else
             {
                 // general alpha
-                if( beta == static_cast<beta_T>(1) )
+                if( beta == Scalar::One<beta_T> )
                 {
                     SpMM_impl<Generic,Generic,One    ,NRHS,base>(
                         rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
                     );
                 }
-                else if( beta == static_cast<beta_T>(0) )
+                else if( beta == Scalar::Zero<beta_T> )
                 {
                     SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(
                         rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
@@ -115,15 +115,15 @@ public:
         }
         else // a == nullptr
         {
-            if( alpha == static_cast<alpha_T>(1) )
+            if( alpha == Scalar::One<alpha_T> )
             {
-                if( beta == static_cast<beta_T>(0) )
+                if( beta == Scalar::Zero<beta_T> )
                 {
                     SpMM_impl<One    ,One    ,Zero   ,NRHS,base>(
                         rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
                     );
                 }
-                else if( beta == static_cast<beta_T>(1) )
+                else if( beta == Scalar::One<beta_T> )
                 {
                     SpMM_impl<One    ,One    ,One    ,NRHS,base>(
                         rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
@@ -139,13 +139,13 @@ public:
             else
             {
                 // general alpha
-                if( beta == static_cast<beta_T>(1) )
+                if( beta == Scalar::One<beta_T> )
                 {
                     SpMM_impl<Generic,Generic,One    ,NRHS,base>(
                         rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
                     );
                 }
-                else if( beta == static_cast<beta_T>(0) )
+                else if( beta == Scalar::Zero<beta_T> )
                 {
                     SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(
                         rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
@@ -266,7 +266,7 @@ private:
                                 
                                 if constexpr ( a_flag == Generic )
                                 {
-                                    combine_buffers<a_flag,Zero,NRHS,Sequential>(
+                                    combine_buffers<a_flag,Zero,NRHS,Seq>(
                                         a[l],            &X[ldX * j],
                                         Scalar::Zero<T>, &y[0],
                                         nrhs
@@ -275,7 +275,7 @@ private:
                                 else if constexpr ( a_flag == One )
                                 {
                                     // We use if constexpr here so that we do not read from a when it is a nullptr
-                                    combine_buffers<a_flag,Zero,NRHS,Sequential>(
+                                    combine_buffers<a_flag,Zero,NRHS,Seq>(
                                         Scalar::One<T>,  &X[ldX * j],
                                         Scalar::Zero<T>, &y[0],
                                         nrhs
@@ -301,7 +301,7 @@ private:
                                 // Add-in
                                 if constexpr ( a_flag == Generic )
                                 {
-                                    combine_buffers<a_flag,One,NRHS,Sequential>(
+                                    combine_buffers<a_flag,One,NRHS,Seq>(
                                         a[l],           &X[ldX * j],
                                         Scalar::One<T>, &y[0],
                                         nrhs
@@ -310,7 +310,7 @@ private:
                                 else if constexpr ( a_flag == One )
                                 {
                                     // We use if constexpr here so that we do not read from a when it is a nullptr
-                                    combine_buffers<a_flag,One,NRHS,Sequential>(
+                                    combine_buffers<a_flag,One,NRHS,Seq>(
                                         Scalar::One<T>, &X[ldX * j],
                                         Scalar::One<T>, &y[0],
                                         nrhs
@@ -319,7 +319,7 @@ private:
                             }
 
                             // Incorporate the local updates into Y-buffer.
-                            combine_buffers<alpha_flag,beta_flag,NRHS,Sequential>(
+                            combine_buffers<alpha_flag,beta_flag,NRHS,Seq>(
                                 alpha, &y[0],
                                 beta,  &Y[ldY * i],
                                 nrhs
@@ -330,11 +330,11 @@ private:
                             // Modify the relevant portion of the Y-buffer.
                             if constexpr( beta_flag == Zero )
                             {
-                                zerofy_buffer<NRHS,Sequential>( &Y[ldY * i] );
+                                zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
                             }
                             else if constexpr( beta_flag == Generic )
                             {
-                                scale_buffer<NRHS,Sequential>( beta, &Y[ldY * i] );
+                                scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
                             }
                             else if constexpr( beta_flag == One )
                             {
@@ -511,7 +511,7 @@ void SpMM_vec(
                     // Modify the relevant portion of the Y-buffer.
                     if constexpr( beta_flag == Zero )
                     {
-                        zerofy_buffer<NRHS,Sequential>( &Y[ldY * i] );
+                        zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
                     }
                     else if constexpr( beta_flag == One )
                     {
@@ -519,7 +519,7 @@ void SpMM_vec(
                     }
                     else if constexpr( beta_flag == Generic )
                     {
-                        scale_buffer<NRHS,Sequential>( beta, &Y[ldY * i] );
+                        scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
 //                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
 //
 //                        z *= beta;

@@ -346,7 +346,7 @@ namespace Tensors
                     mptr<LInt> outer__ = outer.data();
                     mptr<Int>  inner__ = inner.data();
                     
-                    copy_buffer<VarSize,Sequential>( counters.data(list_count-1), &outer__[1], m );
+                    copy_buffer( counters.data(list_count-1), &outer__[1], m );
                     
                     // writing the j-indices into sep_column_indices
                     // the counters array tells each thread where to write
@@ -874,8 +874,10 @@ namespace Tensors
                                 
                                 const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
                                 
-                                copy_buffer<VarSize,Sequential>(
-                                    &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes
+                                copy_buffer(
+                                    &inner.data()[pos], 
+                                    &new_inner.data()[new_pos],
+                                    thread_nonzeroes
                                 );
                             },
                             thread_count
@@ -955,7 +957,7 @@ namespace Tensors
                     
                     PatternCSR C ( m, B.ColCount(), nnz, thread_count );
                     
-                    copy_buffer<VarSize,Sequential>( counters.data(thread_count-1), &C.Outer().data()[1], m );
+                    copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
                     
                     ptic("Counting sort");
                     
@@ -1029,7 +1031,7 @@ namespace Tensors
             {
                 if( WellFormed() )
                 {
-                    SparseBLAS<T_out,Int,LInt> sblas ( thread_count );
+                    SparseBLAS<T_out,Int,LInt> sblas;
                     
                     sblas.template Multiply_DenseMatrix<NRHS>(
                         outer.data(), inner.data(), nullptr,
@@ -1053,7 +1055,7 @@ namespace Tensors
             {
                 if( WellFormed() )
                 {
-                    auto sblas = SparseBLAS<T_ext,Int,LInt>( thread_count );
+                    SparseBLAS<T_ext,Int,LInt> sblas;
                     
                     sblas.template Multiply_DenseMatrix<NRHS>(
                         outer.data(), inner.data(), values,

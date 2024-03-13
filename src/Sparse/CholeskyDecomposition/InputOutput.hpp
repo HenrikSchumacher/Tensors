@@ -142,12 +142,12 @@ public:
                     cptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                     
                     // Copy first row of supernode.
-                    copy_buffer<VarSize,Sequential>( &SN_inner[l_begin], &U_ci[start+n_0], n_1 );
+                    copy_buffer( &SN_inner[l_begin], &U_ci[start+n_0], n_1 );
                     
                     // Copy triangular part.
-                    copy_buffer<VarSize,Sequential>( U_0, &U_val[U_rp[i_begin]      ], n_0 );
+                    copy_buffer( U_0, &U_val[U_rp[i_begin]      ], n_0 );
                     // Copy rectangular part.
-                    copy_buffer<VarSize,Sequential>( U_1, &U_val[U_rp[i_begin] + n_0], n_1 );
+                    copy_buffer( U_1, &U_val[U_rp[i_begin] + n_0], n_1 );
                     
                     // Copy the remaining rows of supernode.
                     for( Int i = i_begin+1; i < i_end; ++i )
@@ -157,16 +157,16 @@ public:
                         // Row `i_loc` of `U_0` has this many nonzero entries.
                         const Int n_0_i = i_end-i;
                         
-                        copy_buffer<VarSize,Sequential>( &U_ci[start+i_loc], &U_ci[U_rp[i]], n_0_i + n_1 );
+                        copy_buffer( &U_ci[start+i_loc], &U_ci[U_rp[i]], n_0_i + n_1 );
                         
                         // Copy triangular part.
-                        copy_buffer<VarSize,Sequential>(
+                        copy_buffer(
                             &U_0[n_0 * i_loc + i_loc],
                             &U_val[U_rp[i]],
                             n_0_i
                         );
                         
-                        copy_buffer<VarSize,Sequential>(
+                        copy_buffer(
                             &U_1[n_1 * i_loc],
                             &U_val[U_rp[i] + n_0_i],
                             n_1

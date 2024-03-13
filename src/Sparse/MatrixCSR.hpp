@@ -325,7 +325,7 @@ namespace Tensors
                     mptr<Int>  inner__ = inner.data();
                     mptr<Scal> value__ = values.data();
                     
-                    copy_buffer<VarSize,Sequential>( counters.data(list_count-1), &outer__[1], m );
+                    copy_buffer( counters.data(list_count-1), &outer__[1], m );
                     
                     // The counters array tells each thread where to write.
                     // Since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.

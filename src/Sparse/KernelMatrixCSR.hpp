@@ -139,11 +139,11 @@ namespace Tensors
                 
                 if( beta == static_cast<Scal_out>(0) )
                 {
-                    zerofy_buffer<VarSize,Sequential>( Y, size, pattern.ThreadCount() );
+                    zerofy_buffer( Y, size, pattern.ThreadCount() );
                 }
                 else
                 {
-                    scale_buffer<VarSize,Sequential>(beta, Y, size, pattern.ThreadCount() );
+                    scale_buffer(beta, Y, size, pattern.ThreadCount() );
                 }
             }
             

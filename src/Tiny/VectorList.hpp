@@ -220,7 +220,7 @@ namespace Tensors
                 //Assuming that a is a list of n pointers pointing to memory of at least size Dimension(1).
                 for( Int i = 0; i < n; ++i )
                 {
-                    copy_buffer<VarSize,Sequential>( a[i], &v[i], length );
+                    copy_buffer( a[i], &v[i], length );
                 }
             }
             
@@ -230,7 +230,7 @@ namespace Tensors
                 //Assuming that a is a list of n pointers pointing to memory of at least size Dimension(1).
                 for( Int i = 0; i < n; ++i )
                 {
-                    copy_buffer<VarSize,Sequential>( &v[i], a[i], length );
+                    copy_buffer( &v[i], a[i], length );
                 }
             }
             

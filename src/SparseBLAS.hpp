@@ -9,8 +9,7 @@ namespace Tensors
 
     public:
         
-        explicit SparseBLAS( const Int thread_count_ )
-        :   thread_count(thread_count_)
+        explicit SparseBLAS()
         {
 //            ptic("SparseBLAS()");
 //            ptoc("SparseBLAS()");
@@ -23,10 +22,6 @@ namespace Tensors
         static constexpr typename Scalar::Flag Generic = Scalar::Flag::Generic;
         static constexpr typename Scalar::Flag One     = Scalar::Flag::Plus;
         static constexpr typename Scalar::Flag Zero    = Scalar::Flag::Zero;
-        
-    protected:
-        
-        Int thread_count = 1;
         
     protected:
         

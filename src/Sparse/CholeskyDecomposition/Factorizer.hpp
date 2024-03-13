@@ -111,10 +111,10 @@ namespace Tensors
             
         public:
             
-//            ~CholeskyFactorizer() = default;
+            ~CholeskyFactorizer() = default;
             
-            ~CholeskyFactorizer()
-            {
+//            ~CholeskyFactorizer()
+//            {
 //                tic("~CholeskyFactorizer");
 //                dump(intersec);
 //                dump(empty_intersec_undetected);
@@ -130,11 +130,9 @@ namespace Tensors
 //                dump(gemm_time);
 //                dump(chol_time);
 //                toc("~CholeskyFactorizer");
-            }
+//            }
             
-            CholeskyFactorizer(
-                CholeskyDecomposition<Scal,Int,LInt> & chol
-            )
+            CholeskyFactorizer( CholeskyDecomposition<Scal,Int,LInt> & chol )
             // shared data
             :   n               ( chol.n                                        )
             ,   A_diag          ( chol.A.Diag().data()                          )
@@ -217,8 +215,6 @@ namespace Tensors
             // Factorization routine.
             void operator()( const Int s )
             {
-//                logvalprint("factorizing supernode",s);
-                
                 const  Int i_begin = SN_rp[s  ];
                 const  Int i_end   = SN_rp[s+1];
                 
@@ -244,10 +240,6 @@ namespace Tensors
                 mptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                 
                 FetchFromA( i_begin, i_end, l_begin, l_end, U_0, U_1);
-//
-//                print("FetchFromA");
-//                valprint("U_0", ArrayToString(U_0, {n_0,n_0}), 6);
-//                valprint("U_1", ArrayToString(U_1, {n_0,n_1}), 6);
                 
                 // We have to fetch the row updates of all descendants of s.
                 // We assume that the descendants of s are already factorized.
@@ -260,32 +252,11 @@ namespace Tensors
                 const Int t_begin = s - desc_counts[s];
                 const Int t_end   = s;
                 
-//                dump(t_begin)
-//                dump(t_end)
-                
                 // TODO: This could be parallelized by adding into local buffers V_0 and V_1 and reducing them into U_0 and U_1.
 
                 FetchFromDescendants( s, t_begin, t_end, n_0, n_1, U_0, U_1 );
-
-//                print("FetchFromDescendants");
-//                valprint("U_0", ArrayToString(U_0, {n_0,n_0}), 6);
-//                valprint("U_1", ArrayToString(U_1, {n_0,n_1}), 6);
-                
-//                logdump(n_0);
-//                logdump(n_1);
                 
                 FactorizeSupernode( n_0, n_1, U_0, U_1 );
-                
-//                print("FactorizeSupernode");
-//                valprint("U_0", ArrayToString(U_0, {n_0,n_0}), 6);
-//                valprint("U_1", ArrayToString(U_1, {n_0,n_1}), 6);
-//
-
-//                C.ClearCache("U");
-//                C.GetU();
-//                
-//                logvalprint("factorized supernode",s);
-//                valprint( "U", ToString(C.GetU().template ToTensor2<Scal>(), 6) );
             
             }
             
@@ -302,22 +273,10 @@ namespace Tensors
                 const  Int n_0 = i_end - i_begin;
                 const  Int n_1 = int_cast<Int>(l_end - l_begin);
                 
-//                print("FetchFromA");
-//                
-//                dump( i_begin );
-//                dump( i_end   );
-//                
-//                dump( l_begin );
-//                dump( l_end   );
-
-                
                 for( Int i = i_begin; i < i_end; ++i )
                 {
                     const LInt k_begin = A_diag[i  ];
                     const LInt k_end   = A_rp  [i+1];
-                                        
-//                    dump( k_begin );
-//                    dump( k_end   );
                     
                     LInt k;
                     
@@ -351,9 +310,6 @@ namespace Tensors
                     }
                     
                     
-//                    print("Start rectangular part");
-                    
-                    
                     // If we arrive here, then there are still a few entries of A to be sorted in.
                     // From now on the insertion position must be in the rectangular part.
                     
@@ -365,9 +321,6 @@ namespace Tensors
                     {
                         const Int j = A_ci [k];
                         
-//                        dump(k);
-//                        dump(j);
-                        
                         // Find the position l of j in SN_inner, then write into U_1[l - l_begin].
                         // Remark: We don't need a check l < l_end here, because we know that we find an l.
                         while( col_l < j )
@@ -375,8 +328,6 @@ namespace Tensors
                             col_l = SN_inner[++l];
                         }
                         U_1[n_1 * (i - i_begin) + (l - l_begin)] = static_cast<Scal>(A_val[k]);
-                        
-//                        dump(A_val[k]);
                     }
                 }
             }
@@ -410,23 +361,6 @@ namespace Tensors
 
                     // TODO: Maybe we should transpose U_0 and U_1 etc. to reduce amount of scattered-reads and adds...
                     // TODO: Then U_0 and U_1 would be ColMajor and we could use BLAS without the C-layer CBLAS.
-                    
-//                    constexpr Int threshold = 16;
-//
-//                    if( (0 < IL_len) && (IL_len <= threshold) )
-//                    {
-//                        ++IL_len_small;
-//                    }
-//
-//                    if( (0< JL_len) && (JL_len <= threshold) )
-//                    {
-//                        ++JL_len_small;
-//                    }
-//
-//                    if( (0 < IL_len) && (IL_len <= threshold) && (0< JL_len) && (JL_len <= threshold) )
-//                    {
-//                        ++IL_len_and_JL_len_small;
-//                    }
                     
                     if( m_0 > ione )
                     {
@@ -530,7 +464,6 @@ namespace Tensors
                                     //          C_1^T is a matrix of size JL_len x 1.
                                     
                                     
-                                    
                                     // TODO: Conjugate B_0 while scatter-reading.
                                     // TODO: This would remove the need for gemm.
                                     if constexpr ( Scalar::RealQ<Scal> )
@@ -538,8 +471,8 @@ namespace Tensors
                                         BLAS::gemv<Layout::RowMajor,Op::Trans>(
                                             m_0, JL_len,
                                             -one, B_1, JL_len,
-                                                  B_0, 1,
-                                            zero, C_1, 1
+                                                  B_0, ione,
+                                            zero, C_1, ione
                                         );
                                     }
                                     else
@@ -547,8 +480,8 @@ namespace Tensors
                                         // We use gemm because gemv does not allow us to conjugate B_0.
                                         
                                         BLAS::gemm<Layout::RowMajor,Op::ConjTrans,Op::Id>(
-                                            1, JL_len, m_0,
-                                            -one, B_0, 1,
+                                            ione, JL_len, m_0,
+                                            -one, B_0, ione,
                                                   B_1, JL_len,
                                             zero, C_1, JL_len
                                         );
@@ -569,20 +502,19 @@ namespace Tensors
                                     BLAS::gemv<Layout::RowMajor,Op::ConjTrans>(
                                         m_0, IL_len,
                                         -one, B_0, IL_len,
-                                              B_1, 1,
-                                        zero, C_1, 1
+                                              B_1, ione,
+                                        zero, C_1, ione
                                     );
                                 }
                                 else // IL_len == ione
                                 {
                                     // IL_len == ione and JL_len == ione: Use BLAS 1
                                     
-                                    C_1[0] = 0;
+                                    C_1[0] = -dot_buffers<VarSize,Seq,Op::Conj,Op::Id>(
+                                        B_0, B_1, m_0
+                                    );
                                     
-                                    for( Int i = 0; i < m_0; ++i )
-                                    {
-                                        C_1[0] -= Conj(B_0[i]) * B_1[i];
-                                    }
+                                     
                                 }
                             }
                             gemm_time += _toc();
@@ -656,18 +588,6 @@ namespace Tensors
                         }
                         
                     } // if( m_0 > ione )
-                    
-                    
-//                    {
-//                        Int dims [2] = {m_0,IL_len};
-//                        valprint("B_0", ArrayToString( B_0,&dims[0],2) );
-//                    }
-//                    
-//                    
-//                    {
-//                        Int dims [2] = {m_0,JL_len};
-//                        valprint("B_1", ArrayToString( B_1, &dims[0], 2 ) );
-//                    }
                         
                 } // for( Int t = t_begin; t < t_end; ++t )
             }
@@ -691,7 +611,7 @@ namespace Tensors
                     else if( n_1 == ione )
                     {
                         BLAS::trsv<Layout::RowMajor, UpLo::Upper, Op::ConjTrans, Diag::NonUnit>(
-                            n_0, U_0, n_0, U_1, 1
+                            n_0, U_0, n_0, U_1, ione
                         );
                     }
                     else // n_1 == izero
@@ -803,7 +723,6 @@ namespace Tensors
                         
                         if( l >= l_end )
                         {
-//                            PrintIntersection( s, t );
                             return;
                         }
                         else
@@ -821,7 +740,6 @@ namespace Tensors
                         
                         if( l >= l_end )
                         {
-//                            PrintIntersection( s, t );
                             return;
                         }
                         else
@@ -841,7 +759,6 @@ namespace Tensors
                 
                 if( j_begin == j_end )
                 {
-//                    PrintIntersection( s, t );
                     return;
                 }
                 
@@ -863,7 +780,6 @@ namespace Tensors
                         }
                         else
                         {
-//                            PrintIntersection( s, t );
                             return;
                         }
                     }
@@ -877,7 +793,6 @@ namespace Tensors
                         }
                         else
                         {
-//                            PrintIntersection( s, t );
                             return;
                         }
                     }
@@ -896,7 +811,6 @@ namespace Tensors
                         }
                         else
                         {
-//                            PrintIntersection( s, t );
                             return;
                         }
                     }
@@ -1017,15 +931,8 @@ namespace Tensors
                     
                     dump(n_1);
                     dump(m_1);
-                    
-//                    valprint( "J", ToString( &SN_inner[j_begin], n_1 , 16 ) );
-//                    valprint( "L", ToString( &SN_inner[l_begin], m_1 , 16 ) );
-//
-//                    valprint( "JJ_pos", ToString(JJ_pos,JL_len,16) );
-//                    valprint( "JL_pos", ToString(JL_pos,JL_len,16) );
                 }
             }
-            
             
         public:
             
@@ -1035,7 +942,6 @@ namespace Tensors
             }
             
         }; // class CholeskyFactorizer
-        
         
     } // namespace Sparse
     

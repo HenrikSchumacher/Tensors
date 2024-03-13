@@ -5,6 +5,7 @@
 
 #define TOOLS_ENABLE_PROFILER
 //#define TOOLS_DEBUG
+//#define TOOLS_AGGRESSIVE_INLINING
 
 #ifdef __APPLE__
     #include "../Accelerate.hpp"
@@ -33,7 +34,7 @@ using Int    = int32_t;
 int main(int argc, const char * argv[])
 {
     //    print("Hello world!");
-    constexpr Int thread_count   = 1;
+    constexpr Int thread_count = 8;
     
     const char * homedir = getenv("HOME");
     
