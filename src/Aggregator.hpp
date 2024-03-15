@@ -21,7 +21,7 @@ namespace Tensors
         using Container_0_T = Tensor1<T_0,LInt>;
 
         LInt current_size   = Scalar::Zero<LInt>;
-        LInt capacity       = Scalar::One<LInt>;
+        LInt capacity       = Scalar::One <LInt>;
         
         Container_0_T container_0 {capacity};
 
@@ -108,6 +108,20 @@ namespace Tensors
 
             copy_buffer( a, &container_0[current_size], n );
             current_size += n;
+        }
+        
+        force_inline void Pop( const LInt n )
+        {
+            if( current_size >= n )
+            {
+                current_size -= n;
+            }
+            else
+            {
+                wprint( ClassName()+"::Pop: Attempt to pop " + ToString(n) + " elements although only " + ToString(current_size) +" elements are present. Emptying container.");
+                
+                current_size = 0;
+            }
         }
 
         Container_0_T & Get()
