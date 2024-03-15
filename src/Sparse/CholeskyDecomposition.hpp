@@ -63,7 +63,7 @@
 namespace Tensors
 {
     namespace Sparse
-    {   
+    {
         template<typename Scal_, typename Int_, typename LInt_>
         class CholeskyDecomposition : public CachedObject
         {
@@ -88,7 +88,6 @@ namespace Tensors
             friend class LowerSolver<true, true, Scal,Int,LInt>;
             
             using VectorContainer_T = Tensor1<Scal,LInt>;
-
             
         protected:
             
@@ -122,8 +121,12 @@ namespace Tensors
             
             // Supernode data:
             
+            Int  amalgamation_threshold = 4;
             bool SN_initialized = false;
             bool SN_factorized  = false;
+            signed char SN_strategy = 0;
+            
+
             
             // Number of supernodes.
             Int SN_count = 0;

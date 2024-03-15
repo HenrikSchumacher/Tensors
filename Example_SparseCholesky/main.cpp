@@ -92,13 +92,13 @@ int main(int argc, const char * argv[])
     Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
 
     
-//    ptic("Metis");
+//    tic("Metis");
 //    // Corrently, I do not know how to convert metis reordings to ones that are good for parallelization.
 //
 //    Permutation<Int> perm = Metis<Int>()(
 //        A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
 //    );
-//    ptoc("Metis");
+//    toc("Metis");
 
     
     
@@ -237,20 +237,30 @@ int main(int argc, const char * argv[])
 
         BT.ReadTransposed(B.data());
 
-//        unc SparseFactor(
-//            _ type: SparseFactorization_t,
-//            _ Matrix: SparseMatrixStructure
-//        ) -> SparseOpaqueSymbolicFactorization
-
+        SparseSymbolicFactorOptions opts = _SparseDefaultSymbolicFactorOptions;
+        
+//        enum class SparseOrder : uint8_t
+//        {
+//          SparseOrderDefault = 0,
+//          SparseOrderUser = 1,
+//          SparseOrderAMD = 2,
+//          SparseOrderMetis = 3,
+//          SparseOrderCOLAMD = 4,
+//        );
+        opts.orderMethod = SparseOrderDefault;
+//        opts.orderMethod = SparseOrderAMD;
+//        opts.orderMethod = SparseOrderMetis;
+//        opts.orderMethod = SparseOrderUser;
+//        opts.order = const_cast<Int*>(perm.GetPermutation().data());
+        
         tic("Accelerate symbolic factorization");
-        SparseOpaqueSymbolicFactorization Lsym = SparseFactor( SparseFactorizationCholesky, pat );
+        SparseOpaqueSymbolicFactorization Lsym = SparseFactor( 
+            SparseFactorizationCholesky, 
+            pat,
+            opts
+        );
         toc("Accelerate symbolic factorization");
 
-//        int * bla = reinterpret_cast<int*>(Lsym.factorization) + 46;
-//
-//        int dims [1] = {n};
-//
-//        print( ArrayToString(bla, &dims[0], 1) );
         print("");
 
         tic("Accelerate numeric factorization");
@@ -260,8 +270,7 @@ int main(int argc, const char * argv[])
         print("");
 
         tic("Accelerate Cholesky vector solve");
-        SparseSolve(
-            L,
+        SparseSolve( L,
             DenseVector_Double{ b.Dimension(0), b.data() },
             DenseVector_Double{ x.Dimension(0), x.data() }
         );
@@ -273,8 +282,7 @@ int main(int argc, const char * argv[])
         print("");
 
         tic("Accelerate Cholesky matrix solve");
-        SparseSolve(
-            L,
+        SparseSolve( L,
             DenseMatrix_Double{
                 B.Dimension(0), B.Dimension(1), B.Dimension(0), SparseAttributes_t(), BT.data()
             }

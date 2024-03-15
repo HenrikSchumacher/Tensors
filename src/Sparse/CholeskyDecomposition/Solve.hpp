@@ -1,9 +1,5 @@
 #pragma once
-
-//###########################################################################################
-//####          Public interface for solve routines
-//###########################################################################################
-    
+ 
 public:
 
     template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>

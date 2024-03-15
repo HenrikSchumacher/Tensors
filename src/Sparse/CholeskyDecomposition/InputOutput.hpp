@@ -331,3 +331,33 @@ public:
     {
         return A_val;
     }
+
+    void SetAmalgamationThreshold( const Int amalgamation_threshold_ )
+    {
+        if( amalgamation_threshold_ != amalgamation_threshold )
+        {
+            amalgamation_threshold = amalgamation_threshold_;
+            SN_initialized = false;
+            SN_factorized  = false;
+        }
+    }
+    Int AmalgamationThreshold() const
+    {
+        return amalgamation_threshold;
+    }
+
+
+    void SetSupernodeStrategy( const signed char strategy )
+    {
+        if( strategy != SN_strategy )
+        {
+            SN_strategy = strategy;
+            SN_initialized = false;
+            SN_factorized  = false;
+        }
+    }
+
+    signed char GetSupernodeStrategy() const
+    {
+        return SN_strategy;
+    }
