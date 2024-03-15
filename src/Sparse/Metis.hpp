@@ -8,7 +8,7 @@ extern "C" {
 namespace Tensors
 {
     
-    template<typename I_0>
+    template<typename I_0, idx_t base = 0>
     class Metis
     {
     public:
@@ -50,7 +50,7 @@ namespace Tensors
                 
                 for( Int k = k_begin; k < k_end; ++k )
                 {
-                    const Int j = static_cast<Int>(ci_[k]);
+                    const Int j = static_cast<Int>(ci_[k]) - base;
                     
                     if( i != j )
                     {
