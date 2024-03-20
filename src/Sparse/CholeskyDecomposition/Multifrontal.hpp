@@ -164,8 +164,7 @@ namespace Tensors
                 SN_updates[s] = Update_T( n_1, n_1, Scal(0) );
                 
                 mptr<Scal> V = SN_updates[s].data();
-                
-                
+                    
 //                Time FetchFromA_start = Clock::now();
                 
                 FetchFromA( i_begin, i_end, j_begin, j_end, U_0, U_1);
@@ -316,10 +315,9 @@ namespace Tensors
                 
                 const Int m_1 = static_cast<Int>(l_end - l_begin);
                 
+                
                 // Update matrix of child node.
                 cptr<Scal> W = SN_updates[t].data();
-                
-//                cptr<Scal> W = SN_updates[t];
                 
                 // We have to scatter-add W into the frontal matrix of s:
                 //
