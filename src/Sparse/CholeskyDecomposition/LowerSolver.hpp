@@ -84,29 +84,6 @@ namespace Tensors
             ,   row_mutexes     ( chol.row_mutexes       )
             {}
             
-        protected:
-            
-//            void _tic()
-//            {
-//                start_time = Clock::now();
-//            }
-//
-//            float _toc()
-//            {
-//                return Duration( start_time, Clock::now() );
-//            }
-            
-            void _tic()
-            {
-            }
-
-            float _toc()
-            {
-                return 0;
-            }
-            
-            
-            
         public:
                 
             // Solver routine.

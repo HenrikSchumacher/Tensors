@@ -74,29 +74,6 @@ namespace Tensors
             ,   x_1             ( X_1_buffer.data()      )
             {}
             
-        protected:
-            
-//            void _tic()
-//            {
-//                start_time = Clock::now();
-//            }
-//
-//            float _toc()
-//            {
-//                return Duration( start_time, Clock::now() );
-//            }
-            
-            void _tic()
-            {
-            }
-
-            float _toc()
-            {
-                return 0;
-            }
-            
-            
-            
         public:
                 
             // Solver routine.

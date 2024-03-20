@@ -12,46 +12,60 @@
 
 // TODO: Compute AMD reordering. Often it works very well!
 
+// TODO: LowerSolve seems to be unneccessary slow for nrhs = 1 and thread_count = 1.
+
 // TODO: Improve scheduling for parallel factorization.
-// DONE: - What to do if top of the tree is not a binary tree?
+// TODO: - What to do if top of the tree is not a binary tree?
 // DONE: - What to do in case of a forest?
 // TODO: - Estimate work to do in subtrees.
 // TODO: - Reorder `subrees` in `Tree` based on this cost estimate.
 
-// TODO: Parallelize symbolic factorization.
-// TODO:     --> Build aTree first and traverse it in parallel to determine SN_inner.
-
 // Priority II:
 
-// TODO: Do we really have to build _two_ EliminationTrees?
+// TODO: Parallelize symbolic factorization.
+// TODO: - Build aTree first and traverse it in parallel to determine SN_inner.
 
-// TODO: Add arguments for leading dimensions.
-// TODO: Add multiplication and add-into possibilities.
+// TODO: Do we really have to build _two_ EliminationTrees?
+// TODO: Can we parallelize EliminationTrees? E.g., build it for chunks of rows and then merge the trees somehow?
+
+// TODO: Improve solve phase:
+// TODO: - trsm/trsv like interface
+// TODO: - Fixed size arithmetic?
+// TODO: - leading dimensions
+// TODO: - multiplication and add-into
 
 // TODO: Compute nested dissection --> Metis, Scotch. Parallel versions? MT-Metis?
 
-// TODO: Speed up supernode update in factorization phase.
-//           --> transpose U_0 and U_1 to reduce scatter_reads/scatter_adds.
-//           --> employ Tiny::BLAS kernels. --> Does not seem to be helpful...
-//           --> is there a way to skip unrelevant descendants?
-//           --> fetching updates from descendants can be done in parallel
 
 // Priority III:
+
 // TODO: hierarchical low-rank factorization of supernodes?
-
-// TODO: Allow the user to supply only upper or lower triangle of matrix.
-
-// TODO: Optional iterative refinement?
+//      --> Superfast Multifrontal Method for Large Structured Linear Systems of Equations
+//
+// TODO: Iterative refinement -> CG solver?
 
 // Priority IV:
-// TODO: hierarchical low-rank factorization of supernodes?
-
 // TODO: incomplete factorization?
 
 // TODO: Maybe load linear combination of matrices A (with sub-pattern, of course) during factorization?
 
-// TODO: parallelize potrf + trsm of large supernodes.
-//           --> not a good idea if Apple Accelerate is used?!?
+// TODO: parallelize potrf + trsm + herk of large supernodes.
+// DONT: not helpful if Apple Accelerate is used?!?
+
+
+// TODO: Speed up supernode update in left-looking factorization phase.
+// TODO: - transpose U_0 and U_1 to reduce scatter_reads/scatter_adds.
+// DONT: - fetching updates from descendants can be done in parallel
+
+
+// DON'Ts:
+
+// DONT: Allow the user to supply only upper or lower triangle of matrix.
+//           --> I think this feature is seldomly used and creates some bad incentives.
+//           --> iterative refinement would need the whole matrix anyways to be fast.
+
+// DONT: employ Tiny::BLAS kernels. --> Does not seem to be helpful...
+//           --> Did not help; at least on M1, the BLAS kernels are fast also for small sizes.
 
 
 // Super helpful literature:
@@ -604,3 +618,5 @@ namespace Tensors
 // DONE: User interface for lower/upper solves. (2032-07-30)
 
 // DONE: A_inner_perm seems to be a bit wasteful; we neither need the inverse permutation nor scratch. (2032-07-30)
+
+// DONE: Skip some unrelevant descendants in left-looking factorization.

@@ -149,7 +149,6 @@ protected:
         ptoc("Initialize solvers");
         
         // Parallel traversal in preorder
-        
         aTree.template Traverse_Preordered<parQ>( F_list );
         
         ptoc(tag);
