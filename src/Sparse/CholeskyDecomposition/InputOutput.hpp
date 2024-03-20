@@ -272,7 +272,7 @@ public:
         return A;
     }
 
-    cref<Permutation<Int>> GetPermutation() const
+    cref<Permutation_T> GetPermutation() const
     {
         return perm;
     }
@@ -321,6 +321,16 @@ public:
     {
         return SN_rec_val;
     }
+
+//    cref<Tensor1<LInt,Int>> SN_UpdatePointers() const
+//    {
+//        return SN_up_ptr;
+//    }
+//
+//    cref<Tensor1<Scal,LInt>> SN_UpdateValues() const
+//    {
+//        return SN_up_val;
+//    }
 
     cref<Tensor1<Int,Int>> RowToSN() const
     {

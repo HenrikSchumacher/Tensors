@@ -22,6 +22,11 @@ public:
                     FindFundamentalSupernodes();
                     break;
                 }
+                case 2:
+                {
+                    FindAmalgamatedSupernodes();
+                    break;
+                }
                 default:
                 {
                     FindMaximalSupernodes();
@@ -29,12 +34,7 @@ public:
                 }
             }
             
-//            SN_FindFundamentalSupernodes();
-            
-            
-
-            // DEBUGGING
-            TestRowToSupernode();
+//            TestRowToSupernode();
             
             SN_rp.Resize( SN_count+1 );
             
@@ -53,6 +53,195 @@ public:
 
 protected:
 
+    void FindAmalgamatedSupernodes()
+    {
+        // Compute supernodal symbolic factorization with so-called _fundamental supernodes_.
+        // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
+        // https://www.osti.gov/servlets/purl/6756314
+        
+        // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
+
+        ptic(ClassName()+"::FindAmalgamatedSupernodes");
+        
+        // temporary arrays
+    //            Tensor1<Int,Int> prev_row(n);// Array to aggregate column indices of previous row of U.
+        Tensor1<Int,Int> curr_row(n);// Array to aggregate column indices of current  row of U.
+        Tensor1<Int,Int> scratch (n);// Some scratch space for UniteSortedBuffers.
+        
+        Int curr_n_0 = 0; // Holds the number of rows in current supernode.
+        Int curr_n_1 = 0; // Holds the number of column indices in current supernode.
+        Int curr_i_0 = 0; // Holds the index  of first row in current supernode.
+
+        Int prev_n_0 = 0; // Holds the number of rows in previous supernode.
+        Int prev_n_1 = 0; // Holds the number of column indices in previous supernode.
+    //            Int prev_i_0 = 0; // Holds the index of first row in previous supernode
+
+        
+        // TODO: Fix this to work with unsinged integers.
+        Tensor1<Int,Int> prev_col_nz(n,-1);
+
+        // i-th row of U belongs to supernode row_to_SN[i].
+        row_to_SN   = Tensor1< Int,Int> (n);
+        
+        // Holds the current number of supernodes.
+        SN_count    = 0;
+        // Pointers from supernodes to their starting rows.
+        SN_rp       = Tensor1< Int,Int> (n+2);
+        
+        // Pointers from supernodes to their starting position in SN_inner.
+        SN_outer    = Tensor1<LInt,Int> (n+2);
+        SN_outer[0] = 0;
+        
+        // To be filled with the column indices of super nodes.
+        // Will later be moved to SN_inner.
+        Aggregator<Int,LInt> SN_inner_agg ( 2 * A.NonzeroCount(), thread_count );
+        
+        // Start first supernode.
+        SN_rp[0]     = 0;
+        row_to_SN[0] = 0;
+        SN_count     = 0;
+        
+        // TODO: Should be parallelizable by processing subtrees of elimination tree in parallel.
+        // TODO: Even better: Build aTree first (we need only to know the fundamental rows for that). Then collect SN_inner by traversing aTree in parellel.
+        // TODO: --> Can we precompute somehow the size of SN_inner_agg? That would greatly help to reduce copy ops and to schedule its generation.
+        
+        for( Int i = 1; i < n+1; ++i ) // Traverse rows.
+        {
+            if( FundamentalQ( i, prev_col_nz ) )
+            {
+                // i is going to be the first node of the newly created fundamental supernode.
+                // However, we do not now at the moment how long the supernode is going to be.
+                
+                // Instead building the new supernode, we first have to finish the current supernode.
+                
+                curr_n_0 = i - curr_i_0;
+                
+                // The nonzero pattern of upper(A) belongs definitely to the pattern of U.
+                // We have to find all nonzero columns j of row curr_i_0 of A such that j > i-1,
+                // because that will be the ones belonging to the rectangular part.
+
+                // We know that A.Inner(A.Diag(curr_i_0)) == curr_i_0 < i.
+                // Hence we can start the search here:
+                {
+                    LInt k = A.Diag(curr_i_0) + 1;
+                    
+                    const LInt k_end = A.Outer(curr_i_0+1);
+                    
+                    while( (A.Inner(k) < i) && (k < k_end) ) { ++k; }
+                    
+                    curr_n_1 = int_cast<Int>(k_end - k);
+                    
+                    copy_buffer( &A.Inner(k), curr_row.data(), curr_n_1 );
+                }
+                
+                // Next, we have to merge the column indices of the children of i_0 into row.
+                const Int l_begin = eTree.ChildPointer(curr_i_0  );
+                const Int l_end   = eTree.ChildPointer(curr_i_0+1);
+                
+                // Traverse all children of curr_i_0 in the eTree. Most of the time it's zero, one or two children. Seldomly it's more.
+                for( Int l = l_begin; l < l_end; ++l )
+                {
+                    const Int j = eTree.ChildIndex(l);
+                    // We have to merge the column indices of child j that are greater than i into U_row.
+                    // This is the supernode where we find the j-th row of U.
+                    const Int k = row_to_SN[j];
+                    
+                    if( k == SN_count )
+                    {
+                        // No need to unite anything.
+                        continue;
+                    }
+                    
+                    // Notice that because of j < i, we only have to consider the reactangular part of this supernode.
+                    
+                          LInt a = SN_outer[k  ];
+                    const LInt b = SN_outer[k+1];
+                    
+                    // Only consider column indices of j-th row of U that are greater than last row i-1 in current supernode.
+                    while( (SN_inner_agg[a] < i) && (a < b) ) { ++a; }
+                    
+                    if( a < b )
+                    {
+                        curr_n_1 = UniteSortedBuffers(
+                            curr_row.data(),  curr_n_1,
+                            &SN_inner_agg[a], int_cast<Int>(b - a),
+                            scratch.data()
+                        );
+                        swap( curr_row, scratch );
+                    }
+                }
+
+                // TODO: Do some meaningful check here.
+                bool amalgamateQ = (SN_count > 0) && (curr_n_0 + prev_n_0 <= amalgamation_threshold);
+                
+                if( amalgamateQ )
+                {
+                    // We need to merge previous and current column indices.
+                    
+                    // Discard previous supernode's column indices that are < i.
+                          LInt a = SN_outer[SN_count-1];
+                    const LInt b = SN_outer[SN_count  ];
+
+                    while( (SN_inner_agg[a] < i) && (a < b) ) { ++a; }
+                    
+                    if( a < b )
+                    {
+                        curr_n_1 = UniteSortedBuffers(
+                            curr_row.data(),  curr_n_1,
+                            &SN_inner_agg[a], int_cast<Int>(b - a),
+                            scratch.data()
+                        );
+                        swap( curr_row, scratch );
+                    }
+                    
+                    
+                    // Remove current supernode.
+                    --SN_count;
+                    
+
+                    
+                    // Remove the column indices for previous supernode.
+                    SN_inner_agg.Pop( prev_n_1 );
+
+                    // Tell all rows of current supernode that they belong to the previous node instead.
+                    for( Int k = i - curr_n_0; k < i; ++k )
+                    {
+                        row_to_SN[k] = SN_count;
+                    }
+
+                    curr_n_0 = prev_n_0 + curr_n_0;
+                }
+                
+                // Now curr_row is ready to be pushed into SN_inner.
+                SN_inner_agg.Push( curr_row.data(), curr_n_1 );
+
+                // Start new supernode.
+                ++SN_count;
+                
+                SN_outer[SN_count] = SN_inner_agg.Size();
+                SN_rp   [SN_count] = curr_i_0 = i;
+                
+                prev_n_0 = curr_n_0;
+                prev_n_1 = curr_n_1;
+            }
+            else
+            {
+                // Continue supernode.
+            }
+            
+            // Remember where to find i-th row.
+            if( i < n )
+            {
+                row_to_SN[i] = SN_count;
+            }
+            
+        } // for( Int i = 0; i < n+1; ++i )
+        
+        SN_inner = std::move(SN_inner_agg.Get());
+        
+        ptoc(ClassName()+"::FindAmalgamatedSupernodes");
+    }
+
     void FindMaximalSupernodes()
     {
         // Compute supernodal symbolic factorization with so-called _fundamental supernodes_.
@@ -61,7 +250,7 @@ protected:
         
         // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
 
-        ptic(ClassName()+"::SN_FindMaximalSupernodes");
+        ptic(ClassName()+"::FindMaximalSupernodes");
         
         // temporary arrays
 //            Tensor1<Int,Int> prev_row(n);// Array to aggregate column indices of previous row of U.
@@ -241,7 +430,7 @@ protected:
         
         SN_inner = std::move(SN_inner_agg.Get());
         
-        ptoc(ClassName()+"::SN_FindMaximalSupernodes");
+        ptoc(ClassName()+"::FindMaximalSupernodes");
     }
 
     void FindFundamentalSupernodes()
@@ -467,6 +656,8 @@ protected:
 
     bool TestRowToSupernode()
     {
+        ptic(ClassName()+"TestRowToSupernode");
+        
         bool succeededQ = true;
         
         for( Int s = 0; s < SN_count; ++s )
@@ -484,5 +675,8 @@ protected:
                 }
             }
         }
+        
+        ptoc(ClassName()+"TestRowToSupernode");
+        
         return succeededQ;
     }

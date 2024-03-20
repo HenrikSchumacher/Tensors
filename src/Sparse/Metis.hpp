@@ -25,12 +25,17 @@ namespace Tensors
             mptr<I_1> rp_, mptr<I_2> ci_, const I_3 n_, const I_4 final_thread_count = 1
         )
         {
-//            Int opts [METIS_NOPTIONS] = {};
+            // Computes a nested dissection reordering of _symmetric_ sparsity pattern, rp, ci.
+            // n  = number of rows = number of columns
+            // rp = rowpointers: An increasing array of integers of size n+1 starting at 0. Last entry is number of nonzeroes.
+            // ci = columnindices: An array of length rp[n].
+            // ci[rp[i]],...,ci[rp[i+]] are the column indices of the i-th row.
+            
+        
+            // TODO: Do a symmetrization if needed?
+            
+            ptic("Preprocessing");
 
-//            METIS_SetDefaultOptions(&opts[0]);
-            
-//            opts[METIS_OPTION_NUMBERING] = 0;
-            
             Int n = static_cast<Int>(n_);
             
             Tensor1<Int,Int> rp    ( static_cast<Int>( n + 1  ) );
@@ -42,7 +47,10 @@ namespace Tensors
             
             rp[0] = 0;
             
-            // We need to eliminate the diagonal entries.
+            
+            // TODO: This could be parallelized, but I don't think that there is a need to do this.
+            
+            // We need to discard the diagonal entries.
             for( Int i = 0; i < n; ++i )
             {
                 const Int k_begin = static_cast<Int>(rp_[i    ]);
@@ -61,6 +69,7 @@ namespace Tensors
                 
                 rp[i+1] = nnz_counter;
             }
+            ptoc("Preprocessing");
             
             ptic("METIS_NodeND");
             (void)METIS_NodeND(

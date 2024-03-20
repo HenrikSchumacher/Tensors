@@ -4,7 +4,9 @@ protected:
 
     void Init()
     {
-        Int target_split_level = static_cast<Int>( std::ceil(std::log2( static_cast<double>(thread_count) )) + 3 );
+        ptic(ClassName()+"::Init");
+        
+        Int target_split_level = thread_count <= 1 ? 1 : static_cast<Int>( std::ceil(std::log2( static_cast<double>(thread_count) )) + 3 );
         
         // First we build the adjacency matrix A of the tree.
         post = Permutation<Int> ( n-1, thread_count );
@@ -158,5 +160,5 @@ protected:
         
         // Now post.GetPermutation() contains the post ordering.
 
-
+        ptoc(ClassName()+"::Init");
     }

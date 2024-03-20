@@ -12,7 +12,7 @@ private:
 
     Int n = 0;
 
-    alignas(Alignment) Scal * restrict a = nullptr ;
+    Scal * restrict a = nullptr ;
 
 public:
 

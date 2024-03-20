@@ -144,7 +144,8 @@ int main(int argc, const char * argv[])
     print("");
 
     tic("Cholesky numeric factorization");
-    S.NumericFactorization(A.Values().data(), reg);
+//    S.NumericFactorization_LeftLooking(A.Values().data(), reg);
+    S.NumericFactorization_Multifrontal(A.Values().data(), reg);
     toc("Cholesky numeric factorization");
 
     print("");

@@ -240,7 +240,7 @@ namespace Tensors
                     {
                         // Triangle solve U_0^H * x_0 = b_0 while overwriting x_0.
                         BLAS::trsv<Layout::RowMajor, UpLo::Upper,Op::ConjTrans,Diag::NonUnit>(
-                            n_0, U_0, n_0, x_0, 1
+                            n_0, U_0, n_0, x_0, ione
                         );
                         
                         if( n_1 > izero )
@@ -249,8 +249,8 @@ namespace Tensors
                             BLAS::gemv<Layout::RowMajor,Op::ConjTrans>(
                                 n_0, n_1,             // XXX Op::ConjTrans -> Op::Trans
                                 -one, U_1, n_1,       // XXX n_1 -> n_0
-                                      x_0, 1,
-                                zero, x_1, 1
+                                      x_0, ione,
+                                zero, x_1, ione
                             );
                             
                             // Scatter-add x_1 into b_1.

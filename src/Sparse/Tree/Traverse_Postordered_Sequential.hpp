@@ -20,16 +20,6 @@ public:
             stack[i] = Root();
             depth[i] = zero;
             
-//            Int i = -1; // stack pointer
-//
-//            // Push the children of the root onto stack. The root itself is not to be processed.
-//            for( Int k = ChildPointer(Root()+1); k --> ChildPointer(Root()); )
-//            {
-//                ++i;
-//                stack[i]   = ChildIndex(k);
-//                depth[i]   = 0;
-//            }
-            
             // post order traversal of the tree
             while( i >= zero )
             {
@@ -51,6 +41,13 @@ public:
                         stack[++i] = ChildIndex(k);
                         depth[i]   = d+1;
                     }
+                    
+//                    // Pushing the children in forward order onto the stack.
+//                    for( Int k = k_begin; k < k_end; ++k )
+//                    {
+//                        stack[++i] = ChildIndex(k);
+//                        depth[i]   = d+1;
+//                    }
                 }
                 else
                 {
