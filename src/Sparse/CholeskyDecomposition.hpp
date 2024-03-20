@@ -3,8 +3,8 @@
 #include "../../BLAS_Wrappers.hpp"
 #include "../../LAPACK_Wrappers.hpp"
 
-#include "CholeskyDecomposition/CholeskyFactorizer_LeftLooking.hpp"
-#include "CholeskyDecomposition/CholeskyFactorizer_Multifrontal.hpp"
+#include "CholeskyDecomposition/LeftLooking.hpp"
+#include "CholeskyDecomposition/Multifrontal.hpp"
 #include "CholeskyDecomposition/UpperSolver.hpp"
 #include "CholeskyDecomposition/LowerSolver.hpp"
 
@@ -216,33 +216,6 @@ namespace Tensors
             
             ~CholeskyDecomposition() = default;
             
-
-//            template<typename ExtLInt, typename ExtInt>
-//            CholeskyDecomposition(
-//                cptr<ExtLInt> A_outer,
-//                cptr<ExtInt>  A_inner,
-//                Permutation<Int> && perm_
-//            )
-//            :   n               ( Max( izero, perm_.Size() )                 )
-//            ,   thread_count    ( Max( ione, perm_.ThreadCount())            )
-//            {
-//                std::string tag = ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*,  Permutation<" + TypeName<Int>+ "> )";
-//                
-//                ptic(tag);
-//                
-//                perm         = Permutation_T( std::move( perm_) );
-//
-//                A            = BinaryMatrix_T( A_outer, A_inner, n, n, perm.ThreadCount() );
-//                
-//                A_inner_perm = A.Permute( perm, perm );
-//                
-//                A_val        = Tensor1<Scal,LInt>( A.NonzeroCount() );
-//                
-//                Init();
-//                
-//                ptoc(tag);
-//            }
-            
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
                 cptr<ExtLInt> A_outer,
@@ -298,7 +271,7 @@ namespace Tensors
                 ptoc(tag);
             }
             
-            // Constructor most likely used in practice.
+            // This is the constructor that will most likely to be used in practice.
             // p is supposed to be a vector of size n_ containing a fill-in reducing permutation of [0,...,n[.
             template<typename ExtLInt, typename ExtInt, typename ExtInt2>
             CholeskyDecomposition(
@@ -311,51 +284,11 @@ namespace Tensors
                     A_outer, A_inner, Permutation_T( p, n_, Inverse::False, thread_count_ )
                 )
             {}
+
             
             
-//            // Constructor if the user has applied a fill-in
-//            // reducing permutation to the matrix already.
-//            template<typename ExtLInt, typename ExtInt>
-//            CholeskyDecomposition(
-//                cptr<ExtLInt> A_outer,
-//                cptr<ExtInt>  A_inner,
-//                Int n_, Int thread_count_
-//            )
-//            :   n               ( Max( izero, n_)                    )
-//            ,   thread_count    ( Max( ione, thread_count_)          )
-//            {
-//                std::string tag = ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*, " + TypeName<Int>+ ", " + TypeName<Int>+ " )";
-//
-//                ptic(tag);
-//                    
-//                perm         = Permutation_T( n_, thread_count ); // use identity permutation
-//                    
-//                A            =  ( A_outer, A_inner, n, n, thread_count );
-//                    
-//                A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
-//                    
-//                A_val        = Tensor1<Scal,LInt>( A.NonzeroCount() );
-//
-//                A_inner_perm.iota( thread_count );
-//                    
-//                Init();
-//                
-//
-//                
-//                ptoc(tag);
-//            }
-            
-//            template<typename ExtLInt, typename ExtInt>
-//            CholeskyDecomposition(
-//                cptr<ExtLInt> A_outer,
-//                cptr<ExtInt>  A_inner,
-//                Int n_, Int thread_count_
-//            )
-//            :   CholeskyDecomposition(
-//                    A_outer, A_inner, Permutation_T( n_, thread_count_ )
-//                )
-//            {}
-            
+            // Constructor if the user has applied a fill-in
+            // reducing permutation to the matrix already.
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
                 cptr<ExtLInt> A_outer,

@@ -1,8 +1,8 @@
 #pragma once
 
-//###########################################################################################
+//########################################################################################
 //####          Supernodal numeric factorization
-//###########################################################################################
+//########################################################################################
             
 public:
 
@@ -30,7 +30,6 @@ public:
         this->ClearCache();
         
         reg = reg_;
-//        A_inner_perm.Permute( A_val_, A_val.data(), Inverse::False );
         
         ParallelDo(
             [&]( const LInt i )
@@ -86,8 +85,6 @@ public:
         SN_factorized = true;
         
         ptic(tag + ": Release update buffers.");
-//        SN_up_ptr = Tensor1<LInt, Int>(  Int(0) );
-//        SN_up_val = Tensor1<Scal,LInt>( LInt(0) );
         
         SN_updates = std::vector<Update_T> ( LInt(0) );
         
@@ -113,7 +110,6 @@ public:
         this->ClearCache();
         
         reg = reg_;
-    //        A_inner_perm.Permute( A_val_, A_val.data(), Inverse::False );
         
         ParallelDo(
             [&]( const LInt i )
