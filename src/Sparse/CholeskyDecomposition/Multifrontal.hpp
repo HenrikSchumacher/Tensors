@@ -66,8 +66,8 @@ namespace Tensors
             
             // local data
             
-            Tensor1<Int,Int> idx;
-            Tensor1<Int,Int> lut;
+            Tensor1<Int,Int>   idx;
+            Tensor1<Int,Int>   lut;
 
             // Monitors.
             
@@ -162,8 +162,20 @@ namespace Tensors
                 
                 // TODO: Can we somehow avoid zeroing out explicitly?
                 SN_updates[s] = Update_T( n_1, n_1, Scal(0) );
-                
                 mptr<Scal> V = SN_updates[s].data();
+                
+//                if( n_1 > 0 )
+//                {
+//                    SN_updates[s] = (Scal*)calloc( n_1 * n_1, sizeof(Scal) );
+//                }
+                
+//                if( n_1 > 0 )
+//                {
+//                    safe_alloc( SN_updates[s], n_1 * n_1 );
+//                    zerofy_buffer( SN_updates[s], n_1 * n_1 );
+//                }
+//                
+//                mptr<Scal> V  = SN_updates[s];
                     
 //                Time FetchFromA_start = Clock::now();
                 
@@ -204,6 +216,14 @@ namespace Tensors
                     
                     // Deallocate child's update buffer.
                     SN_updates[t] = Update_T();
+                    
+//                    if( SN_updates[t]!= nullptr )
+//                    {
+//                        free(SN_updates[t]);
+//                        SN_updates[t] = nullptr;
+//                    }
+                    
+//                    safe_free(SN_updates[t]);
                 }
                 
 //                FetchFromChildren_time += Tools::Duration( FetchFromChildren_start, Clock::now() );
@@ -318,6 +338,7 @@ namespace Tensors
                 
                 // Update matrix of child node.
                 cptr<Scal> W = SN_updates[t].data();
+//                cptr<Scal> W = SN_updates[t];
                 
                 // We have to scatter-add W into the frontal matrix of s:
                 //
@@ -427,14 +448,14 @@ namespace Tensors
                     if( n_1 > ione )
                     {
                         BLAS::trsm<Layout::RowMajor,Side::Left,UpLo::Upper,Op::ConjTrans,Diag::NonUnit>(
-                                                                                                        n_0, n_1, one, U_0, n_0, U_1, n_1
-                                                                                                        );
+                            n_0, n_1, one, U_0, n_0, U_1, n_1
+                        );
                     }
                     else if( n_1 == ione )
                     {
                         BLAS::trsv<Layout::RowMajor,UpLo::Upper,Op::ConjTrans,Diag::NonUnit>(
-                                                                                             n_0, U_0, n_0, U_1, ione
-                                                                                             );
+                            n_0, U_0, n_0, U_1, ione
+                        );
                     }
                     else // n_1 == izero
                     {
@@ -477,192 +498,6 @@ namespace Tensors
                     }
                 }
             }
-            
-        protected:
-
-//            void ComputeIntersection( const Int s, const Int t )
-//            {
-//                ++intersection_counter;
-//                // Compute the intersecting column indices of s-th and t-th supernode.
-//                // We assume that hence that t is a descendant of s.
-//                // In particular, this implies t < s
-//                
-//                // s-th supernode has triangular part
-//                //
-//                //  I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
-//                //
-//                // and rectangular part
-//                //
-//                //  J = [SN_inner[SN_outer[s]],[SN_inner[SN_outer[s]+1],...,[
-//                //
-//                // t-th supernode has triangular part
-//                //
-//                //  K = [SN_rp[t],SN_rp[t]+1,...,SN_rp[t+1][
-//                //
-//                // and rectangular part
-//                //
-//                //  L = [SN_inner[SN_outer[t]],[SN_inner[SN_outer[t]+1],...,[
-//                //
-//                
-//                // We have to compute
-//                // - the positions II_pos of I \cap L in I,
-//                // - the positions IL_pos of I \cap L in L,
-//                // - the positions JJ_pos of J \cap L in J,
-//                // - the positions JL_pos of J \cap L in L.
-//
-//                // On return the numbers IL_len, JL_len contain the lengths of the respective lists.
-//  
-//
-//                IL_len = 0;
-//                JL_len = 0;
-//                
-//                ++intersec;
-//                
-//                const  Int i_begin = SN_rp[s  ];
-//                const LInt l_end   = SN_outer[t+1];
-//                
-//                
-//                // Quick check whether the convex hulls of index ranges overlap.
-//                if( SN_inner[l_end-1] < i_begin )
-//                {
-////                    ++empty_intersec_detected;
-//                    return;
-//                }
-//                
-//                // Go through I and L in ascending order and collect intersection indices.
-//
-//                const  Int i_end   = SN_rp[s+1];
-//                
-//                const LInt j_begin = SN_outer[s  ];
-//                const LInt j_end   = SN_outer[s+1];
-//                
-//                const LInt l_begin = SN_outer[t  ];
-//                
-//                debug_assert( l_begin < l_end, "We should have l_begin < l_end; otherwise t would not be a descendant of s, right?" ); // bc. s would not be a child of t otherwise.
-//                
-//                 Int i = i_begin;
-//                LInt l = l_begin;
-//                
-//                Int L_l = SN_inner[l];
-//                
-//                while( true )
-//                {
-//                    if( i < L_l )
-//                    {
-//                        ++i;
-//                        
-//                        if( i >= i_end )
-//                        {
-//                            break;
-//                        }
-//                    }
-//                    else if( L_l < i )
-//                    {
-//                        ++l;
-//                        
-//                        if( l >= l_end )
-//                        {
-//                            return;
-//                        }
-//                        else
-//                        {
-//                            L_l = SN_inner[l];
-//                        }
-//                    }
-//                    else // i == L_l
-//                    {
-//                        II_pos[IL_len] = int_cast<Int>(i-i_begin);
-//                        IL_pos[IL_len] = int_cast<Int>(l-l_begin);
-//                        ++IL_len;
-//                        ++i;
-//                        ++l;
-//                        
-//                        if( l >= l_end )
-//                        {
-//                            return;
-//                        }
-//                        else
-//                        {
-//                            L_l = SN_inner[l];
-//                        }
-//                        
-//                        if( i >= i_end )
-//                        {
-//                            break;
-//                        }
-//  
-//                    }
-//                }
-//                
-//                // Go through J and L in ascending order and collect intersection indices.
-//                
-//                if( j_begin == j_end )
-//                {
-//                    return;
-//                }
-//                
-//                LInt j = j_begin;
-////                LInt l = l_begin;         // We can continue with l where it were before...
-//                
-//                Int J_j = SN_inner[j];
-////                Int L_l = SN_inner[l];    // ... and thus, we can keep the old L_l, too.
-//                
-//                while( true )
-//                {
-//                    if( J_j < L_l )
-//                    {
-//                        ++j;
-//                        
-//                        if( j < j_end )
-//                        {
-//                            J_j = SN_inner[j];
-//                        }
-//                        else
-//                        {
-//                            return;
-//                        }
-//                    }
-//                    else if( L_l < J_j )
-//                    {
-//                        ++l;
-//                        
-//                        if( l < l_end )
-//                        {
-//                            L_l = SN_inner[l];
-//                        }
-//                        else
-//                        {
-//                            return;
-//                        }
-//                    }
-//                    else // J_j == L_l
-//                    {
-//                        JJ_pos[JL_len] = int_cast<Int>(j-j_begin);
-//                        JL_pos[JL_len] = int_cast<Int>(l-l_begin);
-//                        ++JL_len;
-//                        ++j;
-//                        ++l;
-//                        
-//                        if( (l < l_end) && (j < j_end) )
-//                        {
-//                            L_l = SN_inner[l];
-//                            J_j = SN_inner[j];
-//                        }
-//                        else
-//                        {
-//                            return;
-//                        }
-//                    }
-//                }
-//                
-////                if( (IL_len == izero) && (JL_len == izero) )
-////                {
-////                    ++empty_intersec_undetected;
-////                }
-//            }
-            
-            
-            
             
             
         public:

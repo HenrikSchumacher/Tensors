@@ -508,10 +508,26 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/homebrew/lib,
+					/opt/homebrew/opt/openblas/lib,
+					/opt/homebrew/Cellar/libomp/18.1.2/lib,
+					"/opt/homebrew/Cellar/suite-sparse/7.6.1/lib",
+				);
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = "-lmetis";
+				OTHER_LDFLAGS = (
+					"-lamd",
+					"-lmetis",
+					"-lomp",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				SYSTEM_HEADER_SEARCH_PATHS = (
+					/opt/homebrew/include,
+					/opt/homebrew/opt/openblas/include,
+					/opt/homebrew/Cellar/libomp/18.1.2/include,
+					"/opt/homebrew/Cellar/suite-sparse/7.6.1/include/suitesparse",
+				);
 			};
 			name = Debug;
 		};
@@ -521,10 +537,26 @@
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
 				ENABLE_HARDENED_RUNTIME = NO;
+				LIBRARY_SEARCH_PATHS = (
+					/opt/homebrew/lib,
+					/opt/homebrew/opt/openblas/lib,
+					/opt/homebrew/Cellar/libomp/18.1.2/lib,
+					"/opt/homebrew/Cellar/suite-sparse/7.6.1/lib",
+				);
 				ONLY_ACTIVE_ARCH = YES;
-				OTHER_LDFLAGS = "-lmetis";
+				OTHER_LDFLAGS = (
+					"-lamd",
+					"-lmetis",
+					"-lomp",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
+				SYSTEM_HEADER_SEARCH_PATHS = (
+					/opt/homebrew/include,
+					/opt/homebrew/opt/openblas/include,
+					/opt/homebrew/Cellar/libomp/18.1.2/include,
+					"/opt/homebrew/Cellar/suite-sparse/7.6.1/include/suitesparse",
+				);
 			};
 			name = Release;
 		};
@@ -594,7 +626,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -650,6 +682,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
+					/opt/homebrew/Cellar/libomp/18.1.2/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -662,12 +695,17 @@
 					"-pthread",
 					"-fenable-matrix",
 					"-Weffc++",
+					"-Xpreprocessor",
+					"-fopenmp",
 				);
+				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
+					/opt/homebrew/Cellar/libomp/18.1.2/include,
 				);
+				USER_HEADER_SEARCH_PATHS = "";
 			};
 			name = Debug;
 		};
@@ -677,7 +715,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
-				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				CLANG_ENABLE_OBJC_WEAK = YES;
@@ -728,6 +766,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
+					/opt/homebrew/Cellar/libomp/18.1.2/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -739,12 +778,17 @@
 					"-pthread",
 					"-fenable-matrix",
 					"-Weffc++",
+					"-Xpreprocessor",
+					"-fopenmp",
 				);
+				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
+					/opt/homebrew/Cellar/libomp/18.1.2/include,
 				);
+				USER_HEADER_SEARCH_PATHS = "";
 			};
 			name = Release;
 		};

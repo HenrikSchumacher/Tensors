@@ -8,6 +8,16 @@
 #include "CholeskyDecomposition/UpperSolver.hpp"
 #include "CholeskyDecomposition/LowerSolver.hpp"
 
+#include <boost/asio.hpp>
+#include <boost/asio/detail/config.hpp>
+#include <boost/asio/detail/noncopyable.hpp>
+#include <boost/asio/detail/scheduler.hpp>
+#include <boost/asio/detail/thread_group.hpp>
+#include <boost/asio/execution_context.hpp>
+
+#include <boost/asio/detail/push_options.hpp>
+#include <boost/asio/thread_pool.hpp>
+
 // Priority I:
 
 // TODO: Compute AMD reordering. Often it works very well!
@@ -253,30 +263,30 @@ namespace Tensors
                 // The matrix reordering is parallelized.
                 // But when run single-threaded, it is better to avoid it.
                 
-                if( thread_count == 1 )
-                {
-                    Tensor1<Int,Int> parents ( n );
-                    
-                    (void)PermutedEliminationTreeParents(
-                        n, A_outer, A_inner,
-                        perm.GetPermutation().data(),
-                        perm.GetInversePermutation().data(),
-                        parents.data()
-                    );
-                    
-                    eTree = Tree<Int>( std::move(parents), thread_count );
-                    
-                    if( eTree.PostOrderedQ() )
-                    {
-                        eTree_initialized = true;
-                    }
-                    else
-                    {
-                        perm.Compose( eTree.PostOrdering(), Compose::Post );
-                        
-                        eTree = Tree<Int>();
-                    }
-                }
+//                if( thread_count == 1 )
+//                {
+//                    Tensor1<Int,Int> parents ( n );
+//                    
+//                    (void)PermutedEliminationTreeParents(
+//                        n, A_outer, A_inner,
+//                        perm.GetPermutation().data(),
+//                        perm.GetInversePermutation().data(),
+//                        parents.data()
+//                    );
+//                    
+//                    eTree = Tree<Int>( std::move(parents), thread_count );
+//                    
+//                    if( eTree.PostOrderedQ() )
+//                    {
+//                        eTree_initialized = true;
+//                    }
+//                    else
+//                    {
+//                        perm.Compose( eTree.PostOrdering(), Compose::Post );
+//                        
+//                        eTree = Tree<Int>();
+//                    }
+//                }
                 
                 A_inner_perm = A.Permute( perm, perm );
                 
@@ -320,41 +330,41 @@ namespace Tensors
                 
                 A_val = Tensor1<Scal,LInt>( A.NonzeroCount() );
                 
-                if( thread_count > 1 )
-                {
+//                if( thread_count > 1 )
+//                {
                     perm = Permutation_T( n_, thread_count ); // use identity permutation
                         
                     A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
 
                     A_inner_perm.iota( thread_count );
-                }
-                else
-                {
-                    Tensor1<Int,Int> parents ( n );
-                    
-                    (void)EliminationTreeParents( n, A_outer, A_inner, parents.data() );
-                    
-                    eTree = Tree<Int>( std::move(parents), thread_count );
-                    
-                    if( eTree.PostOrderedQ() )
-                    {
-                        perm = Permutation_T( n_, thread_count ); // use identity permutation
-                        
-                        A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
-                        
-                        A_inner_perm.iota( thread_count );
-                        
-                        eTree_initialized = true;
-                    }
-                    else
-                    {
-                        perm = eTree.PostOrdering();
-                        
-                        A_inner_perm = A.Permute( perm, perm );
-                        
-                        eTree = Tree<Int>();
-                    }
-                }
+//                }
+//                else
+//                {
+//                    Tensor1<Int,Int> parents ( n );
+//                    
+//                    (void)EliminationTreeParents( n, A_outer, A_inner, parents.data() );
+//                    
+//                    eTree = Tree<Int>( std::move(parents), thread_count );
+//                    
+//                    if( eTree.PostOrderedQ() )
+//                    {
+//                        perm = Permutation_T( n_, thread_count ); // use identity permutation
+//                        
+//                        A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
+//                        
+//                        A_inner_perm.iota( thread_count );
+//                        
+//                        eTree_initialized = true;
+//                    }
+//                    else
+//                    {
+//                        perm = eTree.PostOrdering();
+//                        
+//                        A_inner_perm = A.Permute( perm, perm );
+//                        
+//                        eTree = Tree<Int>();
+//                    }
+//                }
                 
                 Init();
                 

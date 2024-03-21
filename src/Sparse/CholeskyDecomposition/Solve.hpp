@@ -1,5 +1,3 @@
-#pragma once
- 
 public:
 
     template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
@@ -22,11 +20,25 @@ public:
         
         if( nrhs == ione )
         {
-            SN_Solve<false,parQ,op>();
+            if( thread_count > 1 )
+            {
+                SN_Solve<false,parQ,op>();
+            }
+            else
+            {
+                SN_Solve<false,Sequential,op>();
+            }
         }
         else
         {
-            SN_Solve<true, parQ,op>();
+            if( thread_count > 1 )
+            {
+                SN_Solve<true,parQ,op>();
+            }
+            else
+            {
+                SN_Solve<true,Sequential,op>();
+            }
         }
         
         WriteSolution( X_out );
@@ -50,11 +62,25 @@ public:
         
         if( nrhs == ione )
         {
-            SN_UpperSolve<false,parQ>();
+            if( thread_count > 1 )
+            {
+                SN_UpperSolve<false,parQ>();
+            }
+            else
+            {
+                SN_UpperSolve<false,Sequential>();
+            }
         }
         else
         {
-            SN_UpperSolve<true, parQ>();
+            if( thread_count > 1 )
+            {
+                SN_UpperSolve<true,parQ>();
+            }
+            else
+            {
+                SN_UpperSolve<true,Sequential>();
+            }
         }
         
         WriteSolution( X_out );
@@ -77,11 +103,25 @@ void LowerSolve( cptr<ExtScal> B, mptr<ExtScal> X_out, const Int nrhs_ = ione )
     
     if( nrhs == ione )
     {
-        SN_LowerSolve<false,parQ>();
+        if( thread_count > 1 )
+        {
+            SN_LowerSolve<false,parQ>();
+        }
+        else
+        {
+            SN_LowerSolve<false,Sequential>();
+        }
     }
     else
     {
-        SN_LowerSolve<true, parQ>();
+        if( thread_count > 1 )
+        {
+            SN_LowerSolve<true,parQ>();
+        }
+        else
+        {
+            SN_LowerSolve<true,Sequential>();
+        }
     }
     
     WriteSolution( X_out );
@@ -134,7 +174,7 @@ protected:
             return;
         }
         
-        const Int use_threads = ( parQ== Parallel) ? thread_count : 1;
+        const Int use_threads = ( parQ == Parallel) ? thread_count : 1;
         
         ptic("Initialize solvers");
         std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
@@ -160,6 +200,7 @@ protected:
         // Solves L * X = B and stores the result back into B.
         // Assumes that B has size n x rhs_count.
         
+        // Use locks if run in parallel.
         using Solver_T = LowerSolver<mult_rhsQ,( parQ == Parallel ? true : false),Scal,Int,LInt>;
         
         const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";

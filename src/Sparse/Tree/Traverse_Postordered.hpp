@@ -1,8 +1,3 @@
-
-//###########################################################################################
-//####          Traversal_Postorder
-//###########################################################################################
-
 public:
 
     template<class Worker_T>
@@ -142,49 +137,9 @@ public:
                 k_begin, k_end, Scalar::One<Int>, use_threads
             );
 
-
             ptoc(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
 
         } // for( Int d = target_split_level; d --> Scalar::One<Int> ; )
-        
-        
-//        
-//        
-//        
-//        // Process the root node's children. (Merge all the subtrees)
-//        // We can do this in parallel, because these subtrees have pairwise disjoint index sets.
-//        // (Often, there is just a single subtree.)
-//        {
-//            const Int k_begin = ChildPointer( Root()     );
-//            const Int k_end   = ChildPointer( Root() + 1 );
-//    
-//
-//            const Int use_threads = parQ == Parallel ? Min( thread_count, k_end - k_begin ) : one;
-//    
-//            ParallelDo_Dynamic(
-//                [=,this,&workers]( const Int thread, const Int k )
-//                {
-//                    const Time start_time = Clock::now();
-//    
-//                    mref<Worker_T> worker = *workers[thread];
-//    
-//                    const Int node = ChildIndex(k);
-//    
-//                    worker( node );
-//    
-//                    const Time stop_time = Clock::now();
-//                    logprint(
-//                        tag + ": Worker " + ToString(thread) + " required " +
-//                             ToString(Tools::Duration(start_time,stop_time)) +
-//                            " s for completing node " + ToString(node) + "."
-//                    );
-//                },
-//                k_begin, k_end, Scalar::One<Int>,
-//                use_threads
-//            );
-//    
-//        }
-
 
         ptoc(tag);
     }

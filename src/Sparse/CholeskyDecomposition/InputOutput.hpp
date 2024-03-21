@@ -1,5 +1,3 @@
-#pragma once
-
 //###########################################################################################
 //####          IO routines
 //###########################################################################################
@@ -322,14 +320,9 @@ public:
         return SN_rec_val;
     }
 
-//    cref<Tensor1<LInt,Int>> SN_UpdatePointers() const
+//    cref<std::vector<Update_T>> SN_UpdateValues() const
 //    {
-//        return SN_up_ptr;
-//    }
-//
-//    cref<Tensor1<Scal,LInt>> SN_UpdateValues() const
-//    {
-//        return SN_up_val;
+//        return SN_updates;
 //    }
 
     cref<Tensor1<Int,Int>> RowToSN() const

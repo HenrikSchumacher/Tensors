@@ -17,6 +17,7 @@
 #include "Sparse.hpp"
 
 #include "../src/Sparse/Metis.hpp"
+#include "../src/Sparse/ApproximateMinimumDegree.hpp"
 
 //#include "../src/CHOLMOD/CholeskyDecomposition.hpp"
 //#include "../src/CHOLMOD/ApproximateMinimumDegree.hpp"
@@ -84,21 +85,25 @@ int main(int argc, const char * argv[])
 
     Scal reg = 0;
     
+    print("");
     
-    
-    // Using a matrix reordering created by TAUCS works splendidly.
-    Tensor1<Int,Int> p ( n );
-    p.ReadFromFile(path + name + "_Permutation.txt");
-    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
+//    // Using a matrix reordering created by TAUCS works splendidly.
+//    Tensor1<Int,Int> p ( n );
+//    p.ReadFromFile(path + name + "_Permutation.txt");
+//    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
 
-    
+//    
 //    tic("Metis");
-//    // Corrently, I do not know how to convert metis reordings to ones that are good for parallelization.
-//
-//    Permutation<Int> perm = Metis<Int>()(
+//    Permutation<Int> perm = Sparse::Metis<Int>()(
 //        A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
 //    );
 //    toc("Metis");
+    
+    tic("AMD");
+    Permutation<Int> perm = Sparse::ApproximateMinimumDegree<Int>()(
+        A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
+    );
+    toc("AMD");
 
     
     

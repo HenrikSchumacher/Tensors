@@ -1,9 +1,3 @@
-#pragma once
-
-//########################################################################################
-//####          Supernodal numeric factorization
-//########################################################################################
-            
 public:
 
     template<typename ExtScal>
@@ -14,7 +8,7 @@ public:
     {
         NumericFactorization_Multifrontal( A_val_, reg_ );
     }
-    
+
     template<typename ExtScal>
     void NumericFactorization_Multifrontal(
         cptr<ExtScal> A_val_,
@@ -26,24 +20,10 @@ public:
         ptic(tag);
         
         SymbolicFactorization();
+        
+        ReadNonzeroValues( A_val_, reg_ );
 
-        this->ClearCache();
-        
-        reg = reg_;
-        
-        ParallelDo(
-            [&]( const LInt i )
-            {
-                A_val[i] = static_cast<Scal>(A_val_[A_inner_perm[i]]);
-            },
-            A_inner_perm.Size(), static_cast<LInt>(thread_count)
-        );
-        
-        ptic(tag + ": Zerofy buffers.");
-        SN_tri_val.SetZero( thread_count );
-        SN_rec_val.SetZero( thread_count );
-        ptoc(tag + ": Zerofy buffers.");
-        
+        ClearFactors();
         
         ptic(tag + ": Initialize update buffers.");
         
@@ -62,6 +42,8 @@ public:
         
         SN_updates = std::vector<Update_T> ( SN_count );
         
+    //        SN_updates = std::vector<Update_T> ( SN_count, nullptr );
+        
         ptoc(tag + ": Initialize update buffers.");
         
         
@@ -77,16 +59,25 @@ public:
             thread_count
         );
         
+        Factorizer_MF_T worker(*this);
+        
         ptoc(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
-        aTree.template Traverse_Postordered<Parallel>( SN_list  );
+        if( thread_count > 1 )
+        {
+            aTree.template Traverse_Postordered<Parallel>( SN_list );
+        }
+        else
+        {
+            aTree.template Traverse_Postordered<Sequential>( SN_list );
+        }
         
         SN_factorized = true;
         
         ptic(tag + ": Release update buffers.");
         
-        SN_updates = std::vector<Update_T> ( LInt(0) );
+        SN_updates = std::vector<Update_T>();
         
         ptoc(tag + ": Release update buffers.");
         
@@ -107,22 +98,9 @@ public:
         
         SymbolicFactorization();
 
-        this->ClearCache();
+        ReadNonzeroValues( A_val_, reg_ );
         
-        reg = reg_;
-        
-        ParallelDo(
-            [&]( const LInt i )
-            {
-                A_val[i] = static_cast<Scal>(A_val_[A_inner_perm[i]]);
-            },
-            A_inner_perm.Size(), static_cast<LInt>(thread_count)
-        );
-        
-        ptic(tag + ": Zerofy buffers.");
-        SN_tri_val.SetZero( thread_count );
-        SN_rec_val.SetZero( thread_count );
-        ptoc(tag + ": Zerofy buffers.");
+        ClearFactors();
         
         ptic(tag + ": Initialize factorizers");
         
@@ -139,10 +117,54 @@ public:
         ptoc(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
-        aTree.template Traverse_Postordered<Parallel>( SN_list  );
+        if( thread_count > 1 )
+        {
+            aTree.template Traverse_Postordered<Parallel>( SN_list );
+        }
+        else
+        {
+            aTree.template Traverse_Postordered<Sequential>( SN_list );
+        }
         
         SN_factorized = true;
         
         ptoc(tag);
         
     }
+
+
+
+    template<typename ExtScal>
+    void ReadNonzeroValues( cptr<ExtScal> A_val_, const ExtScal reg_ )
+    {
+        std::string tag = ClassName()+"::ReadNonzeroValues<" + TypeName<ExtScal> + ">";
+       
+        ptic(tag);
+        
+        ParallelDo(
+            [&]( const LInt i )
+            {
+                A_val[i] = static_cast<Scal>(A_val_[A_inner_perm[i]]);
+            },
+            A_inner_perm.Size(), static_cast<LInt>(thread_count)
+        );
+        
+        reg = reg_;
+        
+        this->ClearCache();
+        
+        ptoc(tag);
+    }
+
+    void ClearFactors()
+    {
+        ptic(ClassName()+"::ClearFactors");
+        
+        SN_tri_val.SetZero( thread_count );
+        SN_rec_val.SetZero( thread_count );
+        
+        ptoc(ClassName()+"::ClearFactors");
+    }
+
+
+

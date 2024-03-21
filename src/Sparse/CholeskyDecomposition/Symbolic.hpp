@@ -1,5 +1,3 @@
-#pragma once
- 
 public:
     
     void SymbolicFactorization()
