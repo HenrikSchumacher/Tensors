@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Tiny.hpp"
-
 namespace Tensors
 {
     namespace BLAS
