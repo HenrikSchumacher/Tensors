@@ -393,8 +393,8 @@ namespace Tensors
 
                             BLAS::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
                                 IL_len, m_0,
-                                -one, B_0, IL_len,
-                                zero, C_0, IL_len
+                                -Scalar::Real<Scal>(1), B_0, IL_len,
+                                 Scalar::Real<Scal>(0), C_0, IL_len
                             );
 
                             // Row-col-scatter-add C_0 into U_0,

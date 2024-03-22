@@ -482,8 +482,8 @@ namespace Tensors
                         // V -= upper(U_1^H * U_1)
                         BLAS::herk<Layout::RowMajor,UpLo::Upper,Op::ConjTrans>(
                             n_1, n_0,
-                            -one, U_1, n_1,
-                             one, V,   n_1
+                            -Scalar::Real<Scal>(1), U_1, n_1,
+                             Scalar::Real<Scal>(1), V,   n_1
                         );
                     }
                     else
