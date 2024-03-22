@@ -8,16 +8,6 @@
 #include "CholeskyDecomposition/UpperSolver.hpp"
 #include "CholeskyDecomposition/LowerSolver.hpp"
 
-#include <boost/asio.hpp>
-#include <boost/asio/detail/config.hpp>
-#include <boost/asio/detail/noncopyable.hpp>
-#include <boost/asio/detail/scheduler.hpp>
-#include <boost/asio/detail/thread_group.hpp>
-#include <boost/asio/execution_context.hpp>
-
-#include <boost/asio/detail/push_options.hpp>
-#include <boost/asio/thread_pool.hpp>
-
 // Priority I:
 
 // TODO: Compute AMD reordering. Often it works very well!
