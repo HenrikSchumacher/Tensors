@@ -70,6 +70,11 @@ public:
         return n;
     }
 
+    LInt NonzeroCount() const
+    {
+        return A.NonzeroCount();
+    }
+
     Int RightHandSideCount() const
     {
         return nrhs;

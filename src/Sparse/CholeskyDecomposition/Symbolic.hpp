@@ -371,7 +371,7 @@ protected:
                     
                     while( (SN_inner_agg[a] < i) && (a < b) ) { ++a; }
 
-                    if( (curr_n_1 > 0) && (b - a  == curr_n_1) )
+                    if( (curr_n_1 > 0) && (b - a  == static_cast<LInt>(curr_n_1)) )
                     {
                         bool mergeQ = true;
                         

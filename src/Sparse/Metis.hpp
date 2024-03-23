@@ -34,7 +34,7 @@ namespace Tensors
             
                 // TODO: Do a symmetrization if needed?
                 
-                ptic("Preprocessing");
+                ptic(ClassName()+": Preprocessing");
 
                 Int n = static_cast<Int>(n_);
                 
@@ -68,16 +68,24 @@ namespace Tensors
                     
                     rp[i+1] = nnz_counter;
                 }
-                ptoc("Preprocessing");
+                ptoc(ClassName()+": Preprocessing");
                 
-                ptic("METIS_NodeND");
+                ptic(ClassName()+": METIS_NodeND");
                 (void)METIS_NodeND(
                     &n, rp.data(), ci.data(), nullptr, nullptr, perm.data(), iperm.data()
                 );
-                ptoc("METIS_NodeND");
+                ptoc(ClassName()+": METIS_NodeND");
                 
                 return Permutation<I_0>( perm.data(), n, Inverse::False, I_0(final_thread_count) );
             }
+            
+        public:
+            
+            static std::string ClassName()
+            {
+                return std::string("Metis")+ "<" + TypeName<I_0> + "," + ToString(base) + ">";
+            }
+            
         }; // class Metis
     
     } // namespace Sparse

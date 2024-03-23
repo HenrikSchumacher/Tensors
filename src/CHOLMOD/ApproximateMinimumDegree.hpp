@@ -24,7 +24,7 @@ namespace Tensors
         protected:
             
             Tiny::Vector<AMD_CONTROL,double,Int> ctrl;
-            Tiny::Vector<AMD_INFO,double,Int>    info;
+            Tiny::Vector<AMD_INFO   ,double,Int> info;
             
         public:
             
