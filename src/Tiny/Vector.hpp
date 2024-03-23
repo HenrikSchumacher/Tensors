@@ -5,9 +5,9 @@ namespace Tensors
 {
     namespace Tiny
     {
-        template<int n_, typename Scal_, typename Int_, Size_T alignment> class VectorList;
+        template<int SIZE, typename Scal_, typename Int_, Size_T alignment> class VectorList;
         
-        template<int n_, typename Scal_, typename Int_>
+        template<int SIZE, typename Scal_, typename Int_>
         class Vector
         {
             /// Very slim vector type of fixed length, with basic arithmetic operations.
@@ -20,7 +20,7 @@ namespace Tensors
             
         public:
             
-            static constexpr Int n = n_;
+            static constexpr Int n = SIZE;
             
             Vector() = default;
 
@@ -78,11 +78,11 @@ namespace Tensors
             template<typename S>
             constexpr Vector( const std::initializer_list<S> w )
             {
-                const Int n__ = Tools::Min(n,static_cast<Int>(w.size()));
+                const Int n_ = Tools::Min(n,static_cast<Int>(w.size()));
 //
                 cptr<S> w_ = &(*w.begin());
                 
-                if( n__ == 1 )
+                if( n_ == 1 )
                 {
                     const Scal value = scalar_cast<Scal>(w_[0]);
                     
@@ -93,12 +93,12 @@ namespace Tensors
                 }
                 else
                 {
-                    for( Int i = 0; i < n__; ++i )
+                    for( Int i = 0; i < n_; ++i )
                     {
                         v[i] = scalar_cast<Scal>(w_[i]);
                     }
                     
-                    for( Int i = n__; i < n; ++i )
+                    for( Int i = n_; i < n; ++i )
                     {
                         v[i] = Scalar::Zero<Scal>;
                     }

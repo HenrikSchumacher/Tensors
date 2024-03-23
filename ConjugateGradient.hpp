@@ -4,11 +4,11 @@
 
 namespace Tensors
 {
-    // eq_count_ = number of right hand sides.
+    // EQ_COUNT = number of right hand sides.
     // If you know this and compile time, then enter it in the template.
-    // If you don't know this at compile time, then use eq_count_ = VarSize (==0) and specify
-    // the eq_count__ in the constructor.
-    template<Size_T eq_count_, typename Scal_, typename Int_>
+    // If you don't know this at compile time, then use EQ_COUNT = VarSize (==0) and specify
+    // the eq_count_ in the constructor.
+    template<Size_T EQ_COUNT, typename Scal_, typename Int_>
     class ConjugateGradient
     {
     public:
@@ -17,7 +17,7 @@ namespace Tensors
         using Real     = Scalar::Real<Scal>;
         using Int      = Int_;
         
-        static constexpr Int EQ = int_cast<Int>(eq_count_);
+        static constexpr Int EQ = int_cast<Int>(EQ_COUNT);
         
         using RealVector_T = Tensor1<Real,Int>;
 
@@ -55,12 +55,12 @@ namespace Tensors
         ConjugateGradient(
             const Int n_,
             const Int max_iter_,
-            const Size_T eq_count__ = EQ,
+            const Size_T eq_count_ = EQ,
             const Size_T thread_count_ = 1
         )
         :   n               ( n_                                    )
         ,   max_iter        ( Min(max_iter_,n)                      )
-        ,   eq              ( ( EQ > VarSize ? EQ : static_cast<Int>(eq_count__ ) )  )
+        ,   eq              ( ( EQ > VarSize ? EQ : static_cast<Int>(eq_count_ ) )  )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   r               ( n, eq                                 )
         ,   u               ( n, eq                                 )
