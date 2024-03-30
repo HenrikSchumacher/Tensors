@@ -29,6 +29,9 @@
 #include <sstream>
 #include <complex>
 
+#include "mathlink.h"
+#include "WolframLibrary.h"
+#include "WolframSparseLibrary.h"
 
 using Real    = mreal;
 using Complex = std::complex<Real>;
@@ -97,11 +100,6 @@ namespace mma
     template<> inline MTensor & get<MTensor>( MArgument marg )
     {
         return *((marg).tensor);
-    }
-    
-    template<typename type> inline MTensorWrapper<type> & get<MTensorWrapper<type>>( MArgument marg )
-    {
-        return MTensorWrapper<type>(*((marg).tensor));
     }
     
     template<> inline MSparseArray & get<MSparseArray>( MArgument marg )
