@@ -511,14 +511,12 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
-					/opt/homebrew/Cellar/libomp/18.1.2/lib,
 					"/opt/homebrew/Cellar/suite-sparse/7.6.1/lib",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lamd",
 					"-lmetis",
-					"-lomp",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
@@ -540,14 +538,12 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
-					/opt/homebrew/Cellar/libomp/18.1.2/lib,
 					"/opt/homebrew/Cellar/suite-sparse/7.6.1/lib",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
 					"-lamd",
 					"-lmetis",
-					"-lomp",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
