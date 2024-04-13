@@ -1,6 +1,6 @@
-//###########################################################################################
+//##########################################################################################
 //####          IO routines
-//###########################################################################################
+//##########################################################################################
 
 public:
 
@@ -51,9 +51,9 @@ public:
     }
 
 
-//###########################################################################################
+//##########################################################################################
 //####          Get routines
-//###########################################################################################
+//##########################################################################################
 
     Int ThreadCount() const
     {
@@ -181,13 +181,12 @@ public:
             
             this->SetCache( tag,
                 std::make_any<Matrix_T>(
-                    std::move(U_rp), std::move(U_ci), std::move(U_val),
-                    n, n, thread_count
+                    std::move(U_rp), std::move(U_ci), std::move(U_val), n, n, thread_count
                 )
             );
         }
         
-        return std::any_cast<Matrix_T &>( this->GetCache(tag) );
+        return this->template GetCache<Matrix_T>(tag);
     }
 
     cref<Matrix_T> GetFactor() const
@@ -206,7 +205,7 @@ public:
             );
         }
         
-        return std::any_cast<JobPointers<Int> &>( this->GetPersistentCache(tag) );
+        return this->template GetPersistentCache<JobPointers<Int>>(tag);
     }
 
     void WriteFactorDiagonal( mptr<Real> diag ) const

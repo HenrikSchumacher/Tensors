@@ -469,15 +469,6 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::RequireJobPtr");
                     
-//                // TODO: Find better cost model.
-//                Tensor1<Int,Int> costs ( outer.data(), m+1 );
-//
-//                for( Int i = 0; i < m ; ++i )
-//                {
-//                    costs[i+1] += i;
-//                }
-//
-                    
                     job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
                     
                     job_ptr_initialized = true;
@@ -924,9 +915,9 @@ namespace Tensors
                 }
             }
             
-            //###########################################################################################
-            //####          Matrix Multiplication
-            //###########################################################################################
+//#########################################################################################
+//####          Matrix Multiplication
+//#########################################################################################
             
         protected:
             
