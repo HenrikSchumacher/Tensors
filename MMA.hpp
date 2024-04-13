@@ -29,6 +29,9 @@
 #include <sstream>
 #include <complex>
 
+#include "mathlink.h"
+#include "WolframLibrary.h"
+#include "WolframSparseLibrary.h"
 
 using Real    = mreal;
 using Complex = std::complex<Real>;

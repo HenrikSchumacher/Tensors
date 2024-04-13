@@ -61,7 +61,7 @@ namespace Tensors
             
             friend class BinaryMatrixCSR<Int,LInt>;
             
-            PatternCSR() {}
+            PatternCSR() = default;
             
             template<typename I_0, typename I_1, typename I_3>
             PatternCSR(
