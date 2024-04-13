@@ -37,5 +37,5 @@ namespace Tensors
 #include "src/Tiny/MatrixList.hpp"
 
 
-//#include "src/Tiny/gemm.hpp"
-//#include "src/Tiny/trsm.hpp"
+#include "src/Tiny/gemm.hpp"
+#include "src/Tiny/trsm.hpp"
