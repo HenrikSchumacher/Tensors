@@ -177,14 +177,17 @@ namespace Tensors
         void ShrinkToFit()
         {
             ptic(ClassName()+"::ShrinkToFit");
-//            Container_0_T new_container_0 ( container_0.data(), current_size );
             
-            Container_0_T new_container_0 ( current_size );
+            if( current_size != capacity )
+            {
+                Container_0_T new_container_0 ( current_size );
+                
+                new_container_0.ReadParallel( container_0.data(), thread_count );
+                
+                using std::swap;
+                swap( container_0, new_container_0 );
+            }
             
-            new_container_0.ReadParallel( container_0.data(), thread_count );
-            
-            using std::swap;
-            swap( container_0, new_container_0 );
             ptoc(ClassName()+"::ShrinkToFit");
         }
         

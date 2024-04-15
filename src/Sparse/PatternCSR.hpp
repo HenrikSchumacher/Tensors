@@ -623,7 +623,7 @@ namespace Tensors
 #ifndef TOOLS_DEBUG
                 if( i < 0 || i >= outer.Size() )
                 {
-                    eprint(ClassName()+"::Outer(): Out of bound access.");
+                    eprint(this->ClassName()+"::Outer(" + ToString(i) + "): Access out of bounds.");
                 }
 #endif
                 return outer[i];
@@ -634,7 +634,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( i < 0 || i >= outer.Size() )
                 {
-                    eprint(ClassName()+"::Outer(): Out of bound access.");
+                    eprint(this->ClassName()+"::Outer(" + ToString(i) + "): Access out of bounds.");
                 }
 #endif
                 return outer[i];
@@ -656,7 +656,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= inner.Size() )
                 {
-                    eprint(ClassName()+"::Inner(): Out of bound access.");
+                    eprint(this->ClassName()+"::Inner(" + ToString(k) + "): Access out of bounds.");
                 }
 #endif
                 return inner[k];
@@ -667,7 +667,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= inner.Size() )
                 {
-                    eprint(ClassName()+"::Inner(): Out of bound access.");
+                    eprint(this->ClassName()+"::Inner(" + ToString(k) + "): Access out of bounds.");
                 }
 #endif
                 return inner[k];
@@ -686,7 +686,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( i < 0 || i >= diag_ptr.Size() )
                 {
-                    eprint(ClassName()+"::Diag(): Out of bound access.");
+                    eprint(this->ClassName()+"::Diag(" + ToString(i) + "): Access out of bounds.");
                 }
 #endif
                 return diag_ptr[i];

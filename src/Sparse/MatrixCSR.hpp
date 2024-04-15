@@ -426,7 +426,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= values.Size() )
                 {
-                    eprint(ClassName()+"::Value(): Out of bound access.");
+                    eprint(this->ClassName()+"::Value(" + ToString(k) + "): Access out of bounds.");
                 }
 #endif
                 return values[k];
@@ -437,7 +437,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= values.Size() )
                 {
-                    eprint(ClassName()+"::Value(): Out of bound access.");
+                    eprint(this->ClassName()+"::Value(" + ToString(k) + "): Access out of bounds.");
                 }
 #endif
                 return values[k];

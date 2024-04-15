@@ -75,7 +75,6 @@ namespace Tensors
         }
 
 
-
         LInt Size() const
         {
             return current_size + current_buffer_size;
@@ -134,18 +133,25 @@ namespace Tensors
         {
             if( new_capacity > capacity)
             {
-                Container_0_T new_container_0 (new_capacity);
-                Container_1_T new_container_1 (new_capacity);
-                
-                copy_buffer( container_0.data(), new_container_0.data(), capacity );
-                copy_buffer( container_1.data(), new_container_1.data(), capacity );
-                
-                using std::swap;
-                swap( container_0, new_container_0 );
-                swap( container_1, new_container_1 );
-                
-                capacity = new_capacity;
+                SetCapacity( new_capacity );
             }
+        }
+        
+        void SetCapacity( const LInt new_capacity ) const
+        {
+            Container_0_T new_container_0 (new_capacity);
+            Container_1_T new_container_1 (new_capacity);
+            
+            const LInt s = Min( capacity, new_capacity );
+            
+            copy_buffer( container_0.data(), new_container_0.data(), s );
+            copy_buffer( container_1.data(), new_container_1.data(), s );
+            
+            using std::swap;
+            swap( container_0, new_container_0 );
+            swap( container_1, new_container_1 );
+            
+            capacity = new_capacity;
         }
         
         void Finalize() const
