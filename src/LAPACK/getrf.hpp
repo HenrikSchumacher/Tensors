@@ -59,7 +59,7 @@ namespace Tensors
             }
             else
             {
-                eprint("cpotrf not defined for scalar type " + TypeName<Scal> );
+                eprint("getrf not defined for scalar type " + TypeName<Scal> );
             }
             
             return info;
