@@ -68,7 +68,7 @@ void dotBlocksRecursive(
 //                {
 //                    if constexpr( mat_enabledQ && (SameQ<A_T,double> || SameQ<A_T,float>) && (SameQ<B_T,double> || SameQ<B_T,float>) && (SameQ<C_T,double> || SameQ<C_T,float>) )
 //                    {
-//                        Tiny::fixed_dot_mm_clang_2<m,n,k,AddTo>(
+//                        Tiny::fixed_dot_mm_clang<m,n,k,AddTo>(
 //                            AP.data(M_blk,K_blk), BP.data(N_blk,K_blk), CP.data(M_blk,N_blk)
 //                        );
 //                    }

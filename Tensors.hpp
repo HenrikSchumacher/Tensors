@@ -29,8 +29,14 @@
 #include "src/Sparse/KernelMatrixCSR.hpp"
 #include "src/Sparse/DiagonalKernelMatrix.hpp"
 
-#include "src/BlockKernels/BlockKernel_fixed.hpp"
-#include "src/BlockKernels/BlockKernel_fixed_2.hpp"
-#include "src/BlockKernels/DenseBlockKernel_fixed.hpp"
-#include "src/BlockKernels/ArrowheadBlockKernel_fixed.hpp"
-#include "src/BlockKernels/ScalarBlockKernel_fixed.hpp"
+//#include "src/BlockKernels/BlockKernel_fixed.hpp"
+#include "src/BlockKernels/BlockKernel_Tiny.hpp"
+
+//#include "src/BlockKernels/DenseBlockKernel_fixed.hpp"
+#include "src/BlockKernels/DenseBlockKernel_Tiny.hpp"
+
+//#include "src/BlockKernels/ArrowheadBlockKernel_fixed.hpp"
+#include "src/BlockKernels/ArrowheadBlockKernel_Tiny.hpp"
+
+//#include "src/BlockKernels/ScalarBlockKernel_fixed.hpp"
+#include "src/BlockKernels/ScalarBlockKernel_Tiny.hpp"

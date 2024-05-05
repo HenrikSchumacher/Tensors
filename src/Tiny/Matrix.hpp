@@ -1287,14 +1287,7 @@ namespace Tensors
             mref<Tiny::Matrix<m,n,Z_T,Int>> Z
         )
         {
-            if constexpr( mat_enabledQ && (SameQ<X_T,double> || SameQ<X_T,float>) && (SameQ<Y_T,double> || SameQ<Y_T,float>) && (SameQ<Z_T,double> || SameQ<Z_T,float>) )
-            {
-                fixed_dot_mm_clang_2<m,n,k,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
-            }
-            else
-            {
-                fixed_dot_mm_vec<m,n,k,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
-            }
+            fixed_dot_mm<m,n,k,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
         }
         
         template<AddTo_T addto, int m, int n, typename A_T, typename x_T, typename y_T, typename Int

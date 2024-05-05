@@ -2,6 +2,8 @@
 
 #include <amd.h>
 
+#define TENSORS_HAS_AMD
+
 namespace Tensors
 {
     namespace Sparse

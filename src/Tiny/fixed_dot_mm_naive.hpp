@@ -5,9 +5,17 @@ namespace Tensors
         
     namespace Tiny
     {
-        template<Size_T M, Size_T K, Size_T N, AddTo_T addto, typename Scal>
-        void fixed_dot_mm_naive( cptr<Scal> A, cptr<Scal> B, mptr<Scal> C )
+        template<Size_T M, Size_T K, Size_T N, AddTo_T addto, 
+            typename A_T, typename B_T, typename C_T
+        >
+        void fixed_dot_mm_naive( cptr<A_T> A, cptr<B_T> B, mptr<C_T> C )
         {
+            // A is of size M X K
+            // B is of size K X N
+            // C is of size M X N
+            
+            // All matrices are assumed to be in row-major storage.
+            
             if constexpr ( addto == Tensors::AddTo )
             {
                 for( Size_T k = 0; k < K; ++k )

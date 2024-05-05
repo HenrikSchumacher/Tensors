@@ -22,11 +22,11 @@ namespace Tensors
 #include "src/Tiny/fixed_dot_mm_naive.hpp"
 #include "src/Tiny/fixed_dot_mm_vec.hpp"
 
-#if defined(__clang__)
-    #if ( __has_attribute(matrix_type) )
-        #include "src/Tiny/fixed_dot_mm_clang.hpp"
-    #endif
+#if ( __has_attribute(matrix_type) )
+    #include "src/Tiny/fixed_dot_mm_clang.hpp"
 #endif
+
+#include "src/Tiny/fixed_dot_mm.hpp"
 
 #include "src/Tiny/Vector.hpp"
 #include "src/Tiny/VectorList.hpp"

@@ -4,6 +4,8 @@ extern "C" {
     #include <metis.h>
 }
 
+#define TENSORS_HAS_METIS
+
 namespace Tensors
 {
     namespace Sparse

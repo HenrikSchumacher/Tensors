@@ -1,7 +1,5 @@
 #pragma once
 
-#define CLASS BlockKernel_fixed
-
 namespace Tensors
 {
     template<
@@ -13,7 +11,7 @@ namespace Tensors
         bool y_RM, bool y_intRM,
         bool use_fma
     >
-    class alignas( ObjectAlignment ) CLASS
+    class alignas( ObjectAlignment ) BlockKernel_fixed
     {
         ASSERT_ARITHMETIC(Scal_)
         ASSERT_ARITHMETIC(Scal_in_)
@@ -59,9 +57,9 @@ namespace Tensors
         
     public:
         
-        CLASS() = delete;
+        BlockKernel_fixed() = delete;
         
-        explicit CLASS( mptr<Scal> A_ )
+        explicit BlockKernel_fixed( mptr<Scal> A_ )
         :   A       ( A_      )
         ,   A_const ( nullptr )
         ,   alpha   ( 0       )
@@ -70,7 +68,7 @@ namespace Tensors
         ,   Y       ( nullptr )
         {}
 
-        CLASS(
+        BlockKernel_fixed(
             cptr<Scal> A_,
             cref<Scal_out> alpha_, cptr<Scal_in>  X_,
             cref<Scal_out> beta_,  mptr<Scal_out> Y_,
@@ -98,7 +96,7 @@ namespace Tensors
         }
         
         // Copy constructor
-        CLASS( const CLASS & other )
+        BlockKernel_fixed( const BlockKernel_fixed & other )
         :   A         ( other.A           )
         ,   A_const   ( other.A_const     )
         ,   alpha     ( other.alpha       )
@@ -110,7 +108,7 @@ namespace Tensors
         ,   cols_size ( other.cols_size   )
         {}
         
-        ~CLASS() = default;
+        ~BlockKernel_fixed() = default;
 
 
     public:
@@ -593,7 +591,7 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return TO_STD_STRING(CLASS)+"<"
+            return std::string("BlockKernel_fixed")+"<"
                 +ToString(ROWS)+","+ToString(COLS)+","+ToString(RHS_COUNT)+","+ToString(fixed)
             
             +","+TypeName<Scal>+","+TypeName<Scal_in>+","+TypeName<Scal_out>
@@ -608,7 +606,4 @@ namespace Tensors
     };
 
 } // namespace Tensors
-
-#undef get_z
-#undef CLASS
 

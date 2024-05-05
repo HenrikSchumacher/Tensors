@@ -1,33 +1,36 @@
 #pragma once
 
 #define CLASS ArrowheadBlockKernel_fixed
-#define BASE  BlockKernel_fixed_2<                          \
-    ROWS_,COLS_,NRHS_,                                      \
+
+#define BASE  BlockKernel_fixed<                            \
+    ROWS_,COLS_,RHS_COUNT_,fixed,                           \
     Scal_,Scal_in_,Scal_out_,                               \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
-    x_RM, x_prefetch,                                       \
-    y_RM                                                    \
+    x_RM, x_intRM, x_copy, x_prefetch,                      \
+    y_RM, y_intRM,                                          \
+    use_fma                                                 \
 >
 
 //template<
-//    int ROWS_, int COLS_, int NRHS_,
+//    int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
 //    typename Scal_, typename Int_, typename Scal_in_, typename Scal_out_,
 //    Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-//    bool a_copy = true,
-//    bool x_RM  = true, bool x_prefetch = true,
-//    bool y_RM  = true
+//                                              bool a_copy = true,
+//    bool x_RM  = true, bool x_intRM = false,  bool x_copy = true,  bool x_prefetch = true,
+//    bool y_RM  = true, bool y_intRM = false
 //>
 namespace Tensors
 {
     template<
-        int ROWS_, int COLS_, int NRHS_,
+        int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
         typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-        bool a_copy,
-        bool x_RM, bool x_prefetch,
-        bool y_RM
+                                 bool a_copy,
+        bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
+        bool y_RM, bool y_intRM,
+        bool use_fma
     >
     class CLASS : public BASE
     {
@@ -45,7 +48,9 @@ namespace Tensors
         using BASE::COLS;
         using BASE::ROWS_SIZE;
         using BASE::COLS_SIZE;
-        using BASE::NRHS;
+        using BASE::RHS_COUNT;
+        
+        using BASE::FMA;
         
         static constexpr LInt BLOCK_NNZ = COLS + ROWS - 1;
         
@@ -59,6 +64,9 @@ namespace Tensors
         using BASE::y;
         
         using BASE::ReadX;
+        using BASE::get_x;
+        using BASE::get_y;
+        using BASE::rhs_count;
         
         const Scal * restrict a_from = nullptr;
         
@@ -100,6 +108,7 @@ namespace Tensors
             
             a_to_[0] = a_from_[0];
             
+            LOOP_UNROLL_FULL
             for( Int i = 1; i < ROWS; ++i )
             {
                 a_to_[       i] = a_from_[ROWS-1+i];
@@ -120,7 +129,7 @@ namespace Tensors
             }
         }
         
-        force_inline cref<Scal> get_a( const Int l )
+        force_inline Scal get_a( const Int l )
         {
             if constexpr ( a_copy )
             {
@@ -143,29 +152,32 @@ namespace Tensors
             ReadA( k_global );
             
             /*
-             //    /                                                                  \
-             //    |   get_a(0)          get_a(1)       get_a(2)      get_a(COLS-1)   |
-             //    |                                                                  |
-             //    |   get_a(COLS)          0              0              0           |
-             //    |                                                                  |
-             //    |   get_a(COLS+1)        0              0              0           |
-             //    |                                                                  |
-             //    |   get_a(ROWS+COLS-2)   0              0              0           |
-             //    \                                                                  /
-             */
+            //    /                                                                  \
+            //    |   get_a(0)          get_a(1)       get_a(2)      get_a(COLS-1)   |
+            //    |                                                                  |
+            //    |   get_a(COLS)          0              0              0           |
+            //    |                                                                  |
+            //    |   get_a(COLS+1)        0              0              0           |
+            //    |                                                                  |
+            //    |   get_a(ROWS+COLS-2)   0              0              0           |
+            //    \                                                                  /
+            */
             
-            for( Int k = 0; k < NRHS; ++k )
+            LOOP_UNROLL_FULL
+            for( Int k = 0; k < RHS_COUNT; ++k )
             {
-                y[0][k] += get_a(0) * x[0][k];
-                
+                FMA( get_a(0), get_x(0,k), get_y(0,k) );
+
+                LOOP_UNROLL_FULL
                 for( Int j = 1; j < COLS; ++j )
                 {
-                    y[0][k] += get_a(j) * x[j][k];
+                    FMA( get_a(j), get_x(j,k), get_y(0,k) );
                 }
-                
+
+                LOOP_UNROLL_FULL
                 for( Int i = 1; i < ROWS; ++i )
                 {
-                    y[i][k] += get_a(COLS-1+i) * x[0][k];
+                    FMA( get_a(COLS-1+i), get_x(0,k), get_y(i,k) );
                 }
             }
         }
@@ -177,7 +189,8 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+ToString(NRHS)
+            +","+ToString(RHS_COUNT)
+            +","+ToString(fixed)
             +","+TypeName<Scal>
             +","+TypeName<Scal_in>
             +","+TypeName<Scal_out>
@@ -185,9 +198,9 @@ namespace Tensors
             +","+TypeName<LInt>
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
-            +","+ToString(a_copy)
-            +","+ToString(x_RM)+","+ToString(x_prefetch)
-            +","+ToString(y_RM)
+                                                     +","+ToString(a_copy)
+            +","+ToString(x_RM)+","+ToString(x_intRM)+","+ToString(x_copy)+","+ToString(x_prefetch)
+            +","+ToString(y_RM)+","+ToString(y_intRM)
             +">";
         }
 
@@ -196,3 +209,4 @@ namespace Tensors
 
 #undef BASE
 #undef CLASS
+

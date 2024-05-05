@@ -1,7 +1,5 @@
 #pragma once
 
-#define CLASS BlockKernel_fixed_2
-
 namespace Tensors
 {
     template<
@@ -12,7 +10,7 @@ namespace Tensors
         bool x_RM, bool x_prefetch,
         bool y_RM
     >
-    class alignas( ObjectAlignment ) CLASS
+    class alignas( ObjectAlignment ) BlockKernel_Tiny
     {
         ASSERT_ARITHMETIC(Scal_)
         ASSERT_ARITHMETIC(Scal_in_)
@@ -70,9 +68,9 @@ namespace Tensors
         
     public:
         
-        CLASS() = delete;
+        BlockKernel_Tiny() = delete;
         
-        explicit CLASS( mptr<Scal> A_ )
+        explicit BlockKernel_Tiny( mptr<Scal> A_ )
         :   A       ( A_      )
         ,   A_const ( nullptr )
         ,   alpha   ( 0       )
@@ -81,7 +79,7 @@ namespace Tensors
         ,   Y       ( nullptr )
         {}
 
-        CLASS(
+        BlockKernel_Tiny(
             cptr<Scal> A_,
             cref<Scal_out> alpha_, cptr<Scal_in>  X_,
             cref<Scal_out> beta_,  mptr<Scal_out> Y_,
@@ -99,7 +97,7 @@ namespace Tensors
         {}
         
         // Copy constructor
-        CLASS( const CLASS & other )
+        BlockKernel_Tiny( const BlockKernel_Tiny & other )
         :   A         ( other.A           )
         ,   A_const   ( other.A_const     )
         ,   alpha     ( other.alpha       )
@@ -111,7 +109,7 @@ namespace Tensors
         ,   cols_size ( other.cols_size   )
         {}
         
-        ~CLASS() = default;
+        ~BlockKernel_Tiny() = default;
 
 
     public:
@@ -189,7 +187,7 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return TO_STD_STRING(CLASS)+"<"
+            return std::string("BlockKernel_Tiny")+"<"
                 +ToString(ROWS)+","+ToString(COLS)+","+ToString(NRHS)
             +","+TypeName<Scal>+","+TypeName<Scal_in>+","+TypeName<Scal_out>
             +","+TypeName<Int>+","+TypeName<LInt>
@@ -203,6 +201,4 @@ namespace Tensors
     };
 
 } // namespace Tensors
-
-#undef CLASS
 
