@@ -5,16 +5,22 @@ namespace Tensors
         
     namespace Tiny
     {
-        template<Size_T M, Size_T K, Size_T N, AddTo_T addto, 
+        template<Size_T M, Size_T N, Size_T K, AddTo_T addto, 
             typename A_T, typename B_T, typename C_T
         >
-        void fixed_dot_mm_naive( cptr<A_T> A, cptr<B_T> B, mptr<C_T> C )
+        void fixed_dot_mm_naive( cptr<A_T> A_, cptr<B_T> B_, mptr<C_T> C_ )
         {
             // A is of size M X K
             // B is of size K X N
             // C is of size M X N
             
             // All matrices are assumed to be in row-major storage.
+            
+            auto A = [=]( Size_T i, Size_T k ) -> A_T   { return A_[K*i+k]; };
+            
+            auto B = [=]( Size_T k, Size_T j ) -> B_T   { return B_[N*k+j]; };
+            
+            auto C = [=]( Size_T i, Size_T j ) -> C_T & { return C_[N*i+j]; };
             
             if constexpr ( addto == Tensors::AddTo )
             {
@@ -24,7 +30,7 @@ namespace Tensors
                     {
                         for( Size_T j = 0; j < N; ++j )
                         {
-                            C[N*i+j] += A[K*i+k] * B[N*k+j];
+                            C(i,j) += A(i,k) * B(k,j);
                         }
                     }
                 }
@@ -39,7 +45,7 @@ namespace Tensors
                     {
                         for( Size_T j = 0; j < N; ++j )
                         {
-                            C[N*i+j] = A[K*i+k] * B[N*k+j];
+                            C(i,j) = A(i,k) * B(k,j);
                         }
                     }
                     
@@ -51,7 +57,7 @@ namespace Tensors
                     {
                         for( Size_T j = 0; j < N; ++j )
                         {
-                            C[N*i+j] += A[K*i+k] * B[N*k+j];
+                            C(i,j) += A(i,k) * B(k,j);
                         }
                     }
                 }
