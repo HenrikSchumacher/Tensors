@@ -113,6 +113,8 @@ namespace Tensors
 }
 
 #include "src/LAPACK/potrf.hpp"
+#include "src/LAPACK/potrs.hpp"
+
 #include "src/LAPACK/getrf.hpp"
 
 #include "src/LAPACK/hetrf.hpp"

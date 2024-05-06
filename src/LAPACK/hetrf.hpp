@@ -32,8 +32,6 @@ namespace Tensors
                 : ( uplo == UpLo::Upper ) ? UpLo::Lower : UpLo::Upper
             );
             
-            dump( flag );
-            
             
             assert_positive(n);
             assert_positive(ldA);
