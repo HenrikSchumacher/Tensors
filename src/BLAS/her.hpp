@@ -17,8 +17,8 @@ namespace Tensors
         )
         {
             static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
             static_assert(IntQ<I2>,"");
+            static_assert(IntQ<I3>,"");
             
             Int n    = int_cast<Int>(n_);
             Int incx = int_cast<Int>(incx_);

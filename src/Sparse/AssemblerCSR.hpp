@@ -9,8 +9,8 @@ namespace Tensors
         {
         public:
             
-            ASSERT_INT(Int_);
-            ASSERT_INT(LInt_);
+            static_assert(IntQ< Int_>,"");
+            static_assert(IntQ<LInt_>,"");
             
             using Int  = Int_;
             using LInt = LInt_;

@@ -16,9 +16,8 @@ namespace Tensors
     template<typename Int>
     class Tree
     {
-        ASSERT_SIGNED_INT(Int)
-        
-        
+        static_assert(SignedIntQ<Int>,"");
+
     protected:
         
         Int n; // The number of vertices, _including_ the virtual root vertex.

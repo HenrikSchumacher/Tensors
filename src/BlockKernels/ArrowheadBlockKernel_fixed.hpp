@@ -37,6 +37,8 @@ namespace Tensors
         static_assert( ROWS_ == COLS_ );
         
     public:
+        
+        using Base_T   = BASE:
 
         using Scal     = Scal_;
         using Scal_out = Scal_out_;
@@ -44,29 +46,29 @@ namespace Tensors
         using Int      = Int_;
         using LInt     = LInt_;
 
-        using BASE::ROWS;
-        using BASE::COLS;
-        using BASE::ROWS_SIZE;
-        using BASE::COLS_SIZE;
-        using BASE::RHS_COUNT;
+        using Base_T::ROWS;
+        using Base_T::COLS;
+        using Base_T::ROWS_SIZE;
+        using Base_T::COLS_SIZE;
+        using Base_T::RHS_COUNT;
         
-        using BASE::FMA;
+        using Base_T::FMA;
         
         static constexpr LInt BLOCK_NNZ = COLS + ROWS - 1;
         
     protected:
         
-        using BASE::A;
-        using BASE::A_const;
-        using BASE::X;
-        using BASE::Y;
-        using BASE::x;
-        using BASE::y;
+        using Base_T::A;
+        using Base_T::A_const;
+        using Base_T::X;
+        using Base_T::Y;
+        using Base_T::x;
+        using Base_T::y;
         
-        using BASE::ReadX;
-        using BASE::get_x;
-        using BASE::get_y;
-        using BASE::rhs_count;
+        using Base_T::ReadX;
+        using Base_T::get_x;
+        using Base_T::get_y;
+        using Base_T::rhs_count;
         
         const Scal * restrict a_from = nullptr;
         
@@ -77,7 +79,7 @@ namespace Tensors
         CLASS() = delete;
         
         explicit CLASS( mptr<Scal> A_ )
-        :   BASE( A_ )
+        :   Base_T( A_ )
         {}
         
         CLASS(
@@ -86,11 +88,11 @@ namespace Tensors
             cref<Scal_out> beta_,  mptr<Scal_out> Y_,
             const Int rhs_count_
         )
-        :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
+        :   Base_T( A_, alpha_, X_, beta_, Y_, rhs_count_ )
         {}
         
         // Copy constructor
-        CLASS( const CLASS & other ) : BASE(other) {}
+        CLASS( const CLASS & other ) : Base_T(other) {}
         
         ~CLASS() = default;
         

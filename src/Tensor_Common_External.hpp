@@ -40,7 +40,9 @@
 
 #ifdef MMA_HPP
 
-    template<typename Real, typename Int, IS_FLOAT(Real)>
+    template<typename Real, typename Int, 
+        class = typename std::enable_if_t<FloatQ<Real>>
+    >
     inline mma::MTensorWrapper<mreal> to_MTensorWrapper( cref<TENSOR_T<Real,Int>> A )
     {
         mma::MTensorWrapper<mreal> B ( A.Rank(), A.Dimensions() );
@@ -50,7 +52,9 @@
         return B;
     }
 
-    template<typename Real, typename Int, IS_FLOAT(Real)>
+    template<typename Real, typename Int, 
+        class = typename std::enable_if_t<FloatQ<Real>>
+    >
     inline mma::MTensorWrapper<std::complex<mreal>> to_MTensorWrapper( cref<TENSOR_T<std::complex<Real>,Int>> A )
     {
         mma::MTensorWrapper<std::complex<mreal>> B ( A.Rank(), A.Dimensions() );
@@ -60,7 +64,9 @@
         return B;
     }
 
-    template<typename J, typename Int, IS_INT(J)>
+    template<typename J, typename Int, 
+        class = typename std::enable_if_t<IntQ<J>>
+    >
     inline mma::MTensorWrapper<mint> to_MTensorWrapper( cref<TENSOR_T<J,Int>> A )
     {
         mma::MTensorWrapper<mint> B ( A.Rank(), A.Dimensions() );

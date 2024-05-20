@@ -519,7 +519,7 @@ namespace Tensors
     
 
     template<typename Scal, typename Int, 
-        class = typename std::enable_if_t<FloatQ<Real>>
+        class = typename std::enable_if_t<FloatQ<Scal>>
     >
     mma::MatrixRef<mreal> to_transposed_MTensorRef( cref<Tensor2<Scal,Int>> B )
     {
@@ -573,6 +573,7 @@ namespace Tensors
         mref<Tensor1<Scal,I3>> y
     )
     {
+        // TODO: Use BLAS if available.
         
         I3 m = A.Dimension(0);
         I3 n = Min(A.Dimension(1),x.Dimension(0));
@@ -603,6 +604,8 @@ namespace Tensors
         mref<Tensor1<Scal,I3>> y
     )
     {
+        // TODO: Use BLAS if available.
+        
         static_assert(IntQ<I1>,"");
         static_assert(IntQ<I2>,"");
         static_assert(IntQ<I3>,"");

@@ -10,8 +10,8 @@ namespace Tensors
         >
         force_inline Int potrs( I0 n_, I1 nrhs_, Scal * A_, I2 ldA_, Scal * B_, I3 ldB_ )
         {
-            ASSERT_INT(I0);
-            ASSERT_INT(I1);
+            static_assert(IntQ<I0>,"");
+            static_assert(IntQ<I1>,"");
             
             Int n    = int_cast<Int>(n_);
             Int nrhs = int_cast<Int>(nrhs_);

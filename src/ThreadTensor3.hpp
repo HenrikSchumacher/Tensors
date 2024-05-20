@@ -436,7 +436,7 @@ namespace Tensors {
 
     
     template<typename Scal, typename Int, 
-        class = typename std::enable_if_t<FloatQ<Real>>
+        class = typename std::enable_if_t<FloatQ<Scal>>
     >
     inline mma::TensorRef<mreal> to_MTensorRef( cref<ThreadTensor3<Scal,Int>> A )
     {
