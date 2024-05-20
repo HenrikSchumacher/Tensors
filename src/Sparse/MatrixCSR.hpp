@@ -321,11 +321,11 @@ namespace Tensors
                     inner  = Tensor1<Int ,LInt>( nnz );
                     values = Tensor1<Scal,LInt>( nnz );
                     
-                    mptr<LInt> outer__ = outer.data();
-                    mptr<Int>  inner__ = inner.data();
-                    mptr<Scal> value__ = values.data();
+                    mptr<LInt> A_outer = outer.data();
+                    mptr<Int>  A_inner = inner.data();
+                    mptr<Scal> A_value = values.data();
                     
-                    copy_buffer<VarSize,Sequential>( counters.data(list_count-1), &outer__[1], m );
+                    copy_buffer( counters.data(list_count-1), &A_outer[1], m );
                     
                     // The counters array tells each thread where to write.
                     // Since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
@@ -355,16 +355,16 @@ namespace Tensors
                                 
                                 {
                                     const LInt pos  = --c[i];
-                                    inner__[pos] = j;
-                                    value__[pos] = a;
+                                    A_inner[pos] = j;
+                                    A_value[pos] = a;
                                 }
                                 
                                 // Write the transposed matrix (diagonal excluded) in the same go in order to symmetrize the matrix. (Typical use case: Only the upper triangular part of a symmetric matrix is stored in idx, jdx, and val, but we need the full, symmetrized matrix.)
                                 if( (symmetrize != 0) && (i != j) )
                                 {
                                     const LInt pos  = --c[j];
-                                    inner__[pos] = i;
-                                    value__[pos] = a;
+                                    A_inner[pos] = i;
+                                    A_value[pos] = a;
                                 }
                             }
                         },
@@ -426,7 +426,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= values.Size() )
                 {
-                    eprint(ClassName()+"::Value(): Out of bound access.");
+                    eprint(this->ClassName()+"::Value(" + ToString(k) + "): Access out of bounds.");
                 }
 #endif
                 return values[k];
@@ -437,7 +437,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= values.Size() )
                 {
-                    eprint(ClassName()+"::Value(): Out of bound access.");
+                    eprint(this->ClassName()+"::Value(" + ToString(k) + "): Access out of bounds.");
                 }
 #endif
                 return values[k];
@@ -486,7 +486,7 @@ namespace Tensors
                             mptr<Scal> B_values = B.Value().data();
                             cptr<LInt> A_outer  = Outer().data();
                             cptr<Int > A_inner  = Inner().data();
-                            cptr<Scal> A_values = Value().data();
+                            cptr<Scal> A_value = Value().data();
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
@@ -501,11 +501,11 @@ namespace Tensors
                                     
                                     if constexpr ( conjugate )
                                     {
-                                        B_values[pos] = Conj(A_values[k]);
+                                        B_values[pos] = Conj(A_value[k]);
                                     }
                                     else
                                     {
-                                        B_values[pos] = A_values[k];
+                                        B_values[pos] = A_value[k];
                                     }
                                 }
                             }
@@ -614,10 +614,10 @@ namespace Tensors
                         
                         Tensor1<LInt,Int> new_outer (outer.Size(),0);
                         
-                        cptr<LInt> outer__     = outer.data();
-                        mptr<Int > inner__     = inner.data();
-                        mptr<Scal> values__    = values.data();
-                        mptr<LInt> new_outer__ = new_outer.data();
+                        cptr<LInt> A_outer     = outer.data();
+                        mptr<Int > A_inner     = inner.data();
+                        mptr<Scal> A_value     = values.data();
+                        mptr<LInt> new_A_outer = new_outer.data();
                         
                         ParallelDo(
                             [=,this]( const Int thread )
@@ -626,13 +626,13 @@ namespace Tensors
                                 const Int i_end   = job_ptr[thread+1];
       
                                 // To where we write.
-                                LInt jj_new        = outer__[i_begin];
-                                LInt next_jj_begin = outer__[i_begin];
+                                LInt jj_new        = A_outer[i_begin];
+                                LInt next_jj_begin = A_outer[i_begin];
                                 
                                 for( Int i = i_begin; i < i_end; ++i )
                                 {
                                     const LInt jj_begin = next_jj_begin;
-                                    const LInt jj_end   = outer__[i+1];
+                                    const LInt jj_end   = A_outer[i+1];
                                     
                                     // Memorize the next entry in outer because outer will be overwritten
                                     next_jj_begin = jj_end;
@@ -644,38 +644,40 @@ namespace Tensors
                                     
                                     while( jj< jj_end )
                                     {
-                                        Int j = inner__ [jj];
-                                        Scal a = values__[jj];
+                                        Int j = A_inner [jj];
+                                        Scal a = A_value[jj];
                                         
-                                        if( jj > jj_new )
                                         {
-                                            inner__ [jj] = 0;
-                                            values__[jj] = 0;
-                                        }
-                                        
-                                        ++jj;
-                                        
-                                        while( (jj < jj_end) && (j == inner__[jj]) )
-                                        {
-                                            a+= values__[jj];
-                                            
-                                            if( jj > jj_new )
-                                            {
-                                                inner__ [jj] = 0;
-                                                values__[jj] = 0;
-                                            }
+//                                            if( jj > jj_new )
+//                                            {
+//                                                A_inner[jj] = 0;
+//                                                A_value[jj] = 0;
+//                                            }
                                             
                                             ++jj;
                                         }
                                         
-                                        inner__ [jj_new] = j;
-                                        values__[jj_new] = a;
+                                        while( (jj < jj_end) && (j == A_inner[jj]) )
+                                        {
+                                            a+= A_value[jj];
+                                            
+//                                            if( jj > jj_new )
+//                                            {
+//                                                A_inner[jj] = 0;
+//                                                A_value[jj] = 0;
+//                                            }
+                                            
+                                            ++jj;
+                                        }
+                                        
+                                        A_inner[jj_new] = j;
+                                        A_value[jj_new] = a;
                                         
                                         ++jj_new;
                                         ++row_nonzero_counter;
                                     }
                                     
-                                    new_outer__[i+1] = row_nonzero_counter;
+                                    new_A_outer[i+1] = row_nonzero_counter;
                                 }
                             },
                             thread_count
@@ -686,14 +688,14 @@ namespace Tensors
                         
                         const LInt nnz = new_outer[m];
                         
-//                        Tensor1< Int,LInt> new_inner  (nnz,0);
-//                        Tensor1<Scal,LInt> new_values (nnz,0);
+                        // Now we create a new arrays for new_inner and new_values.
+                        // Then we copy inner and values to it, eliminating the gaps in between.
                         
                         Tensor1< Int,LInt> new_inner  (nnz);
                         Tensor1<Scal,LInt> new_values (nnz);
                         
-                        mptr<Int > new_inner__  = new_inner.data();
-                        mptr<Scal> new_values__ = new_values.data();
+                        mptr<Int > new_A_inner = new_inner.data();
+                        mptr<Scal> new_A_value = new_values.data();
                         
                         //TODO: Parallelization might be a bad idea here.
                         ParallelDo(
@@ -702,16 +704,16 @@ namespace Tensors
                                 const  Int i_begin = job_ptr[thread  ];
                                 const  Int i_end   = job_ptr[thread+1];
                                 
-                                const LInt new_pos = new_outer__[i_begin];
-                                const LInt     pos =     outer__[i_begin];
+                                const LInt new_pos = new_A_outer[i_begin];
+                                const LInt     pos =     A_outer[i_begin];
                                 
-                                const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
+                                const LInt thread_nonzeroes = new_A_outer[i_end] - new_A_outer[i_begin];
                                 
                                 // Starting position of thread in inner list.
                                 
-                                copy_buffer( &inner__[pos],  &new_inner__[new_pos],  thread_nonzeroes );
+                                copy_buffer( &A_inner[pos], &new_A_inner[new_pos],  thread_nonzeroes );
                                 
-                                copy_buffer( &values__[pos], &new_values__[new_pos], thread_nonzeroes );
+                                copy_buffer( &A_value[pos], &new_A_value[new_pos], thread_nonzeroes );
                             },
                             thread_count
                         );
@@ -729,10 +731,10 @@ namespace Tensors
                 }
             }
             
-            
-    //###########################################################################################
-    //####          Permute
-    //###########################################################################################
+        
+//#########################################################################################
+//####          Permute
+//#########################################################################################
             
         public:
             
@@ -815,7 +817,7 @@ namespace Tensors
                     
                     cptr<LInt> A_outer  = outer.data();
                     cptr<Int > A_inner  = inner.data();
-                    mptr<Scal> A_values = values.data();
+                    mptr<Scal> A_value = values.data();
                     
                     cptr<LInt> B_outer  = B.Outer().data();
                     mptr<Int > B_inner  = B.Inner().data();
@@ -833,7 +835,7 @@ namespace Tensors
                             //                        const LInt B_end   = B_outer[i+1];
                             
                             copy_buffer( &A_inner [A_begin], &A_inner [A_end], &B_inner [B_begin] );
-                            copy_buffer( &A_values[A_begin], &A_values[A_end], &B_values[B_begin] );
+                            copy_buffer( &A_value[A_begin], &A_value[A_end], &B_values[B_begin] );
                             B.inner_sorted = true;
                         },
                         B_job_ptr
@@ -869,7 +871,7 @@ namespace Tensors
                         
 //                        cptr<LInt> A_outer  = outer.data();
                         cptr<Int > A_inner  = inner.data();
-                        cptr<Scal> A_values = values.data();
+                        cptr<Scal> A_value = values.data();
                         
                         cptr<LInt> B_outer  = B.Outer().data();
                         mptr<Int > B_inner  = B.Inner().data();
@@ -890,7 +892,7 @@ namespace Tensors
                             
                             const LInt k_max = B_end - B_begin;
                             
-                            copy_buffer( &A_values[B_begin], &B_values[B_begin], k_max );
+                            copy_buffer( &A_value[B_begin], &B_values[B_begin], k_max );
                             
                             if( sortQ )
                             {
@@ -946,7 +948,7 @@ namespace Tensors
                     {
                         cptr<LInt> A_outer  = outer.data();
                         cptr<Int > A_inner  = inner.data();
-                        cptr<Scal> A_values = values.data();
+                        cptr<Scal> A_value = values.data();
                         
                         cptr<LInt> B_outer  = B.Outer().data();
                         mptr<Int > B_inner  = B.Inner().data();
@@ -973,7 +975,7 @@ namespace Tensors
                                 B_inner[B_begin+k] = q_inv[A_inner[A_begin+k]];
                             }
                             
-                            copy_buffer( &A_values[A_begin], &B_values[B_begin], k_max );
+                            copy_buffer( &A_value[A_begin], &B_values[B_begin], k_max );
                             
                             if( sortQ )
                             {
@@ -1054,7 +1056,7 @@ namespace Tensors
                             
                             cptr<LInt> A_outer  = Outer().data();
                             cptr< Int> A_inner  = Inner().data();
-                            cptr<Scal> A_values = Value().data();
+                            cptr<Scal> A_value = Value().data();
                             
                             cptr<LInt> B_outer  = B.Outer().data();
                             cptr< Int> B_inner  = B.Inner().data();
@@ -1081,7 +1083,7 @@ namespace Tensors
                                         const LInt pos = --c[i];
                                         
                                         C_inner [pos] = k;
-                                        C_values[pos] = A_values[jj] * B_values[kk];
+                                        C_values[pos] = A_value[jj] * B_values[kk];
                                     }
                                 }
                             }
@@ -1122,9 +1124,9 @@ namespace Tensors
             
         public:
             
-//###########################################################################################
+//##########################################################################################
 //####          Matrix Multiplication
-//###########################################################################################
+//##########################################################################################
             
             
             // Use own nonzero values.

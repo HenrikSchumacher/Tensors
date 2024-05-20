@@ -1,22 +1,3 @@
-(* Content-type: application/vnd.wolfram.mathematica *)
-
-(*** Wolfram Notebook File ***)
-(* http://www.wolfram.com/nb *)
-
-(* CreatedBy='Mathematica 13.2' *)
-
-(*CacheID: 234*)
-(* Internal cache information:
-NotebookFileLineBreakTest
-NotebookFileLineBreakTest
-NotebookDataPosition[       158,          7]
-NotebookDataLength[     24621,        562]
-NotebookOptionsPosition[     23569,        540]
-NotebookOutlinePosition[     24006,        557]
-CellTagsIndexPosition[     23963,        554]
-WindowFrame->Normal*)
-
-(* Beginning of Notebook Content *)
 Notebook[{
 Cell[BoxData["Exit"], "Input",
  CellChangeTimes->{{3.8999954403075666`*^9, 3.899995443364493*^9}},
@@ -115,7 +96,9 @@ LIBRARY_NO_ERROR;\n}\>\""}], "]"}]}], ";", "\[IndentingNewLine]", "\n", "\t",
             RowBox[{"\"\<-lm\>\"", ",", "\"\<-ldl\>\""}], "}"}]}], 
           "\[IndentingNewLine]", "\t", ",", 
           RowBox[{"\"\<IncludeDirectories\>\"", "\[Rule]", 
-           RowBox[{"{", "$TensorsIncludeDirectory", "}"}]}], 
+           RowBox[{"{", 
+            RowBox[{"RepositoryPath", "[", 
+             RowBox[{"$PM", ",", "\"\<Tensors\>\""}], "]"}], "}"}]}], 
           "\[IndentingNewLine]", "\t", ",", 
           RowBox[{"\"\<LibraryDirectories\>\"", "\[Rule]", 
            RowBox[{"{", "}"}]}]}], "\n", "\t", "]"}]}], ";", "\n", "\t", 
@@ -139,27 +122,9 @@ LIBRARY_NO_ERROR;\n}\>\""}], "]"}]}], ";", "\[IndentingNewLine]", "\n", "\t",
             RowBox[{"{", 
              RowBox[{"e", ",", "n"}], "}"}]}], "*)"}], "\n", "\t\t", "}"}], 
          ",", "\n", "\t\t", "Integer"}], "\n", "\t", "]"}]}]}], "\n", "]"}]}],
-    ";"}], "//", "AbsoluteTiming"}]}], "Input",
- CellChangeTimes->{{3.9001682631967773`*^9, 3.9001683281500797`*^9}, {
-   3.900168369159028*^9, 3.900168425417469*^9}, {3.900168521444406*^9, 
-   3.900168524474284*^9}, {3.900168559591604*^9, 3.9001686734197598`*^9}, 
-   3.900168737160722*^9, {3.900168836706423*^9, 3.9001689087159452`*^9}, {
-   3.900249477988204*^9, 3.900250021268611*^9}, 3.9002503321807404`*^9, {
-   3.900250696127576*^9, 3.9002506962376738`*^9}, {3.900250775276842*^9, 
-   3.900250789556308*^9}, {3.900256567117136*^9, 3.900256578180348*^9}, 
-   3.9002567499897947`*^9, 3.9002567874273977`*^9, {3.900256908055047*^9, 
-   3.900257056135461*^9}, {3.900257109037807*^9, 3.9002571771437693`*^9}, {
-   3.900257229845079*^9, 3.900257327717785*^9}, 3.900257384438792*^9, {
-   3.900257425171978*^9, 3.900257430330814*^9}, {3.900257658872075*^9, 
-   3.900257676378653*^9}, {3.9002577244764223`*^9, 3.900257765855904*^9}, {
-   3.90025782884551*^9, 3.900257854958282*^9}, {3.900257908025876*^9, 
-   3.9002580102882557`*^9}, {3.900258050524328*^9, 3.9002581077207727`*^9}, 
-   3.900258144738381*^9, {3.9002582611089277`*^9, 3.90025827760781*^9}, {
-   3.900258316424*^9, 3.900258327641561*^9}, {3.90025852247123*^9, 
-   3.900258538722266*^9}, {3.900258638265008*^9, 3.900258646085539*^9}, 
-   3.900258710606793*^9, {3.900258859279118*^9, 
-   3.900258860495368*^9}},ExpressionUUID->"16b51277-1364-4aa2-8df7-\
-19f07ad0b5bd"],
+    ";"}], "//", 
+  "AbsoluteTiming"}]}], \
+"Input",ExpressionUUID->"16b51277-1364-4aa2-8df7-19f07ad0b5bd"],
 
 Cell[BoxData[{
  RowBox[{
@@ -535,36 +500,13 @@ Cell[BoxData[{
             RowBox[{"++", "L"}], ";", "\n", "            ", 
             RowBox[{"--", "R"}], ";"}], "\n", "        ", "}"}]}]}], "\n", 
         "    ", "}"}]}], "\n", "    ", "\n", "    ", "return", " ", 
-      "pivot_foundQ"}]}], ";"}]}], "\n", "}"}]}], "Input",ExpressionUUID->\
-"f0b89d13-53eb-47d7-9a96-ad9d32214769"]
+      "pivot_foundQ"}]}], ";"}]}], "\n", 
+  "}"}]}], "Input",ExpressionUUID->"f0b89d13-53eb-47d7-9a96-ad9d32214769"]
 },
 WindowSize->{1496, 905},
 WindowMargins->{{0, Automatic}, {Automatic, 0}},
 TaggingRules-><|"TryRealOnly" -> False|>,
-FrontEndVersion->"13.2 for Mac OS X ARM (64-bit) (January 30, 2023)",
+FrontEndVersion->"13.3 for Mac OS X ARM (64-bit) (July 24, 2023)",
 StyleDefinitions->"Default.nb",
 ExpressionUUID->"fab14467-30fa-4805-b375-44e65b353e31"
 ]
-(* End of Notebook Content *)
-
-(* Internal cache information *)
-(*CellTagsOutline
-CellTagsIndex->{}
-*)
-(*CellTagsIndex
-CellTagsIndex->{}
-*)
-(*NotebookFileOutline
-Notebook[{
-Cell[558, 20, 177, 2, 41, "Input",ExpressionUUID->"f08fd087-efe2-4a14-a401-6e9f7e67f642"],
-Cell[738, 24, 317, 5, 67, "Input",ExpressionUUID->"644dabfc-f850-4a5b-8e8d-2cf663d359d5"],
-Cell[1058, 31, 6706, 130, 1967, "Input",ExpressionUUID->"16b51277-1364-4aa2-8df7-19f07ad0b5bd"],
-Cell[7767, 163, 1410, 34, 142, "Input",ExpressionUUID->"fc1be99b-3269-4ae2-ae13-6ab0b0d4bc2f"],
-Cell[9180, 199, 390, 8, 92, "Input",ExpressionUUID->"fd0e3bd1-6ce7-4d20-88c0-9a611f1e40e4"],
-Cell[9573, 209, 816, 18, 41, "Input",ExpressionUUID->"51d87508-0e91-4807-b117-4f66a9abe268"],
-Cell[10392, 229, 170, 4, 41, "Input",ExpressionUUID->"81674443-96e8-4d10-95ba-fa34eb58d68a"],
-Cell[10565, 235, 13000, 303, 2692, "Input",ExpressionUUID->"f0b89d13-53eb-47d7-9a96-ad9d32214769"]
-}
-]
-*)
-

@@ -1,5 +1,3 @@
-#pragma once
-
 namespace Tensors
 {
     namespace Sparse
@@ -74,29 +72,6 @@ namespace Tensors
             ,   x_1             ( X_1_buffer.data()      )
             {}
             
-        protected:
-            
-//            void _tic()
-//            {
-//                start_time = Clock::now();
-//            }
-//
-//            float _toc()
-//            {
-//                return Duration( start_time, Clock::now() );
-//            }
-            
-            void _tic()
-            {
-            }
-
-            float _toc()
-            {
-                return 0;
-            }
-            
-            
-            
         public:
                 
             // Solver routine.
@@ -143,8 +118,8 @@ namespace Tensors
                             BLAS::gemv<Layout::RowMajor,Op::Trans>(
                                 n_1, nrhs,
                                 -one, X_1, nrhs,
-                                      U_1, 1,        // XXX Problem: We need Conj(U_1)!
-                                 one, X_0, 1
+                                      U_1, ione,        // XXX Problem: We need Conj(U_1)!
+                                 one, X_0, ione
                             );
                         }
 
@@ -167,9 +142,7 @@ namespace Tensors
                             );
                         }
                         // Triangle solve U_0 * X_0 = B while overwriting X_0.
-                        BLAS::trsm<Layout::RowMajor,
-                            Side::Left, UpLo::Upper, Op::Id, Diag::NonUnit
-                        >(
+                        BLAS::trsm<Layout::RowMajor,Side::Left,UpLo::Upper,Op::Id,Diag::NonUnit>(
                             n_0, nrhs,
                             one, U_0, n_0,
                                  X_0, nrhs
@@ -219,14 +192,14 @@ namespace Tensors
                             BLAS::gemv<Layout::RowMajor,Op::Id>(// XXX Op::Id -> Op::ConjTrans
                                 n_0, n_1,
                                 -one, U_1, n_1, // XXX n_1 -> n_0
-                                      x_1, 1,
-                                 one, x_0, 1
+                                      x_1, ione,
+                                 one, x_0, ione
                             );
                         }
 
                         // Triangle solve U_0 * x_0 = B while overwriting x_0.
                         BLAS::trsv<Layout::RowMajor,UpLo::Upper,Op::Id,Diag::NonUnit>(
-                            n_0, U_0, n_0, x_0, 1
+                            n_0, U_0, n_0, x_0, ione
                         );
                     }
                 }

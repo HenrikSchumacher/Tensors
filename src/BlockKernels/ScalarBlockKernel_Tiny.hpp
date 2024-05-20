@@ -1,27 +1,25 @@
 #pragma once
 
-#define CLASS ScalarBlockKernel_fixed
+#define CLASS ScalarBlockKernel_Tiny
 
-#define BASE  BlockKernel_fixed<                            \
-    ROWS_,COLS_,RHS_COUNT_,fixed,                           \
+#define BASE  BlockKernel_Tiny<                             \
+    ROWS_,COLS_,NRHS_,                                      \
     Scal_,Scal_in_,Scal_out_,                               \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
-    x_RM, x_intRM, x_copy, x_prefetch,                      \
-    y_RM, y_intRM,                                          \
-    use_fma                                                 \
+    x_RM, x_prefetch,                                       \
+    y_RM                                                    \
 >
 
 namespace Tensors
 {
     template<
-        int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
+        int ROWS_, int COLS_, int NRHS_,
         typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-        bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,
-        bool y_RM, bool y_intRM,
-        bool use_fma
+        bool x_RM, bool x_prefetch,
+        bool y_RM
     >
     class CLASS : public BASE
     {
@@ -33,16 +31,14 @@ namespace Tensors
         using Scal     = Scal_;
         using Scal_out = Scal_out_;
         using Scal_in  = Scal_in_;
-        using Int        = Int_;
-        using LInt       = LInt_;
+        using Int      = Int_;
+        using LInt     = LInt_;
 
         using BASE::ROWS;
         using BASE::COLS;
         using BASE::ROWS_SIZE;
         using BASE::COLS_SIZE;
-        using BASE::RHS_COUNT;
-        
-        using BASE::FMA;
+        using BASE::NRHS;
         
         static constexpr LInt BLOCK_NNZ = 1;
         
@@ -56,9 +52,6 @@ namespace Tensors
         using BASE::y;
         
         using BASE::ReadX;
-        using BASE::get_x;
-        using BASE::get_y;
-        using BASE::rhs_count;
         
     public:
         
@@ -91,25 +84,16 @@ namespace Tensors
                 
         force_inline void TransposeBlock( const LInt from, const LInt to ) const
         {
-            A[BLOCK_NNZ * to] = A[BLOCK_NNZ * from];
+            A[to] = A[from];
         }
         
         force_inline void ApplyBlock( const LInt k_global, const Int j_global )
         {
             ReadX( j_global );
 
-            const Scal a = A_const[BLOCK_NNZ * k_global];
-            
-            LOOP_UNROLL_FULL
-            for( Int j = 0; j < COLS; ++j )
-            {
-                LOOP_UNROLL_FULL
-                for( Int k = 0; k < RHS_COUNT; ++k )
-                {
-                    FMA( a, get_x(j,k), get_y(j,k) );
-                }
-            }
-
+            combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Plus,COLS_SIZE>(
+                A_const[k_global], x.data(), Scalar::One<Scal>, y.data()
+            );
         }
         
     public:
@@ -119,8 +103,7 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+ToString(RHS_COUNT)
-            +","+ToString(fixed)
+            +","+ToString(NRHS)
             +","+TypeName<Scal>
             +","+TypeName<Scal_in>
             +","+TypeName<Scal_out>
@@ -128,9 +111,8 @@ namespace Tensors
             +","+TypeName<LInt>
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
-            +","+ToString(x_RM)+","+ToString(x_intRM)+","+ToString(x_copy)+","+ToString(x_prefetch)
-            +","+ToString(y_RM)+","+ToString(y_intRM)
-            +","+ToString(use_fma)
+            +","+ToString(x_RM)+","+ToString(x_prefetch)
+            +","+ToString(y_RM)
             +">";
         }
 

@@ -1,8 +1,6 @@
-#pragma once
-
-//###########################################################################################
+//##########################################################################################
 //####          IO routines
-//###########################################################################################
+//##########################################################################################
 
 public:
 
@@ -53,9 +51,9 @@ public:
     }
 
 
-//###########################################################################################
+//##########################################################################################
 //####          Get routines
-//###########################################################################################
+//##########################################################################################
 
     Int ThreadCount() const
     {
@@ -70,6 +68,11 @@ public:
     Int ColCount() const
     {
         return n;
+    }
+
+    LInt NonzeroCount() const
+    {
+        return A.NonzeroCount();
     }
 
     Int RightHandSideCount() const
@@ -142,12 +145,12 @@ public:
                     cptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                     
                     // Copy first row of supernode.
-                    copy_buffer<VarSize,Sequential>( &SN_inner[l_begin], &U_ci[start+n_0], n_1 );
+                    copy_buffer( &SN_inner[l_begin], &U_ci[start+n_0], n_1 );
                     
                     // Copy triangular part.
-                    copy_buffer<VarSize,Sequential>( U_0, &U_val[U_rp[i_begin]      ], n_0 );
+                    copy_buffer( U_0, &U_val[U_rp[i_begin]      ], n_0 );
                     // Copy rectangular part.
-                    copy_buffer<VarSize,Sequential>( U_1, &U_val[U_rp[i_begin] + n_0], n_1 );
+                    copy_buffer( U_1, &U_val[U_rp[i_begin] + n_0], n_1 );
                     
                     // Copy the remaining rows of supernode.
                     for( Int i = i_begin+1; i < i_end; ++i )
@@ -157,16 +160,16 @@ public:
                         // Row `i_loc` of `U_0` has this many nonzero entries.
                         const Int n_0_i = i_end-i;
                         
-                        copy_buffer<VarSize,Sequential>( &U_ci[start+i_loc], &U_ci[U_rp[i]], n_0_i + n_1 );
+                        copy_buffer( &U_ci[start+i_loc], &U_ci[U_rp[i]], n_0_i + n_1 );
                         
                         // Copy triangular part.
-                        copy_buffer<VarSize,Sequential>(
+                        copy_buffer(
                             &U_0[n_0 * i_loc + i_loc],
                             &U_val[U_rp[i]],
                             n_0_i
                         );
                         
-                        copy_buffer<VarSize,Sequential>(
+                        copy_buffer(
                             &U_1[n_1 * i_loc],
                             &U_val[U_rp[i] + n_0_i],
                             n_1
@@ -178,13 +181,12 @@ public:
             
             this->SetCache( tag,
                 std::make_any<Matrix_T>(
-                    std::move(U_rp), std::move(U_ci), std::move(U_val),
-                    n, n, thread_count
+                    std::move(U_rp), std::move(U_ci), std::move(U_val), n, n, thread_count
                 )
             );
         }
         
-        return std::any_cast<Matrix_T &>( this->GetCache(tag) );
+        return this->template GetCache<Matrix_T>(tag);
     }
 
     cref<Matrix_T> GetFactor() const
@@ -203,7 +205,7 @@ public:
             );
         }
         
-        return std::any_cast<JobPointers<Int> &>( this->GetPersistentCache(tag) );
+        return this->template GetPersistentCache<JobPointers<Int>>(tag);
     }
 
     void WriteFactorDiagonal( mptr<Real> diag ) const
@@ -272,7 +274,7 @@ public:
         return A;
     }
 
-    cref<Permutation<Int>> GetPermutation() const
+    cref<Permutation_T> GetPermutation() const
     {
         return perm;
     }
@@ -322,6 +324,11 @@ public:
         return SN_rec_val;
     }
 
+//    cref<std::vector<Update_T>> SN_UpdateValues() const
+//    {
+//        return SN_updates;
+//    }
+
     cref<Tensor1<Int,Int>> RowToSN() const
     {
         return row_to_SN;
@@ -330,4 +337,34 @@ public:
     cref<Tensor1<Scal,LInt>> Values() const
     {
         return A_val;
+    }
+
+    void SetAmalgamationThreshold( const Int amalgamation_threshold_ )
+    {
+        if( amalgamation_threshold_ != amalgamation_threshold )
+        {
+            amalgamation_threshold = amalgamation_threshold_;
+            SN_initialized = false;
+            SN_factorized  = false;
+        }
+    }
+    Int AmalgamationThreshold() const
+    {
+        return amalgamation_threshold;
+    }
+
+
+    void SetSupernodeStrategy( const signed char strategy )
+    {
+        if( strategy != SN_strategy )
+        {
+            SN_strategy = strategy;
+            SN_initialized = false;
+            SN_factorized  = false;
+        }
+    }
+
+    signed char GetSupernodeStrategy() const
+    {
+        return SN_strategy;
     }

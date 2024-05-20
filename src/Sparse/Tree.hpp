@@ -1,5 +1,8 @@
 #pragma once
 
+// No, I do not really consider to include this maintenance hell ever again.
+//#include <omp.h>
+
 // TODO: Improve load balancing.
 // TODO: - Reorder `subrees` in `Tree` based on this cost estimate.
 
@@ -13,6 +16,8 @@ namespace Tensors
     template<typename Int>
     class Tree
     {
+        ASSERT_SIGNED_INT(Int)
+        
         
     protected:
         
@@ -242,26 +247,6 @@ namespace Tensors
             return subtrees;
         }
         
-//        bool PostOrderedQ() const
-//        {
-//            return ParallelDoReduce(
-//                [=,this]( const Int i ) -> bool
-//                {
-//                    const Int p_i = parents[i];
-//
-//                    return (i < p_i) && (i >= p_i - DescendantCount(p_i) );
-//                },
-//                AndReducer(),
-//                true,
-//                zero, Root(), thread_count
-//            );
-//            
-//            return true;
-//        }
-        
-        
-        
-        
         bool PostOrderedQ() const
         {
             // TODO: Is this test good enough to indeed guarantee that the tree is postordered, when passed?
@@ -270,10 +255,19 @@ namespace Tensors
                 {
                     const Int p_i = parents[i];
 
+//                    // This here would require signed integers.
+//                    return
+//                    (i < p_i)
+//                    &&
+//                    (i - DescendantCount(i) >= p_i - DescendantCount(p_i) );
+                    
+                    // This merely requires that 2 n fits into Int without overflow.
                     return
                     (i < p_i)
                     &&
-                    (i - DescendantCount(i) >= p_i - DescendantCount(p_i) );
+                    (i + DescendantCount(p_i) >= p_i + DescendantCount(i) );
+                    
+
                 },
                 AndReducer(),
                 true,
@@ -296,6 +290,7 @@ namespace Tensors
         
 #include "Tree/Traverse_Preordered.hpp"
 #include "Tree/Traverse_Postordered.hpp"
+//#include "Tree/Traverse_Postordered_OpenMP.hpp"
         
     public:
     

@@ -1,33 +1,33 @@
 public:
 
-    template<bool base, typename R_out, typename T_in, typename S_out, typename T_out>
+    template<bool base, typename alpha_T_, typename X_T, typename beta_T_, typename Y_T>
     void SpMV(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<R_out> alpha_, cptr<T_in>  X,
-        cref<S_out> beta_,  mptr<T_out> Y,
+        cref<alpha_T_> alpha_, cptr<X_T>  X,
+        cref< beta_T_> beta_,  mptr<Y_T> Y,
         cref<JobPointers<Int>> job_ptr
     )
     {
         // This is basically a large switch to determine at runtime, which instantiation of SpMV_impl is to be invoked.
         // In particular, this implies that all relevant cases of SpMM_impl are instantiated.
         
-        using alpha_T = std::conditional_t< Scalar::RealQ<R_out>, Scalar::Real<T_out>, T_out>;
-        using beta_T  = std::conditional_t< Scalar::RealQ<S_out>, Scalar::Real<T_out>, T_out>;
+        using alpha_T = std::conditional_t< Scalar::RealQ<alpha_T_>, Scalar::Real<Y_T>, Y_T>;
+        using beta_T  = std::conditional_t< Scalar::RealQ< beta_T_>, Scalar::Real<Y_T>, Y_T>;
         
-        StaticParameterCheck<alpha_T,T_in,beta_T,T_out>();
+        StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
         
-        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<T_out>(alpha_) : scalar_cast<R_out>(0);
-        const beta_T  beta  = scalar_cast<T_out>(beta_);
+        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<Y_T>(alpha_) : scalar_cast<alpha_T_>(0);
+        const beta_T  beta  = scalar_cast<Y_T>(beta_);
         
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
-        if ( alpha == static_cast<alpha_T>(0) )
+        if ( alpha == Scalar::Zero<alpha_T> )
         {
-            if ( beta == static_cast<beta_T>(0) )
+            if ( beta == Scalar::Zero<beta_T> )
             {
                 zerofy_buffer( Y, m, job_ptr.ThreadCount() );
             }
-            else if ( beta == static_cast<beta_T>(1) )
+            else if ( beta == Scalar::One<beta_T> )
             {
                 // Do nothing.
             }
@@ -40,13 +40,13 @@ public:
         
         if( a != nullptr )
         {
-            if( alpha == static_cast<alpha_T>(1) )
+            if( alpha == Scalar::One<alpha_T> )
             {
-                if( beta == static_cast<beta_T>(0) )
+                if( beta == Scalar::Zero<beta_T> )
                 {
                     SpMV_impl<Generic,One,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
-                else if( beta == static_cast<beta_T>(1) )
+                else if( beta == Scalar::One<beta_T> )
                 {
                     SpMV_impl<Generic,One,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
@@ -58,11 +58,11 @@ public:
             else
             {
                 // general alpha
-                if( beta == static_cast<beta_T>(1) )
+                if( beta == Scalar::One<beta_T> )
                 {
                     SpMV_impl<Generic,Generic,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
-                else if( beta == static_cast<beta_T>(0) )
+                else if( beta == Scalar::Zero<beta_T> )
                 {
                     SpMV_impl<Generic,Generic,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
@@ -74,13 +74,13 @@ public:
         }
         else
         {
-            if( alpha == static_cast<alpha_T>(1) )
+            if( alpha == Scalar::One<alpha_T> )
             {
-                if( beta == static_cast<beta_T>(0) )
+                if( beta == Scalar::Zero<beta_T> )
                 {
                     SpMV_impl<One,One,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
-                else if( beta == static_cast<beta_T>(1) )
+                else if( beta == Scalar::One<beta_T> )
                 {
                     SpMV_impl<One,One,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
@@ -92,11 +92,11 @@ public:
             else
             {
                 // general alpha
-                if( beta == static_cast<beta_T>(1) )
+                if( beta == Scalar::One<beta_T> )
                 {
                     SpMV_impl<One,Generic,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
-                else if( beta == static_cast<beta_T>(0) )
+                else if( beta == Scalar::Zero<beta_T> )
                 {
                     SpMV_impl<One,Generic,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
                 }
@@ -112,11 +112,11 @@ private:
 
     template<
         Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, bool base = 0,
-        typename R_out, typename T_in, typename S_out, typename T_out>
+        typename alpha_T_, typename X_T, typename  beta_T_, typename Y_T>
     void SpMV_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<R_out> alpha, cptr<T_in>  x,
-        cref<S_out> beta,  mptr<T_out> y,
+        cref<alpha_T_> alpha, cptr<X_T>  x,
+        cref< beta_T_> beta,  mptr<Y_T> y,
         cref<JobPointers<Int>> job_ptr
     )
     {
@@ -125,10 +125,10 @@ private:
             +ToString(alpha_flag)+","
             +ToString(beta_flag)+","
             +ToString(base)+","
-            +TypeName<R_out>+","
-            +TypeName<T_in >+","
-            +TypeName<S_out>+","
-            +TypeName<T_out>+">";
+            +TypeName<alpha_T_>+","
+            +TypeName<X_T >+","
+            +TypeName<beta_T_>+","
+            +TypeName<Y_T>+">";
         
         ptic(tag);
         
@@ -147,7 +147,7 @@ private:
         // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
 
         using T = typename std::conditional_t<
-            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<T_in>,
+            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
             typename Scalar::Complex<Scal>,
             typename Scalar::Real<Scal>
         >;

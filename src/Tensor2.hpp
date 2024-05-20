@@ -128,7 +128,7 @@ namespace Tensors
                 ParallelDo(
                     [=]( const Int i )
                     {
-                        copy_buffer<VarSize,Sequential>( &B[ld_B * i], &a[d_1 * i], d_1 );
+                        copy_buffer( &B[ld_B * i], &a[d_1 * i], d_1 );
                     },
                     d_0, thread_count
                 );
@@ -187,7 +187,7 @@ namespace Tensors
 //            ParallelDo(
 //                [a_,lda,d_1,this]( const Int i )
 //                {
-//                    copy_buffer<VarSize,Sequential>( &a_[lda * i], &a[d_1 * i], d_1 );
+//                    copy_buffer( &a_[lda * i], &a[d_1 * i], d_1 );
 //                },
 //                d_0, thread_count
 //            );
@@ -202,7 +202,7 @@ namespace Tensors
 //            ParallelDo(
 //                [=,this]( const Int i )
 //                {
-//                    copy_buffer<VarSize,Sequential>( &a[d_1 * i], &a_[lda * i], d_1 );
+//                    copy_buffer( &a[d_1 * i], &a_[lda * i], d_1 );
 //                },
 //                d_0, thread_count
 //            );
@@ -219,7 +219,7 @@ namespace Tensors
                 ParallelDo(
                     [=]( const Int i )
                     {
-                        copy_buffer<VarSize,Sequential>( &a[d_1 * i], &B[ld_B * i], d_1 );
+                        copy_buffer( &a[d_1 * i], &B[ld_B * i], d_1 );
                     },
                     d_0, thread_count
                 );

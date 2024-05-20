@@ -5,16 +5,19 @@
 
 #define TOOLS_ENABLE_PROFILER
 //#define TOOLS_DEBUG
+//#define TOOLS_AGGRESSIVE_INLINING
 
-
-#include "../Accelerate.hpp"
-//#include "../OpenBLAS.hpp"
-
+#ifdef __APPLE__
+    #include "../Accelerate.hpp"
+#else
+    #include "../OpenBLAS.hpp"
+#endif
 
 #include "Tensors.hpp"
 #include "Sparse.hpp"
 
 #include "../src/Sparse/Metis.hpp"
+#include "../src/Sparse/ApproximateMinimumDegree.hpp"
 
 //#include "../src/CHOLMOD/CholeskyDecomposition.hpp"
 //#include "../src/CHOLMOD/ApproximateMinimumDegree.hpp"
@@ -32,7 +35,7 @@ using Int    = int32_t;
 int main(int argc, const char * argv[])
 {
     //    print("Hello world!");
-    constexpr Int thread_count   = 8;
+    constexpr Int thread_count = 8;
     
     const char * homedir = getenv("HOME");
     
@@ -61,19 +64,12 @@ int main(int argc, const char * argv[])
         path + name + "_Matrix.txt", thread_count
     );
 
+    dump(A.ThreadCount());
     dump(A.RowCount());
     dump(A.NonzeroCount());
-
+    dump(nrhs);
+    
     const Int n = A.RowCount();
-
-    Tensor1<Int,Int> p ( n );
-
-    p.ReadFromFile(path + name + "_Permutation.txt");
-
-
-    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
-
-
 
     Tensor1<Scal,Int> b (n);
     Tensor2<Scal,Int> B (n,nrhs);
@@ -88,19 +84,29 @@ int main(int argc, const char * argv[])
 
 
     Scal reg = 0;
+    
+    print("");
+    
+//    // Using a matrix reordering created by TAUCS works splendidly.
+//    Tensor1<Int,Int> p ( n );
+//    p.ReadFromFile(path + name + "_Permutation.txt");
+//    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
 
+//    
+//    tic("Metis");
+//    Permutation<Int> perm = Sparse::Metis<Int>()(
+//        A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
+//    );
+//    toc("Metis");
+    
+    tic("AMD");
+    Permutation<Int> perm = Sparse::ApproximateMinimumDegree<Int>()(
+        A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
+    );
+    toc("AMD");
 
-//    Permutation<Int> perm ( perm_array, n, Inverse::False, thread_count );
-
-//    Permutation<Int> perm ( n, thread_count );
-
-//    Metis_Wrapper()( &rp[0], &ci[0], perm );
-
-//    ptic("Metis");
-//    Metis()( A.Outer().data(), A.Inner().data(), perm );
-//    ptoc("Metis");
-//    print( perm.GetPermutation().ToString() );
-
+    
+    
 //    tic("CHOLMOD::ApproximateMinimumDegree");
 //    Permutation<Int> perm = CHOLMOD::ApproximateMinimumDegree<Int>()(
 //        A.Outer().data(), A.Inner().data(), n, thread_count
@@ -143,7 +149,8 @@ int main(int argc, const char * argv[])
     print("");
 
     tic("Cholesky numeric factorization");
-    S.NumericFactorization(A.Values().data(), reg);
+//    S.NumericFactorization_LeftLooking(A.Values().data(), reg);
+    S.NumericFactorization_Multifrontal(A.Values().data(), reg);
     toc("Cholesky numeric factorization");
 
     print("");
@@ -236,20 +243,30 @@ int main(int argc, const char * argv[])
 
         BT.ReadTransposed(B.data());
 
-//        unc SparseFactor(
-//            _ type: SparseFactorization_t,
-//            _ Matrix: SparseMatrixStructure
-//        ) -> SparseOpaqueSymbolicFactorization
-
+        SparseSymbolicFactorOptions opts = _SparseDefaultSymbolicFactorOptions;
+        
+//        enum class SparseOrder : uint8_t
+//        {
+//          SparseOrderDefault = 0,
+//          SparseOrderUser = 1,
+//          SparseOrderAMD = 2,
+//          SparseOrderMetis = 3,
+//          SparseOrderCOLAMD = 4,
+//        );
+        opts.orderMethod = SparseOrderDefault;
+//        opts.orderMethod = SparseOrderAMD;
+//        opts.orderMethod = SparseOrderMetis;
+//        opts.orderMethod = SparseOrderUser;
+//        opts.order = const_cast<Int*>(perm.GetPermutation().data());
+        
         tic("Accelerate symbolic factorization");
-        SparseOpaqueSymbolicFactorization Lsym = SparseFactor( SparseFactorizationCholesky, pat );
+        SparseOpaqueSymbolicFactorization Lsym = SparseFactor( 
+            SparseFactorizationCholesky, 
+            pat,
+            opts
+        );
         toc("Accelerate symbolic factorization");
 
-//        int * bla = reinterpret_cast<int*>(Lsym.factorization) + 46;
-//
-//        int dims [1] = {n};
-//
-//        print( ArrayToString(bla, &dims[0], 1) );
         print("");
 
         tic("Accelerate numeric factorization");
@@ -259,8 +276,7 @@ int main(int argc, const char * argv[])
         print("");
 
         tic("Accelerate Cholesky vector solve");
-        SparseSolve(
-            L,
+        SparseSolve( L,
             DenseVector_Double{ b.Dimension(0), b.data() },
             DenseVector_Double{ x.Dimension(0), x.data() }
         );
@@ -272,8 +288,7 @@ int main(int argc, const char * argv[])
         print("");
 
         tic("Accelerate Cholesky matrix solve");
-        SparseSolve(
-            L,
+        SparseSolve( L,
             DenseMatrix_Double{
                 B.Dimension(0), B.Dimension(1), B.Dimension(0), SparseAttributes_t(), BT.data()
             }

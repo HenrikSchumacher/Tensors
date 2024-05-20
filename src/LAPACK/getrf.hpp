@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace LAPACK
     {
-        template< typename Scal, typename I0, typename I1, typename I2 >
+        template< Layout layout, typename Scal, typename I0, typename I1, typename I2 >
         force_inline Int getrf(
             const I0 m_, const I1 n_, Scal * A_, const I2 ldA_, Int * perm
         )
@@ -15,8 +15,9 @@ namespace Tensors
             
 //            fill_range_buffer ( perm, 1, n_ );
             
-            Int m    = int_cast<Int>(m_);
-            Int n    = int_cast<Int>(n_);
+            // We have to swap dimensions because LAPACK uses col-major layout.
+            Int m    = layout == Layout::ColMajor ? int_cast<Int>(m_) : int_cast<Int>(n_);
+            Int n    = layout == Layout::ColMajor ? int_cast<Int>(n_) : int_cast<Int>(m_);
             Int ldA  = int_cast<Int>(ldA_);
             Int info = 0;
             
@@ -59,7 +60,7 @@ namespace Tensors
             }
             else
             {
-                eprint("cpotrf not defined for scalar type " + TypeName<Scal> );
+                eprint("getrf not defined for scalar type " + TypeName<Scal> );
             }
             
             return info;

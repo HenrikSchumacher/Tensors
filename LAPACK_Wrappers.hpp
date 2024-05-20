@@ -113,7 +113,17 @@ namespace Tensors
 }
 
 #include "src/LAPACK/potrf.hpp"
+#include "src/LAPACK/potrs.hpp"
+
 #include "src/LAPACK/getrf.hpp"
+
+#include "src/LAPACK/hetrf.hpp"
+#include "src/LAPACK/hetrs.hpp"
+
+#include "src/LAPACK/hetrf_rk.hpp"
+
+#include "src/LAPACK/hetrf_rook.hpp"
+#include "src/LAPACK/hetrs_rook.hpp"
 
 #include "src/LAPACK/SelfAdjointEigensolver.hpp"
 

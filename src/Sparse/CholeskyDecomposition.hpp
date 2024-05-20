@@ -3,52 +3,69 @@
 #include "../../BLAS_Wrappers.hpp"
 #include "../../LAPACK_Wrappers.hpp"
 
-#include "CholeskyDecomposition/Factorizer.hpp"
+#include "CholeskyDecomposition/LeftLooking.hpp"
+#include "CholeskyDecomposition/Multifrontal.hpp"
 #include "CholeskyDecomposition/UpperSolver.hpp"
 #include "CholeskyDecomposition/LowerSolver.hpp"
 
 // Priority I:
 
+// TODO: Compute AMD reordering. Often it works very well!
+
+// TODO: LowerSolve seems to be unneccessary slow for nrhs = 1 and thread_count = 1.
+
 // TODO: Improve scheduling for parallel factorization.
-// DONE: - What to do if top of the tree is not a binary tree?
+// TODO: - What to do if top of the tree is not a binary tree?
 // DONE: - What to do in case of a forest?
 // TODO: - Estimate work to do in subtrees.
 // TODO: - Reorder `subrees` in `Tree` based on this cost estimate.
 
-// TODO: Parallelize symbolic factorization.
-// TODO:     --> Build aTree first and traverse it in parallel to determine SN_inner.
-
 // Priority II:
 
-// TODO: Add arguments for leading dimensions.
-// TODO: Add multiplication and add-into possibilities.
+// TODO: Parallelize symbolic factorization.
+// TODO: - Build aTree first and traverse it in parallel to determine SN_inner.
+
+// TODO: Do we really have to build _two_ EliminationTrees?
+// TODO: Can we parallelize EliminationTrees? E.g., build it for chunks of rows and then merge the trees somehow?
+
+// TODO: Improve solve phase:
+// TODO: - trsm/trsv like interface
+// TODO: - Fixed size arithmetic?
+// TODO: - leading dimensions
+// TODO: - multiplication and add-into
 
 // TODO: Compute nested dissection --> Metis, Scotch. Parallel versions? MT-Metis?
 
-// TODO: Speed up supernode update in factorization phase.
-//           --> transpose U_0 and U_1 to reduce scatter_reads/scatter_adds.
-//           --> employ Tiny::BLAS kernels. --> Does not seem to be helpful...
-//           --> is there a way to skip unrelevant descendants?
-//           --> fetching updates from descendants can be done in parallel
-
-// TODO: Do we really have to build _two_ EliminationTrees?
 
 // Priority III:
+
 // TODO: hierarchical low-rank factorization of supernodes?
-
-// TODO: Allow the user to supply only upper or lower triangle of matrix.
-
-// TODO: Optional iterative refinement?
+//      --> Superfast Multifrontal Method for Large Structured Linear Systems of Equations
+//
+// TODO: Iterative refinement -> CG solver?
 
 // Priority IV:
-// TODO: hierarchical low-rank factorization of supernodes?
-
 // TODO: incomplete factorization?
 
 // TODO: Maybe load linear combination of matrices A (with sub-pattern, of course) during factorization?
 
-// TODO: parallelize potrf + trsm of large supernodes.
-//           --> not a good idea if Apple Accelerate is used?!?
+// TODO: parallelize potrf + trsm + herk of large supernodes.
+// DONT: not helpful if Apple Accelerate is used?!?
+
+
+// TODO: Speed up supernode update in left-looking factorization phase.
+// TODO: - transpose U_0 and U_1 to reduce scatter_reads/scatter_adds.
+// DONT: - fetching updates from descendants can be done in parallel
+
+
+// DON'Ts:
+
+// DONT: Allow the user to supply only upper or lower triangle of matrix.
+//           --> I think this feature is seldomly used and creates some bad incentives.
+//           --> iterative refinement would need the whole matrix anyways to be fast.
+
+// DONT: employ Tiny::BLAS kernels. --> Does not seem to be helpful...
+//           --> Did not help; at least on M1, the BLAS kernels are fast also for small sizes.
 
 
 // Super helpful literature:
@@ -63,9 +80,9 @@
 namespace Tensors
 {
     namespace Sparse
-    {   
+    {
         template<typename Scal_, typename Int_, typename LInt_>
-        class CholeskyDecomposition : public CachedObject
+        class alignas( ObjectAlignment ) CholeskyDecomposition : public CachedObject
         {
         public:
             
@@ -76,10 +93,18 @@ namespace Tensors
             
             using BinaryMatrix_T     = Sparse::BinaryMatrixCSR<Int,LInt>;
             using Matrix_T           = Sparse::MatrixCSR<Scal,Int,LInt>;
+            using Tree_T             = Tree<Int>;
+            using Permutation_T      = Permutation<Int>;
+            using Factorizer_LL_T    = CholeskyFactorizer_LeftLooking<Scal,Int,LInt>;
             
-            using Factorizer         = CholeskyFactorizer<Scal,Int,LInt>;
+            using Factorizer_MF_T    = CholeskyFactorizer_Multifrontal<Scal,Int,LInt>;
             
-            friend Factorizer;
+            using Update_T           = Tensor2<Scal,Int>;
+//            using Update_T           = Scal *;
+            
+            friend Factorizer_LL_T;
+            friend Factorizer_MF_T;
+            
             friend class UpperSolver<false,Scal,Int,LInt>;
             friend class UpperSolver<true, Scal,Int,LInt>;
             friend class LowerSolver<false,false,Scal,Int,LInt>;
@@ -88,7 +113,6 @@ namespace Tensors
             friend class LowerSolver<true, true, Scal,Int,LInt>;
             
             using VectorContainer_T = Tensor1<Scal,LInt>;
-
             
         protected:
             
@@ -101,7 +125,7 @@ namespace Tensors
             Int n = 0;
             Int thread_count = 1;
             
-            Permutation<Int>  perm;          // row and column permutation of the nonzeros of the matrix.
+            Permutation_T perm;          // row and column permutation of the nonzeros of the matrix.
             
             BinaryMatrix_T A;
             
@@ -115,15 +139,19 @@ namespace Tensors
             
             // elimination tree
             bool eTree_initialized = false;
-            Tree<Int> eTree;
+            Tree_T eTree;
             
-            // assembly three
-            Tree<Int> aTree;
+            // assembly tree
+            Tree_T aTree;
             
             // Supernode data:
             
+            Int  amalgamation_threshold = 4;
             bool SN_initialized = false;
             bool SN_factorized  = false;
+            signed char SN_strategy = 0;
+            
+
             
             // Number of supernodes.
             Int SN_count = 0;
@@ -167,15 +195,17 @@ namespace Tensors
             //       j_begin = SN_outer[row_to_SN[i]  ], and
             //       j_end   = SN_outer[row_to_SN[i]+1].
             
-            // Values of triangular part of k-th supernode is stored in
-            // [ SN_tri_val[SN_tri_ptr[k]],...,SN_tri_val[SN_tri_ptr[k]+1] [
+            // Values of triangular part of s-th supernode is stored in
+            // [ SN_tri_val[SN_tri_ptr[s]],...,SN_tri_val[SN_tri_ptr[s]+1] [
             Tensor1<LInt, Int> SN_tri_ptr;
             Tensor1<Scal,LInt> SN_tri_val;
             
-            // Values of rectangular part of k-th supernode is stored in
-            // [ SN_rec_val[SN_rec_ptr[k]],...,SN_rec_val[SN_rec_ptr[k]+1] [
+            // Values of rectangular part of s-th supernode is stored in
+            // [ SN_rec_val[SN_rec_ptr[s]],...,SN_rec_val[SN_rec_ptr[s]+1] [
             Tensor1<LInt, Int> SN_rec_ptr;
             Tensor1<Scal,LInt> SN_rec_val;
+            
+            std::vector<Update_T> SN_updates;
             
             // Maximal size of triangular part of supernodes.
             Int max_n_0 = 0;
@@ -202,54 +232,137 @@ namespace Tensors
             
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                cptr<ExtLInt> outer_,
-                cptr<ExtInt>  inner_,
-                Int n_, Int thread_count_
+                cptr<ExtLInt> A_outer,
+                cptr<ExtInt>  A_inner,
+                Permutation_T && perm_
             )
-            :   n               ( Max( izero, n_)                    )
-            ,   thread_count    ( Max( ione, thread_count_)          )
-            ,   perm            ( n_, thread_count                   ) // use identity permutation
-            ,   A               ( outer_, inner_, n, n, thread_count )
-            ,   A_inner_perm    ( A.NonzeroCount()                   )
-            ,   A_val           ( A.NonzeroCount()                   )
+            :   n               ( Max( izero, perm_.Size() )      )
+            ,   thread_count    ( Max( ione, perm_.ThreadCount()) )
             {
+                std::string tag = ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*,  Permutation<" + TypeName<Int>+ "> )";
+                
+                ptic(tag);
+                
+                perm = Permutation_T( std::move( perm_) );
+                
+                A = BinaryMatrix_T( A_outer, A_inner, n, n, thread_count );
+                
+                A_val = Tensor1<Scal,LInt>( A.NonzeroCount() );
+                
+                
+                // The matrix reordering is parallelized.
+                // But when run single-threaded, it is better to avoid it.
+                
+//                if( thread_count == 1 )
+//                {
+//                    Tensor1<Int,Int> parents ( n );
+//                    
+//                    (void)PermutedEliminationTreeParents(
+//                        n, A_outer, A_inner,
+//                        perm.GetPermutation().data(),
+//                        perm.GetInversePermutation().data(),
+//                        parents.data()
+//                    );
+//                    
+//                    eTree = Tree<Int>( std::move(parents), thread_count );
+//                    
+//                    if( eTree.PostOrderedQ() )
+//                    {
+//                        eTree_initialized = true;
+//                    }
+//                    else
+//                    {
+//                        perm.Compose( eTree.PostOrdering(), Compose::Post );
+//                        
+//                        eTree = Tree<Int>();
+//                    }
+//                }
+                
+                A_inner_perm = A.Permute( perm, perm );
+                
                 Init();
                 
-                A_inner_perm.iota( thread_count );
+                ptoc(tag);
             }
             
+            // This is the constructor that will most likely to be used in practice.
+            // p is supposed to be a vector of size n_ containing a fill-in reducing permutation of [0,...,n[.
             template<typename ExtLInt, typename ExtInt, typename ExtInt2>
             CholeskyDecomposition(
-                cptr<ExtLInt> outer_,
-                cptr<ExtInt>  inner_,
-                cptr<ExtInt2> p_,
+                cptr<ExtLInt> A_outer,
+                cptr<ExtInt>  A_inner,
+                cptr<ExtInt2> p,
                 Int n_, Int thread_count_
             )
-            :   n               ( Max( izero, n_)                     )
-            ,   thread_count    ( Max( ione, thread_count_)           )
-            ,   perm            ( p_, n, Inverse::False, thread_count )
-            ,   A               ( outer_, inner_, n, n, thread_count  )
-            ,   A_inner_perm    ( A.Permute( perm, perm )             )
-            ,   A_val           ( A.NonzeroCount()                    )
-            {
-                Init();
-            }
+            :   CholeskyDecomposition(
+                    A_outer, A_inner, Permutation_T( p, n_, Inverse::False, thread_count_ )
+                )
+            {}
+
             
+            
+            // Constructor if the user has applied a fill-in
+            // reducing permutation to the matrix already.
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
-                cptr<ExtLInt> outer_,
-                cptr<ExtInt>  inner_,
-                Permutation<Int> && perm_
+                cptr<ExtLInt> A_outer,
+                cptr<ExtInt>  A_inner,
+                Int n_, Int thread_count_
             )
-            :   n               ( Max( izero, perm_.Size() )                 )
-            ,   thread_count    ( Max( ione, perm_.ThreadCount())            )
-            ,   perm            ( std::move( perm_)                          )
-            ,   A               ( outer_, inner_, n, n, perm.ThreadCount()   )
-            ,   A_inner_perm    ( A.Permute( perm, perm )                    )
-            ,   A_val           ( A.NonzeroCount()                           )
+            :   n               ( n_                        )
+            ,   thread_count    ( Max( ione, thread_count_) )
             {
+                std::string tag = ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*, " + TypeName<Int>+ ", " + TypeName<Int>+ " )";
+                
+                ptic(tag);
+                
+                A = BinaryMatrix_T( A_outer, A_inner, n, n, thread_count );
+                
+                A_val = Tensor1<Scal,LInt>( A.NonzeroCount() );
+                
+//                if( thread_count > 1 )
+//                {
+                    perm = Permutation_T( n_, thread_count ); // use identity permutation
+                        
+                    A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
+
+                    A_inner_perm.iota( thread_count );
+//                }
+//                else
+//                {
+//                    Tensor1<Int,Int> parents ( n );
+//                    
+//                    (void)EliminationTreeParents( n, A_outer, A_inner, parents.data() );
+//                    
+//                    eTree = Tree<Int>( std::move(parents), thread_count );
+//                    
+//                    if( eTree.PostOrderedQ() )
+//                    {
+//                        perm = Permutation_T( n_, thread_count ); // use identity permutation
+//                        
+//                        A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
+//                        
+//                        A_inner_perm.iota( thread_count );
+//                        
+//                        eTree_initialized = true;
+//                    }
+//                    else
+//                    {
+//                        perm = eTree.PostOrdering();
+//                        
+//                        A_inner_perm = A.Permute( perm, perm );
+//                        
+//                        eTree = Tree<Int>();
+//                    }
+//                }
+                
                 Init();
+                
+                ptoc(tag);
             }
+
+            
+            
             
             /* Copy constructor */
             CholeskyDecomposition( const CholeskyDecomposition & other )
@@ -273,6 +386,7 @@ namespace Tensors
             ,   SN_tri_val          ( other.SN_tri_val          )
             ,   SN_rec_ptr          ( other.SN_rec_ptr          )
             ,   SN_rec_val          ( other.SN_rec_val          )
+            ,   SN_updates          ( other.SN_updates          )
             ,   max_n_0             ( other.max_n_0             )
             ,   max_n_1             ( other.max_n_1             )
             ,   nrhs                ( other.nrhs                )
@@ -308,6 +422,7 @@ namespace Tensors
                 swap( A_.SN_tri_val,         B_.SN_tri_val            );
                 swap( A_.SN_rec_ptr,         B_.SN_rec_ptr            );
                 swap( A_.SN_rec_val,         B_.SN_rec_val            );
+                swap( A_.SN_updates,         B_.SN_updates            );
                 swap( A_.max_n_0,            B_.max_n_0               );
                 swap( A_.max_n_1,            B_.max_n_1               );
                 swap( A_.nrhs,               B_.nrhs                  );
@@ -393,7 +508,7 @@ namespace Tensors
             
             cref<Tensor1<Int,Int>> PostOrdering()
             {
-                cref<Permutation<Int>> post = EliminationTree().PostOrdering();
+                cref<Permutation_T> post = EliminationTree().PostOrdering();
                 
                 if( !EliminationTree().PostOrderedQ() )
                 {
@@ -403,7 +518,7 @@ namespace Tensors
                     
                     
                     // `post` will reorder the inner indices; hence, we have to reorder also `A_inner_perm`;
-                    // Otherwise, `Factorizer` will read the wrong nonzero values.
+                    // Otherwise, `Factorizer_LL_T` will read the wrong nonzero values.
                     {
                         Tensor1<LInt,LInt> inner_perm_perm = A.Permute( post, post );
                         
@@ -503,3 +618,5 @@ namespace Tensors
 // DONE: User interface for lower/upper solves. (2032-07-30)
 
 // DONE: A_inner_perm seems to be a bit wasteful; we neither need the inverse permutation nor scratch. (2032-07-30)
+
+// DONE: Skip some unrelevant descendants in left-looking factorization.

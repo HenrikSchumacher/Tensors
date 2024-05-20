@@ -61,7 +61,7 @@ namespace Tensors
             
             friend class BinaryMatrixCSR<Int,LInt>;
             
-            PatternCSR() {}
+            PatternCSR() = default;
             
             template<typename I_0, typename I_1, typename I_3>
             PatternCSR(
@@ -227,6 +227,35 @@ namespace Tensors
             }
             
             PatternCSR(
+                const LInt nnz_,
+                const Int  * const i,
+                const Int  * const j,
+                const Int m_,
+                const Int n_,
+                const Int thread_count,
+                const bool compressQ   = true,
+                const int  symmetrize = 0
+            )
+            :   PatternCSR ( m_, n_, thread_count )
+            {
+                Tensor1<const Int  *,Int> idx    (thread_count);
+                Tensor1<const Int  *,Int> jdx    (thread_count);
+                Tensor1<      LInt  ,Int> counts (thread_count);
+                
+                for( Int thread = 0; thread < thread_count; ++thread )
+                {
+                    const LInt begin = JobPointer<LInt>(nnz_, thread_count, thread    );
+                    const LInt end   = JobPointer<LInt>(nnz_, thread_count, thread + 1);
+                    
+                    idx[thread] = &i[begin];
+                    jdx[thread] = &j[begin];
+                    counts[thread] = end-begin;
+                }
+                
+                FromPairs( idx, jdx, counts.data(), thread_count, thread_count, compressQ, symmetrize );
+            }
+            
+            PatternCSR(
                 cref<std::vector<Int>> idx,
                 cref<std::vector<Int>> jdx,
                 const Int m_,
@@ -343,10 +372,10 @@ namespace Tensors
                 {
                     inner = Tensor1<Int,LInt>( nnz );
                     
-                    mptr<LInt> outer__ = outer.data();
-                    mptr<Int>  inner__ = inner.data();
+                    mptr<LInt> A_outer = outer.data();
+                    mptr<Int>  A_inner = inner.data();
                     
-                    copy_buffer<VarSize,Sequential>( counters.data(list_count-1), &outer__[1], m );
+                    copy_buffer( counters.data(list_count-1), &A_outer[1], m );
                     
                     // writing the j-indices into sep_column_indices
                     // the counters array tells each thread where to write
@@ -370,14 +399,14 @@ namespace Tensors
                                     const Int j = thread_jdx[k];
                                     {
                                         const LInt pos = --c[i];
-                                        inner__[pos] = j;
+                                        A_inner[pos] = j;
                                     }
                                     
                                     c[j] -= static_cast<LInt>(i != j);
                                     
                                     const LInt pos  = c[j];
                                     
-                                    inner__[pos] = i;
+                                    A_inner[pos] = i;
                                 }
                             },
                             list_count
@@ -401,7 +430,7 @@ namespace Tensors
                                     const Int j = thread_jdx[k];
                                     {
                                         const LInt pos = --c[i];
-                                        inner__[pos] = j;
+                                        A_inner[pos] = j;
                                     }
                                 }
                             },
@@ -439,15 +468,6 @@ namespace Tensors
                 if( !job_ptr_initialized )
                 {
                     ptic(ClassName()+"::RequireJobPtr");
-                    
-//                // TODO: Find better cost model.
-//                Tensor1<Int,Int> costs ( outer.data(), m+1 );
-//
-//                for( Int i = 0; i < m ; ++i )
-//                {
-//                    costs[i+1] += i;
-//                }
-//
                     
                     job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
                     
@@ -603,7 +623,7 @@ namespace Tensors
 #ifndef TOOLS_DEBUG
                 if( i < 0 || i >= outer.Size() )
                 {
-                    eprint(ClassName()+"::Outer(): Out of bound access.");
+                    eprint(this->ClassName()+"::Outer(" + ToString(i) + "): Access out of bounds.");
                 }
 #endif
                 return outer[i];
@@ -614,7 +634,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( i < 0 || i >= outer.Size() )
                 {
-                    eprint(ClassName()+"::Outer(): Out of bound access.");
+                    eprint(this->ClassName()+"::Outer(" + ToString(i) + "): Access out of bounds.");
                 }
 #endif
                 return outer[i];
@@ -636,7 +656,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= inner.Size() )
                 {
-                    eprint(ClassName()+"::Inner(): Out of bound access.");
+                    eprint(this->ClassName()+"::Inner(" + ToString(k) + "): Access out of bounds.");
                 }
 #endif
                 return inner[k];
@@ -647,7 +667,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( k < 0 || k >= inner.Size() )
                 {
-                    eprint(ClassName()+"::Inner(): Out of bound access.");
+                    eprint(this->ClassName()+"::Inner(" + ToString(k) + "): Access out of bounds.");
                 }
 #endif
                 return inner[k];
@@ -666,7 +686,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
                 if( i < 0 || i >= diag_ptr.Size() )
                 {
-                    eprint(ClassName()+"::Diag(): Out of bound access.");
+                    eprint(this->ClassName()+"::Diag(" + ToString(i) + "): Access out of bounds.");
                 }
 #endif
                 return diag_ptr[i];
@@ -789,9 +809,9 @@ namespace Tensors
                         
                         Tensor1<LInt,Int> new_outer ( outer.Size(), 0 );
                         
-                        mptr<LInt> new_outer__ = new_outer.data();
-                        mptr<LInt>     outer__ = outer.data();
-                        mptr<Int>      inner__ = inner.data();
+                        mptr<LInt> new_A_outer = new_outer.data();
+                        mptr<LInt>     A_outer = outer.data();
+                        mptr<Int>      A_inner = inner.data();
                         
                         ParallelDo(
                             [=,this]( const Int thread )
@@ -800,15 +820,15 @@ namespace Tensors
                                 const Int i_end   = job_ptr[thread+1];
                                 
                                 // To where we write.
-                                LInt jj_new       = outer__[i_begin];
+                                LInt jj_new       = A_outer[i_begin];
                                 
                                 // Memoize the next entry in outer because outer will be overwritten
-                                LInt next_jj_begin = outer__[i_begin];
+                                LInt next_jj_begin = A_outer[i_begin];
                                 
                                 for( Int i = i_begin; i < i_end; ++i )
                                 {
                                     const LInt jj_begin = next_jj_begin;
-                                    const LInt jj_end   = outer__[i+1];
+                                    const LInt jj_end   = A_outer[i+1];
                                     
                                     // Memoize the next entry in outer because outer will be overwritten
                                     next_jj_begin = jj_end;
@@ -820,35 +840,35 @@ namespace Tensors
                                     
                                     while( jj < jj_end )
                                     {
-                                        Int j = inner__[jj];
+                                        Int j = A_inner[jj];
                                         
                                         {
-                                            // TODO: Can we remove the overwrite?
-                                            if( jj > jj_new )
-                                            {
-                                                inner__[jj] = 0;
-                                            }
+//                                            // TODO: Can we remove the overwrite?
+//                                            if( jj > jj_new )
+//                                            {
+//                                                A_inner[jj] = 0;
+//                                            }
                                             
                                             ++jj;
                                         }
                                         
-                                        while( (jj < jj_end) && (j == inner__[jj]) )
+                                        while( (jj < jj_end) && (j == A_inner[jj]) )
                                         {
-                                            // TODO: Can we remove the overwrite?
-                                            if( jj > jj_new )
-                                            {
-                                                inner__[jj] = 0;
-                                            }
+//                                            // TODO: Can we remove the overwrite?
+//                                            if( jj > jj_new )
+//                                            {
+//                                                A_inner[jj] = 0;
+//                                            }
                                             
                                             ++jj;
                                         }
                                         
-                                        inner__[jj_new] = j;
+                                        A_inner[jj_new] = j;
                                         
                                         ++jj_new;
                                         ++row_nonzero_counter;
                                     }
-                                    new_outer__[i+1] = row_nonzero_counter;
+                                    new_A_outer[i+1] = row_nonzero_counter;
                                 }
                             },
                             thread_count
@@ -869,13 +889,15 @@ namespace Tensors
                                 const  Int i_begin = job_ptr[thread  ];
                                 const  Int i_end   = job_ptr[thread+1];
                                 
-                                const LInt new_pos = new_outer__[i_begin];
-                                const LInt     pos =     outer__[i_begin];
+                                const LInt new_pos = new_A_outer[i_begin];
+                                const LInt     pos =     A_outer[i_begin];
                                 
-                                const LInt thread_nonzeroes = new_outer__[i_end] - new_outer__[i_begin];
+                                const LInt thread_nonzeroes = new_A_outer[i_end] - new_A_outer[i_begin];
                                 
-                                copy_buffer<VarSize,Sequential>(
-                                    &inner.data()[pos], &new_inner.data()[new_pos], thread_nonzeroes
+                                copy_buffer(
+                                    &inner.data()[pos], 
+                                    &new_inner.data()[new_pos],
+                                    thread_nonzeroes
                                 );
                             },
                             thread_count
@@ -893,9 +915,9 @@ namespace Tensors
                 }
             }
             
-            //###########################################################################################
-            //####          Matrix Multiplication
-            //###########################################################################################
+//#########################################################################################
+//####          Matrix Multiplication
+//#########################################################################################
             
         protected:
             
@@ -955,7 +977,7 @@ namespace Tensors
                     
                     PatternCSR C ( m, B.ColCount(), nnz, thread_count );
                     
-                    copy_buffer<VarSize,Sequential>( counters.data(thread_count-1), &C.Outer().data()[1], m );
+                    copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
                     
                     ptic("Counting sort");
                     
@@ -1029,7 +1051,7 @@ namespace Tensors
             {
                 if( WellFormed() )
                 {
-                    SparseBLAS<T_out,Int,LInt> sblas ( thread_count );
+                    SparseBLAS<T_out,Int,LInt> sblas;
                     
                     sblas.template Multiply_DenseMatrix<NRHS>(
                         outer.data(), inner.data(), nullptr,
@@ -1053,7 +1075,7 @@ namespace Tensors
             {
                 if( WellFormed() )
                 {
-                    auto sblas = SparseBLAS<T_ext,Int,LInt>( thread_count );
+                    SparseBLAS<T_ext,Int,LInt> sblas;
                     
                     sblas.template Multiply_DenseMatrix<NRHS>(
                         outer.data(), inner.data(), values,
@@ -1158,19 +1180,19 @@ namespace Tensors
                 
                 if( (0 <= i) && (i < m) )
                 {
-                    cptr<Int> inner__ = inner.data();
+                    cptr<Int> A_inner = inner.data();
                     
                     LInt L = outer[i  ];
                     LInt R = outer[i+1]-1;
                     
                     if( inner_sorted && ( L + threshold > R ) )
                     {
-                        if( j < inner__[L] )
+                        if( j < A_inner[L] )
                         {
                             return Sparse::Position<LInt>{0, false};
                         }
                         
-                        if( j > inner__[R] )
+                        if( j > A_inner[R] )
                         {
                             return Sparse::Position<LInt>{0, false};
                         }
@@ -1178,7 +1200,7 @@ namespace Tensors
                         while( L < R )
                         {
                             const LInt k = R - (R-L)/static_cast<Int>(2);
-                            const Int col = inner__[k];
+                            const Int col = A_inner[k];
                             
                             if( col > j )
                             {
@@ -1192,14 +1214,14 @@ namespace Tensors
                     }
                     else
                     {
-                        while( (L < R) && (inner__[L] < j) )
+                        while( (L < R) && (A_inner[L] < j) )
                         {
                             ++L;
                         }
                         
                     }
                     
-                    return (inner__[L]==j) ? Sparse::Position<LInt> {L, true} : Sparse::Position<LInt>{0, false};
+                    return (A_inner[L]==j) ? Sparse::Position<LInt> {L, true} : Sparse::Position<LInt>{0, false};
                 }
                 else
                 {
@@ -1221,27 +1243,27 @@ namespace Tensors
                         SortInner();
                     }
                     
-                    cptr<LInt> diag__  = Diag().data();
-                    cptr<LInt> outer__ = Outer().data();
-                    cptr<Int>  inner__ = Inner().data();
+                    cptr<LInt> A_diag  = Diag().data();
+                    cptr<LInt> A_outer = Outer().data();
+                    cptr<Int>  A_inner = Inner().data();
                     
                     ParallelDo(
                         [=]( const Int i )
                         {
-                            const LInt k_begin = outer__[i];
-                            const LInt k_end   =  diag__[i];
+                            const LInt k_begin = A_outer[i];
+                            const LInt k_end   = A_diag [i];
                             
                             for( LInt k = k_begin; k < k_end; ++k )
                             {
-                                const Int j = inner__[k];
+                                const Int j = A_inner[k];
                                 
-                                LInt L =  diag__[j];
-                                LInt R = outer__[j+1]-1;
+                                LInt L = A_diag [j];
+                                LInt R = A_outer[j+1]-1;
                                 
                                 while( L < R )
                                 {
                                     const LInt M   = R - (R-L)/static_cast<Int>(2);
-                                    const  Int col = inner__[M];
+                                    const  Int col = A_inner[M];
                                     
                                     if( col > i )
                                     {

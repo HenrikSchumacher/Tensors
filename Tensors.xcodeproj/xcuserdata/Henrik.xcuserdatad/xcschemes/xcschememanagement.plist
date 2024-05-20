@@ -9,15 +9,20 @@
 			<key>orderHint</key>
 			<integer>4</integer>
 		</dict>
+		<key>Example_SparseBlockLU.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>5</integer>
+		</dict>
+		<key>Example_SparseCholesky.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
 		<key>QRAlgorithm.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
 			<integer>0</integer>
-		</dict>
-		<key>SparseCholesky.xcscheme_^#shared#^_</key>
-		<dict>
-			<key>orderHint</key>
-			<integer>1</integer>
 		</dict>
 		<key>Tensors.xcscheme_^#shared#^_</key>
 		<dict>
@@ -48,6 +53,11 @@
 			<true/>
 		</dict>
 		<key>AF9A9285298E5BF600242813</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>AFB30DCB2B955B320024B251</key>
 		<dict>
 			<key>primary</key>
 			<true/>

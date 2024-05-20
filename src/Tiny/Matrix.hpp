@@ -6,11 +6,11 @@ namespace Tensors
 {
     namespace Tiny
     {
-        template< int n_, typename Scal_, typename Int_> class SelfAdjointMatrix;
+        template< int ROW_COUNT, typename Scal_, typename Int_> class SelfAdjointMatrix;
         
-        template< int m_, int n_, typename Scal_, typename Int_, Size_T alignment> class MatrixList;
+        template< int ROW_COUNT, int COL_COUNT, typename Scal_, typename Int_, Size_T alignment> class MatrixList;
         
-        template< int m_, int n_, typename Scal_, typename Int_>
+        template< int ROW_COUNT, int COL_COUNT, typename Scal_, typename Int_>
         class Matrix
         {
         public:
@@ -19,8 +19,8 @@ namespace Tensors
             
 #include "Tiny_Constants.hpp"
                         
-            static constexpr Int m = m_;
-            static constexpr Int n = n_;
+            static constexpr Int m = ROW_COUNT;
+            static constexpr Int n = COL_COUNT;
             
             
             using ColVector_T = Vector<m,Scal,Int>;
@@ -58,10 +58,10 @@ namespace Tensors
             template<typename S>
             constexpr Matrix( const std::initializer_list<S[n]> list )
             {
-                const Int m__ = static_cast<Int>(list.size());
+                const Int m_ = static_cast<Int>(list.size());
                 
                 auto iter { list.begin() };
-                for( Int i = 0; i < m__; ++i )
+                for( Int i = 0; i < m_; ++i )
                 {
                     for( Int j = 0; j < n; ++j )
                     {
@@ -70,7 +70,7 @@ namespace Tensors
                     ++iter;
                 }
                 
-                for( Int i = m__; i < m; ++i )
+                for( Int i = m_; i < m; ++i )
                 {
                     for( Int j = 0; j < n; ++j )
                     {
@@ -195,7 +195,7 @@ namespace Tensors
                     
                     for( Int j = 0; j < n; ++j )
                     {
-                        mptr<B_T> B_j = &B[ldB * j];
+                        cptr<B_T> B_j = &B[ldB * j];
                         
                         for( Int i = 0; i < m; ++i )
                         {
@@ -310,7 +310,7 @@ namespace Tensors
                     
                     for( Int j = 0; j < (chop_n_Q ? n_c : n); ++j )
                     {
-                        mptr<B_T> B_j = &B[ldB * j];
+                        cptr<B_T> B_j = &B[ldB * j];
                         
                         for( Int i = 0; i < (chop_m_Q ? m_c : m); ++i )
                         {
@@ -698,49 +698,6 @@ namespace Tensors
             }
             
         public:
-            
-            template<AddTo_T addto, int K_, typename X_T, typename Y_T >
-            force_inline friend void
-            Dot(
-                cref<Tiny::Matrix<m_,K_,X_T ,Int>> X,
-                cref<Tiny::Matrix<K_,n_,Y_T ,Int>> Y,
-                mref<Tiny::Matrix<m_,n_,Scal,Int>> Z
-            )
-            {
-                if constexpr( mat_enabledQ && (SameQ<X_T,double> || SameQ<X_T,float>) && (SameQ<Y_T,double> || SameQ<Y_T,float>) && (SameQ<Scal,double> || SameQ<Scal,float>) )
-                {
-                    fixed_dot_mm_clang_2<m_,n_,K_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
-                }
-                else
-                {
-                    fixed_dot_mm_vec<m_,n_,K_,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
-                }
-            }
-            
-            template<AddTo_T addto, typename x_T, typename y_T
-            >
-            force_inline friend void
-            Dot(
-                cref<Tiny::Matrix<m_,n_,Scal,Int>> M,
-                cref<Tiny::Vector<n_,   x_T, Int>> x,
-                mref<Tiny::Vector<m_,   y_T, Int>> y
-            )
-            {
-                if constexpr ( addto == Tensors::AddTo )
-                {
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        y[i] += dot_buffers<n>( M[i], x.data() );
-                    }
-                }
-                else
-                {
-                    for( Int i = 0; i < m; ++i )
-                    {
-                        y[i]  = dot_buffers<n>( M[i], x.data() );
-                    }
-                }
-            }
             
             template<Op op>
             void LowerFromUpper()
@@ -1189,6 +1146,24 @@ namespace Tensors
                 return static_cast<Scal>(0);
             }
             
+            void LUDecomposition_PivotFree()
+            {
+                for( Int k = 0; k < std::min(m,n)-1; ++k )
+                {
+                    const Scal A_kk_inv = Inv( A[k][k] );
+                    
+                    for( Int i = k+1; i < m; ++i )
+                    {
+                        A[i][k] *= A_kk_inv;
+                        
+                        for( Int j = k+1; j < n; ++j )
+                        {
+                            A[i][j] -= A[i][k] * A[k][j];
+                        }
+                    }
+                }
+            }
+            
             
         public:
             
@@ -1287,7 +1262,8 @@ namespace Tensors
         };
                 
         template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
-        [[nodiscard]] force_inline Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
+        [[nodiscard]] force_inline 
+        Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
         Dot(
             cref<Tiny::Matrix<m,K,X_T,Int>> X,
             cref<Tiny::Matrix<K,n,Y_T,Int>> Y
@@ -1298,6 +1274,45 @@ namespace Tensors
             Dot<Overwrite>(X,Y,Z);
             
             return Z;
+        }
+        
+        
+        template<AddTo_T addto,
+            int m, int k, int n, typename X_T, typename Y_T, typename Z_T, typename Int
+        >
+        force_inline void
+        Dot(
+            cref<Tiny::Matrix<m,k,X_T,Int>> X,
+            cref<Tiny::Matrix<k,n,Y_T,Int>> Y,
+            mref<Tiny::Matrix<m,n,Z_T,Int>> Z
+        )
+        {
+            fixed_dot_mm<m,n,k,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
+        }
+        
+        template<AddTo_T addto, int m, int n, typename A_T, typename x_T, typename y_T, typename Int
+        >
+        force_inline void
+        Dot(
+            cref<Tiny::Matrix<m,n,A_T,Int>> A,
+            cref<Tiny::Vector<n,  x_T,Int>> x,
+            mref<Tiny::Vector<m,  y_T,Int>> y
+        )
+        {
+            if constexpr ( addto == Tensors::AddTo )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    y[i] += dot_buffers<n>( &A[i][0], x.data() );
+                }
+            }
+            else
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    y[i]  = dot_buffers<n>( &A[i][0], x.data() );
+                }
+            }
         }
         
         template<typename Scal, typename Int>

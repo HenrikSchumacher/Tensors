@@ -107,7 +107,13 @@ namespace Tensors
                   const I_1 n_,
                   const I_3 thread_count_
                   )
-            :   Base_T( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            :   Base_T( 
+                    outer_,
+                    inner_,
+                    static_cast<Int>(m_),
+                    static_cast<Int>(n_),
+                    static_cast<Int>(thread_count_)
+                )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -122,7 +128,13 @@ namespace Tensors
                   const I_1 n_,
                   const I_3 thread_count_
                   )
-            :   Base_T( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            :   Base_T( 
+                    std::move(outer_), 
+                    std::move(inner_),
+                    static_cast<Int>(m_),
+                    static_cast<Int>(n_), 
+                    static_cast<Int>(thread_count_)
+                )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -176,6 +188,19 @@ namespace Tensors
                   const int  symmetrize = 0
                   )
             :   Base_T ( idx, jdx, entry_counts, list_count, m_, n_, final_thread_count, compressQ, symmetrize )
+            {}
+            
+            BinaryMatrixCSR(
+                const LInt nnz_,
+                const Int  * const i,
+                const Int  * const j,
+                const Int m_,
+                const Int n_,
+                const Int thread_count,
+                const bool compressQ   = true,
+                const int  symmetrize = 0
+            )
+            :   Base_T ( i, j, m_, n_, thread_count, compressQ, symmetrize )
             {}
             
             BinaryMatrixCSR(
@@ -263,10 +288,10 @@ namespace Tensors
                 return B;
             }
             
-            
-            //###########################################################################################
-            //####          Permute
-            //###########################################################################################
+
+//#########################################################################################
+//####          Permute
+//#########################################################################################
             
         public:
             
@@ -320,9 +345,9 @@ namespace Tensors
                 return result;
             }
             
-//###########################################################################################
+//##########################################################################################
 //####          Matrix Multiplication
-//###########################################################################################
+//##########################################################################################
             
 
             // Assume all nonzeros are equal to 1.

@@ -2,6 +2,8 @@
 
 #define MATHEMATICA
 
+#define MMA_HPP
+
 #include "mathlink.h"
 
 // Unbelievable that they defined a function-like macro with the name `P`...
@@ -27,6 +29,9 @@
 #include <sstream>
 #include <complex>
 
+#include "mathlink.h"
+#include "WolframLibrary.h"
+#include "WolframSparseLibrary.h"
 
 using Real    = mreal;
 using Complex = std::complex<Real>;
@@ -370,8 +375,9 @@ namespace mma
             return tensor_data[i];
         }
         
-    };
-}
+    }; // namespace MTensorWrapper
+    
+} // namespace mma
 
 
 extern "C" DLLEXPORT Int WolframLibrary_getVersion()
