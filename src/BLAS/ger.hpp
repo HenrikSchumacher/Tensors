@@ -20,11 +20,11 @@ namespace Tensors
             // where {opx,opy} can be {id,id}, {conj,id}, or {id, conj}.
             // Note that {conj, conj} is _not_ allowed (cblas does not allow us to contruct it.
             
-            ASSERT_INT(I0);
-            ASSERT_INT(I1);
-            ASSERT_INT(I2);
-            ASSERT_INT(I3);
-            ASSERT_INT(I4);
+            static_assert(IntQ<I0>,"");
+            static_assert(IntQ<I1>,"");
+            static_assert(IntQ<I2>,"");
+            static_assert(IntQ<I3>,"");
+            static_assert(IntQ<I4>,"");
             
             Int m     = int_cast<Int>(m_);
             Int n     = int_cast<Int>(n_);

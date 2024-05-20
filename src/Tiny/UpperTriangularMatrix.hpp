@@ -4,9 +4,6 @@ namespace Tensors
 {
     namespace Tiny
     {
-
-#define CLASS UpperTriangularMatrix
-        
         template< int n_, typename Scal_, typename Int_>
         class UpperTriangularMatrix
         {
@@ -28,6 +25,46 @@ namespace Tensors
             
             std::array<std::array<Scal,n>,n> A;
 
+        public:
+            
+            UpperTriangularMatrix() = default;
+
+            ~UpperTriangularMatrix() = default;
+
+            UpperTriangularMatrix(std::nullptr_t) = delete;
+
+            explicit UpperTriangularMatrix( const Scal * a )
+            {
+                Read(a);
+            }
+
+            // Copy constructor
+            explicit UpperTriangularMatrix( const Class_T & other )
+            {
+                Read( &other.A[0][0] );
+            }
+
+            // Copy assignment operator
+            mref<UpperTriangularMatrix> operator=( const UpperTriangularMatrix other )
+            {
+                // copy-and-swap idiom
+                // see https://stackoverflow.com/a/3279550/8248900 for details
+                swap(*this, other);
+
+                return *this;
+            }
+
+            /* Move constructor */
+            UpperTriangularMatrix( UpperTriangularMatrix && other ) noexcept
+            {
+                swap(*this, other);
+            }
+
+            explicit UpperTriangularMatrix( cref<Scal> init )
+            {
+                Fill(init);
+            }
+            
 #include "Tiny_UpperTriangular_Common.hpp"
 
 ///######################################################
@@ -35,6 +72,59 @@ namespace Tensors
 ///######################################################
             
         public:
+            
+            template<class T>
+            force_inline mref<UpperTriangularMatrix> operator+=( cref<UpperTriangularMatrix<n,T,Int>> B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] += B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline mref<UpperTriangularMatrix> operator-=( cref<UpperTriangularMatrix<n,T,Int>> B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] -= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline mref<UpperTriangularMatrix> operator*=( cref<UpperTriangularMatrix<n,T,Int>> B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] *= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline mref<UpperTriangularMatrix> operator/=( cref<UpperTriangularMatrix<n,T,Int>> B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] /= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
             
             force_inline Real FrobeniusNorm() const
             {
@@ -50,7 +140,7 @@ namespace Tensors
                 return Sqrt(AA);
             }
             
-            force_inline friend void Dot( const CLASS & M, const Vector_T & x, Vector_T & y )
+            force_inline friend void Dot( const UpperTriangularMatrix & M, const Vector_T & x, Vector_T & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -197,7 +287,7 @@ namespace Tensors
             }
 
             
-            [[nodiscard]] friend std::string ToString( cref<CLASS> M, const int p = 16)
+            [[nodiscard]] friend std::string ToString( cref<UpperTriangularMatrix> M, const int p = 16)
             {
                 std::stringstream sout;
 
@@ -256,12 +346,10 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::") + TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::UpperTriangularMatrix") + "<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };
-        
-#undef CLASS
         
     } // namespace Tiny
     

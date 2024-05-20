@@ -6,7 +6,7 @@ namespace Tensors
     template<typename Int>
     static constexpr Int isqrt( const Int k )
     {
-        ASSERT_INT(Int);
+        static_assert(IntQ<Int>,"");
         
         return static_cast<Int>( std::floor(cSqrt(static_cast<double>(k))) );
     }
@@ -18,7 +18,7 @@ namespace Tensors
     {
         // https://stackoverflow.com/a/244550/8248900
      
-        ASSERT_INT(Int);
+        static_assert(IntQ<Int>,"");
         
         Int kk = n * (n + 1) / 2 - 1 - k;
         Int K = ( isqrt( 8 * kk + 1 ) - 1 ) / 2;
@@ -30,7 +30,7 @@ namespace Tensors
     {
         // https://stackoverflow.com/a/244550/8248900
         
-        ASSERT_INT(Int);
+        static_assert(IntQ<Int>,"");
         
         Int kk = (n * (n + 1)) / 2 - 1 - k;
         Int K = ( isqrt( 8 * kk + 1 ) - 1 ) / 2;
@@ -58,7 +58,7 @@ namespace Tensors
     {
         // https://stackoverflow.com/a/244550/8248900
      
-        ASSERT_INT(Int);
+        static_assert(IntQ<Int>,"");
         
         return n - 2 - static_cast<Int>(std::floor(cSqrt(-8*k + 4*n*(n-1)-7)/2.0 - 0.5));
     }
@@ -68,7 +68,7 @@ namespace Tensors
     {
         // https://stackoverflow.com/a/244550/8248900
         
-        ASSERT_INT(Int);
+        static_assert(IntQ<Int>,"");
         
         const Int i = u_tri_i<n>(k);
         

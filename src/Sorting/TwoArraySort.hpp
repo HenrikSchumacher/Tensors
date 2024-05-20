@@ -9,7 +9,7 @@ namespace Tensors
     >
     class TwoArraySort
     {
-        ASSERT_INT  (Int);
+        static_assert(IntQ<Int>,"");
         
     private:
         

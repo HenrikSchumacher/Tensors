@@ -16,7 +16,7 @@ namespace Tensors
         // TODO: There will be some overhead for indexing into this nested data structure, though.
         // TODO: And using &operator[i] is asking for trouble...
         
-        ASSERT_INT(LInt);
+        static_assert(IntQ<LInt>,"");
 
         using Container_0_T = Tensor1<T_0,LInt>;
 

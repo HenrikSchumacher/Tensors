@@ -14,11 +14,12 @@ namespace Tensors
     >
     class alignas( ObjectAlignment ) CLASS
     {
-        ASSERT_ARITHMETIC(Scal_)
-        ASSERT_ARITHMETIC(Scal_in_)
-        ASSERT_ARITHMETIC(Scal_out_)
-        ASSERT_INT(Int_);
-        ASSERT_INT(LInt_);
+        static_assert(ArithmeticQ<Scal_>,"");
+        static_assert(ArithmeticQ<Scal_in_>,"");
+        static_assert(ArithmeticQ<Scal_out_>,"");
+
+        static_assert(IntQ<Int_>,"");
+        static_assert(IntQ<LInt_>,"");
         
     public:
         

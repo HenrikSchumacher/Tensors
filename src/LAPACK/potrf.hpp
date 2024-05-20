@@ -7,8 +7,8 @@ namespace Tensors
         template<Layout layout, UpLo uplo, typename Scal, typename I0, typename I1>
         force_inline Int potrf( const I0 n_, Scal * A_, const I1 ldA_ )
         {
-            ASSERT_INT(I0);
-            ASSERT_INT(I1);
+            static_assert(IntQ<I0>,"");
+            static_assert(IntQ<I1>,"");
             
             Int n    = int_cast<Int>(n_);
             Int ldA  = int_cast<Int>(ldA_);

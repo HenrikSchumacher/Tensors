@@ -9,9 +9,9 @@ namespace Tensors
             const I0 m_, const I1 n_, Scal * A_, const I2 ldA_, Int * perm
         )
         {
-            ASSERT_INT(I0);
-            ASSERT_INT(I1);
-            ASSERT_INT(I2);
+            static_assert(IntQ<I0>,"");
+            static_assert(IntQ<I1>,"");
+            static_assert(IntQ<I2>,"");
             
 //            fill_range_buffer ( perm, 1, n_ );
             

@@ -5,7 +5,7 @@ namespace Tensors
     template<typename T, typename Int>
     bool NextPermutation( mptr<T> A, mptr<Int> p, const Int m, const Int n )
     {
-        ASSERT_INT(Int);
+        static_assert(IntQ<Int>,"");
         
         // This functions is supposed to do the same as std::next_permutation, but it is designed to carry along the swaps through the m x n matrix A.
         

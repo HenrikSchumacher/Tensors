@@ -18,7 +18,7 @@ namespace Tensors
     template<typename Int_>
     class Permutation
     {
-        ASSERT_INT(Int_);
+        static_assert(IntQ<Int_>,"");
      
     public:
         
@@ -115,7 +115,8 @@ namespace Tensors
         ,   scratch        ( n                )
         ,   thread_count   ( thread_count_    )
         {
-            ASSERT_INT(J)
+            static_assert(IntQ<J>,"");
+            
             if( !PermutationQ(p_) )
             {
                 eprint(ClassName()+"() input is not a permutation.");

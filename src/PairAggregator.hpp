@@ -5,7 +5,7 @@ namespace Tensors
     template<typename T_0, typename T_1, typename LInt, int BUFFER_CAP = 128>
     class alignas(ObjectAlignment) PairAggregator
     {
-        ASSERT_INT(LInt);
+        static_assert(IntQ<LInt>,"");
 
         using Container_0_T = Tensor1<T_0,LInt>;
         using Container_1_T = Tensor1<T_1,LInt>;

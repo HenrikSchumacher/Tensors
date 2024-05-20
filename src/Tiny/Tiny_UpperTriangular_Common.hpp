@@ -6,47 +6,6 @@
     
 public:
 
-    CLASS() = default;
-
-    ~CLASS() = default;
-
-    CLASS(std::nullptr_t) = delete;
-
-    explicit CLASS( const Scal * a )
-    {
-        Read(a);
-    }
-
-    // Copy constructor
-    explicit CLASS( const Class_T & other )
-    {
-        Read( &other.A[0][0] );
-    }
-
-    // Copy assignment operator
-    mref<CLASS> operator=( const Class_T other )
-    {
-        // copy-and-swap idiom
-        // see https://stackoverflow.com/a/3279550/8248900 for details
-        swap(*this, other);
-
-        return *this;
-    }
-
-    /* Move constructor */
-    CLASS( Class_T && other ) noexcept
-    {
-        swap(*this, other);
-    }
-
-    explicit CLASS( cref<Scal> init )
-    {
-        Fill(init);
-    }
-
-
-
-
     force_inline void SetZero()
     {
         if constexpr ( n > 0 )
@@ -250,58 +209,6 @@ public:
                 B.A[i][j] = Conj(A[i][j]);
             }
         }
-    }
-    
-    template<class T>
-    force_inline mref<Class_T> operator+=( cref<CLASS<n,T,Int>> B )
-    {
-        for( Int i = 0; i < n; ++i )
-        {
-            for( Int j = i; j < n; ++j )
-            {
-                A[i][j] += B.A[i][j];
-            }
-        }
-        return *this;
-    }
-    
-    template<class T>
-    force_inline mref<Class_T> operator-=( cref<CLASS<n,T,Int>> B )
-    {
-        for( Int i = 0; i < n; ++i )
-        {
-            for( Int j = i; j < n; ++j )
-            {
-                A[i][j] -= B.A[i][j];
-            }
-        }
-        return *this;
-    }
-    
-    template<class T>
-    force_inline mref<Class_T> operator*=( cref<CLASS<n,T,Int>> B )
-    {
-        for( Int i = 0; i < n; ++i )
-        {
-            for( Int j = i; j < n; ++j )
-            {
-                A[i][j] *= B.A[i][j];
-            }
-        }
-        return *this;
-    }
-    
-    template<class T>
-    force_inline mref<Class_T> operator/=( cref<CLASS<n,T,Int>> B )
-    {
-        for( Int i = 0; i < n; ++i )
-        {
-            for( Int j = i; j < n; ++j )
-            {
-                A[i][j] /= B.A[i][j];
-            }
-        }
-        return *this;
     }
     
     

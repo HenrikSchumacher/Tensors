@@ -15,10 +15,10 @@ namespace Tensors
             cref<Scalar::Real<Scal>> beta , mptr<Scal> C_, const I3 ldC_
         )
         {
-            ASSERT_INT(I0);
-            ASSERT_INT(I1);
-            ASSERT_INT(I2);
-            ASSERT_INT(I3);
+            static_assert(IntQ<I0>,"");
+            static_assert(IntQ<I1>,"");
+            static_assert(IntQ<I2>,"");
+            static_assert(IntQ<I3>,"");
             
             Int n    = int_cast<Int>(n_);
             Int k    = int_cast<Int>(k_);

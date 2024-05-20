@@ -5,7 +5,7 @@ namespace Tensors {
     template <typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
     class ThreadTensor3
     {
-        ASSERT_INT(Int_);
+        static_assert(IntQ<Int_>,"");
         
         using Scal = Scal_;
         using Real = typename Scalar::Real<Scal_>;
@@ -94,7 +94,7 @@ namespace Tensors {
         explicit ThreadTensor3( const ThreadTensor3<S,J,alignment_> & other )
         :   ThreadTensor3( other.dims[0], other.dims[1], other.dims[2] )
         {
-            ASSERT_INT(J)
+            static_assert(IntQ<J>,"");
             
             print(ClassName()+" copy constructor");
             
@@ -435,7 +435,9 @@ namespace Tensors {
 #ifdef LTEMPLATE_H
 
     
-    template<typename Scal, typename Int, IS_FLOAT(Scal)>
+    template<typename Scal, typename Int, 
+        class = typename std::enable_if_t<FloatQ<Real>>
+    >
     inline mma::TensorRef<mreal> to_MTensorRef( cref<ThreadTensor3<Scal,Int>> A )
     {
         const mint r = A.Rank();
@@ -454,7 +456,9 @@ namespace Tensors {
         return B;
     }
     
-    template<typename J, typename Int, IS_INT(J)>
+    template<typename J, typename Int, 
+        class = typename std::enable_if_t<IntQ<J>>
+    >
     inline mma::TensorRef<mint> to_MTensorRef( cref<ThreadTensor3<J,Int>> A )
     {
         const mint r = A.Rank();

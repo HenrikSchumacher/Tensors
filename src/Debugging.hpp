@@ -6,8 +6,8 @@ namespace Tensors
     template<typename Int_1, typename Int_0>
     force_inline constexpr Int_1 int_cast( const Int_0 n )
     {
-        ASSERT_INT(Int_1);
-        ASSERT_INT(Int_0);
+        static_assert(IntQ<Int_0>,"");
+        static_assert(IntQ<Int_1>,"");
         
         typedef std::numeric_limits<Int_1> Lim_1;
         typedef std::numeric_limits<Int_0> Lim_0;

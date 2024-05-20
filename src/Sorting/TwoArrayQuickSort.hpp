@@ -5,7 +5,7 @@ namespace Tensors
     template<typename S, typename T, typename I>
     class TwoArrayQuickSort
     {
-        ASSERT_INT  (I);
+        static_assert(IntQ<I>,"");
         
     protected:
         

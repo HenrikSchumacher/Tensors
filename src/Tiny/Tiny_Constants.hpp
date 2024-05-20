@@ -1,4 +1,4 @@
-ASSERT_INT(Int_)
+static_assert(IntQ<Int_>,"");
 
 public:
 

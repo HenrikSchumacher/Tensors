@@ -10,8 +10,8 @@ namespace Tensors
             const I0 n_, cref<Scal> alpha, mptr<Scal> x_, const I1 inc_x_
         )
         {
-            ASSERT_INT(I0);
-            ASSERT_INT(I1);
+            static_assert(IntQ<I0>,"");
+            static_assert(IntQ<I1>,"");
             
             Int n      = int_cast<Int>(n_);
             Int inc_x  = int_cast<Int>(inc_x_);

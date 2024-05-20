@@ -17,8 +17,8 @@ namespace Tensors
         template<typename Int_, typename LInt_>
         class PatternCSR
         {
-            ASSERT_INT (Int_);
-            ASSERT_INT (LInt_);
+            static_assert(IntQ<Int_>,"");
+            static_assert(IntQ<LInt_>,"");
             
             // Int  - an integer type capable of storing both the number of rows and columns
             // LInt - a potentially longer integer type capable of storing the absolute number of nonzeros.
@@ -74,9 +74,9 @@ namespace Tensors
             ,   n           ( static_cast<Int>(n_)                        )
             ,   thread_count( static_cast<Int>(thread_count_)             )
             {
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_3);
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_3>,"");
                 Init();
             }
             
@@ -93,10 +93,10 @@ namespace Tensors
             ,   n           ( static_cast<Int>(n_)                         )
             ,   thread_count( static_cast<Int>(thread_count_)              )
             {
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_2);
-                ASSERT_INT(I_3);
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_2>,"");
+                static_assert(IntQ<I_3>,"");
                 Init();
             }
             
@@ -114,11 +114,11 @@ namespace Tensors
             ,   n           ( int_cast<Int>(n_)            )
             ,   thread_count( int_cast<Int>(thread_count_) )
             {
-                ASSERT_INT(J_0);
-                ASSERT_INT(J_1);
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_3);
+                static_assert(IntQ<J_0>,"");
+                static_assert(IntQ<J_1>,"");
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_3>,"");
                 
                 outer.Read(outer_);
                 inner.Read(inner_);
@@ -138,9 +138,9 @@ namespace Tensors
             ,   n           ( static_cast<Int>(n_)            )
             ,   thread_count( static_cast<Int>(thread_count_) )
             {
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_3);
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_3>,"");
             }
             
             template<typename I_0, typename I_1, typename I_3>
@@ -157,9 +157,9 @@ namespace Tensors
             ,   n           ( static_cast<Int>(n_)            )
             ,   thread_count( static_cast<Int>(thread_count_) )
             {
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_3);
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_3>,"");
             }
             
             // Copy constructor

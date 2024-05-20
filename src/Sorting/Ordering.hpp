@@ -8,7 +8,7 @@ namespace Tensors
     >
     void Ordering( cptr<T> key, mptr<Int> perm, Int n, C comp = C() )
     {
-        ASSERT_INT  (Int);
+        static_assert(IntQ<Int>,"");
         
         if( n <= Scalar::Zero<Int> )
         {

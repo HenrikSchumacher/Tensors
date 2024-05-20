@@ -518,7 +518,9 @@ namespace Tensors
     }
     
 
-    template<typename Scal, typename Int, IS_FLOAT(Scal)>
+    template<typename Scal, typename Int, 
+        class = typename std::enable_if_t<FloatQ<Real>>
+    >
     mma::MatrixRef<mreal> to_transposed_MTensorRef( cref<Tensor2<Scal,Int>> B )
     {
         Int rows = B.Dimension(0);
@@ -541,7 +543,8 @@ namespace Tensors
     template<typename J, typename Int>
     mma::MatrixRef<mint> to_transposed_MTensorRef( cref<Tensor2<J,Int>> B )
     {
-        ASSERT_INT(J)
+        static_assert(IntQ<J>,"");
+        
         Int rows = B.Dimension(0);
         Int cols = B.Dimension(1);
         auto A = mma::makeMatrix<mint>( cols, rows );
@@ -600,9 +603,9 @@ namespace Tensors
         mref<Tensor1<Scal,I3>> y
     )
     {
-        ASSERT_INT (I1);
-        ASSERT_INT (I2);
-        ASSERT_INT (I3);
+        static_assert(IntQ<I1>,"");
+        static_assert(IntQ<I2>,"");
+        static_assert(IntQ<I3>,"");
         
         I3 m = Min(A.Dimension(0),x.Dimension(0));
         I3 n = A.Dimension(1);
@@ -636,102 +639,5 @@ namespace Tensors
 #include "Tensor_Common_External.hpp"
     
 #undef TENSOR_T
-    
-    
-    
-    
-//#ifdef USE_BLAS
-//    
-//    template<typename I1, typename I2, typename I3>
-//    void Dot(
-//        cref<Tensor2<double,I1>> A,
-//        cref<Tensor1<double,I2>> x,
-//        mref<Tensor1<double,I3>> y
-//    )
-//    {
-//        ASSERT_INT (I1);
-//        ASSERT_INT (I2);
-//        ASSERT_INT (I3);
-//        
-//        I3 m = A.Dimension(0);
-//        I3 n = Min(A.Dimension(1),x.Dimension(0));
-//
-//        if( y.Dimension(0) != m )
-//        {
-//            y = Tensor1<double,I3> (m);
-//        }
-//        
-//        cblas_dgemv(CblasRowMajor,CblasNoTrans,m,n,1,A.data(),n,x.data(),1,0,y.data(),1);
-//    }
-//    
-//    template<typename I1, typename I2, typename I3>
-//    void Dot(
-//        cref<Tensor2<float,I1>> A,
-//        cref<Tensor1<float,I2>> x,
-//        mref<Tensor1<float,I3>> y
-//    )
-//    {
-//        ASSERT_INT (I1);
-//        ASSERT_INT (I2);
-//        ASSERT_INT (I3);
-//        
-//        I3 m = A.Dimension(0);
-//        I3 n = Min(A.Dimension(1),x.Dimension(0));
-//
-//        if( y.Dimension(0) != m )
-//        {
-//            y = Tensor1<float,I3> (m);
-//        }
-//        
-//        cblas_sgemv(CblasRowMajor,CblasNoTrans,m,n,1,A.data(),n,x.data(),1,0,y.data(),1);
-//    }
-//    
-//    
-//    template<typename I1, typename I2, typename I3>
-//    void Dot(
-//        cref<Tensor2<double,I1>> A,
-//        cref<Tensor2<double,I2>> B,
-//        mref<Tensor2<double,I3>> C
-//    )
-//    {
-//        ASSERT_INT (I1);
-//        ASSERT_INT (I2);
-//        ASSERT_INT (I3);
-//        
-//        I3 m = A.Dimension(0);
-//        I3 k = Min(A.Dimension(1),B.Dimension(0));
-//        I3 n = B.Dimension(1);
-//
-//        if( (C.Dimension(0) != m) || (C.Dimension(1) != n) )
-//        {
-//            C = Tensor2<double,I3> (m,n);
-//        }
-//        
-//        cblas_dgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, A.data(), k, B.data(), n, 0, C.data(), n);
-//    }
-//    
-//    template<typename I1, typename I2, typename I3>
-//    void Dot(
-//        cref<Tensor2<float,I1>> A,
-//        cref<Tensor2<float,I2>> B,
-//        mref<Tensor2<float,I3>> C
-//    )
-//    {
-//        ASSERT_INT (I1);
-//        ASSERT_INT (I2);
-//        ASSERT_INT (I3);
-//        
-//        I3 m = A.Dimension(0);
-//        I3 k = Min(A.Dimension(1),B.Dimension(0));
-//        I3 n = B.Dimension(1);
-//
-//        if( (C.Dimension(0) != m) || (C.Dimension(1) != n) )
-//        {
-//            C = Tensor2<float,I3> (m,n);
-//        }
-//        
-//        cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans, m, n, k, 1, A.data(), k, B.data(), n, 0, C.data(), n);
-//    }
-//#endif
     
 } // namespace Tensors

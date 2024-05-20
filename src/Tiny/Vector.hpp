@@ -663,13 +663,10 @@ namespace Tensors
 
         template<int n, typename a_T, typename x_T, typename Int>
         [[nodiscard]] force_inline const 
-        std::enable_if_t<Scalar::ScalarQ<a_T>, Vector<n,decltype( x_T(1) * a_T(1) ),Int>>
+        Vector<n,decltype( x_T(1) * a_T(1) ),Int>
         operator*( cref<a_T> a, cref<Vector<n,x_T,Int>> x )
         {
             // Returns z = a * x.
-         
-            static_assert(Scalar::ScalarQ<a_T>, "a_T must be a scalar type.");
-            
             using T = decltype(x_T(1) * a_T(1));
             
             return MakeVector<n,T,Int,F_Gen,F_Zero>(
@@ -679,7 +676,7 @@ namespace Tensors
         
         template<int n, typename x_T, typename Int, typename a_T>
         [[nodiscard]] force_inline const 
-        std::enable_if_t<Scalar::ScalarQ<a_T>, Vector<n,decltype( x_T(1) * a_T(1) ),Int>>
+        Vector<n,decltype( x_T(1) * a_T(1) ),Int>
         operator*( cref<Vector<n,x_T,Int>> x, cref<a_T> a )
         {
             // Returns a * x.
@@ -693,7 +690,7 @@ namespace Tensors
         
         template<int n, typename x_T, typename Int, typename a_T>
         [[nodiscard]] force_inline const
-        std::enable_if_t<Scalar::ScalarQ<a_T>, Vector<n,decltype( x_T(1) * a_T(1) ),Int>>
+        Vector<n,decltype( x_T(1) * a_T(1) ),Int>
         operator/( cref<Vector<n,x_T,Int>> x, cref<a_T> a )
         {
             // Returns x/a.
@@ -703,13 +700,10 @@ namespace Tensors
         
         
         template<int n, typename a_T, typename x_T, typename z_T, typename Int>
-        force_inline std::enable_if_t<Scalar::ScalarQ<a_T>, void> 
+        void
         Times( cref<a_T> a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z )
         {
             // Returns z = a * x.
-            
-            static_assert(Scalar::ScalarQ<a_T>, "a_T must be a scalar type.");
-            
             combine_buffers<F_Gen, F_Zero, n, Sequential>(
                 scalar_cast<z_T>(a), x.data(), scalar_cast<z_T>(0), z.data()
             );

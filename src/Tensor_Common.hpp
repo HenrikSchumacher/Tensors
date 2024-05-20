@@ -1,4 +1,4 @@
-    ASSERT_INT (Int_);
+    static_assert(IntQ<Int_>,"");
 
 public:
 
@@ -43,7 +43,7 @@ public:
     :   n    ( other.n    )
     ,   dims ( other.dims )
     {
-        ASSERT_INT(J)
+        static_assert(IntQ<J>,"");
 //        logprint("Copy-cast of "+ClassName()+" of size "+ToString(other.Size()) );
         
         allocate();

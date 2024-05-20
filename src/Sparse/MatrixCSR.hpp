@@ -67,9 +67,9 @@ namespace Tensors
             )
             :   Base_T( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
             {
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_3);
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_3>,"");
             }
             
             template<typename I_0, typename I_1, typename I_2, typename I_3>
@@ -82,10 +82,10 @@ namespace Tensors
             :   Base_T   ( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) )
             ,   values ( static_cast<LInt>(nnz_) )
             {
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_2);
-                ASSERT_INT(I_3);
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_2>,"");
+                static_assert(IntQ<I_3>,"");
             }
             
             template<typename S, typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
@@ -100,10 +100,10 @@ namespace Tensors
             :   Base_T  ( outer_,  inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
             ,   values  ( values_, outer_[static_cast<Int>(m_)] )
             {
-                ASSERT_ARITHMETIC(S);
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_3);
+                static_assert(ArithmeticQ<S>,"");
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_3>,"");
             }
             
             template<typename I_0, typename I_1, typename I_3>
@@ -118,9 +118,9 @@ namespace Tensors
             :   Base_T   ( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
             ,   values ( std::move(values_) )
             {
-                ASSERT_INT(I_0);
-                ASSERT_INT(I_1);
-                ASSERT_INT(I_3);
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_3>,"");
             }
             
             // Copy constructor

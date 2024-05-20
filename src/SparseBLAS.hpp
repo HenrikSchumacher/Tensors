@@ -5,7 +5,7 @@ namespace Tensors
     template<typename Scal, typename Int, typename LInt>
     class SparseBLAS
     {
-        ASSERT_INT(Int);
+        static_assert(IntQ<Int>,"");
 
     public:
         

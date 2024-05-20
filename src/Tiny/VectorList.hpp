@@ -299,7 +299,9 @@ namespace Tensors
 #ifdef LTEMPLATE_H
         
         
-        template<int n, typename Scal, typename Int, IS_FLOAT(Scal)>
+        template<int n, typename Scal, typename Int,
+            class = typename std::enable_if_t<FloatQ<Scal>>
+        >
         inline mma::TensorRef<mreal> to_MTensorRef( cref<VectorList<n,Scal,Int>> A )
         {
             const mint m = A.Dimension(1);
@@ -326,7 +328,9 @@ namespace Tensors
             return B;
         }
         
-        template<int n, typename J, typename Int, IS_INT(J)>
+        template<int n, typename J, typename Int, 
+            class = typename std::enable_if_t<IntQ<J>>
+        >
         inline mma::TensorRef<mint> to_MTensorRef( cref<VectorList<n,J,Int>> A )
         {
             const mint m = A.Dimension(1);

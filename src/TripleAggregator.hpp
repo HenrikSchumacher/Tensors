@@ -5,7 +5,7 @@ namespace Tensors
     template<typename T_0, typename T_1, typename T_2, typename LInt, int BUFFER_CAP = 128>
     class alignas(ObjectAlignment) TripleAggregator
     {
-        ASSERT_INT(LInt);
+        static_assert(IntQ<LInt>,"");
         
         // LInt -- an integer type capable of storing the number of triples to aggregate.
         

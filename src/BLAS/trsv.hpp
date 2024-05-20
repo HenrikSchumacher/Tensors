@@ -13,9 +13,9 @@ namespace Tensors
                          mptr<Scal> x_, const I2 incx_
         )
         {
-            ASSERT_INT(I0);
-            ASSERT_INT(I1);
-            ASSERT_INT(I2);
+            static_assert(IntQ<I0>,"");
+            static_assert(IntQ<I1>,"");
+            static_assert(IntQ<I2>,"");
             
             Int n    = int_cast<Int>(n_);
             Int ldA  = int_cast<Int>(ldA_);

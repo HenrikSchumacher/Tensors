@@ -4,11 +4,8 @@ namespace Tensors
 {
     namespace Tiny
     {
-        
-#define CLASS SelfAdjointMatrix
-        
         template< int n_, typename Scal_, typename Int_>
-        class CLASS
+        class SelfAdjointMatrix
         {
             /// This class uses only upper triangle.
             
@@ -27,6 +24,47 @@ namespace Tensors
         protected:
             
             std::array<std::array<Scal,n>,n> A;
+            
+        public:
+            
+            SelfAdjointMatrix() = default;
+
+            ~SelfAdjointMatrix() = default;
+
+            SelfAdjointMatrix(std::nullptr_t) = delete;
+
+            explicit SelfAdjointMatrix( const Scal * a )
+            {
+                Read(a);
+            }
+
+            // Copy constructor
+            explicit SelfAdjointMatrix( const Class_T & other )
+            {
+                Read( &other.A[0][0] );
+            }
+
+            // Copy assignment operator
+            mref<SelfAdjointMatrix> operator=( const SelfAdjointMatrix other )
+            {
+                // copy-and-swap idiom
+                // see https://stackoverflow.com/a/3279550/8248900 for details
+                swap(*this, other);
+
+                return *this;
+            }
+
+            /* Move constructor */
+            SelfAdjointMatrix( SelfAdjointMatrix && other ) noexcept
+            {
+                swap(*this, other);
+            }
+
+            explicit SelfAdjointMatrix( cref<Scal> init )
+            {
+                Fill(init);
+            }
+
 
 #include "Tiny_UpperTriangular_Common.hpp"
             
@@ -35,13 +73,65 @@ namespace Tensors
 ///######################################################
             
         public:
+            
+            template<class T>
+            force_inline mref<SelfAdjointMatrix> operator+=( cref<SelfAdjointMatrix<n,T,Int>> B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] += B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline mref<SelfAdjointMatrix> operator-=( cref<SelfAdjointMatrix<n,T,Int>> B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] -= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline mref<SelfAdjointMatrix> operator*=( cref<SelfAdjointMatrix<n,T,Int>> B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] *= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
+            
+            template<class T>
+            force_inline mref<SelfAdjointMatrix> operator/=( cref<SelfAdjointMatrix<n,T,Int>> B )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    for( Int j = i; j < n; ++j )
+                    {
+                        A[i][j] /= B.A[i][j];
+                    }
+                }
+                return *this;
+            }
 
             template<Op op>
             void LowerFromUpper() const
             {}
 
             template< AddTo_T addto >
-            force_inline friend void Dot( const CLASS & M, const Vector_T & x, Vector_T & y )
+            force_inline friend void Dot( const SelfAdjointMatrix & M, const Vector_T & x, Vector_T & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -60,7 +150,7 @@ namespace Tensors
                 }
             }
             
-            force_inline friend Scal InnerProduct( const CLASS & G, const Vector_T & x, const Vector_T & y )
+            force_inline friend Scal InnerProduct( const SelfAdjointMatrix & G, const Vector_T & x, const Vector_T & y )
             {
                 Scal result (0);
                 
@@ -740,7 +830,7 @@ namespace Tensors
                 return Sqrt(AA);
             }
             
-            [[nodiscard]] std::string friend ToString( cref<CLASS> M )
+            [[nodiscard]] std::string friend ToString( cref<SelfAdjointMatrix> M )
             {
                 std::stringstream sout;
 
@@ -815,7 +905,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::") + TO_STD_STRING(CLASS)+"<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::SelfAdjointMatrix") + "<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };
@@ -835,7 +925,6 @@ namespace Tensors
             return A.template AAH<true>();
         }
         
-#undef CLASS
     } // namespace Tiny
     
 } // namespace Tensors

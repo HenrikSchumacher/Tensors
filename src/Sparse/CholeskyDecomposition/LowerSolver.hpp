@@ -12,8 +12,8 @@ namespace Tensors
         template<bool mult_rhs, bool lockedQ, typename Scal_, typename Int_, typename LInt_>
         class alignas(ObjectAlignment) LowerSolver
         {
-            ASSERT_INT(Int_);
-            ASSERT_INT(LInt_)
+            static_assert(IntQ<Int_>,"");
+            static_assert(IntQ<LInt_>,"");
             
         public:
             
