@@ -46,6 +46,8 @@ namespace Tensors
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+#else
+            (void)i;
 #endif
         }
         

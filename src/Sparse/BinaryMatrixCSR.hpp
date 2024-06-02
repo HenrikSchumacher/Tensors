@@ -200,7 +200,7 @@ namespace Tensors
                 const bool compressQ   = true,
                 const int  symmetrize = 0
             )
-            :   Base_T ( i, j, m_, n_, thread_count, compressQ, symmetrize )
+            :   Base_T ( nnz_, i, j, m_, n_, thread_count, compressQ, symmetrize )
             {}
             
             BinaryMatrixCSR(

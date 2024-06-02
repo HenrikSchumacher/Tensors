@@ -120,6 +120,9 @@ private:
         cref<JobPointers<Int>> job_ptr
     )
     {
+        (void)m;
+        (void)n;
+        
         std::string tag = std::string(ClassName()+"::SpMV_impl<")
             +ToString(a_flag)+","
             +ToString(alpha_flag)+","

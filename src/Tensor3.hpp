@@ -51,6 +51,8 @@ namespace Tensors
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+#else
+            (void)i;
 #endif
         }
         
@@ -65,6 +67,9 @@ namespace Tensors
             {
                 eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
+#else
+            (void)i;
+            (void)j;
 #endif
         }
         
@@ -83,6 +88,10 @@ namespace Tensors
             {
                 eprint(ClassName()+": third index " + std::to_string(k) + " is out of bounds [ 0, " + std::to_string(dims[2]) +" [.");
             }
+#else
+            (void)i;
+            (void)j;
+            (void)k;
 #endif
         }
         

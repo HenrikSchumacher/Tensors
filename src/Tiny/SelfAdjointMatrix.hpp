@@ -770,7 +770,7 @@ namespace Tensors
                 
                 HessenbergDecomposition(T);
                 
-                T.QRAlgorithm( eigs, tol, max_iter );
+                T.QRAlgorithm(eigs,tol,max_iter);
             }
             
             
@@ -785,7 +785,7 @@ namespace Tensors
                 
                 std::pair<Matrix<n,n,Scal,Int>,Vector<n,Real,Int>> result;
                 
-                Eigensystem(result.first,result.second,eps,max_iter);
+                Eigensystem(result.first,result.second,tol,max_iter);
                 
                 return result;
             }
@@ -808,7 +808,7 @@ namespace Tensors
                 
                 HessenbergDecomposition(V,T);
 
-                T.QRAlgorithm( Q, eigs, tol, max_iter );
+                T.QRAlgorithm(Q,eigs,tol,max_iter);
 
                 //TODO: We might exploit here that V has zeroes in first row and column.
                 Dot<Overwrite>(V,Q,U);

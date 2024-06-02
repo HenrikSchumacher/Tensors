@@ -120,6 +120,8 @@ private:
         cref<JobPointers<Int>> job_ptr
     )
     {
+        (void)n;
+        
         std::string tag = std::string(ClassName()+"::SpMV_Transposed_impl<")
             +ToString(a_flag)+","
             +ToString(alpha_flag)+","
@@ -164,53 +166,7 @@ private:
 //        {
 //            scale_buffer<VarSize,Parallel>( beta, y, n );
 //        }
-//        
-//        
-//        std::vector<std::mutex> mutexes ( n );
 //
-//        ParallelDo(
-//            [&]( const Int thread )
-//            {
-//                const Int i_begin = job_ptr[thread  ];
-//                const Int i_end   = job_ptr[thread+1];
-//
-////                const LInt last_l = rp[i_end];
-//
-////                constexpr LInt look_ahead = 1;
-//
-//
-//                for( Int i = i_begin; i < i_end; ++i )
-//                {
-//                    const LInt l_begin = rp[i  ];
-//                    const LInt l_end   = rp[i+1];
-//
-//
-//                    for( Int l = l_begin; l < l_end; ++l )
-//                    {
-//                        const Int j = ci[l];
-//
-//                        T product;
-//
-//                        if constexpr ( a_flag == Generic )
-//                        {
-//                            product = scalar_cast<T>(a[l]) * scalar_cast<T>(x[i]);
-//                        }
-//                        else
-//                        {
-//                            product = scalar_cast<T>(x[i]);
-//                        }
-//
-//                        {
-//                            const std::lock_guard<std::mutex> lock ( mutexes[j] );
-//
-//                            combine_scalars<alpha_flag,Scalar::Flag::Plus>( alpha, product, Scalar::One<Scal>, y[j] );
-//                        }
-//                    }
-//                }
-//            },
-//            job_ptr.ThreadCount()
-//        );
-        
         ParallelDo(
             [&]( const Int thread )
             {

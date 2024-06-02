@@ -278,6 +278,8 @@ namespace Tensors
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+#else
+            (void)i;
 #endif
         }
         
@@ -293,6 +295,9 @@ namespace Tensors
             {
                 eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
+#else
+            (void)i;
+            (void)j;
 #endif
         }
         
@@ -383,107 +388,6 @@ namespace Tensors
         }
         
     }; // Tensor2
-    
-//    template<typename Int>
-//    void GEMV( const double alpha, const Tensor2<double,Int> & A, const CBLAS_TRANSPOSE transA,
-//                                         const Tensor1<double,Int> & x,
-//                      const double beta,        Tensor1<double,Int> & y )
-//    {
-//        Int m = A.Dimension(0);
-//        Int n = A.Dimension(1);
-//        Int k = A.Dimension(transA == CblasNoTrans);
-//        Int stride_x = 1;
-//        Int stride_y = 1;
-//        
-//        cblas_dgemv( CblasRowMajor, transA, m, n, alpha, A.data(), k, x.data(), stride_x, beta, y.data(), stride_y );
-//    }
-//    
-//    template<typename Int>
-//    void GEMM( const double alpha, const Tensor2<double,Int> & A, const CBLAS_TRANSPOSE transA,
-//                                          const Tensor2<double,Int> & B, const CBLAS_TRANSPOSE transB,
-//                      const double beta,        Tensor2<double,Int> & C )
-//    {
-//        Int m = C.Dimension(0);
-//        Int n = C.Dimension(1);
-//        Int k = A.Dimension(transA == CblasNoTrans);
-//
-//        cblas_dgemm( CblasRowMajor, transA, transB, m, n, k, alpha, A.data(), m, B.data(), n, beta, C.data(), n );
-//    }
-//
-//    template<typename Int>
-//    void Dot ( const Tensor2<double,Int> & A, const CBLAS_TRANSPOSE transA,
-//                      const Tensor2<double,Int> & B, const CBLAS_TRANSPOSE transB,
-//                            Tensor2<double,Int> & C, bool add_to = false )
-//    {
-//        double alpha = 1.;
-//        Int m = C.Dimension(0);
-//        Int n = C.Dimension(1);
-//        Int k = A.Dimension(transA == CblasNoTrans);
-//
-//        cblas_dgemm( CblasRowMajor, transA, transB, m, n, k, alpha, A.data(), k, B.data(), n, add_to, C.data(), n );
-//    }
-
-//    template<typename Int>
-//    int LinearSolve( const Tensor2<double,Int> & A, const Tensor1<double,Int> & b, Tensor1<double,Int> & x )
-//    {
-//        Int stride_x = 1;
-//        Int n = A.Dimension(0);
-//        if( x.Dimension(0) != n )
-//        {
-//            x = Tensor1<double,Int>(n);
-//        }
-//        x.Read(b.data());
-//        Tensor1<Int,Int> ipiv ( n );
-//        Tensor2<double,Int> A1 ( A.data(), n , n );
-//
-//        int stat = LAPACKE_dgesv( LAPACK_ROW_MAJOR, n, stride_x, A1.data(), n, ipiv.data(), x.data(), stride_x );
-////        valprint("stat",stat);
-//        return stat;
-//    }
-//    
-//    template<typename Int>
-//    int LinearSolve( Tensor2<double,Int> & A, Tensor1<double,Int> & b )
-//    {
-//        // in place variant
-//        Int stride_x = 1;
-//        Int stride_b = 1;
-//        Int n = A.Dimension(0);
-//        if( b.Dimension(0) != n )
-//        {
-//            b = Tensor1<double,Int>(n);
-//        }
-//        
-//        Tensor1<Int,Int> ipiv ( n );
-//        
-//        int stat = LAPACKE_dgesv( LAPACK_ROW_MAJOR, n, stride_x, A.data(), n, ipiv.data(), b.data(), stride_b );
-////        valprint("stat",stat);
-//        return stat;
-//    }
-//    
-//    template<typename Int>
-//    int Inverse( const Tensor2<double,Int> & A, Tensor2<double,Int> & Ainv )
-//    {
-//        Int n = A.Dimension(0);
-//        if( Ainv.Dimension(0) != n || Ainv.Dimension(1) != n )
-//        {
-//            Ainv = Tensor2<double,Int>(n,n);
-//        }
-//        Tensor1<Int,Int> ipiv ( n );
-//        Tensor2<double,Int> A1 ( A.data(), n , n );
-//        
-//        double * b = Ainv.data();
-//        for( Int i = 0; i < n; ++i )
-//        {
-//            for( Int j = 0; j < n; ++j )
-//            {
-//                b[ n * i + j ] = KroneckerDelta<double>(i,j);
-//            }
-//        }
-//        // LAPACKE_dgesv does not like its 4-th argument to be const.
-//        int stat = LAPACKE_dgesv( LAPACK_ROW_MAJOR, n, n, A1.data(), n, ipiv.data(), Ainv.data(), n );
-////        valprint("stat",stat);
-//        return stat;
-//    }
 
     template<typename Scal, typename Int, typename S>
     Tensor2<Scal,Int> ToTensor2( cptr<S> a_, const Int d0, const Int d1, const bool transpose = false )

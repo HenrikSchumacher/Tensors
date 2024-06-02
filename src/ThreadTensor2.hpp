@@ -170,6 +170,8 @@ namespace Tensors
             {
                 eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
             }
+#else
+            (void)i;
 #endif
         }
         
@@ -185,6 +187,9 @@ namespace Tensors
             {
                 eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
             }
+#else
+            (void)i;
+            (void)j;
 #endif
         }
         
@@ -404,7 +409,7 @@ namespace Tensors
         return B;
     }
     
-    template<typename J, typename Int, 
+    template<typename J, typename Int,
         class = typename std::enable_if_t<IntQ<J>>
     >
     inline mma::TensorRef<mint> to_MTensorRef( cref<ThreadTensor2<J,Int>> A )
