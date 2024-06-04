@@ -115,12 +115,12 @@ void test_combine_buffers(
     z_true = y;
     auto start_time_1 = Clock::now();
     combine_buffers_true( alpha, x.data(), beta, z_true.data(), n );
-    float time_1 = Duration( start_time_1, Clock::now() );
+    float time_1 = Tools::Duration( start_time_1, Clock::now() );
     
     z = y;
     auto start_time_2 = Clock::now();
     combine_buffers<alpha_flag,beta_flag>( alpha, x.data(), beta, z.data(), n );
-    float time_2 = Duration( start_time_2, Clock::now() );
+    float time_2 = Tools::Duration( start_time_2, Clock::now() );
     
     
 
