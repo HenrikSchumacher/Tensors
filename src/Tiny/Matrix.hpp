@@ -310,7 +310,7 @@ namespace Tensors
                     
                     for( Int j = 0; j < (chop_n_Q ? n_c : n); ++j )
                     {
-                        cptr<B_T> B_j = &B[ldB * j];
+                        mptr<B_T> B_j = &B[ldB * j];
                         
                         for( Int i = 0; i < (chop_m_Q ? m_c : m); ++i )
                         {
