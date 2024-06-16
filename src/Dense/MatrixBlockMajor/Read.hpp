@@ -6,7 +6,7 @@ void Read_N( cptr<A_T> A, const Int ldA )
     ptic(ClassName()+"::Read_N<" + TypeName<A_T> + ">");
 
     ParallelDo(
-        [=]( const Int thread )
+        [=,this]( const Int thread )
         {
             constexpr Int M_step = NotTransposedQ(op) ? m : n;
             constexpr Int N_step = NotTransposedQ(op) ? n : m;

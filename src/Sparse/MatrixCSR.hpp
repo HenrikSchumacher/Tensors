@@ -797,7 +797,7 @@ namespace Tensors
                     B_outer[0] = 0;
                     
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
                             
@@ -930,7 +930,7 @@ namespace Tensors
                     B_outer[0] = 0;
                     
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
                             

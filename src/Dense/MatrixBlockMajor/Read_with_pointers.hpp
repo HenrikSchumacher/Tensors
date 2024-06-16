@@ -14,7 +14,7 @@ void Read_N( cptr<A_T> A, const Int ldA )
     mptr<Scal> blocks_ = blocks.data();
     
     ParallelDo(
-        [=]( const Int thread )
+        [=,this]( const Int thread )
         {
             const Int M_blk_begin = JobPointer( M_blk_max, thread_count, thread     );
             const Int M_blk_end   = JobPointer( M_blk_max, thread_count, thread + 1 );

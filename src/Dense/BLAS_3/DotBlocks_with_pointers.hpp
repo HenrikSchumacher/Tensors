@@ -13,7 +13,7 @@ void DotBlocks()
     mptr<C_T> C = CP.blocks.data();
     
     ParallelDo(
-        [=]( const Int thread )
+        [=,this]( const Int thread )
         {
             const Int M_blk_begin = JobPointer( M_blk_max, thread_count, thread     );
             const Int M_blk_end   = JobPointer( M_blk_max, thread_count, thread + 1 );

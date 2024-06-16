@@ -17,7 +17,7 @@ void DotBlocks()
 //    const Int ldCP = c_size * CP.N_BlockCount();
     
     ParallelDo(
-        [=]( const Int thread )
+        [=,this]( const Int thread )
         {
             const Int M_blk_begin = JobPointer( M_BlockCount(), thread_count, thread     );
             const Int M_blk_end   = JobPointer( M_BlockCount(), thread_count, thread + 1 );

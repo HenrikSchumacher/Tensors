@@ -450,7 +450,7 @@ namespace Tensors
                 if( chunk == Scalar::One<Size_T> )
                 {
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             b[i] = static_cast<T>(a[r[i]]);
                         },
@@ -460,7 +460,7 @@ namespace Tensors
                 else
                 {
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             copy_buffer( &a[chunk * r[i]], &b[chunk * i], chunk );
                         },
