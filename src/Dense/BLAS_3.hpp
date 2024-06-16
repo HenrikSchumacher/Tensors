@@ -158,7 +158,7 @@ namespace Tensors
 //#include "BLAS_3/DotBlocks_mat_T.hpp"
 //#include "BLAS_3/DotBlocks_with_pointers.hpp"
             
-#include "BLAS_3/DotBlocksRecursive.hpp"
+//#include "BLAS_3/DotBlocksRecursive.hpp"
 #include "BLAS_3/gemm.hpp"
 
             
