@@ -727,7 +727,7 @@ namespace Tensors
                 
                 Tensor2<LInt,Int> counters ( thread_count, n, static_cast<LInt>(0) );
                 
-                if( WellFormed() )
+                if( WellFormedQ() )
                 {
                     //            ptic("Counting sort");
                     // Use counting sort to sort outer indices of output matrix.
@@ -775,7 +775,7 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::SortInner");
                     
-                    if( WellFormed() )
+                    if( WellFormedQ() )
                     {
                         ParallelDo(
                             [this]( const Int i )
@@ -802,7 +802,7 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::Compress");
                     
-                    if( WellFormed() )
+                    if( WellFormedQ() )
                     {
                         RequireJobPtr();
                         SortInner();
@@ -925,7 +925,7 @@ namespace Tensors
             {
                 ptic(ClassName()+"::DotBinary_");
                 
-                if( WellFormed() && B.WellFormed() )
+                if( WellFormedQ() && B.WellFormedQ() )
                 {
                     RequireJobPtr();
                     
@@ -1049,7 +1049,7 @@ namespace Tensors
                 const Int nrhs = static_cast<Int>(1)
             ) const
             {
-                if( WellFormed() )
+                if( WellFormedQ() )
                 {
                     SparseBLAS<T_out,Int,LInt> sblas;
                     
@@ -1060,7 +1060,7 @@ namespace Tensors
                 }
                 else
                 {
-                    wprint(ClassName()+"::Dot_: Not WellFormed(). Doing nothing.");
+                    wprint(ClassName()+"::Dot_: Not WellFormedQ(). Doing nothing.");
                 }
             }
             
@@ -1073,7 +1073,7 @@ namespace Tensors
                       const Int   nrhs = static_cast<Int>(1)
             ) const
             {
-                if( WellFormed() )
+                if( WellFormedQ() )
                 {
                     SparseBLAS<T_ext,Int,LInt> sblas;
                     
@@ -1084,7 +1084,7 @@ namespace Tensors
                 }
                 else
                 {
-                    wprint(ClassName()+"::Dot_: Not WellFormed(). Doing nothing.");
+                    wprint(ClassName()+"::Dot_: Not WellFormedQ(). Doing nothing.");
                 }
             }
             
@@ -1236,7 +1236,7 @@ namespace Tensors
             {
                 ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
                 
-                if( WellFormed() )
+                if( WellFormedQ() )
                 {
                     if( !inner_sorted )
                     {
@@ -1290,13 +1290,20 @@ namespace Tensors
                 ptoc(ClassName()+"::FillLowerTriangleFromUpperTriangle");
             }
             
-            bool WellFormed() const
+            bool WellFormedQ() const
             {
                 bool wellformed = ( ( outer.Size() > 1 ) && ( outer.Last() > 0 ) );
                 
                 if( !wellformed )
                 {
-                    wprint(ClassName()+"::WellFormed: Matrix is not well formed");
+                    wprint(ClassName()+"::WellFormedQ: Matrix is not well formed");
+                    
+                    dump(m);
+                    dump(n);
+                    dump(outer.Size());
+                    dump(inner.Size());
+                    dump(outer.First());
+                    dump(outer.Last());
                 }
                 
                 return wellformed;

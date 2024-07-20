@@ -47,7 +47,7 @@ namespace Tensors
             using Base_T::UpperTriangularJobPtr;
             using Base_T::LowerTriangularJobPtr;
             using Base_T::CreateTransposeCounters;
-            using Base_T::WellFormed;
+            using Base_T::WellFormedQ;
             
             BinaryMatrixCSR()
             :   Base_T()
@@ -251,7 +251,7 @@ namespace Tensors
                 
                 copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
                 
-                if( WellFormed() )
+                if( this->WellFormedQ() )
                 {
                     ParallelDo(
                         [&]( const Int thread )
