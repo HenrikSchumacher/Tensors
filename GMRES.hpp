@@ -102,7 +102,10 @@ namespace Tensors
             const Int  max_restarts
         )
         {
+            ptic(ClassName()+"::operator()");
+            
             ptic(ClassName()+": Compute norm of right hand side.");
+            
             // Compute norms of b.
             x.Read( b_in, ldx, thread_count );
             
@@ -120,15 +123,17 @@ namespace Tensors
             TOL = b_norms;
             TOL *= relative_tolerance;
             
+            ptoc(ClassName()+": Compute norm of right hand side.");
+            
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
                 x.Write( x_inout, ldx, thread_count );
-                ptoc(ClassName()+": Compute norm of right hand side.");
+                
+                ptoc(ClassName()+"::operator()");
                 
                 return true;
             }
             
-            ptoc(ClassName()+": Compute norm of right hand side.");
             
             restarts = 0;
             bool succeeded = false;
@@ -138,6 +143,11 @@ namespace Tensors
                 succeeded = Solve( A, P, b_in, ldb, x_inout, ldx, relative_tolerance );
                 ++restarts;
             }
+            
+            logdump(succeeded);
+            logdump(restarts);
+            
+            ptoc(ClassName()+"::operator()");
             
             return succeeded;
         }
@@ -361,6 +371,7 @@ namespace Tensors
                     H(i+1,iter,k) = -Conj(sin) * xi + cos * eta;
                 }
             }
+            
             {
                 for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                 {
@@ -401,6 +412,8 @@ namespace Tensors
         
         void ComputeNorms( cptr<Scal> v, mref<RealVector_T> norms )
         {
+            ptic(ClassName()+"::ComputeNorms");
+            
             ParallelDo(
                 [this,v,&norms]( const Int thread )
                 {
@@ -430,10 +443,14 @@ namespace Tensors
             {
                 norms[k] = Sqrt( norms[k] );
             }
+            
+            ptoc(ClassName()+"::ComputeNorms");
         }
         
         void ComputeScalarProducts( cptr<Scal> v, cptr<Scal> w, mref<Vector_T> dots )
         {
+            ptic(ClassName()+"::ComputeScalarProducts");
+            
             ParallelDo(
                 [this,v,w,&dots]( const Int thread )
                 {
@@ -458,11 +475,15 @@ namespace Tensors
             );
             
             reduction_buffer.AddReduce( dots.data(), false );
+            
+            ptoc(ClassName()+"::ComputeScalarProducts");
         }
         
         template<Scalar::Flag flag>
         void MulAdd( mptr<Scal> v, cptr<Scal> w, const Vector_T & factors )
         {
+            ptic(ClassName()+"::MulAdd<" + ToString(flag) + ">");
+            
             ParallelDo(
                 [this,v,w,&factors]( const Int i )
                 {
@@ -480,10 +501,14 @@ namespace Tensors
                 },
                 job_ptr
             );
+            
+            ptoc(ClassName()+"::MulAdd<" + ToString(flag) + ">");
         }
         
         void InverseScale( mptr<Scal> q, const RealVector_T & factors )
         {
+            ptic(ClassName()+"::InverseScale");
+            
             ParallelDo(
                 [this,q,&factors]( const Int thread )
                 {
@@ -507,6 +532,8 @@ namespace Tensors
                 },
                 thread_count
             );
+            
+            ptoc(ClassName()+"::InverseScale");
         }
         
     public:
@@ -568,7 +595,7 @@ namespace Tensors
         std::string ClassName() const
         {
             return std::string(
-                "GMRES<"+ToString(EQ)+","+TypeName<Scal>+","+TypeName<Int>+","+(side==Side::Left ? "Left" : "Right")+"> ( " + ToString(eq) + " )"
+                "GMRES<"+ToString(EQ)+","+TypeName<Scal>+","+TypeName<Int>+","+(side==Side::Left ? "Left" : "Right")+">(" + ToString(eq) + ")"
             );
         }
     }; // class GMRES

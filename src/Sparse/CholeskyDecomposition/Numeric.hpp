@@ -16,7 +16,7 @@ public:
     )
     {
         std::string tag = ClassName()+"::NumericFactorization_Multifrontal<" + TypeName<ExtScal> + ">";
-       
+    
         ptic(tag);
         
         SymbolicFactorization();
@@ -82,7 +82,6 @@ public:
         ptoc(tag + ": Release update buffers.");
         
         ptoc(tag);
-        
     }
 
 

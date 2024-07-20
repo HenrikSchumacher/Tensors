@@ -431,11 +431,15 @@ namespace Tensors
             ptoc(ClassName()+"::Compose");
         }
         
-        // TODO: We could add a leading dimension argument...
         template<typename S, typename T>
-        void Permute( cptr<S> a, mptr<T> b, const Inverse inverseQ, Size_T chunk = Scalar::One<Size_T> )
+        void Permute( 
+            cptr<S> X, const Size_T ldX,
+            mptr<T> Y, const Size_T ldY,
+            const Inverse inverseQ,
+            Size_T chunk = Scalar::One<Size_T>
+        )
         {
-            // Permute a chunkwise into b, i.e., b[size*i+k] <- a[size*p[i]+k];
+            // Permute X chunkwise into Y, i.e., Y[size*i+k] <- X[size*p[i]+k];
             
             std::string tag = ClassName()+"::Permute ( " + (inverseQ == Inverse::True ? "inv, " : "id, " ) + ToString(chunk) + " )";
             
@@ -449,20 +453,33 @@ namespace Tensors
 
                 if( chunk == Scalar::One<Size_T> )
                 {
-                    ParallelDo(
-                        [=,this]( const Int i )
-                        {
-                            b[i] = static_cast<T>(a[r[i]]);
-                        },
-                        n, thread_count
-                    );
+                    if( (ldX == Scalar::One<Size_T>) && (ldY == Scalar::One<Size_T>) )
+                    {
+                        ParallelDo(
+                            [=,this]( const Int i )
+                            {
+                                Y[i] = static_cast<T>(X[r[i]]);
+                            },
+                            n, thread_count
+                        );
+                    }
+                    else
+                    {
+                        ParallelDo(
+                            [=,this]( const Int i )
+                            {
+                                Y[ldY * i] = static_cast<T>(X[ldX * r[i]]);
+                            },
+                            n, thread_count
+                        );
+                    }
                 }
                 else
                 {
                     ParallelDo(
                         [=,this]( const Int i )
                         {
-                            copy_buffer( &a[chunk * r[i]], &b[chunk * i], chunk );
+                            copy_buffer( &X[ldX * r[i]], &Y[ldY * i], chunk );
                         },
                         n, thread_count
                     );
@@ -472,52 +489,76 @@ namespace Tensors
             }
             else
             {
-                copy_buffer<VarSize,Parallel>( a, b, n*chunk, thread_count );
+                if( (ldX == chunk) && (ldY == chunk) )
+                {
+                    copy_buffer<VarSize,Parallel>( X, Y, n*chunk, thread_count );
+                }
+                else
+                {
+                    ParallelDo(
+                        [=,this]( const Int i )
+                        {
+                            copy_buffer( &X[ldX * i], &Y[ldY * i], chunk );
+                        },
+                        n, thread_count
+                    );
+                }
             }
             
             ptoc(tag);
         }
         
         template<typename S, typename T>
-        void Permute( const Tensor1<S,Int> & a, Tensor1<T,Int> & b, const Inverse inverseQ )
+        void Permute(
+            cptr<S> X,
+            mptr<T> Y,
+            const Inverse inverseQ,
+            Size_T chunk = Scalar::One<Size_T>
+        )
         {
-            if( a.Size() != n )
-            {
-                eprint(ClassName()+"::Permute: First input array has incorrect dimension. Doing nothing.");
-                return;
-            }
-            
-            if( b.Size() != n )
-            {
-                eprint(ClassName()+"::Permute: Second input array has incorrect dimension. Doing nothing.");
-                return;
-            }
-            
-            Permute( a.data(), b.data(), inverseQ );
+            Permute( X, chunk, Y, chunk, inverseQ, chunk );
         }
         
         template<typename S, typename T>
-        void Permute( const Tensor2<S,Int> & a, Tensor2<T,Int> & b, const Inverse inverseQ )
+        void Permute( const Tensor1<S,Int> & X, Tensor1<T,Int> & Y, const Inverse inverseQ )
         {
-            if( a.Size() != n )
+            if( X.Size() != n )
             {
                 eprint(ClassName()+"::Permute: First input array has incorrect dimension. Doing nothing.");
                 return;
             }
             
-            if( b.Size() != n )
+            if( Y.Size() != n )
             {
                 eprint(ClassName()+"::Permute: Second input array has incorrect dimension. Doing nothing.");
                 return;
             }
             
-            if( a.Dimension(1) != b.Dimension(1) )
+            Permute( X.data(), Y.data(), inverseQ );
+        }
+        
+        template<typename S, typename T>
+        void Permute( const Tensor2<S,Int> & X, Tensor2<T,Int> & Y, const Inverse inverseQ )
+        {
+            if( X.Size() != n )
+            {
+                eprint(ClassName()+"::Permute: First input array has incorrect dimension. Doing nothing.");
+                return;
+            }
+            
+            if( Y.Size() != n )
+            {
+                eprint(ClassName()+"::Permute: Second input array has incorrect dimension. Doing nothing.");
+                return;
+            }
+            
+            if( X.Dimension(1) != Y.Dimension(1) )
             {
                 eprint(ClassName()+"::Permute: Number of columns of input arrays do not coincide. Doing nothing.");
                 return;
             }
             
-            Permute( a.data(), b.data(), inverseQ, a.Dimension(1) );
+            Permute( X.data(), Y.data(), inverseQ, X.Dimension(1) );
         }
         
         

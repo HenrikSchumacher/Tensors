@@ -442,22 +442,22 @@ namespace Tensors
                 return *this;
             }
             
-            /* Move constructor */
-            CholeskyDecomposition( CholeskyDecomposition && other ) noexcept
-            {
-                swap(*this, other);
-            }
+//            /* Move constructor */
+//            CholeskyDecomposition( CholeskyDecomposition && other ) noexcept
+//            {
+//                swap(*this, other);
+//            }
             
-            /* Move assignment operator */
-            CholeskyDecomposition & operator=( CholeskyDecomposition && other ) noexcept
-            {
-                if( this == &other )
-                {
-                    wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
-                }
-                swap( *this, other );
-                return *this;
-            }
+//            /* Move assignment operator */
+//            CholeskyDecomposition & operator=( CholeskyDecomposition && other ) noexcept
+//            {
+//                if( this == &other )
+//                {
+//                    wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
+//                }
+//                swap( *this, other );
+//                return *this;
+//            }
             
             
             
@@ -567,6 +567,10 @@ namespace Tensors
     
         public:
             
+            bool NumericallyFactorizedQ() const
+            {
+                return SN_factorized;
+            }
             
             std::string ClassName() const
             {

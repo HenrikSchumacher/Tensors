@@ -1,11 +1,11 @@
-//##########################################################################################
+//####################################################################################
 //####          IO routines
-//##########################################################################################
+//####################################################################################
 
 public:
 
     template<typename ExtScal>
-    void ReadRightHandSide( cptr<ExtScal> B, Int nrhs_ = ione )
+    void ReadRightHandSide( cptr<ExtScal> B, const Int ldB, const Int nrhs_ = ione )
     {
         nrhs = Max( ione, nrhs_ );
         
@@ -21,18 +21,18 @@ public:
 
         if ( nrhs == ione )
         {
-            perm.Permute( B, X.data(), Inverse::False );
+            perm.Permute( B, ldB, X.data(), nrhs, Inverse::False );
         }
         else
         {
-            perm.Permute( B, X.data(), Inverse::False, nrhs );
+            perm.Permute( B, ldB, X.data(), nrhs, Inverse::False, nrhs );
         }
         
         ptoc(tag);
     }
 
     template<typename ExtScal>
-    void WriteSolution( mptr<ExtScal> X_ )
+    void WriteSolution( mptr<ExtScal> X_, const Int ldX )
     {
         const std::string tag = ClassName() + "::WriteSolution<" + TypeName<ExtScal> + "> (" + ToString(nrhs)+ ")";
         
@@ -40,20 +40,20 @@ public:
         
         if ( nrhs == ione )
         {
-            perm.Permute( X.data(), X_, Inverse::True );
+            perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True );
         }
         else
         {
-            perm.Permute( X.data(), X_, Inverse::True, nrhs );
+            perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True, nrhs );
         }
         
         ptoc(tag);
     }
 
 
-//##########################################################################################
+//###################################################################################
 //####          Get routines
-//##########################################################################################
+//###################################################################################
 
     Int ThreadCount() const
     {

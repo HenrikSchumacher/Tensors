@@ -256,7 +256,7 @@ namespace Tensors
             
             std::string ClassName() const
             {
-                return std::string("Sparse::LowerSolver")+"<"+ToString(mult_rhs)+
+                return std::string("Sparse::LowerSolver")+"<"+ToString(mult_rhs)+","+ToString(lockedQ)+
                 ","+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
             }
             

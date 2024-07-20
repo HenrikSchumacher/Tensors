@@ -1,13 +1,17 @@
 public:
 
     template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
-    void Solve( cptr<ExtScal> B, mptr<ExtScal> X_out, const Int nrhs_ = ione )
+    void Solve( 
+        cptr<ExtScal> B,     const Int ldB,
+        mptr<ExtScal> X_out, const Int ldX,
+        const Int nrhs_ = ione 
+    )
     {
         const std::string tag = ClassName() + "::Solve<"
             + (parQ == Parallel ? "Parallel" : "Sequential") + ","
             + ( op==Op::Id ? "N" : (op==Op::Trans ? "T" : (op==Op::ConjTrans ? "H" : "N/A" ) ) ) + ","
             + TypeName<ExtScal>
-            + "> ( " + ToString(nrhs_) + " )";
+            + "> ( " + ToString(ldB) + "," + ToString(ldX) + "," + ToString(nrhs_) + " )";
         
         static_assert(
             Scalar::RealQ<Scal> || op != Op::Trans,
@@ -16,7 +20,7 @@ public:
         ptic(tag);
         // No problem if X_ and B overlap, since we load B into X anyways.
         
-        ReadRightHandSide( B, nrhs_ );
+        ReadRightHandSide( B, ldB, nrhs_ );
         
         if( nrhs == ione )
         {
@@ -41,14 +45,27 @@ public:
             }
         }
         
-        WriteSolution( X_out );
+        WriteSolution( X_out, ldX );
         
         ptoc(tag);
     }
 
+    template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
+    void Solve(
+        cptr<ExtScal> B,
+        mptr<ExtScal> X_out,
+        const Int nrhs_ = ione
+    )
+    {
+        Solve<parQ,op>( B, nrhs_, X_out, nrhs_, nrhs_ );
+    }
+
 
     template<Parallel_T parQ = Sequential, typename ExtScal>
-    void UpperSolve( cptr<ExtScal> B, mptr<ExtScal> X_out, const Int nrhs_ = ione )
+    void UpperSolve( 
+        cptr<ExtScal> B,     const Int ldB,
+        mptr<ExtScal> X_out, const Int ldX,
+        const Int nrhs_ = ione )
     {
         const std::string tag = ClassName() + "::UpperSolve<"
             + (parQ == Parallel ? "Parallel" : "Sequential") + ","
@@ -58,7 +75,7 @@ public:
         ptic(tag);
         // No problem if X_ and B overlap, since we load B into X anyways.
         
-        ReadRightHandSide( B, nrhs_ );
+        ReadRightHandSide( B, ldB, nrhs_ );
         
         if( nrhs == ione )
         {
@@ -83,57 +100,79 @@ public:
             }
         }
         
-        WriteSolution( X_out );
+        WriteSolution( X_out, ldX );
         
         ptoc(tag);
     }
 
-template<Parallel_T parQ = Sequential, typename ExtScal>
-void LowerSolve( cptr<ExtScal> B, mptr<ExtScal> X_out, const Int nrhs_ = ione )
-{
-    const std::string tag = ClassName() + "::LowerSolve<"
-        + (parQ == Parallel ? "Parallel" : "Sequential") + ","
-        + TypeName<ExtScal>
-        + "> ( " + ToString(nrhs_) + " )";
-    
-    ptic(tag);
-    // No problem if X_ and B overlap, since we load B into X anyways.
-    
-    ReadRightHandSide( B, nrhs_ );
-    
-    if( nrhs == ione )
+    template<Parallel_T parQ = Sequential, typename ExtScal>
+    void UpperSolve(
+        cptr<ExtScal> B,
+        mptr<ExtScal> X_out,
+        const Int nrhs_ = ione 
+    )
     {
-        if( thread_count > 1 )
-        {
-            SN_LowerSolve<false,parQ>();
-        }
-        else
-        {
-            SN_LowerSolve<false,Sequential>();
-        }
+        UpperSolve<parQ>( B, nrhs_, X_out, nrhs_, nrhs_ );
     }
-    else
-    {
-        if( thread_count > 1 )
-        {
-            SN_LowerSolve<true,parQ>();
-        }
-        else
-        {
-            SN_LowerSolve<true,Sequential>();
-        }
-    }
-    
-    WriteSolution( X_out );
-    
-    
-    
-    ptoc(tag);
-}
 
-//##########################################################################################
+    template<Parallel_T parQ = Sequential, typename ExtScal>
+    void LowerSolve( 
+        cptr<ExtScal> B,     const Int ldB,
+        mptr<ExtScal> X_out, const Int ldX,
+        const Int nrhs_ = ione
+    )
+    {
+        const std::string tag = ClassName() + "::LowerSolve<"
+            + (parQ == Parallel ? "Parallel" : "Sequential") + ","
+            + TypeName<ExtScal>
+            + "> ( " + ToString(nrhs_) + " )";
+        
+        ptic(tag);
+        // No problem if X_ and B overlap, since we load B into X anyways.
+        
+        ReadRightHandSide( B, ldB, nrhs_ );
+        
+        if( nrhs == ione )
+        {
+            if( thread_count > 1 )
+            {
+                SN_LowerSolve<false,parQ>();
+            }
+            else
+            {
+                SN_LowerSolve<false,Sequential>();
+            }
+        }
+        else
+        {
+            if( thread_count > 1 )
+            {
+                SN_LowerSolve<true,parQ>();
+            }
+            else
+            {
+                SN_LowerSolve<true,Sequential>();
+            }
+        }
+        
+        WriteSolution( X_out, ldX );
+        
+        ptoc(tag);
+    }
+
+    template<Parallel_T parQ = Sequential, typename ExtScal>
+    void LowerSolve(
+        cptr<ExtScal> B,
+        mptr<ExtScal> X_out,
+        const Int nrhs_ = ione
+    )
+    {
+        LowerSolve<parQ>( B, nrhs_, X_out, nrhs_, nrhs_ );
+    }
+
+//####################################################################################
 //####          Supernodal back substitution, both parallel and sequential
-//##########################################################################################
+//####################################################################################
 
 protected:
 
@@ -166,7 +205,7 @@ protected:
         
         ptic(tag);
         
-        if( !SN_factorized )
+        if( !NumericallyFactorizedQ() )
         {
             eprint(tag+": Nonzero values of matrix have not been passed, yet. Aborting.");
             
@@ -206,9 +245,8 @@ protected:
         const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
         ptic(tag);
-
         
-        if( !SN_factorized )
+        if( !NumericallyFactorizedQ() )
         {
             eprint(tag+": Nonzero values of matrix have not been passed, yet. Aborting.");
             
@@ -216,7 +254,7 @@ protected:
             return;
         }
         
-        const Int use_threads = ( parQ== Parallel) ? thread_count : 1;
+        const Int use_threads = ( parQ == Parallel) ? thread_count : 1;
         
         ptic("Initialize solvers");
         std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
