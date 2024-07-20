@@ -159,10 +159,11 @@ namespace Tensors
             
             // We do not need a move-assignment operator, because we use the copy-swap idiom!
             
+            template<typename ExtInt, typename ExtScal>
             MatrixCSR(
-                  const Int    * const * const idx,
-                  const Int    * const * const jdx,
-                  const Scal   * const * const val,
+                  const ExtInt    * const * const idx,
+                  const ExtInt    * const * const jdx,
+                  const ExtScal   * const * const val,
                   const LInt   *         const entry_counts,
                   const Int list_count,
                   const Int m_,
@@ -176,11 +177,13 @@ namespace Tensors
                 FromTriples( idx, jdx, val, entry_counts, list_count, final_thread_count, compressQ, symmetrize );
             }
             
+            
+            template<typename ExtInt, typename ExtScal>
             MatrixCSR(
                 const LInt nnz_,
-                const Int  * const i,
-                const Int  * const j,
-                const Scal * const a,
+                const ExtInt  * const i,
+                const ExtInt  * const j,
+                const ExtScal * const a,
                 const Int m_,
                 const Int n_,
                 const Int thread_count,
@@ -189,9 +192,9 @@ namespace Tensors
             )
             :   Base_T ( m_, n_, thread_count )
             {
-                Tensor1<const Int  *,Int> idx    (thread_count);
-                Tensor1<const Int  *,Int> jdx    (thread_count);
-                Tensor1<const Scal *,Int> val    (thread_count);
+                Tensor1<const ExtInt  *,Int> idx    (thread_count);
+                Tensor1<const ExtInt  *,Int> jdx    (thread_count);
+                Tensor1<const ExtScal *,Int> val    (thread_count);
                 Tensor1<      LInt  ,Int> counts (thread_count);
                 
                 for( Int thread = 0; thread < thread_count; ++thread )
@@ -208,10 +211,11 @@ namespace Tensors
                 FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compressQ, symmetrize );
             }
             
+            template<typename ExtInt, typename ExtScal>
             MatrixCSR(
-                  cref<std::vector<std::vector<Int>>>  idx,
-                  cref<std::vector<std::vector<Int>>>  jdx,
-                  cref<std::vector<std::vector<Scal>>> val,
+                  cref<std::vector<std::vector<ExtInt>>>  idx,
+                  cref<std::vector<std::vector<ExtInt>>>  jdx,
+                  cref<std::vector<std::vector<ExtScal>>> val,
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
@@ -221,9 +225,9 @@ namespace Tensors
             :   Base_T ( m_, n_, static_cast<Int>(idx.size()) )
             {
                 Int list_count = static_cast<Int>(idx.size());
-                Tensor1<const Int *,Int> i      (list_count);
-                Tensor1<const Int *,Int> j      (list_count);
-                Tensor1<const Scal*,Int> a      (list_count);
+                Tensor1<const ExtInt  *,Int> i      (list_count);
+                Tensor1<const ExtInt  *,Int> j      (list_count);
+                Tensor1<const ExtScal *,Int> a      (list_count);
                 Tensor1<LInt,Int> entry_counts  (list_count);
                 
                 for( Int thread = 0; thread < list_count; ++thread )
@@ -238,8 +242,9 @@ namespace Tensors
                             list_count, final_thread_count, compressQ, symmetrize );
             }
             
+            template<typename ExtInt, typename ExtScal>
             MatrixCSR(
-                  const std::vector<TripleAggregator<Int,Int,Scal,LInt>> & triples,
+                  const std::vector<TripleAggregator<ExtInt,ExtInt,ExtScal,LInt>> & triples,
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
@@ -250,9 +255,9 @@ namespace Tensors
             {
                 Int list_count = static_cast<Int>(triples.size());
                 
-                Tensor1<const Int *,Int> i     (list_count);
-                Tensor1<const Int *,Int> j     (list_count);
-                Tensor1<const Scal*,Int> a     (list_count);
+                Tensor1<const ExtInt  *,Int> i     (list_count);
+                Tensor1<const ExtInt  *,Int> j     (list_count);
+                Tensor1<const ExtScal *,Int> a     (list_count);
                 Tensor1<LInt,Int> entry_counts (list_count);
                 
                 for( Int thread = 0; thread < list_count; ++thread )
@@ -271,11 +276,12 @@ namespace Tensors
             
         protected:
             
+            template<typename ExtInt, typename ExtScal>
             void FromTriples(
-                const Int  * const * const idx,               // list of lists of i-indices
-                const Int  * const * const jdx,               // list of lists of j-indices
-                const Scal * const * const val,               // list of lists of nonzero values
-                const LInt         * const entry_counts,      // list of lengths of the lists above
+                const ExtInt  * const * const idx,               // list of lists of i-indices
+                const ExtInt  * const * const jdx,               // list of lists of j-indices
+                const ExtScal * const * const val,               // list of lists of nonzero values
+                const LInt             * const entry_counts,      // list of lengths of the lists above
                 const Int list_count,                         // number of lists
                 const Int final_thread_count,                 // number of threads that the matrix shall use
                 const bool compressQ   = true,                 // whether to do additive assembly or not
@@ -341,17 +347,17 @@ namespace Tensors
                         {
                             const LInt entry_count = entry_counts[thread];
                             
-                            cptr<Int>  thread_idx = idx[thread];
-                            cptr<Int>  thread_jdx = jdx[thread];
-                            cptr<Scal> thread_val = val[thread];
+                            cptr<ExtInt>  thread_idx = idx[thread];
+                            cptr<ExtInt>  thread_jdx = jdx[thread];
+                            cptr<ExtScal> thread_val = val[thread];
                             
                             mptr<LInt> c = counters.data(thread);
                             
                             for( LInt k = entry_count; k --> 0; )
                             {
-                                const Int  i = thread_idx[k];
-                                const Int  j = thread_jdx[k];
-                                const Scal a = thread_val[k];
+                                const Int  i = static_cast<Int>(thread_idx[k]);
+                                const Int  j = static_cast<Int>(thread_jdx[k]);
+                                const Scal a = static_cast<Scal>(thread_val[k]);
                                 
                                 {
                                     const LInt pos  = --c[i];
