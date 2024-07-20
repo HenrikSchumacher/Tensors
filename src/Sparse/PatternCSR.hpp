@@ -210,9 +210,10 @@ namespace Tensors
             
             // We do not need a move-assignment operator, because we use the copy-swap idiom!
             
+            template<typename ExtInt>
             PatternCSR(
-                const Int    * const * const idx,
-                const Int    * const * const jdx,
+                const ExtInt * const * const idx,
+                const ExtInt * const * const jdx,
                 const LInt   *         const entry_counts,
                 const Int list_count,
                 const Int m_,
@@ -226,10 +227,11 @@ namespace Tensors
                 FromPairs( idx, jdx, entry_counts, list_count, final_thread_count, compressQ, symmetrize );
             }
             
+            template<typename ExtInt>
             PatternCSR(
                 const LInt nnz_,
-                const Int  * const i,
-                const Int  * const j,
+                const ExtInt  * const i,
+                const ExtInt  * const j,
                 const Int m_,
                 const Int n_,
                 const Int thread_count,
@@ -238,9 +240,9 @@ namespace Tensors
             )
             :   PatternCSR ( m_, n_, thread_count )
             {
-                Tensor1<const Int  *,Int> idx    (thread_count);
-                Tensor1<const Int  *,Int> jdx    (thread_count);
-                Tensor1<      LInt  ,Int> counts (thread_count);
+                Tensor1<const ExtInt *,Int> idx    (thread_count);
+                Tensor1<const ExtInt *,Int> jdx    (thread_count);
+                Tensor1<      LInt     ,Int> counts (thread_count);
                 
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
@@ -255,9 +257,10 @@ namespace Tensors
                 FromPairs( idx, jdx, counts.data(), thread_count, thread_count, compressQ, symmetrize );
             }
             
+            template<typename ExtInt>
             PatternCSR(
-                cref<std::vector<Int>> idx,
-                cref<std::vector<Int>> jdx,
+                cref<std::vector<ExtInt>> idx,
+                cref<std::vector<ExtInt>> jdx,
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
@@ -266,17 +269,18 @@ namespace Tensors
             )
             :   PatternCSR ( m_, n_, static_cast<Int>(1) )
             {
-                const Int * i = idx.data();
-                const Int * j = jdx.data();
+                const ExtInt * i = idx.data();
+                const ExtInt * j = jdx.data();
                 
                 Tensor1<LInt,Int> entry_counts (1, static_cast<LInt>(idx.size()));
                 
                 FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compressQ, symmetrize );
             }
             
+            template<typename ExtInt>
             PatternCSR(
-                cref<std::vector<std::vector<Int>>> idx,
-                cref<std::vector<std::vector<Int>>> jdx,
+                cref<std::vector<std::vector<ExtInt>>> idx,
+                cref<std::vector<std::vector<ExtInt>>> jdx,
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
@@ -286,8 +290,8 @@ namespace Tensors
             :   PatternCSR ( m_, n_, static_cast<Int>(idx.size()) )
             {
                 Int list_count = static_cast<Int>(idx.size());
-                Tensor1<const Int*,Int> i (list_count);
-                Tensor1<const Int*,Int> j (list_count);
+                Tensor1<const ExtInt *,Int> i (list_count);
+                Tensor1<const ExtInt *,Int> j (list_count);
                 
                 Tensor1<LInt,Int> entry_counts (list_count);
                 
@@ -301,8 +305,9 @@ namespace Tensors
                 FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compressQ, symmetrize );
             }
             
+            template<typename ExtInt>
             PatternCSR(
-                cref<std::vector<PairAggregator<Int,Int,LInt>>> idx,
+                cref<std::vector<PairAggregator<ExtInt,ExtInt,LInt>>> idx,
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
@@ -312,8 +317,8 @@ namespace Tensors
             :   PatternCSR ( m_, n_, static_cast<Int>(idx.size()) )
             {
                 Int list_count = static_cast<Int>(idx.size());
-                Tensor1<const Int*,Int> i (list_count);
-                Tensor1<const Int*,Int> j (list_count);
+                Tensor1<const ExtInt *,Int> i (list_count);
+                Tensor1<const ExtInt *,Int> j (list_count);
                 
                 Tensor1<LInt,Int> entry_counts (list_count);
                 
@@ -352,10 +357,11 @@ namespace Tensors
                 outer[0] = static_cast<LInt>(0);
             }
             
+            template<typename ExtInt>
             void FromPairs(
-                const  Int * const * const idx,
-                const  Int * const * const jdx,
-                const LInt * entry_counts,
+                const  ExtInt * const * const idx,
+                const  ExtInt * const * const jdx,
+                const LInt             *       entry_counts,
                 const  Int list_count,
                 const  Int final_thread_count,
                 const bool compressQ   = true,
@@ -388,15 +394,15 @@ namespace Tensors
                             {
                                 const LInt entry_count = entry_counts[thread];
                                 
-                                cptr<Int> thread_idx = idx[thread];
-                                cptr<Int> thread_jdx = jdx[thread];
+                                cptr<ExtInt> thread_idx = idx[thread];
+                                cptr<ExtInt> thread_jdx = jdx[thread];
                                 
                                 mptr<LInt> c = counters.data(thread);
                                 
                                 for( LInt k = entry_count; k --> 0; )
                                 {
-                                    const Int i = thread_idx[k];
-                                    const Int j = thread_jdx[k];
+                                    const Int i = static_cast<Int>(thread_idx[k]);
+                                    const Int j = static_cast<Int>(thread_jdx[k]);
                                     {
                                         const LInt pos = --c[i];
                                         A_inner[pos] = j;
