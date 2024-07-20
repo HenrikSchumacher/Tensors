@@ -108,8 +108,7 @@ namespace Tensors
             
             if constexpr ( side == Side::Left )
             {
-                P( x.data(), z.data() );
-                
+                P( x.data(), z.data() );   
             }
             else
             {
@@ -124,7 +123,8 @@ namespace Tensors
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
                 x.Write( x_inout, ldx, thread_count );
-               
+                ptoc(ClassName()+": Compute norm of right hand side.");
+                
                 return true;
             }
             
