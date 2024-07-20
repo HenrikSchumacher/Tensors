@@ -109,19 +109,19 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
         beta,  Y_True.data(), cols,
         cols
     );
-    float time_1 = Duration( start_time_1, Clock::now() );
+    float time_1 = Tools::Duration( start_time_1, Clock::now() );
     
     Y = Y_0;
     A.SetThreadCount(1);
     auto start_time_2 = Clock::now();
     A.Dot( alpha, X, beta, Y );
-    float time_2 = Duration( start_time_2, Clock::now() );
+    float time_2 = Tools::Duration( start_time_2, Clock::now() );
     
     Y = Y_0;
     A.SetThreadCount(max_thread_count);
     auto start_time_3 = Clock::now();
     A.Dot( alpha, X, beta, Y );
-    float time_3 = Duration( start_time_3, Clock::now() );
+    float time_3 = Tools::Duration( start_time_3, Clock::now() );
     
     Real max   = 0;
     Real error = 0;

@@ -252,6 +252,8 @@ namespace Tensors
         
         force_inline void Prefetch( const LInt k_global, const Int j_next )
         {
+            (void)k_global;
+            
             if constexpr ( x_prefetch )
             {
                 // X is accessed in an unpredictable way; let's help with a prefetch statement.
@@ -263,6 +265,10 @@ namespace Tensors
                 {
                     prefetch_buffer<0,0>( &X[cols_size * j_next], cols_size );
                 }
+            }
+            else
+            {
+                (void)j_next;
             }
             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
         }

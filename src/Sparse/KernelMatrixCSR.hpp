@@ -69,7 +69,7 @@ namespace Tensors
             {
                 ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
                 
-                if( pattern.WellFormed() && (pattern.RowCount()>= pattern.ColCount()) )
+                if( pattern.WellFormedQ() && (pattern.RowCount()>= pattern.ColCount()) )
                 {
                     cptr<LInt> diag   = pattern.Diag().data();
                     cptr<LInt> outer  = pattern.Outer().data();

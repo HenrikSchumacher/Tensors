@@ -52,7 +52,7 @@ namespace Tensors
             using Base_T::UpperTriangularJobPtr;
             using Base_T::LowerTriangularJobPtr;
             using Base_T::CreateTransposeCounters;
-            using Base_T::WellFormed;
+            using Base_T::WellFormedQ;
             using Base_T::Dot_;
             
             MatrixCSR()
@@ -456,7 +456,7 @@ namespace Tensors
             template< bool conjugate>
             MatrixCSR transpose() const
             {
-                if( WellFormed() )
+                if( this->WellFormedQ() )
                 {
                     if constexpr ( conjugate )
                     {
@@ -569,7 +569,7 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::SortInner");
 
-                    if( WellFormed() )
+                    if( this->WellFormedQ() )
                     {
                         RequireJobPtr();
                         
@@ -607,7 +607,7 @@ namespace Tensors
                 {
                     ptic(ClassName()+"::Compress");
                     
-                    if( WellFormed() )
+                    if( this->WellFormedQ() )
                     {
                         RequireJobPtr();
                         SortInner();
@@ -797,7 +797,7 @@ namespace Tensors
                     B_outer[0] = 0;
                     
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
                             
@@ -930,7 +930,7 @@ namespace Tensors
                     B_outer[0] = 0;
                     
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
                             
@@ -996,7 +996,7 @@ namespace Tensors
             {
                 ptic(ClassName()+"::Dot");
                 
-                if( WellFormed() )
+                if( this->WellFormedQ() )
                 {
                     RequireJobPtr();
                     

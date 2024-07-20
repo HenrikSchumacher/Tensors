@@ -450,7 +450,7 @@ namespace Tensors
                 if( chunk == Scalar::One<Size_T> )
                 {
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             b[i] = static_cast<T>(a[r[i]]);
                         },
@@ -460,7 +460,7 @@ namespace Tensors
                 else
                 {
                     ParallelDo(
-                        [=]( const Int i )
+                        [=,this]( const Int i )
                         {
                             copy_buffer( &a[chunk * r[i]], &b[chunk * i], chunk );
                         },
@@ -657,8 +657,7 @@ namespace Tensors
         mref<Tensor1<Int,LInt>> inner,
         cref<Permutation<Int>>  P,  // row    permutation
         cref<Permutation<Int>>  Q,  // column permutation
-        const LInt nnz,
-        bool  sort = true
+        const LInt nnz
     )
     {
         std::string tag = std::string("PermutePatternCSR<") + TypeName<LInt> + "," + TypeName<Int> + ">";
@@ -765,8 +764,8 @@ namespace Tensors
     Tensor1<LInt,LInt> PermutePatternCSR(
         mref<Tensor1<LInt,Int>> outer,
         mref<Tensor1<Int,LInt>> inner,
-        cref<Permutation<Int>> P,  // row    permutation
-        cref<Permutation<Int>> Q,  // column permutation
+        cref<Permutation<Int>>  P,  // row    permutation
+        cref<Permutation<Int>>  Q,  // column permutation
         const LInt nnz,
         bool sort = true        // Whether to restore row-wise ordering (as in demanded by CSR).
     )

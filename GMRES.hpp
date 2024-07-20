@@ -1,6 +1,6 @@
 #pragma once
 
-#include "src/BLAS.hpp"
+#include "BLAS_Wrappers.hpp"
 
 namespace Tensors
 {

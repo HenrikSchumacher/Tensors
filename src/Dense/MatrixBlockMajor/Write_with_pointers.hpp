@@ -60,7 +60,7 @@ void Write_T(
     //TODO: Test this code branch!
 
     ParallelDo(
-        [=]( const Size_T thread )
+        [=,this]( const Size_T thread )
         {
             constexpr Size_T M_step = NotTransposedQ(op) ? m : n;
             constexpr Size_T N_step = NotTransposedQ(op) ? n : m;

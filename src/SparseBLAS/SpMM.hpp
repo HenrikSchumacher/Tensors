@@ -366,6 +366,9 @@ void SpMM_vec(
     cref<JobPointers<Int>> job_ptr
 )
 {
+    (void)m;
+    (void)n;
+    
     std::string tag = std::string(ClassName()+"::SpMM_vec<")
         +ToString(a_flag)+","
         +ToString(alpha_flag)+","

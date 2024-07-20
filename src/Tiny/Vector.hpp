@@ -171,7 +171,7 @@ namespace Tensors
             template<typename S>
             void Read( cref<Tensor2<S,Int>> source, const Int k )
             {
-                Real( source.data(k) );
+                Read( source.data(k) );
             }
             
             template<typename S, Size_T alignment>
@@ -235,20 +235,23 @@ namespace Tensors
 ///######################################################
 ///##                  Artihmethic                     ##
 ///######################################################
+
             
             template<
                 typename a_T, typename x_T, typename b_T, typename y_T,
                 Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
             >
-            force_inline Vector & LinearCombine(
+            force_inline mref<Vector> LinearCombine(
                 cref<a_T> a, cptr<x_T> x, cref<b_T> b, cptr<y_T> y
             )
             {
-                // Sets z = a * x + b * y.
+                // Sets *this = a * x + b * y.
                 
                 combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
                      scalar_cast<Scal>(a), x, scalar_cast<Scal>(b), y, &v[0]
                 );
+                
+                return *this;
             }
             
             template<class T>
@@ -543,6 +546,24 @@ namespace Tensors
         
         
         
+
+        template<
+            int n,
+            typename a_T, typename x_T, typename x_Int,
+            typename b_T, typename y_T, typename y_Int,
+            Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
+        >
+        force_inline void LinearCombineInto(
+            cref<a_T> a, cref<Vector<n,x_T,x_Int>> x,
+            cref<b_T> b, mref<Vector<n,y_T,y_Int>> y
+        )
+        {
+            // Computes  y = a * x + b * y.
+            
+            combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
+                scalar_cast<y_T>(a), x.data(), scalar_cast<y_T>(b), y.data()
+            );
+        }
         
         template<
             int n,
