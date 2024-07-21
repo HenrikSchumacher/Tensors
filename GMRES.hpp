@@ -69,7 +69,7 @@ namespace Tensors
         )
         :   n               ( n_                                    )
         ,   max_iter        ( Min(max_iter_,n)                      )
-        ,   eq              ( ( EQ > VarSize ? EQ : eq_count_ )    )
+        ,   eq              ( ( EQ > VarSize ? EQ : eq_count_ )     )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   job_ptr         ( n, thread_count                       )
         ,   Q               ( max_iter + 1, n, eq                   )
@@ -172,10 +172,8 @@ namespace Tensors
             if constexpr ( side == Side::Left )
             {
                 A( x.data(), z.data() );
-                
                 // z = A.x - b;
                 MulAdd<Scalar::Flag::Minus>( z.data(), b_in, h );
-                
                 // Q[0] = P.(A.x-b)
                 P( z.data(), Q.data(0) );
             }
@@ -412,7 +410,7 @@ namespace Tensors
         
         void ComputeNorms( cptr<Scal> v, mref<RealVector_T> norms )
         {
-            ptic(ClassName()+"::ComputeNorms");
+//            ptic(ClassName()+"::ComputeNorms");
             
             ParallelDo(
                 [this,v,&norms]( const Int thread )
@@ -444,12 +442,12 @@ namespace Tensors
                 norms[k] = Sqrt( norms[k] );
             }
             
-            ptoc(ClassName()+"::ComputeNorms");
+//            ptoc(ClassName()+"::ComputeNorms");
         }
         
         void ComputeScalarProducts( cptr<Scal> v, cptr<Scal> w, mref<Vector_T> dots )
         {
-            ptic(ClassName()+"::ComputeScalarProducts");
+//            ptic(ClassName()+"::ComputeScalarProducts");
             
             ParallelDo(
                 [this,v,w,&dots]( const Int thread )
@@ -476,13 +474,13 @@ namespace Tensors
             
             reduction_buffer.AddReduce( dots.data(), false );
             
-            ptoc(ClassName()+"::ComputeScalarProducts");
+//            ptoc(ClassName()+"::ComputeScalarProducts");
         }
         
         template<Scalar::Flag flag>
         void MulAdd( mptr<Scal> v, cptr<Scal> w, const Vector_T & factors )
         {
-            ptic(ClassName()+"::MulAdd<" + ToString(flag) + ">");
+//            ptic(ClassName()+"::MulAdd<" + ToString(flag) + ">");
             
             ParallelDo(
                 [this,v,w,&factors]( const Int i )
@@ -502,12 +500,12 @@ namespace Tensors
                 job_ptr
             );
             
-            ptoc(ClassName()+"::MulAdd<" + ToString(flag) + ">");
+//            ptoc(ClassName()+"::MulAdd<" + ToString(flag) + ">");
         }
         
         void InverseScale( mptr<Scal> q, const RealVector_T & factors )
         {
-            ptic(ClassName()+"::InverseScale");
+//            ptic(ClassName()+"::InverseScale");
             
             ParallelDo(
                 [this,q,&factors]( const Int thread )
@@ -533,7 +531,7 @@ namespace Tensors
                 thread_count
             );
             
-            ptoc(ClassName()+"::InverseScale");
+//            ptoc(ClassName()+"::InverseScale");
         }
         
     public:

@@ -89,6 +89,10 @@ namespace Tensors
             const Real relative_tolerance
         )
         {
+            std::string tag = ClassName() + "::operator()";
+            
+            ptic(tag);
+            
             // r = b
             r.Read( b_in, ldx, thread_count );
             
@@ -111,6 +115,14 @@ namespace Tensors
             {
                 r.Write( x_inout, ldx, thread_count );
                
+                iter = 0;
+                bool succeeded = true;
+                
+                logdump(iter);
+                logdump(succeeded);
+                
+                ptoc(tag);
+                
                 return true;
             }
             
@@ -211,6 +223,11 @@ namespace Tensors
             
             x.Write(x_inout);
             
+            logdump(iter);
+            logdump(succeeded);
+            
+            ptoc(tag);
+            
             return succeeded;
         }
         
@@ -222,7 +239,8 @@ namespace Tensors
             ParallelDo(
                 [this,v,w]( const Int thread )
                 {
-                    RealVector_T sums ( eq );
+                    auto & sums = reduction_buffer[thread];
+//                    RealVector_T sums ( eq );
                     
                     sums.SetZero();
                     
@@ -238,7 +256,9 @@ namespace Tensors
                         }
                     }
                     
-                    sums.Write( reduction_buffer.data(thread) );
+//                    sums.Write( reduction_buffer.data(thread) );
+                    
+//                    dump(sums);
                 },
                 thread_count
             );
