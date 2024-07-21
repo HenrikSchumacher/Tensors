@@ -536,6 +536,11 @@ namespace Tensors
         
     public:
         
+        Int ThreadCount() const
+        {
+            return thread_count;
+        }
+        
         Int IterationCount() const
         {
             return iter;
