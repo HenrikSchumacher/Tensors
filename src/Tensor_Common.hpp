@@ -315,7 +315,7 @@ public:
         
         for( Int i = 0 ; i < n; ++i )
         {
-            counter += NaNQ(a[i]);
+            counter += Int(NaNQ(a[i]));
         }
         
         return counter;
