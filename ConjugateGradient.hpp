@@ -8,6 +8,9 @@ namespace Tensors
     // If you know this and compile time, then enter it in the template.
     // If you don't know this at compile time, then use EQ_COUNT = VarSize (==0) and specify
     // the eq_count_ in the constructor.
+    
+    // Scal_ is the floating point type that is used internally.
+    
     template<Size_T EQ_COUNT, typename Scal_, typename Int_>
     class ConjugateGradient
     {
@@ -80,25 +83,40 @@ namespace Tensors
         
         ~ConjugateGradient() = default;
         
-        template<typename Operator_T, typename Preconditioner_T>
+        template<
+            typename Operator_T, typename Preconditioner_T,
+            typename b_T,        typename x_T
+        >
         bool operator()(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cptr<Scal> b_in,    const Int ldb,
-            mptr<Scal> x_inout, const Int ldx,
+            cptr<b_T> b_in,    const Int ldb,
+            mptr<x_T> x_inout, const Int ldx,
             const Real relative_tolerance
         )
         {
-            std::string tag = ClassName() + "::operator()";
+            // `A` and `P` must be a functions or lambda with prototypes
+            //
+            // `A( cptr<Scal> x, mptr<Scal> y)`
+            //
+            // and
+            //
+            // `P( cptr<Scal> x, mptr<Scal> y)`
+            //
+            // They may return something, but the returned value is ignored.
+            
+            std::string tag = ClassName() + "::operator<" + TypeName<b_T> + "," + TypeName<x_T> + ">()";
             
             ptic(tag);
             
             // r = b
             r.Read( b_in, ldx, thread_count );
             
+            ptic(ClassName()+": Compute norm of right hand side.");
+            
             // z = P.b
             ptic(ClassName()+ ": Apply preconditioner");
-            P( r.data(), z.data() );
+            (void)P( r.data(), z.data() );
             ptoc(ClassName()+ ": Apply preconditioner");
             
             // rho = r.z
@@ -111,26 +129,36 @@ namespace Tensors
                 TOL[k] = b_squared_norms[k] * factor;
             }
             
+            ptoc(ClassName()+": Compute norm of right hand side.");
+            
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
-                r.Write( x_inout, ldx, thread_count );
+                ParallelDo(
+                    [x_inout,ldx,this]( const Int i )
+                    {
+                        zerofy_buffer<EQ>( &x_inout[ldx * i], eq );
+                    },
+                    n, thread_count
+                );
                
                 iter = 0;
                 bool succeeded = true;
+                
+                wprint(tag + ": Right-hand side is 0. Returning zero vector.");
                 
                 logdump(iter);
                 logdump(succeeded);
                 
                 ptoc(tag);
                 
-                return true;
+                return succeeded;
             }
             
             x.Read( x_inout, ldx, thread_count );
 
             // u = A.x
             ptic(ClassName()+ ": Apply operator");
-            A( x.data(), u.data() );
+            (void)A( x.data(), u.data() );
             ptoc(ClassName()+ ": Apply operator");
             // r = b - A.x
             
@@ -147,7 +175,7 @@ namespace Tensors
             
             // z = P.r
             ptic(ClassName()+ ": Apply preconditioner");
-            P( r.data(), z.data() );
+            (void)P( r.data(), z.data() );
             ptoc(ClassName()+ ": Apply preconditioner");
             
             p.Read( z.data(), eq, thread_count );
@@ -162,7 +190,7 @@ namespace Tensors
             {
                 // u = A.p
                 ptic(ClassName()+ ": Apply operator");
-                A( p.data(), u.data() );
+                (void)A( p.data(), u.data() );
                 ptoc(ClassName()+ ": Apply operator");
                 
                 // alpha = rho / (p.u);
@@ -189,7 +217,7 @@ namespace Tensors
                 
                 // z = P.r;
                 ptic(ClassName()+ ": Apply preconditioner");
-                P( r.data(), z.data() );
+                (void)P( r.data(), z.data() );
                 ptoc(ClassName()+ ": Apply preconditioner");
                 
                 // rho_old = rho

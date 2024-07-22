@@ -5,13 +5,15 @@
 namespace Tensors
 {
     // EQ_COUNT = number of right hand sides.
-    // If you know this and compile time, then enter it in the template.
+    // If you know this at compile time, then enter it in the template.
     // If you don't know this at compile time, then use EQ_COUNT = VarSize (==0) and specify
     // the eq_count_ in the constructor.
+    
+    // Scal_ is the floating point type that is used internally.
+    
     template<Size_T EQ_COUNT, typename Scal_, typename Int_, Side side>
     class GMRES
     {
-        
     public:
         
         using Scal     = Scal_;
@@ -92,17 +94,32 @@ namespace Tensors
         ~GMRES() = default;
         
         
-        template<typename Operator_T, typename Preconditioner_T>
+        template<
+            typename Operator_T, typename Preconditioner_T,
+            typename b_T, typename x_T
+        >
         bool operator()(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cptr<Scal> b_in,       const Int ldb,
-            mptr<Scal> x_inout,    const Int ldx,
+            cptr<b_T> b_in,    const Int ldb,
+            mptr<x_T> x_inout, const Int ldx,
             const Real relative_tolerance,
             const Int  max_restarts
         )
         {
-            ptic(ClassName()+"::operator()");
+            // `A` and `P` must be a functions or lambda with prototypes
+            //
+            // `A( cptr<Scal> x, mptr<Scal> y)`
+            //
+            // and
+            //
+            // `P( cptr<Scal> x, mptr<Scal> y)`
+            //
+            // They may return something, but the returned value is ignored.
+            
+            std::string tag = ClassName() + "::operator<" + TypeName<b_T> + "," + TypeName<x_T> + ">()";
+            
+            ptic(tag);
             
             ptic(ClassName()+": Compute norm of right hand side.");
             
@@ -111,7 +128,9 @@ namespace Tensors
             
             if constexpr ( side == Side::Left )
             {
-                P( x.data(), z.data() );   
+                ptic(ClassName()+": Apply preconditioner");
+                (void)(void)P( x.data(), z.data() );
+                ptoc(ClassName()+": Apply preconditioner");
             }
             else
             {
@@ -127,11 +146,25 @@ namespace Tensors
             
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
-                x.Write( x_inout, ldx, thread_count );
+                ParallelDo(
+                    [x_inout,ldx,this]( const Int i )
+                    {
+                        zerofy_buffer<EQ>( &x_inout[ldx * i], eq );
+                    },
+                    n, thread_count
+                );
+               
+                iter = 0;
+                bool succeeded = true;
                 
-                ptoc(ClassName()+"::operator()");
+                wprint(tag + ": Right-hand side is 0. Returning zero vector.");
                 
-                return true;
+                logdump(iter);
+                logdump(succeeded);
+                
+                ptoc(tag);
+                
+                return succeeded;
             }
             
             
@@ -147,40 +180,53 @@ namespace Tensors
             logdump(succeeded);
             logdump(restarts);
             
-            ptoc(ClassName()+"::operator()");
+            ptoc(tag);
             
             return succeeded;
         }
         
     protected:
         
-        template<typename Operator_T, typename Preconditioner_T>
+        template<
+        typename Operator_T, typename Preconditioner_T,
+            typename b_T, typename x_T
+        >
         bool Solve(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cptr<Scal> b_in,       const Int ldb,
-            mptr<Scal> x_inout,    const Int ldx,
+            cptr<b_T> b_in,       const Int ldb,
+            mptr<x_T> x_inout,    const Int ldx,
             const Real relative_tolerance
         )
         {
-            ptic(ClassName()+"::Solve");
+            std::string tag = ClassName() + "::Solve<" + TypeName<b_T> + "," + TypeName<x_T> + ">";
+            
+            ptic(tag);
             
             h.Fill(Scalar::One<Scal>);
             
             x.Read( x_inout, ldx, thread_count );
-            
+
             if constexpr ( side == Side::Left )
             {
-                A( x.data(), z.data() );
+                ptic(ClassName()+": Apply operator");
+                (void)A( x.data(), z.data() );
+                ptoc(ClassName()+": Apply operator");
+                
                 // z = A.x - b;
                 MulAdd<Scalar::Flag::Minus>( z.data(), b_in, h );
+
                 // Q[0] = P.(A.x-b)
-                P( z.data(), Q.data(0) );
+                ptic(ClassName()+ ": Apply preconditioner");
+                (void)P( z.data(), Q.data(0) );
+                ptoc(ClassName()+ ": Apply preconditioner");
             }
             else
             {
                 // Q[0] = A.x-b
-                A( x.data(), Q.data(0) );
+                ptic(ClassName()+": Apply operator");
+                (void)A( x.data(), Q.data(0) );
+                ptoc(ClassName()+": Apply operator");
                 MulAdd<Scalar::Flag::Minus>( Q.data(0), b_in, h );
             }
             
@@ -192,6 +238,7 @@ namespace Tensors
             
             // Initialize beta
             beta.SetZero();
+            
             r_norms.Write( &beta[0][0] );
             
             H.SetZero();
@@ -200,6 +247,11 @@ namespace Tensors
             iter = 0;
             
             bool succeeded = CheckResiduals();
+            
+            if( succeeded )
+            {
+                return succeeded;
+            }
             
             while( !succeeded && iter < max_iter )
             {
@@ -250,11 +302,16 @@ namespace Tensors
             ParallelDo(
                 [&]( const Int i )
                 {
+                    mptr<Scal> z_i  = z.data(i);
+                    
                     for( Int j = 0; j < iter; ++j )
                     {
+                        cptr<Scal> Q_ji = Q.data(j,i);
+                        cptr<Scal> y_j  = y.data(j);
+                        
                         for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
-                            z(i,k) += y(j,k) * Q(j,i,k);
+                            z_i[k] += y_j[k] * Q_ji[k];
                         }
                     }
                 },
@@ -269,7 +326,9 @@ namespace Tensors
             else
             {
                 // x = P[z]
-                P( z.data(), x.data() );
+                ptic(ClassName()+": Apply preconditioner");
+                (void)P( z.data(), x.data() );
+                ptpc(ClassName()+": Apply preconditioner");
             }
             
             //x_inout -= x
@@ -279,7 +338,7 @@ namespace Tensors
             
             ptoc(ClassName()+": Synthesize solution.");
             
-            ptoc(ClassName()+"::Solve");
+            ptoc(tag);
             
             return succeeded;
         }
@@ -294,22 +353,30 @@ namespace Tensors
             
             mptr<Scal> q = Q.data(iter+1);
                         
-            ptic(ClassName()+"::Apply Operators");
             if constexpr( side == Side::Left )
             {
                 // z = A.Q[iter]
-                A( Q.data(iter), z.data() );
+                ptic(ClassName()+": Apply operator");
+                (void)A( Q.data(iter), z.data() );
+                ptoc(ClassName()+": Apply operator");
+                
                 // Q[iter+1] = P.A.Q[iter]
-                P( z.data(), q );
+                ptic(ClassName()+": Apply preconditioner");
+                (void)P( z.data(), q );
+                ptoc(ClassName()+": Apply preconditioner");
             }
             else
             {
                 // z = P.Q[iter]
-                P( Q.data(iter), z.data() );
+                ptic(ClassName()+": Apply operator");
+                (void)P( Q.data(iter), z.data() );
+                ptoc(ClassName()+": Apply operator");
+                
                 // Q[iter+1] = A.P.Q[iter]
-                A( z.data(), q );
+                ptic(ClassName()+": Apply preconditioner");
+                (void)A( z.data(), q );
+                ptoc(ClassName()+": Apply preconditioner");
             }
-            ptoc(ClassName()+"::Apply Operators");
 
             // Several runs of Gram-Schmidt algorithm.
             // Rumor has it that Kahan's "twice is enough" statement states that gram_schmidt_counts does not need to be greater then 2.
@@ -577,6 +644,7 @@ namespace Tensors
         bool CheckResiduals() const
         {
             bool succeeded = true;
+            
             for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 succeeded = succeeded && (Abs(beta[iter][k]) <= TOL[k]);
