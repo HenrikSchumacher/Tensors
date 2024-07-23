@@ -118,7 +118,7 @@ namespace Tensors
         
         
         template<Op op = Op::Id, typename S>
-        void Read( cptr<S> B, const Int ld_B, const Int thread_count = 1 ) const
+        void Read( cptr<S> B, const Int ldB, const Int thread_count = 1 ) const
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
@@ -128,7 +128,7 @@ namespace Tensors
                 ParallelDo(
                     [=,this]( const Int i )
                     {
-                        copy_buffer( &B[ld_B * i], &a[d_1 * i], d_1 );
+                        copy_buffer( &B[ldB * i], &a[d_1 * i], d_1 );
                     },
                     d_0, thread_count
                 );
@@ -140,7 +140,7 @@ namespace Tensors
                     {
                         for( Int j = 0; j < d_1; ++j )
                         {
-                            a[d_1 * i + j] = scalar_cast<Scal>(Conj(B[ld_B * i + j]));
+                            a[d_1 * i + j] = scalar_cast<Scal>(Conj(B[ldB * i + j]));
                         }
                     },
                     d_0, thread_count
@@ -153,7 +153,7 @@ namespace Tensors
                     {
                         for( Int i = 0; i < d_0; ++i )
                         {
-                            a[d_1 * i + j] = scalar_cast<Scal>(B[ld_B * j + i]);
+                            a[d_1 * i + j] = scalar_cast<Scal>(B[ldB * j + i]);
                         }
                     },
                     d_1, thread_count
@@ -166,7 +166,7 @@ namespace Tensors
                     {
                         for( Int i = 0; i < d_0; ++i )
                         {
-                            a[d_1 * i + j] = scalar_cast<Scal>(Conj(B[ld_B * j + i]));
+                            a[d_1 * i + j] = scalar_cast<Scal>(Conj(B[ldB * j + i]));
                         }
                     },
                     d_1, thread_count
@@ -209,7 +209,7 @@ namespace Tensors
 //        }
         
         template<Op op = Op::Id, typename S>
-        void Write( mptr<S> B, const Int ld_B, const Int thread_count = 1 ) const
+        void Write( mptr<S> B, const Int ldB, const Int thread_count = 1 ) const
         {
             const Int d_0 = dims[0];
             const Int d_1 = dims[1];
@@ -219,7 +219,7 @@ namespace Tensors
                 ParallelDo(
                     [=,this]( const Int i )
                     {
-                        copy_buffer( &a[d_1 * i], &B[ld_B * i], d_1 );
+                        copy_buffer( &a[d_1 * i], &B[ldB * i], d_1 );
                     },
                     d_0, thread_count
                 );
@@ -231,7 +231,7 @@ namespace Tensors
                     {
                         for( Int j = 0; j < d_1; ++j )
                         {
-                            B[ld_B * i + j] = scalar_cast<S>(Conj(a[d_1 * i + j]));
+                            B[ldB * i + j] = scalar_cast<S>(Conj(a[d_1 * i + j]));
                         }
                     },
                     d_0, thread_count
@@ -244,7 +244,7 @@ namespace Tensors
                     {
                         for( Int i = 0; i < d_0; ++i )
                         {
-                            B[ld_B * j + i] = scalar_cast<S>(a[d_1 * i + j]);
+                            B[ldB * j + i] = scalar_cast<S>(a[d_1 * i + j]);
                         }
                     },
                     d_1, thread_count
@@ -257,7 +257,7 @@ namespace Tensors
                     {
                         for( Int i = 0; i < d_0; ++i )
                         {
-                            B[ld_B * j + i] = scalar_cast<S>(Conj(a[d_1 * i + j]));
+                            B[ldB * j + i] = scalar_cast<S>(Conj(a[d_1 * i + j]));
                         }
                     },
                     d_1, thread_count
