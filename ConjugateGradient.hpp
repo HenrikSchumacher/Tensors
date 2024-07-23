@@ -111,19 +111,6 @@ namespace Tensors
             
             ptic(tag);
             
-            if( ldb < eq )
-            {
-                eprint( tag + ": ldb < eq.");
-            }
-            
-            if( ldx < eq )
-            {
-                eprint( tag + ": ldx < eq.");
-            }
-            
-            iter = 0;
-            bool succeeded = false;
-            
             // r = b
             r.Read( b_in, ldx, thread_count );
             
@@ -133,10 +120,10 @@ namespace Tensors
             ApplyPreconditioner(P,r,z);
             
             // rho = r.z
-            ComputeScalarProducts( r, z, rho );
+            ComputeScalarProducts( r.data(), z.data(), rho );
             
             Real factor = relative_tolerance * relative_tolerance;
-            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 b_squared_norms[k] = std::abs(rho[k]);
                 TOL[k] = b_squared_norms[k] * factor;
@@ -144,24 +131,23 @@ namespace Tensors
             
             ptoc(ClassName()+": Compute norm of right hand side.");
             
-            if( b_squared_norms.CountNaNs() > 0 )
-            {
-                eprint(ClassName()+": input b_in contains NaNs. Aborting." );
-                
-                ptoc(tag);
-                
-                return false;
-            }
-            
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
-                succeeded = true;
-                wprint(tag + ": Right-hand side is 0. Returning zero vector.");
-
-                logvalprint( tag + " iter"      , iter      );
-                logvalprint( tag + " succeeded" , succeeded );
+                ParallelDo(
+                    [x_inout,ldx,this]( const Int i )
+                    {
+                        zerofy_buffer<EQ>( &x_inout[ldx * i], eq );
+                    },
+                    n, thread_count
+                );
+               
+                iter = 0;
+                bool succeeded = true;
                 
-                zerofy_matrix<EQ>( x_inout, ldx, n, eq, thread_count );
+                wprint(tag + ": Right-hand side is 0. Returning zero vector.");
+                
+                logdump(iter);
+                logdump(succeeded);
                 
                 ptoc(tag);
                 
@@ -169,44 +155,21 @@ namespace Tensors
             }
             
             x.Read( x_inout, ldx, thread_count );
+
+            // u = A.x
+            ApplyOperator(A,x,u);
             
-            // TODO: The Frobenius norm is good for detecting NaNs, but it could produce an overflow...
-            
-            const Real x_norm = x.FrobeniusNorm( thread_count);
-            
-            if( NaNQ(x_norm) )
-            {
-                wprint( tag + ": NaN detected in x_inout. Treating input as zero (skipping first operator multiplication).");
-            }
-            
-            if( x_norm <= Scalar::Zero<Real>)
-            {
-                logprint( tag + ": Input x_inout is zero.");
-            }
-            
-            if( (!NaNQ(x_norm)) && (x_norm > Scalar::Zero<Real>) )
-            {
-                logprint( tag + ": Input x_inout is nonzero. Using it as initial guess." );
-                
-                // u = A.x
-                ApplyOperator(A,x,u);
-                
-                // r = b - A.x
-                ParallelDo(
-                    [this]( const Int i )
+            // r = b - A.x
+            ParallelDo(
+                [this]( const Int i )
+                {
+                    for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                     {
-                        mptr<Scal> r_i = r.data(i);
-                        cptr<Scal> u_i = u.data(i);
-                        
-                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
-                        {
-                             r[i][k] -= u[i][k];
-//                            r_i[k] -= u_i[k];
-                        }
-                    },
-                    n, thread_count
-                );
-            }
+                        r[i][k] -= u[i][k];
+                    }
+                },
+                n, thread_count
+            );
             
             // z = P.r
             ApplyPreconditioner(P,r,z);
@@ -214,9 +177,10 @@ namespace Tensors
             p.Read( z.data(), eq, thread_count );
             
             // rho = r.z
-            ComputeScalarProducts( r, z, rho );
+            ComputeScalarProducts( r.data(), z.data(), rho );
             
-            succeeded = CheckResiduals();
+            iter = 0;
+            bool succeeded = CheckResiduals();
 
             while( !succeeded && (iter < max_iter ) )
             {
@@ -224,8 +188,8 @@ namespace Tensors
                 ApplyOperator(A,p,u);
                 
                 // alpha = rho / (p.u);
-                ComputeScalarProducts( p, u, alpha );
-                for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                ComputeScalarProducts( p.data(), u.data(), alpha );
+                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                 {
                     alpha[k] = rho[k] / alpha[k];
                 }
@@ -236,17 +200,8 @@ namespace Tensors
                 ParallelDo(
                     [this]( const Int i )
                     {
-                        mptr<Scal> x_i = x.data(i);
-                        cptr<Scal> p_i = p.data(i);
-                        
-                        mptr<Scal> r_i = r.data(i);
-                        cptr<Scal> u_i = u.data(i);
-                        
-                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
-//                            x_i[k] += alpha[k] * p_i[k];
-//                            r_i[k] -= alpha[k] * u_i[k];
-                            
                             x[i][k] += alpha[k] * p[i][k];
                             r[i][k] -= alpha[k] * u[i][k];
                         }
@@ -261,10 +216,10 @@ namespace Tensors
                 swap( rho_old, rho );
                 
                 // rho = r.z;
-                ComputeScalarProducts( r, z, rho );
+                ComputeScalarProducts( r.data(), z.data(), rho );
                 
                 // beta = rho / rho_old;
-                for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                 {
                     beta[k] = rho[k] / rho_old[k];
                 }
@@ -274,13 +229,9 @@ namespace Tensors
                 ParallelDo(
                     [this]( const Int i )
                     {
-                        mptr<Scal> p_i = p.data(i);
-                        cptr<Scal> z_i = z.data(i);
-                        
-                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
-                             p[i][k] = z[i][k] + beta[k] * p[i][k];
-//                            p_i[k] = z_i[k] + beta[k] * p_i[k];
+                            p[i][k] = z[i][k] + beta[k] * p[i][k];
                         }
                     },
                     n, thread_count
@@ -290,13 +241,10 @@ namespace Tensors
                 ++iter;
             }
             
-//            x.Write( x_inout, thread_count );
+            x.Write(x_inout);
             
-            // DEBUGGING
-            x.Write( x_inout );
-
-            logvalprint( tag + " iter"      , iter      );
-            logvalprint( tag + " succeeded" , succeeded );
+            logdump(iter);
+            logdump(succeeded);
             
             ptoc(tag);
             
@@ -305,7 +253,7 @@ namespace Tensors
         
         
     protected:
-
+        
         template<typename Operator_T>
         void ApplyOperator(
             mref<Operator_T> A, cref<Tensor2<Scal,Int>> X, mref<Tensor2<Scal,Int>> Y
@@ -343,17 +291,13 @@ namespace Tensors
             }
         }
         
-        
-        void ComputeScalarProducts(
-            cref<Tensor2<Scal,Int>> v, 
-            cref<Tensor2<Scal,Int>> w,
-            mref<RealVector_T> dots 
-        )
+        void ComputeScalarProducts( cptr<Scal> v, cptr<Scal> w, mref<RealVector_T> dots )
         {
             ParallelDo(
                 [this,v,w]( const Int thread )
                 {
                     auto & sums = reduction_buffer[thread];
+//                    RealVector_T sums ( eq );
                     
                     sums.SetZero();
                     
@@ -362,30 +306,16 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        cptr<Scal> v_i = v.data(i);
-                        cptr<Scal> w_i = w.data(i);
-                        
-                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                         {
                             // We know that all scalar products that we compute have to be real-valued.
-                            
-                            sums[k] += Re(Conj(v[i][k]) * w[i][k]);
-                            
-//                            sums[k] += Re(Conj(v_i[k]) * w_i[k]);
-                            
-                            // DEBUGGING
-                            
-//                            if constexpr( Scalar::ComplexQ<Scal> )
-//                            {
-//                                sums[k] += Re(v_i[k]) * Re(w_i[k]) + Im(v_i[k]) * Im(w_i[k]);
-//                            }
-//                            else
-//                            {
-//                                sums[k] += v_i[k] * w_i[k];
-//                            }
-
+                            sums[k] += Re(Conj(v[(EQ>VarSize ? EQ : eq) * i + k]) * w[(EQ>VarSize ? EQ : eq) * i + k]);
                         }
                     }
+                    
+//                    sums.Write( reduction_buffer.data(thread) );
+                    
+//                    dump(sums);
                 },
                 thread_count
             );
@@ -404,7 +334,7 @@ namespace Tensors
         {
             RealVector_T res (eq);
             
-            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) );
             }
@@ -416,7 +346,7 @@ namespace Tensors
         {
             RealVector_T res(eq);
             
-            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) / b_squared_norms[k] );
             }
@@ -426,7 +356,7 @@ namespace Tensors
         bool CheckResiduals() const
         {
             bool succeeded = true;
-            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
             {
                 succeeded = succeeded && ( Abs(rho[k]) <= TOL[k]);
             }
@@ -436,9 +366,13 @@ namespace Tensors
         
         std::string ClassName() const
         {
-            return std::string(
-                "ConjugateGradient<"+ToString(EQ)+","+TypeName<Scal>+","+TypeName<Int>+">(" + ToString(eq) + ")"
-            );
+            return std::string( "ConjugateGradient")
+                + "<" + ToString(EQ)
+                + "," + TypeName<Scal>
+                + "," + TypeName<Int>
+                + "," + ToString(A_verboseQ)
+                + "," + ToString(P_verboseQ)
+                + "> (" + ToString(eq) + ")";
         }
         
     }; // class ConjugateGradient
@@ -447,4 +381,5 @@ namespace Tensors
     
         
 } // namespace Tensors
+
 
