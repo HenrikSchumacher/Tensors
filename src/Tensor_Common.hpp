@@ -345,9 +345,9 @@ public:
         return norm_max( a, n, thread_count );
     }
 
-    Real FrobeniusNorm() const
+    Real FrobeniusNorm( Int thread_count = 1 ) const
     {
-        return norm_2( a, n );
+        return norm_2( a, n, thread_count );
     }
 
     friend Real MaxDistance( cref<TENSOR_T> x, cref<TENSOR_T> y )

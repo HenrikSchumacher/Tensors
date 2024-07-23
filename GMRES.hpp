@@ -11,7 +11,9 @@ namespace Tensors
     
     // Scal_ is the floating point type that is used internally.
     
-    template<Size_T EQ_COUNT, typename Scal_, typename Int_, Side side>
+    template<Size_T EQ_COUNT,typename Scal_,typename Int_, Side side,
+        bool A_verboseQ = true, bool P_verboseQ = true
+    >
     class GMRES
     {
     public:
@@ -71,7 +73,7 @@ namespace Tensors
         )
         :   n               ( n_                                    )
         ,   max_iter        ( Min(max_iter_,n)                      )
-        ,   eq              ( ( EQ > VarSize ? EQ : eq_count_ )     )
+        ,   eq              ( ( (EQ > VarSize) ? EQ : eq_count_ )   )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   job_ptr         ( n, thread_count                       )
         ,   Q               ( max_iter + 1, n, eq                   )
@@ -128,9 +130,7 @@ namespace Tensors
             
             if constexpr ( side == Side::Left )
             {
-                ptic(ClassName()+": Apply preconditioner");
-                (void)(void)P( x.data(), z.data() );
-                ptoc(ClassName()+": Apply preconditioner");
+                ApplyPreconditioner(P,x.data(),z.data());
             }
             else
             {
@@ -144,6 +144,10 @@ namespace Tensors
             
             ptoc(ClassName()+": Compute norm of right hand side.");
             
+            iter = 0;
+            restarts = 0;
+            bool succeeded = false;
+            
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
                 ParallelDo(
@@ -154,22 +158,18 @@ namespace Tensors
                     n, thread_count
                 );
                
-                iter = 0;
-                bool succeeded = true;
+                succeeded = true;
                 
                 wprint(tag + ": Right-hand side is 0. Returning zero vector.");
                 
-                logdump(iter);
-                logdump(succeeded);
+                logvalprint( tag + ": iter      = ", iter );
+                logvalprint( tag + ": restarts  = ", restarts );
+                logvalprint( tag + ": succeeded = ", succeeded );
                 
                 ptoc(tag);
                 
                 return succeeded;
             }
-            
-            
-            restarts = 0;
-            bool succeeded = false;
             
             while( !succeeded && (restarts < max_restarts) )
             {
@@ -177,8 +177,9 @@ namespace Tensors
                 ++restarts;
             }
             
-            logdump(succeeded);
-            logdump(restarts);
+            logvalprint( tag + ": iter      = ", iter );
+            logvalprint( tag + ": restarts  = ", restarts );
+            logvalprint( tag + ": succeeded = ", succeeded );
             
             ptoc(tag);
             
@@ -201,33 +202,77 @@ namespace Tensors
         {
             std::string tag = ClassName() + "::Solve<" + TypeName<b_T> + "," + TypeName<x_T> + ">";
             
-            ptic(tag);
+//            ptic(tag);
             
             h.Fill(Scalar::One<Scal>);
             
+            // TODO: Remove the redudant computations in the case of a restart.
+            
             x.Read( x_inout, ldx, thread_count );
+            
+            
+            // TODO: The Frobenius norm is good for detecting NaNs, but it could produce an overflow...
+            
+            const Real x_norm = x.FrobeniusNorm();
+
+            if( NaNQ(x_norm) )
+            {
+                wprint( tag + ": NaN detected in x_inout. Treating input as zero (skipping first operator multiplication).");
+            }
+            
+            if( x_norm <= Scalar::Zero<Real>)
+            {
+                logprint( tag + ": Input x_inout is zero.");
+            }
 
             if constexpr ( side == Side::Left )
             {
-                ptic(ClassName()+": Apply operator");
-                (void)A( x.data(), z.data() );
-                ptoc(ClassName()+": Apply operator");
-                
                 // z = A.x - b;
-                MulAdd<Scalar::Flag::Minus>( z.data(), b_in, h );
-
+                if( (!NaNQ(x_norm)) && (x_norm > Scalar::Zero<Real>) )
+                {
+                    logprint( tag + ": Input x_inout is nonzero. Using it as initial guess." );
+                    
+                    // z = A.x - b;
+                    ApplyOperator(A,x.data(),z.data());
+                    MulAdd<Scalar::Flag::Minus>( z.data(), eq, b_in, ldb, h );
+                }
+                else
+                {
+                    // z = -b
+                    combine_matrices<Scalar::Flag::Minus,Scalar::Flag::Zero,EQ>
+                    (
+                        -Scalar::One<Scal>, b_in,     ldb,
+                        Scalar::Zero<Scal>, z.data(), eq,
+                        n, eq, thread_count
+                    );
+                }
+                
                 // Q[0] = P.(A.x-b)
-                ptic(ClassName()+ ": Apply preconditioner");
-                (void)P( z.data(), Q.data(0) );
-                ptoc(ClassName()+ ": Apply preconditioner");
+                ApplyPreconditioner(P,z.data(),Q.data(0));
             }
             else
             {
+                // TODO: Test this!
+                
                 // Q[0] = A.x-b
-                ptic(ClassName()+": Apply operator");
-                (void)A( x.data(), Q.data(0) );
-                ptoc(ClassName()+": Apply operator");
-                MulAdd<Scalar::Flag::Minus>( Q.data(0), b_in, h );
+                if( (!NaNQ(x_norm)) && (x_norm > Scalar::Zero<Real>) )
+                {
+                    logprint( tag + ": Input x_inout is nonzero. Using it as initial guess." );
+                    
+                    // Q[0] = A.x-b
+                    ApplyOperator(A,x.data(),Q.data(0));
+                    MulAdd<Scalar::Flag::Minus>( Q.data(0), eq, b_in, ldb, h );
+                }
+                else
+                {
+                    // Q[0] = -b
+                    combine_matrices<Scalar::Flag::Minus,Scalar::Flag::Zero,EQ>
+                    (
+                        -Scalar::One<Scal>, b_in,      ldb,
+                        Scalar::Zero<Scal>, Q.data(0), eq,
+                        n, eq, thread_count
+                    );
+                }
             }
             
             // Residual norms
@@ -326,9 +371,7 @@ namespace Tensors
             else
             {
                 // x = P[z]
-                ptic(ClassName()+": Apply preconditioner");
-                (void)P( z.data(), x.data() );
-                ptpc(ClassName()+": Apply preconditioner");
+                ApplyPreconditioner(P,z.data(),x.data());
             }
             
             //x_inout -= x
@@ -338,13 +381,49 @@ namespace Tensors
             
             ptoc(ClassName()+": Synthesize solution.");
             
-            ptoc(tag);
+//            ptoc(tag);
             
             return succeeded;
         }
         
         
     protected:
+        
+        template<typename Operator_T>
+        void ApplyOperator(
+            mref<Operator_T> A, cptr<Scal> X, mptr<Scal> Y
+        )
+        {
+            if constexpr ( A_verboseQ )
+            {
+                ptic(ClassName()+ "::ApplyOperator");
+            }
+            
+            (void)A( X, Y );
+            
+            if constexpr ( A_verboseQ )
+            {
+                ptoc(ClassName()+ "::ApplyOperator");
+            }
+        }
+        
+        template<typename Preconditioner_T>
+        void ApplyPreconditioner(
+            mref<Preconditioner_T> P, cptr<Scal> X, mptr<Scal> Y
+        )
+        {
+            if constexpr ( P_verboseQ )
+            {
+                ptic(ClassName()+ "::ApplyPreconditioner");
+            }
+            
+            (void)P( X, Y );
+            
+            if constexpr ( P_verboseQ )
+            {
+                ptoc(ClassName()+ "::ApplyPreconditioner");
+            }
+        }
         
         template<typename Operator_T, typename Preconditioner_T>
         void ArnoldiStep( mref<Operator_T> A, mref<Preconditioner_T> P )
@@ -356,26 +435,17 @@ namespace Tensors
             if constexpr( side == Side::Left )
             {
                 // z = A.Q[iter]
-                ptic(ClassName()+": Apply operator");
-                (void)A( Q.data(iter), z.data() );
-                ptoc(ClassName()+": Apply operator");
+                ApplyOperator(A,Q.data(iter),z.data());
                 
                 // Q[iter+1] = P.A.Q[iter]
-                ptic(ClassName()+": Apply preconditioner");
-                (void)P( z.data(), q );
-                ptoc(ClassName()+": Apply preconditioner");
-            }
+                ApplyPreconditioner(P,z.data(),q);            }
             else
             {
                 // z = P.Q[iter]
-                ptic(ClassName()+": Apply operator");
-                (void)P( Q.data(iter), z.data() );
-                ptoc(ClassName()+": Apply operator");
+                ApplyOperator(A,Q.data(iter),z.data());
                 
                 // Q[iter+1] = A.P.Q[iter]
-                ptic(ClassName()+": Apply preconditioner");
-                (void)A( z.data(), q );
-                ptoc(ClassName()+": Apply preconditioner");
+                ApplyPreconditioner(P,z.data(),q);
             }
 
             // Several runs of Gram-Schmidt algorithm.
@@ -398,7 +468,7 @@ namespace Tensors
                     }
                     
                     // Q[iter+1] -= Q[i] * h;
-                    MulAdd<Scalar::Flag::Minus>( q, Q.data(i), h );
+                    MulAdd<Scalar::Flag::Minus>( q, eq, Q.data(i), eq, h );
                 }
             }
             ptoc(ClassName()+" Gram-Schmidt");
@@ -545,22 +615,28 @@ namespace Tensors
         }
         
         template<Scalar::Flag flag>
-        void MulAdd( mptr<Scal> v, cptr<Scal> w, const Vector_T & factors )
+        void MulAdd( 
+            mptr<Scal> v, const Int ldv,
+            cptr<Scal> w, const Int ldw,
+            const Vector_T & factors )
         {
 //            ptic(ClassName()+"::MulAdd<" + ToString(flag) + ">");
             
             ParallelDo(
-                [this,v,w,&factors]( const Int i )
+                [this,v,ldv,w,ldw,&factors]( const Int i )
                 {
                     for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
                     {
+                        mptr<Scal> v_i = &v[ldv * i];
+                        cptr<Scal> w_i = &w[ldw * i];
+                        
                         if constexpr ( flag == Scalar::Flag::Minus )
                         {
-                            v[(EQ>VarSize ? EQ : eq) * i + k] -= w[(EQ>VarSize ? EQ : eq) * i + k] * factors[k];
+                            v_i[k] -= w_i[k] * factors[k];
                         }
                         else
                         {
-                            v[(EQ>VarSize ? EQ : eq) * i + k] += w[(EQ>VarSize ? EQ : eq) * i + k] * factors[k];
+                            v_i[k] += w_i[k] * factors[k];
                         }
                     }
                 },
