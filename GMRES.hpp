@@ -106,7 +106,10 @@ namespace Tensors
             cptr<b_T> b_in,    const Int ldb,
             mptr<x_T> x_inout, const Int ldx,
             const Real relative_tolerance,
-            const Int  max_restarts
+            const Int  max_restarts,
+            // We force the use to actively request that the initial guess is used,
+            // because this is a common source of bugs.
+            const bool use_initial_guessQ = false
         )
         {
             // `A` and `P` must be a functions or lambda with prototypes
@@ -173,7 +176,10 @@ namespace Tensors
             
             while( !succeeded && (restarts < max_restarts) )
             {
-                succeeded = Solve( A, P, b_in, ldb, x_inout, ldx, relative_tolerance );
+                succeeded = Solve( 
+                    A, P, b_in, ldb, x_inout, ldx, relative_tolerance,
+                    use_initial_guessQ || (restarts > 0)
+                );
                 ++restarts;
             }
             
@@ -197,41 +203,33 @@ namespace Tensors
             mref<Preconditioner_T> P,
             cptr<b_T> b_in,       const Int ldb,
             mptr<x_T> x_inout,    const Int ldx,
-            const Real relative_tolerance
+            const Real relative_tolerance,
+            bool use_initial_guessQ
         )
         {
             std::string tag = ClassName() + "::Solve<" + TypeName<b_T> + "," + TypeName<x_T> + ">";
             
 //            ptic(tag);
             
-            h.Fill(Scalar::One<Scal>);
+            h.SetZero();
             
             // TODO: Remove the redudant computations in the case of a restart.
             
-            x.Read( x_inout, ldx, thread_count );
-            
-            
-            // TODO: The Frobenius norm is good for detecting NaNs, but it could produce an overflow...
-            
-            const Real x_norm = x.FrobeniusNorm();
-
-            if( NaNQ(x_norm) )
+            if( use_initial_guessQ )
             {
-                wprint( tag + ": NaN detected in x_inout. Treating input as zero (skipping first operator multiplication).");
+                logprint( tag + ": Using x_inout as initial guess." );
+                x.Read( x_inout, ldx, thread_count );
+            }
+            else
+            {
+                x.SetZero( thread_count );
             }
             
-            if( x_norm <= Scalar::Zero<Real>)
-            {
-                logprint( tag + ": Input x_inout is zero.");
-            }
-
             if constexpr ( side == Side::Left )
             {
                 // z = A.x - b;
-                if( (!NaNQ(x_norm)) && (x_norm > Scalar::Zero<Real>) )
+                if( use_initial_guessQ )
                 {
-                    logprint( tag + ": Input x_inout is nonzero. Using it as initial guess." );
-                    
                     // z = A.x - b;
                     ApplyOperator(A,x.data(),z.data());
                     MulAdd<Scalar::Flag::Minus>( z.data(), eq, b_in, ldb, h );
@@ -239,7 +237,7 @@ namespace Tensors
                 else
                 {
                     // z = -b
-                    combine_matrices<Scalar::Flag::Minus,Scalar::Flag::Zero,EQ>
+                    combine_matrices<Scalar::Flag::Minus,Scalar::Flag::Zero,EQ,Parallel>
                     (
                         -Scalar::One<Scal>, b_in,     ldb,
                         Scalar::Zero<Scal>, z.data(), eq,
@@ -253,12 +251,11 @@ namespace Tensors
             else
             {
                 // TODO: Test this!
+                wprint(tag + ": Right preconditioner is untested. Please double-check you results.");
                 
                 // Q[0] = A.x-b
-                if( (!NaNQ(x_norm)) && (x_norm > Scalar::Zero<Real>) )
+                if( use_initial_guessQ )
                 {
-                    logprint( tag + ": Input x_inout is nonzero. Using it as initial guess." );
-                    
                     // Q[0] = A.x-b
                     ApplyOperator(A,x.data(),Q.data(0));
                     MulAdd<Scalar::Flag::Minus>( Q.data(0), eq, b_in, ldb, h );
@@ -266,7 +263,7 @@ namespace Tensors
                 else
                 {
                     // Q[0] = -b
-                    combine_matrices<Scalar::Flag::Minus,Scalar::Flag::Zero,EQ>
+                    combine_matrices<Scalar::Flag::Minus,Scalar::Flag::Zero,EQ,Parallel>
                     (
                         -Scalar::One<Scal>, b_in,      ldb,
                         Scalar::Zero<Scal>, Q.data(0), eq,
@@ -374,10 +371,21 @@ namespace Tensors
                 ApplyPreconditioner(P,z.data(),x.data());
             }
             
-            //x_inout -= x
-            combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus,VarSize,Parallel>(
-                -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * eq, thread_count
-            );
+            
+            if( use_initial_guessQ )
+            {
+                //x_inout = x_inout - x
+                combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus,VarSize,Parallel>(
+                    -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * eq, thread_count
+                );
+            }
+            else
+            {
+                //x_inout = - x
+                combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Zero,VarSize,Parallel>(
+                    -Scalar::One<Real>, x.data(), Scalar::Zero<Real>, x_inout, n * eq, thread_count
+                );
+            }
             
             ptoc(ClassName()+": Synthesize solution.");
             

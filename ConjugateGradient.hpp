@@ -94,7 +94,10 @@ namespace Tensors
             mref<Preconditioner_T> P,
             cptr<b_T> b_in,    const Int ldb,
             mptr<x_T> x_inout, const Int ldx,
-            const Real relative_tolerance
+            const Real relative_tolerance,
+            // We force the use to actively request that the initial guess is used,
+            // because this is a common source of bugs.
+            const bool use_initial_guessQ = false
         )
         {
             // `A` and `P` must be a functions or lambda with prototypes
@@ -126,7 +129,7 @@ namespace Tensors
             ComputeScalarProducts( r, z, rho );
             
             Real factor = relative_tolerance * relative_tolerance;
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
             {
                 b_squared_norms[k] = std::abs(rho[k]);
                 TOL[k] = b_squared_norms[k] * factor;
@@ -136,13 +139,7 @@ namespace Tensors
             
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
-                ParallelDo(
-                    [x_inout,ldx,this]( const Int i )
-                    {
-                        zerofy_buffer<EQ>( &x_inout[ldx * i], eq );
-                    },
-                    n, thread_count
-                );
+                zerofy_matrix<EQ,Parallel>(x_inout, ldx, n, eq, thread_count);
                 
                 wprint(tag + ": Right-hand side is 0. Returning zero vector.");
                 
@@ -153,29 +150,13 @@ namespace Tensors
                 
                 return succeeded;
             }
-            
-            x.Read( x_inout, ldx, thread_count );
-
-
-            
-            // TODO: The Frobenius norm is good for detecting NaNs, but it could produce an overflow...
-            
-            const Real x_norm = x.FrobeniusNorm( thread_count);
-            
-            if( NaNQ(x_norm) )
-            {
-                wprint( tag + ": NaN detected in x_inout. Treating input as zero (skipping first operator multiplication).");
-            }
-            
-            if( x_norm <= Scalar::Zero<Real>)
-            {
-                logprint( tag + ": Input x_inout is zero.");
-            }
-            
+                
             // r = b - A.x
-            if( (!NaNQ(x_norm)) && (x_norm > Scalar::Zero<Real>) )
+            if( use_initial_guessQ )
             {
                 logprint( tag + ": Input x_inout is nonzero. Using it as initial guess." );
+                
+                x.Read( x_inout, ldx, thread_count );
                 
                 // u = A.x
                 ApplyOperator(A,x,u);
@@ -187,7 +168,7 @@ namespace Tensors
                         mptr<Scal> r_i = r.data(i);
                         cptr<Scal> u_i = u.data(i);
                         
-                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
                         {
 //                            r[i][k] -= u[i][k];
                             r_i[k] -= u_i[k];
@@ -214,34 +195,60 @@ namespace Tensors
                 
                 // alpha = rho / (p.u);
                 ComputeScalarProducts( p, u, alpha );
-                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
                 {
                     alpha[k] = rho[k] / alpha[k];
                 }
                 
-                // x = x + alpha p;
-                // r = r - alpha u;
-                
-                ParallelDo(
-                    [this]( const Int i )
-                    {
-                        mptr<Scal> x_i = x.data(i);
-                        mptr<Scal> r_i = r.data(i);
-                        
-                        cptr<Scal> p_i = p.data(i);
-                        cptr<Scal> u_i = u.data(i);
-                        
-                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                if( (iter == 0) && (!use_initial_guessQ) )
+                {
+                    // x = 0 + alpha p;
+                    // r = r - alpha u;
+                    
+                    ParallelDo(
+                        [this]( const Int i )
                         {
-//                            x[i][k] += alpha[k] * p[i][k];
-//                            r[i][k] -= alpha[k] * u[i][k];
+                            mptr<Scal> x_i = x.data(i);
+                            mptr<Scal> r_i = r.data(i);
                             
-                            x_i[k] += alpha[k] * p_i[k];
-                            r_i[k] -= alpha[k] * u_i[k];
-                        }
-                    },
-                    n, thread_count
-                );
+                            cptr<Scal> p_i = p.data(i);
+                            cptr<Scal> u_i = u.data(i);
+                            
+                            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                            {
+    //                            x[i][k]  = alpha[k] * p[i][k];
+    //                            r[i][k] -= alpha[k] * u[i][k];
+                                
+                                x_i[k]  = alpha[k] * p_i[k];
+                                r_i[k] -= alpha[k] * u_i[k];
+                            }
+                        },
+                        n, thread_count
+                    );
+                }
+                else
+                {
+                    ParallelDo(
+                        [this]( const Int i )
+                        {
+                            mptr<Scal> x_i = x.data(i);
+                            mptr<Scal> r_i = r.data(i);
+                            
+                            cptr<Scal> p_i = p.data(i);
+                            cptr<Scal> u_i = u.data(i);
+                            
+                            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                            {
+    //                            x[i][k] += alpha[k] * p[i][k];
+    //                            r[i][k] -= alpha[k] * u[i][k];
+                                
+                                x_i[k] += alpha[k] * p_i[k];
+                                r_i[k] -= alpha[k] * u_i[k];
+                            }
+                        },
+                        n, thread_count
+                    );
+                }
                 
                 // z = P.r;
                 ApplyPreconditioner(P,r,z);
@@ -253,7 +260,7 @@ namespace Tensors
                 ComputeScalarProducts( r, z, rho );
                 
                 // beta = rho / rho_old;
-                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
                 {
                     beta[k] = rho[k] / rho_old[k];
                 }
@@ -266,7 +273,7 @@ namespace Tensors
                         mptr<Scal> p_i = p.data(i);
                         cptr<Scal> z_i = z.data(i);
                         
-                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
                         {
 //                            p[i][k] = z[i][k] + beta[k] * p[i][k];
                             
@@ -336,6 +343,8 @@ namespace Tensors
             mref<RealVector_T> dots
         )
         {
+//            ptic(ClassName()+ "::ComputeScalarProducts");
+            
             ParallelDo(
                 [this,&v,&w,&dots]( const Int thread )
                 {
@@ -351,7 +360,7 @@ namespace Tensors
                         cptr<Scal> v_i = v.data(i);
                         cptr<Scal> w_i = w.data(i);
                         
-                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
                         {
                             // We know that all scalar products that we compute have to be real-valued.
 //                            sums[k] += Re(Conj(v[i][k]) * w[i][k]);
@@ -371,6 +380,8 @@ namespace Tensors
             );
             
             reduction_buffer.AddReduce( dots.data(), false );
+            
+//            ptoc(ClassName()+ "::ComputeScalarProducts");
         }
         
     public:
@@ -384,7 +395,7 @@ namespace Tensors
         {
             RealVector_T res (eq);
             
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) );
             }
@@ -396,7 +407,7 @@ namespace Tensors
         {
             RealVector_T res(eq);
             
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) / b_squared_norms[k] );
             }
@@ -406,7 +417,8 @@ namespace Tensors
         bool CheckResiduals() const
         {
             bool succeeded = true;
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            
+            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
             {
                 succeeded = succeeded && ( Abs(rho[k]) <= TOL[k]);
             }
