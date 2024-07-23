@@ -222,7 +222,8 @@ namespace Tensors
             }
             else
             {
-                x.SetZero( thread_count );
+                // Not neccessary anymore.
+//                x.SetZero( thread_count );
             }
             
             if constexpr ( side == Side::Left )
