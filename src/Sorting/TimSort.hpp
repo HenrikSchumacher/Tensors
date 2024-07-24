@@ -89,7 +89,7 @@ namespace Tensors
         
         void operator()( mptr<T> begin, cptr<T> end )
         {
-            operator()( begin, Ramp( static_cast<I>(2)*static_cast<I>(end-begin)) );
+            operator()( begin, static_cast<I>(2)*static_cast<I>(Ramp(end-begin)) );
         }
         
         void operator()( mptr<T> a, const I n )

@@ -246,7 +246,7 @@ private:
 
     force_inline void allocate()
     {
-        safe_alloc( a, Tools::Ramp(static_cast<Size_T>(n)), Alignment );
+        safe_alloc( a, static_cast<Size_T>(Tools::Ramp(n)), Alignment );
     }
 
 public:
