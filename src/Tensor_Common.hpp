@@ -198,7 +198,9 @@ public:
 
     void Random( Int thread_count = 1 )
     {
-        // This uses std::default_random_engine, so it is not very efficient.
+        // This uses std::mt19937_64.
+        // Moreover, the pseudorandom number generators are initilized per call.
+        // So this is not very efficient.
         
         using SD_T = std::random_device;
         using MT_T = std::mt19937_64;
