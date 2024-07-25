@@ -36,16 +36,16 @@ public:
         ptoc(tag);
     }
 
-    template<Size_T NRHS = VarSize, typename a_T, typename b_T, typename X_T>
+    template<Size_T NRHS = VarSize, typename a_T, typename b_T, typename Y_T>
     void WriteSolution(
         cref<a_T> alpha,
-        cref<b_T> beta,  mptr<X_T> X_, const Int ldX )
+        cref<b_T> beta,  mptr<Y_T> Y_, const Int ldY )
     {
         const std::string tag = ClassName() + "::WriteSolution"
             + "<" + ToString(NRHS)
             + "," + TypeName<a_T>
             + "," + TypeName<b_T>
-            + "," + TypeName<X_T>
+            + "," + TypeName<Y_T>
             + ">(" + ToString(nrhs)+ ")";
         
         ptic(tag);
@@ -53,13 +53,17 @@ public:
         if ( nrhs == ione )
         {
             perm.template PermuteCombine<1,Parallel>(
-                X.data(), nrhs, X_, ldX, Inverse::True, nrhs, thread_count
+                alpha, X.data(), nrhs,
+                beta,  Y_,       ldY,
+                Inverse::True, nrhs
             );
         }
         else
         {
             perm.template PermuteCombine<NRHS,Parallel>(
-                X.data(), nrhs, X_, ldX, Inverse::True, nrhs, thread_count
+                alpha, X.data(), nrhs,
+                beta,  Y_,       ldY,
+                Inverse::True, nrhs
             );
         }
         

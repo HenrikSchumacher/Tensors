@@ -475,7 +475,7 @@ namespace Tensors
             // TODO: PermuteCombine
             
             if( (alpha != a_T(1)) || (beta != b_T(0)) )
-            wprint( tag + ": Arguments alpha and beta are ignored in the current implementation. It is assumes that alpha =1 and beta = 0." );
+            wprint( tag + ": Arguments alpha and beta are ignored in the current implementation. It is assumes that alpha = 1 and beta = 0." );
             
             Permute( X, ldX, Y, ldY, inverseQ, chunk );
             

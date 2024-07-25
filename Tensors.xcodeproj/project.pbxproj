@@ -379,7 +379,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1530;
+				LastUpgradeCheck = 1540;
 				TargetAttributes = {
 					AF5D050A2B52F09000E946CA = {
 						CreatedOnToolsVersion = 15.2;
@@ -511,7 +511,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
-					"/opt/homebrew/Cellar/suite-sparse/7.6.1/lib",
+					"/opt/homebrew/Cellar/suite-sparse/7.7.0/lib",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
@@ -523,8 +523,7 @@
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
-					/opt/homebrew/Cellar/libomp/18.1.2/include,
-					"/opt/homebrew/Cellar/suite-sparse/7.6.1/include/suitesparse",
+					"/opt/homebrew/Cellar/suite-sparse/7.7.0/include/suitesparse",
 				);
 			};
 			name = Debug;
@@ -538,7 +537,7 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
-					"/opt/homebrew/Cellar/suite-sparse/7.6.1/lib",
+					"/opt/homebrew/Cellar/suite-sparse/7.7.0/lib",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
@@ -550,8 +549,7 @@
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
-					/opt/homebrew/Cellar/libomp/18.1.2/include,
-					"/opt/homebrew/Cellar/suite-sparse/7.6.1/include/suitesparse",
+					"/opt/homebrew/Cellar/suite-sparse/7.7.0/include/suitesparse",
 				);
 			};
 			name = Release;
