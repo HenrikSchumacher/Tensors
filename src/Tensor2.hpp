@@ -347,7 +347,8 @@ namespace Tensors
         
     public:
         
-        template< bool copyQ = false>
+        // Typically, one wants to keep the data, so copy = true is default.
+        template< bool copyQ>
         void Resize( const Int d_0_, const Int d_1_, const Int thread_count = 1 )
         {
             const Int d_0 = Tools::Ramp(d_0_);
@@ -361,7 +362,7 @@ namespace Tensors
                 const Int col_count = Tools::Min( b.Dimension(1), dims[1] );
                 
                 const cptr<Scal> X = this->data();
-                const cptr<Scal> Y = b.data();
+                const mptr<Scal> Y = b.data();
                 
                 const Int ldX = Dimension(1);
                 const Int ldY = b.Dimension(1);
@@ -374,19 +375,10 @@ namespace Tensors
             swap( *this, b );
         }
         
-        template< bool copyQ = false>
+        template< bool copyQ>
         void RequireSize( const Int d_0, const Int d_1, const Int thread_count = 1 )
         {
             if( (dims[0] < d_0) || (dims[1] < d_1) )
-            {
-                Resize<copyQ>(d_0,d_1,thread_count);
-            }
-        }
-        
-        template< bool copyQ = false>
-        void RequireExactSize( const Int d_0, const Int d_1, const Int thread_count = 1 )
-        {
-            if( (dims[0] != d_0) || (dims[1] != d_1) )
             {
                 Resize<copyQ>(d_0,d_1,thread_count);
             }
