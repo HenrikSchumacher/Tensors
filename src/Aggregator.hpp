@@ -106,7 +106,7 @@ namespace Tensors
                 RequireCapacity( Max( current_size + n, static_cast<LInt>(2) * capacity ) );
             }
 
-            copy_buffer( a, &container_0[current_size], n );
+            copy_buffer( a, &container_0[current_size], static_cast<Size_T>(Ramp(n)) );
             current_size += n;
         }
         

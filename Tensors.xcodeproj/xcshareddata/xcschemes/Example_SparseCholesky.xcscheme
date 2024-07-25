@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "AFFAC623298ECE5800A2CF4B"
-               BuildableName = "Unit_Test_SpMM"
-               BlueprintName = "Unit_Test_SpMM"
+               BlueprintIdentifier = "AF8BDDDE295A1FBD001D8CCF"
+               BuildableName = "Example_SparseCholesky"
+               BlueprintName = "Example_SparseCholesky"
                ReferencedContainer = "container:Tensors.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -34,6 +34,7 @@
       buildConfiguration = "Release"
       selectedDebuggerIdentifier = ""
       selectedLauncherIdentifier = "Xcode.IDEFoundation.Launcher.PosixSpawn"
+      disableMainThreadChecker = "YES"
       launchStyle = "0"
       useCustomWorkingDirectory = "NO"
       ignoresPersistentStateOnLaunch = "NO"
@@ -45,9 +46,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AFFAC623298ECE5800A2CF4B"
-            BuildableName = "Unit_Test_SpMM"
-            BlueprintName = "Unit_Test_SpMM"
+            BlueprintIdentifier = "AF8BDDDE295A1FBD001D8CCF"
+            BuildableName = "Example_SparseCholesky"
+            BlueprintName = "Example_SparseCholesky"
             ReferencedContainer = "container:Tensors.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
@@ -62,9 +63,9 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "AFFAC623298ECE5800A2CF4B"
-            BuildableName = "Unit_Test_SpMM"
-            BlueprintName = "Unit_Test_SpMM"
+            BlueprintIdentifier = "AF8BDDDE295A1FBD001D8CCF"
+            BuildableName = "Example_SparseCholesky"
+            BlueprintName = "Example_SparseCholesky"
             ReferencedContainer = "container:Tensors.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>

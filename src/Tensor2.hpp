@@ -347,38 +347,48 @@ namespace Tensors
         
     public:
         
-        void Resize( const Int d_0_, const Int d_1_, bool copy = true )
+        template< bool copyQ = false>
+        void Resize( const Int d_0_, const Int d_1_, const Int thread_count = 1 )
         {
-//            ptic(ClassName() + "::Resize(" + ToString(d_0_) + "," + ToString(d_1_) + ")");
-            
             const Int d_0 = Tools::Ramp(d_0_);
             const Int d_1 = Tools::Ramp(d_1_);
             
-            TENSOR_T b ( d_0, d_1 );
+            Tensor2 b ( d_0, d_1 );
             
-            if( copy )
+            if constexpr ( copyQ )
             {
-                const Int min_d_0 = Tools::Min( b.Dimension(0), dims[0] );
-                const Int min_d_1 = Tools::Min( b.Dimension(1), dims[1] );
+                const Int row_count = Tools::Min( b.Dimension(0), dims[0] );
+                const Int col_count = Tools::Min( b.Dimension(1), dims[1] );
                 
-                for( Int i = 0; i < min_d_0; ++i )
-                {
-                    copy_buffer( data(i), b.data(i), min_d_1);
-                }
+                const cptr<Scal> X = this->data();
+                const cptr<Scal> Y = b.data();
                 
+                const Int ldX = Dimension(1);
+                const Int ldY = b.Dimension(1);
+                
+                copy_matrix<VarSize,Parallel>(
+                    X, ldX, Y, ldY, row_count, col_count, thread_count
+                );
             }
             
             swap( *this, b );
-                
-            
-//            ptoc(ClassName()+"::Resize(" + ToString(d_0_) + "," + ToString(d_1_) + ")");
         }
         
-        void RequireSize( const Int d_0, const Int d_1, bool copy = false )
+        template< bool copyQ = false>
+        void RequireSize( const Int d_0, const Int d_1, const Int thread_count = 1 )
         {
-            if( dims[0] < d_0 || dims[1] < d_1 )
+            if( (dims[0] < d_0) || (dims[1] < d_1) )
             {
-                Resize(d_0,d_1,copy);
+                Resize<copyQ>(d_0,d_1,thread_count);
+            }
+        }
+        
+        template< bool copyQ = false>
+        void RequireExactSize( const Int d_0, const Int d_1, const Int thread_count = 1 )
+        {
+            if( (dims[0] != d_0) || (dims[1] != d_1) )
+            {
+                Resize<copyQ>(d_0,d_1,thread_count);
             }
         }
         
