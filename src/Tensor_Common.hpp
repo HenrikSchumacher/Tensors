@@ -183,62 +183,87 @@ public:
 
     void Fill( cref<Scal> init, const Size_T thread_count )
     {
-        fill_buffer<VarSize,Parallel>( a, init, static_cast<Size_T>(n), thread_count );
+        fill_buffer<VarSize,Parallel>( a, init, int_cast<Size_T>(n), thread_count );
     }
 
     void SetZero()
     {
-        zerofy_buffer( a, n );
+        zerofy_buffer( a, int_cast<Size_T>(n) );
     }
 
     void SetZero( const Size_T thread_count )
     {
-        zerofy_buffer<VarSize,Parallel>( a, n, thread_count );
+        zerofy_buffer<VarSize,Parallel>( a, int_cast<Size_T>(n), thread_count );
     }
 
     void Random( Int thread_count = 1 )
     {
+        // This uses std::default_random_engine, so it is not very efficient.
+        
+        using SD_T = std::random_device;
+        using MT_T = std::mt19937_64;
+        
+        using SD_UInt = SD_T::result_type;
+        using MT_UInt = MT_T::result_type;
+        
+        constexpr Size_T seed_size = (MT_T::state_size * sizeof(MT_UInt)) / sizeof(SD_UInt);
+        
+        std::vector<std::array<SD_UInt,seed_size>> seed_arrays (thread_count);
+        
+        for( Int thread = 0; thread < thread_count; ++thread )
+        {
+            std::generate(
+                seed_arrays[thread].begin(), seed_arrays[thread].end(), SD_T()
+            );
+        }
+        
         if constexpr (Scalar::RealQ<Scal> )
         {
             ParallelDo(
-                       [=,this]( const Int thread )
-                       {
-                           const Int i_begin = JobPointer( n, thread_count, thread     );
-                           const Int i_end   = JobPointer( n, thread_count, thread + 1 );
-                           
-                           std::random_device r;
-                           std::default_random_engine engine ( r() );
-                           
-                           std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
-                           
-                           for( Int i = i_begin; i < i_end; ++i )
-                           {
-                               a[i] = unif(engine);
-                           }
-                       },
-                       thread_count
-                       );
+                [=,this]( const Int thread )
+                {
+                    const Int i_begin = JobPointer( n, thread_count, thread     );
+                    const Int i_end   = JobPointer( n, thread_count, thread + 1 );
+                    
+                    std::seed_seq seed (
+                        seed_arrays[thread].begin(), seed_arrays[thread].end()
+                    );
+                    
+                    MT_T engine ( seed );
+                   
+                    std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
+                   
+                    for( Int i = i_begin; i < i_end; ++i )
+                    {
+                        a[i] = unif(engine);
+                    }
+                },
+                thread_count
+            );
         }
         else
         {
             ParallelDo(
-                       [=,this]( const Int thread )
-                       {
-                           const Int i_begin = JobPointer( n, thread_count, thread     );
-                           const Int i_end   = JobPointer( n, thread_count, thread + 1 );
-                           
-                           std::random_device r;
-                           std::default_random_engine engine ( r() );
-                           
-                           std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
-                           
-                           for( Int i = i_begin; i < i_end; ++i )
-                           {
-                               a[i] = Scal( unif(engine), unif(engine) );
-                           }
-                       },
-                       thread_count
-                       );
+               [=,this]( const Int thread )
+               {
+                   const Int i_begin = JobPointer( n, thread_count, thread     );
+                   const Int i_end   = JobPointer( n, thread_count, thread + 1 );
+                   
+                   std::seed_seq seed (
+                       seed_arrays[thread].begin(), seed_arrays[thread].end()
+                   );
+                   
+                   MT_T engine ( seed );
+                   
+                   std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
+                   
+                   for( Int i = i_begin; i < i_end; ++i )
+                   {
+                       a[i] = Scal( unif(engine), unif(engine) );
+                   }
+               },
+               thread_count
+           );
         }
     }
 
