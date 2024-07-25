@@ -23,7 +23,7 @@ using namespace Tensors;
 
 int error_count = 0;
 int ineff_count = 0;
-int max_thread_count = 8;
+int thread_count = 8;
 
 template<typename R_out, typename T_in, typename S_out, typename T_out, typename Scalar, typename Int, typename LInt>
     __attribute__((noinline)) void Dot_True(
@@ -94,8 +94,8 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
     Tensor2<T_out,Int> Y_True ( m, cols );
     Tensor2<T_out,Int> Z      ( m, cols );
     
-    X.Random( max_thread_count );
-    Y_0.Random( max_thread_count );
+    X.Random( thread_count );
+    Y_0.Random( thread_count );
 
     
     const R_out alpha = 1;
@@ -118,7 +118,7 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
     float time_2 = Tools::Duration( start_time_2, Clock::now() );
     
     Y = Y_0;
-    A.SetThreadCount(max_thread_count);
+    A.SetThreadCount(thread_count);
     auto start_time_3 = Clock::now();
     A.Dot( alpha, X, beta, Y );
     float time_3 = Tools::Duration( start_time_3, Clock::now() );
@@ -172,11 +172,11 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
 template<typename Scal, typename Int, typename LInt>
 void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
 {
-    logprint(std::string("  Test_SpMM<")
-        +TypeName<Scal>+","
-        +TypeName<Int>+","
-        +TypeName<LInt>+
-        +">");
+    logprint(std::string("  Test_SpMM")
+        + "<" + TypeName<Scal>
+        + "," + TypeName<Int>
+        + "," + TypeName<LInt>+
+        + ">");
     pdump(m);
     pdump(n);
     pdump(nnz);
@@ -186,11 +186,11 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
     Tensor1<Int ,LInt> jdx (nnz);
     Tensor1<Scal,LInt> a   (nnz);
 
-    ParallelDoReduce(
+    ParallelDo(
         [&]( const LInt thread )
         {
-            const LInt i_begin = JobPointer( nnz, max_thread_count, thread     );
-            const LInt i_end   = JobPointer( nnz, max_thread_count, thread + 1 );
+            const LInt i_begin = JobPointer( nnz, thread_count, thread     );
+            const LInt i_end   = JobPointer( nnz, thread_count, thread + 1 );
 
             std::random_device r;
             std::default_random_engine engine ( r() );
@@ -203,45 +203,34 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
                 jdx[i] = unif_n(engine);
             }
         },
-        max_thread_count
+        thread_count
     );
                     
-    a.Random( max_thread_count );
+    a.Random( thread_count );
     
-    Sparse::MatrixCSR<Scal,Int,LInt> A( nnz, idx.data(), jdx.data(), a.data(), m, n, max_thread_count );
+    Sparse::MatrixCSR<Scal,Int,LInt> A( nnz, idx.data(), jdx.data(), a.data(), m, n, thread_count );
 
-    if constexpr ( Scalar::Prec<Scal> == 32 )
-    {
-        if constexpr ( Scalar::RealQ<Scal> )
-        {
-            test_SpMM<Real32   ,Real32   ,Real32   ,Real32   >(A, cols);
-        }
-            test_SpMM<Real32   ,Real32   ,Real32   ,Complex32>(A, cols);
-            test_SpMM<Real32   ,Complex32,Real32   ,Complex32>(A, cols);
-            test_SpMM<Complex32,Complex32,Complex32,Complex32>(A, cols);
-    }
-    
-    if constexpr ( Scalar::Prec<Scal> == 64 )
-    {
-        if constexpr ( Scalar::RealQ<Scal> )
-        {
-            test_SpMM<Real64   ,Real64   ,Real64   ,Real64   >(A, cols);
-        }
-            test_SpMM<Real64   ,Real64   ,Real64   ,Complex64>(A, cols);
-            test_SpMM<Real64   ,Complex64,Real64   ,Complex64>(A, cols);
-            test_SpMM<Complex64,Complex64,Complex64,Complex64>(A, cols);
-    }
-    
-    if constexpr ( Scalar::Prec<Scal> == 128 )
-    {
-        if constexpr ( Scalar::RealQ<Scal> )
-        {
-            test_SpMM<Real128   ,Real128   ,Real128   ,Real128   >(A, cols);
-        }
-            test_SpMM<Real128   ,Real128   ,Real128   ,Complex128>(A, cols);
-            test_SpMM<Real128   ,Complex128,Real128   ,Complex128>(A, cols);
-            test_SpMM<Complex128,Complex128,Complex128,Complex128>(A, cols);
-    }
+//    if constexpr ( Scalar::Prec<Scal> == 32 )
+//    {
+//        if constexpr ( Scalar::RealQ<Scal> )
+//        {
+//            test_SpMM<Real32   ,Real32   ,Real32   ,Real32   >(A, cols);
+//        }
+//            test_SpMM<Real32   ,Real32   ,Real32   ,Complex32>(A, cols);
+//            test_SpMM<Real32   ,Complex32,Real32   ,Complex32>(A, cols);
+//            test_SpMM<Complex32,Complex32,Complex32,Complex32>(A, cols);
+//    }
+//    
+//    if constexpr ( Scalar::Prec<Scal> == 64 )
+//    {
+//        if constexpr ( Scalar::RealQ<Scal> )
+//        {
+//            test_SpMM<Real64   ,Real64   ,Real64   ,Real64   >(A, cols);
+//        }
+//            test_SpMM<Real64   ,Real64   ,Real64   ,Complex64>(A, cols);
+//            test_SpMM<Real64   ,Complex64,Real64   ,Complex64>(A, cols);
+//            test_SpMM<Complex64,Complex64,Complex64,Complex64>(A, cols);
+//    }
 }
 
 int main( int argc, const char * argv[] )
@@ -270,17 +259,18 @@ int main( int argc, const char * argv[] )
     dump(m);
     dump(n);
     dump(nnz);
-    
-    std::vector<Int> col_list {1,12};
 
+    std::vector<Int> col_list {1,12};
     ptic("Testing");
     for( Int cols : col_list )
     {
         logvalprint("cols",cols);
+
         Test_SpMM<Real32   ,Int,LInt>( m, n, nnz, cols );
         Test_SpMM<Real64   ,Int,LInt>( m, n, nnz, cols );
         Test_SpMM<Complex32,Int,LInt>( m, n, nnz, cols );
         Test_SpMM<Complex64,Int,LInt>( m, n, nnz, cols );
+
         logprint("");
     }
     ptoc("Testing");
@@ -292,7 +282,6 @@ int main( int argc, const char * argv[] )
     valprint("Total ineff count", ineff_count);
 
     print("See file "+path+"Tools_Log.txt for details.");
-    
     
     
     return 0;

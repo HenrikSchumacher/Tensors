@@ -196,8 +196,11 @@ public:
         zerofy_buffer<VarSize,Parallel>( a, int_cast<Size_T>(n), thread_count );
     }
 
-    void Random( Int thread_count = 1 )
+    void Random( const Int thread_count = 1 )
     {
+        static_assert( Scalar::FloatQ<Scal>, "" );
+        
+        tic("Random");
         // This uses std::mt19937_64.
         // Moreover, the pseudorandom number generators are initilized per call.
         // So this is not very efficient.
@@ -210,29 +213,31 @@ public:
         
         constexpr Size_T seed_size = (MT_T::state_size * sizeof(MT_UInt)) / sizeof(SD_UInt);
         
-        std::vector<std::array<SD_UInt,seed_size>> seed_arrays (thread_count);
+        std::vector<SD_UInt> seed_array ( seed_size );
         
+        std::vector<MT_T> engines;
+        
+        tic("Random - Initialize");
         for( Int thread = 0; thread < thread_count; ++thread )
         {
-            std::generate(
-                seed_arrays[thread].begin(), seed_arrays[thread].end(), SD_T()
-            );
+            std::generate( seed_array.begin(), seed_array.end(), SD_T() );
+        
+            std::seed_seq seed ( seed_array.begin(), seed_array.end() );
+        
+            engines.emplace_back( seed );
         }
+        toc("Random - Initialize");
         
         if constexpr (Scalar::RealQ<Scal> )
         {
             ParallelDo(
-                [=,this]( const Int thread )
+                [&,this]( const Int thread )
                 {
                     const Int i_begin = JobPointer( n, thread_count, thread     );
                     const Int i_end   = JobPointer( n, thread_count, thread + 1 );
                     
-                    std::seed_seq seed (
-                        seed_arrays[thread].begin(), seed_arrays[thread].end()
-                    );
+                    MT_T & engine = engines[thread];
                     
-                    MT_T engine ( seed );
-                   
                     std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
                    
                     for( Int i = i_begin; i < i_end; ++i )
@@ -246,16 +251,12 @@ public:
         else
         {
             ParallelDo(
-               [=,this]( const Int thread )
+               [&,this]( const Int thread )
                {
                    const Int i_begin = JobPointer( n, thread_count, thread     );
                    const Int i_end   = JobPointer( n, thread_count, thread + 1 );
                    
-                   std::seed_seq seed (
-                       seed_arrays[thread].begin(), seed_arrays[thread].end()
-                   );
-                   
-                   MT_T engine ( seed );
+                   MT_T & engine = engines[thread];
                    
                    std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
                    
@@ -267,6 +268,8 @@ public:
                thread_count
            );
         }
+        
+        toc("Random");
     }
 
 private:
