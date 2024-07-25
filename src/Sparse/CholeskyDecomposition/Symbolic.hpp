@@ -318,7 +318,7 @@ protected:
                     
                     curr_n_1 = int_cast<Int>(k_end - k);
                     
-                    copy_buffer( &A.Inner(k), curr_row.data(), curr_n_1 );
+                    copy_buffer( &A.Inner(k), curr_row.data(), int_cast<Size_T>(curr_n_1) );
                 }
                 
                 // Next, we have to merge the column indices of the children of i_0 into row.

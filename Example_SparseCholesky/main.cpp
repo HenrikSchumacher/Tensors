@@ -64,7 +64,8 @@ int main(int argc, const char * argv[])
     std::string name = "Spot_4";
 //    std::string name = "Spot_0";
     
-    const Int nrhs = 32;
+    constexpr Int NRHS = 32;
+    const     Int nrhs = NRHS;
     
     Sparse::MatrixCSR<Scal,Int,LInt> A = Sparse::MatrixCSR_FromFile<Scal,Int,LInt>(
         path + name + "_Matrix.txt", thread_count
@@ -158,23 +159,21 @@ int main(int argc, const char * argv[])
 
     S.AssemblyTree().Traverse_Postordered_Test();
 
-//    print("");
-//
-//    S.AssemblyTree().Traverse_Preordered_Test();
-
     print("");
 
     tic("Cholesky numeric factorization");
-//    S.NumericFactorization_LeftLooking(A.Values().data(), reg);
+//    S.NumericFactorization_LeftLooking( A.Values().data(), reg );
     S.NumericFactorization_Multifrontal(A.Values().data(), reg);
     toc("Cholesky numeric factorization");
 
     print("");
+    print("Sequential solves");
+    print("");
     
     x.SetZero();
-    tic("Cholesky vector solve -- Tensor1 arguments");
-    S.Solve<Sequential>(b.data(), x.data() );
-    toc("Cholesky vector solve -- Tensor1 arguments");
+    tic("Cholesky sequential vector solve -- Tensor1 arguments");
+    S.Solve<1,Sequential>( alpha, b.data(), 1, beta, x.data(), 1 );
+    toc("Cholesky sequential vector solve -- Tensor1 arguments");
     y = b;
     A.Dot( -alpha_inv, x, Scal(1), y);
     dump(y.MaxNorm());
@@ -182,9 +181,9 @@ int main(int argc, const char * argv[])
     print("");
     
     x.SetZero();
-    tic("Cholesky vector solve -- pointer arguments");
-    S.Solve<Sequential>( alpha, b.data(), 1, beta, x.data(), 1, 1 );
-    toc("Cholesky vector solve -- pointer arguments");
+    tic("Cholesky sequential vector solve -- pointer arguments");
+    S.Solve<1,Sequential>( alpha, b.data(), 1, beta, x.data(), 1, 1 );
+    toc("Cholesky sequential vector solve -- pointer arguments");
     y = b;
     A.Dot<1>( -alpha_inv, x.data(), 1, Scal(1), y.data(), 1);
     dump(y.MaxNorm());
@@ -192,29 +191,41 @@ int main(int argc, const char * argv[])
     print("");
 
     X.SetZero();
-    tic("Cholesky matrix solve -- Tensor2 arguments");
-    S.Solve<Sequential>( alpha, B.data(), ldB, beta, X.data(), ldX, nrhs);
-    toc("Cholesky matrix solve -- Tensor2 arguments");
+    tic("Cholesky sequential matrix solve -- Tensor2 arguments");
+    S.Solve<VarSize,Sequential>( alpha, B, beta, X );
+    toc("Cholesky sequential matrix solve -- Tensor2 arguments");
     Y = B;
-    A.Dot( -alpha_inv, X, Scal(1), Y );
+    A.Dot<VarSize>( -alpha_inv, X, Scal(1), Y );
     dump(Y.MaxNorm());
     
     print("");
     
     X.SetZero();
     tic("Cholesky matrix solve -- pointer arguments");
-    S.Solve<Sequential>( alpha, B.data(), ldB, beta, X.data(), ldX, nrhs);
+    S.Solve<NRHS,Sequential>( alpha, B.data(), ldB, beta, X.data(), ldX, nrhs);
     toc("Cholesky matrix solve -- pointer arguments");
     Y = B;
-    A.Dot( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
+    A.Dot<NRHS>( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
     dump(Y.MaxNorm());
 
     print("");
+    print("Parallel solves");
+    print("");
 
     x.SetZero();
-    tic("Cholesky parallel vector solve");
-    S.Solve<Parallel>( b.data(), x.data() );
-    toc("Cholesky parallel vector solve");
+    tic("Cholesky parallel vector solve -- Tensor1 arguments");
+    S.Solve<Parallel>( alpha, b, beta, x );
+    toc("Cholesky parallel vector solve -- Tensor1 arguments");
+    y = b;
+    A.Dot( -alpha_inv, x, Scal(1), y);
+    dump(y.MaxNorm());
+    
+    print("");
+
+    x.SetZero();
+    tic("Cholesky parallel vector solve -- pointer arguments");
+    S.Solve<1,Parallel>( alpha, b.data(), 1, beta, x.data(), 1 );
+    toc("Cholesky parallel vector solve -- pointer arguments");
     y = b;
     A.Dot( -alpha_inv, x, Scal(1), y);
     dump(y.MaxNorm());
@@ -223,7 +234,7 @@ int main(int argc, const char * argv[])
     
     X.SetZero();
     tic("Cholesky parallel matrix solve -- Tensor2 arguments");
-    S.Solve<Parallel>( alpha, B.data(), ldB, beta, X.data(), ldX, nrhs);
+    S.Solve<VarSize,Parallel>( alpha, B, beta, X);
     toc("Cholesky parallel matrix solve -- Tensor2 arguments");
     Y = B;
     A.Dot( -alpha_inv, X, Scal(1), Y );
@@ -233,13 +244,13 @@ int main(int argc, const char * argv[])
     
     X.SetZero();
     tic("Cholesky parallel matrix solve -- pointer arguments");
-    S.Solve<Parallel>( alpha, B.data(), ldB, beta, X.data(), ldX, nrhs);
+    S.Solve<NRHS,Parallel>( alpha, B.data(), ldB, beta, X.data(), ldX, nrhs);
     toc("Cholesky parallel matrix solve -- pointer arguments");
     Y = B;
-    A.Dot( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
+    A.Dot<NRHS>( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
     dump(Y.MaxNorm());
-//
-//
+
+    
 ////    CHOLMOD::CholeskyDecomposition<Scal,Int,LInt> cholmod ( A.Outer().data(), A.Inner().data(), n );
 ////
 ////    cholmod.SymbolicFactorization();

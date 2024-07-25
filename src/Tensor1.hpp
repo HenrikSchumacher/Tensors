@@ -216,7 +216,7 @@ namespace Tensors
         
         void iota( const Int thread_count = 1 )
         {
-            iota_buffer( a, n, thread_count );
+            iota_buffer( a, int_cast<Size_T>(n), int_cast<Size_T>(thread_count) );
         }
         
     public:
