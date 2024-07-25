@@ -430,18 +430,75 @@ namespace Tensors
             }
             ptoc(ClassName()+"::Compose");
         }
+
         
-        template<typename S, typename T>
-        void Permute( 
-            cptr<S> X, const Size_T ldX,
-            mptr<T> Y, const Size_T ldY,
+        template<
+            Size_T CHUNK = VarSize, Parallel_T parQ = Sequential,
+            Op opx = Op::Id, Op opy = Op::Id,
+            typename a_T, typename X_T, typename b_T, typename Y_T
+        >
+        void PermuteCombine(
+            cref<a_T> alpha, cptr<X_T> X, const Size_T ldX,
+            cref<b_T> beta,  mptr<Y_T> Y, const Size_T ldY,
+            const Inverse inverseQ,
+            Size_T chunk = CHUNK
+        )
+        {
+            // Computes
+            //
+            //   Y[i] = alpha * X[ p[i] ] + beta * Y[i]
+            //
+            // or
+            //
+            //   Y[i] = alpha * X[ q[i] ] + beta * Y[i]
+            
+            std::string tag = ClassName()+"::PermuteCombine"
+                + "," + ToString(CHUNK)
+                + "," + ToString(parQ)
+                + "," + ToString(opx)
+                + "," + ToString(opy)
+                + "," + TypeName<a_T>
+                + "," + TypeName<X_T>
+                + "," + TypeName<b_T>
+                + "," + TypeName<Y_T>
+                + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
+                + ToString(chunk) + ")";
+            
+            ptic(tag);
+            
+            if( chunk == Size_T(0) )
+            {
+                wprint( tag + ": chunk == 0. Doing nothing." );
+                
+                ptoc(tag);
+            }
+            // TODO: PermuteCombine
+            
+            if( (alpha != a_T(1)) || (beta != b_T(0)) )
+            wprint( tag + ": Arguments alpha and beta are ignored in the current implementation. It is assumes that alpha =1 and beta = 0." );
+            
+            Permute( X, ldX, Y, ldY, inverseQ, chunk );
+            
+            // TODO: Figure out a_flag and b_flag.
+            
+            // TODO: Special case ldX = 1 and ldY = 1
+            
+            // TODO: Special case trivial permutation.
+            
+            ptoc(tag);
+        }
+        
+        template<typename X_T, typename Y_T>
+        void Permute(
+            cptr<X_T> X, const Size_T ldX,
+            mptr<Y_T> Y, const Size_T ldY,
             const Inverse inverseQ,
             Size_T chunk = Scalar::One<Size_T>
         )
         {
             // Permute X chunkwise into Y, i.e., Y[size*i+k] <- X[size*p[i]+k];
             
-            std::string tag = ClassName()+"::Permute ( " + (inverseQ == Inverse::True ? "inv, " : "id, " ) + ToString(chunk) + " )";
+            std::string tag = ClassName()+"::Permute<" + TypeName<X_T> + "," + TypeName<Y_T> + ">(" + (inverseQ == Inverse::True ? "inv," : "id," ) + ToString(chunk) + ")";
             
             ptic(tag);
             
@@ -458,7 +515,7 @@ namespace Tensors
                         ParallelDo(
                             [=,this]( const Int i )
                             {
-                                Y[i] = static_cast<T>(X[r[i]]);
+                                Y[i] = static_cast<Y_T>(X[r[i]]);
                             },
                             n, thread_count
                         );
@@ -468,7 +525,7 @@ namespace Tensors
                         ParallelDo(
                             [=,this]( const Int i )
                             {
-                                Y[ldY * i] = static_cast<T>(X[ldX * r[i]]);
+                                Y[ldY * i] = static_cast<Y_T>(X[ldX * r[i]]);
                             },
                             n, thread_count
                         );
@@ -495,13 +552,17 @@ namespace Tensors
                 }
                 else
                 {
-                    ParallelDo(
-                        [=,this]( const Int i )
-                        {
-                            copy_buffer( &X[ldX * i], &Y[ldY * i], chunk );
-                        },
-                        n, thread_count
+                    copy_matrix<VarSize,Parallel>(
+                        X, ldX, Y, ldY, n, chunk, thread_count
                     );
+                    
+//                    ParallelDo(
+//                        [=,this]( const Int i )
+//                        {
+//                            copy_buffer( &X[ldX * i], &Y[ldY * i], chunk );
+//                        },
+//                        n, thread_count
+//                    );
                 }
             }
             

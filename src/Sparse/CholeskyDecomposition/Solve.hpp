@@ -1,5 +1,57 @@
 public:
 
+    // TODO: Enable alpha * op(A)^{-1} . B + beta * X
+    template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
+    void Solve(
+        ExtScal alpha, cptr<ExtScal> B,     const Int ldB,
+        ExtScal beta,  mptr<ExtScal> X_out, const Int ldX,
+        const Int nrhs_ = ione
+    )
+    {
+        const std::string tag = ClassName() + "::Solve<"
+            + (parQ == Parallel ? "Parallel" : "Sequential") + ","
+            + ( op==Op::Id ? "N" : (op==Op::Trans ? "T" : (op==Op::ConjTrans ? "H" : "N/A" ) ) ) + ","
+            + TypeName<ExtScal>
+            + "> ( " + ToString(ldB) + "," + ToString(ldX) + "," + ToString(nrhs_) + " )";
+        
+        static_assert(
+            Scalar::RealQ<Scal> || op != Op::Trans,
+            "Solve with Op::Trans not implemented for scalar of complex type."
+        );
+        ptic(tag);
+        // No problem if X_ and B overlap, since we load B into X anyways.
+        
+        ReadRightHandSide( B, ldB, nrhs_ );
+        
+        if( nrhs == ione )
+        {
+            if( thread_count > 1 )
+            {
+                SN_Solve<false,parQ,op>();
+            }
+            else
+            {
+                SN_Solve<false,Sequential,op>();
+            }
+        }
+        else
+        {
+            if( thread_count > 1 )
+            {
+                SN_Solve<true,parQ,op>();
+            }
+            else
+            {
+                SN_Solve<true,Sequential,op>();
+            }
+        }
+        
+        // TODO: Fix WriteSolution.
+        WriteSolution( alpha, beta, X_out, ldX );
+        
+        ptoc(tag);
+    }
+
     template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
     void Solve( 
         cptr<ExtScal> B,     const Int ldB,

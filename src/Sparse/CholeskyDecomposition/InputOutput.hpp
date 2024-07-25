@@ -4,12 +4,12 @@
 
 public:
 
-    template<typename ExtScal>
-    void ReadRightHandSide( cptr<ExtScal> B, const Int ldB, const Int nrhs_ = ione )
+    template<typename B_T>
+    void ReadRightHandSide( cptr<B_T> B, const Int ldB, const Int nrhs_ = ione )
     {
         nrhs = Max( ione, nrhs_ );
         
-        const std::string tag = ClassName() + "::ReadRightHandSide<" + TypeName<ExtScal> + "> (" + ToString(nrhs)+ ")";
+        const std::string tag = ClassName() + "::ReadRightHandSide<" + TypeName<B_T> + ">(" + ToString(nrhs)+ ")";
         
         ptic(tag);
         
@@ -19,14 +19,7 @@ public:
             X_scratch = VectorContainer_T(static_cast<LInt>(max_n_1)*nrhs);
         }
 
-        if ( nrhs == ione )
-        {
-            perm.Permute( B, ldB, X.data(), nrhs, Inverse::False );
-        }
-        else
-        {
-            perm.Permute( B, ldB, X.data(), nrhs, Inverse::False, nrhs );
-        }
+        perm.Permute( B, ldB, X.data(), nrhs, Inverse::False, nrhs );
         
         ptoc(tag);
     }
@@ -38,13 +31,36 @@ public:
         
         ptic(tag);
         
+        perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True, nrhs );
+        
+        ptoc(tag);
+    }
+
+    template<Size_T NRHS = VarSize, typename a_T, typename b_T, typename X_T>
+    void WriteSolution(
+        cref<a_T> alpha,
+        cref<b_T> beta,  mptr<X_T> X_, const Int ldX )
+    {
+        const std::string tag = ClassName() + "::WriteSolution"
+            + "<" + ToString(NRHS)
+            + "," + TypeName<a_T>
+            + "," + TypeName<b_T>
+            + "," + TypeName<X_T>
+            + ">(" + ToString(nrhs)+ ")";
+        
+        ptic(tag);
+        
         if ( nrhs == ione )
         {
-            perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True );
+            perm.template PermuteCombine<1,Parallel>(
+                X.data(), nrhs, X_, ldX, Inverse::True, nrhs, thread_count
+            );
         }
         else
         {
-            perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True, nrhs );
+            perm.template PermuteCombine<NRHS,Parallel>(
+                X.data(), nrhs, X_, ldX, Inverse::True, nrhs, thread_count
+            );
         }
         
         ptoc(tag);

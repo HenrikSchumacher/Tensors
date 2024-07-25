@@ -146,13 +146,14 @@ namespace Tensors
 //            ptoc(ClassName()+"::Resize(" + ToString(m_) + ")");
         }
         
-        void Resize( const Int m_, const Int thread_count, const bool copy = true )
+        template<bool copy = false>
+        void Resize( const Int m_, const Int thread_count )
         {
             const Int m = Ramp(m_);
             
             TENSOR_T b (m);
             
-            if( copy )
+            if constexpr ( copy )
             {
                 if( m <= n )
                 {
@@ -167,19 +168,12 @@ namespace Tensors
             swap( *this, b );
         }
         
-        void RequireSize( const Int m, const bool copy = false )
+        template<bool copy = false>
+        void RequireSize( const Int m, const Int thread_count )
         {
             if( m > n )
             {
-                Resize( m, copy );
-            }
-        }
-        
-        void RequireSize( const Int m, const Int thread_count, const bool copy = false )
-        {
-            if( m > n )
-            {
-                Resize( m, thread_count, copy );
+                Resize<copy>( m, thread_count );
             }
         }
         
