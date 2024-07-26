@@ -84,28 +84,18 @@ namespace Tensors
             cptr<Scal> A_,
             cref<Scal_out> alpha_, cptr<Scal_in>  X_,
             cref<Scal_out> beta_,  mptr<Scal_out> Y_,
-            const Int nrhs_
+            const Int      nrhs_
         )
-        :   A         ( nullptr     )
-        ,   A_const   ( A_          )
-        ,   alpha     ( alpha_      )
-        ,   X         ( X_          )
-        ,   beta      ( beta_       )
-        ,   Y         ( Y_          )
+        :   A         ( nullptr          )
+        ,   A_const   ( A_               )
+        ,   alpha     ( alpha_           )
+        ,   X         ( X_               )
+        ,   beta      ( beta_            )
+        ,   Y         ( Y_               )
         ,   nrhs      ( nrhs_       )
         ,   rows_size ( ROWS * nrhs )
         ,   cols_size ( COLS * nrhs )
-        {
-            if( nrhs > NRHS )
-            {
-                eprint( ClassName() + "(): nrhs = " + ToString(nrhs) + " > " + ToString(NRHS) + " = NRHS." );
-            }
-            
-            if( nrhs < NRHS )
-            {
-                eprint( ClassName() + "(): nrhs = " + ToString(nrhs) + " < " + ToString(NRHS) + " = NRHS." );
-            }
-        }
+        {}
         
         // Copy constructor
         BlockKernel_Tiny( const BlockKernel_Tiny & other )

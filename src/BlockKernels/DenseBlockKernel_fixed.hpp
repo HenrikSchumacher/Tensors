@@ -3,7 +3,7 @@
 #define CLASS DenseBlockKernel_fixed
 
 #define BASE  BlockKernel_fixed<                            \
-    ROWS_,COLS_,NRHS_,fixed,                           \
+    ROWS_,COLS_,NRHS_,fixed,                                \
     Scal_,Scal_in_,Scal_out_,                               \
     Int_,LInt_,                                             \
     alpha_flag, beta_flag,                                  \

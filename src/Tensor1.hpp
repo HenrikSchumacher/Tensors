@@ -146,7 +146,7 @@ namespace Tensors
         }
         
         template<bool copy>
-        void RequireSize( const Int m, const Int thread_count )
+        void RequireSize( const Int m, const Int thread_count = 1 )
         {
             if( m > n )
             {

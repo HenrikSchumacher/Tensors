@@ -81,7 +81,7 @@ namespace Tensors
         ,   X         ( X_               )
         ,   beta      ( beta_            )
         ,   Y         ( Y_               )
-        ,   nrhs ( nrhs_       )
+        ,   nrhs      ( nrhs_       )
         ,   rows_size ( ROWS * nrhs )
         ,   cols_size ( COLS * nrhs )
         {
@@ -437,13 +437,13 @@ namespace Tensors
                         {
                             for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                             {
-                                y_to[(fixed ? NRHS : nrhs)()*i+k] = get_cast_y(i,k) + beta * y_to[(fixed ? NRHS : nrhs)()*i+k];
+                                y_to[(fixed ? NRHS : nrhs)*i+k] = get_cast_y(i,k) + beta * y_to[(fixed ? NRHS : nrhs)*i+k];
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < (fixed ? NRHS : nrhs)(); ++k )
+                        for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
@@ -492,15 +492,15 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < (fixed ? NRHS : nrhs)(); ++k )
+                            for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                             {
-                                y_to[(fixed ? NRHS : nrhs)()*i+k] = alpha * get_cast_y(i,k);
+                                y_to[(fixed ? NRHS : nrhs)*i+k] = alpha * get_cast_y(i,k);
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < (fixed ? NRHS : nrhs)(); ++k )
+                        for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
@@ -515,15 +515,15 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < (fixed ? NRHS : nrhs)(); ++k )
+                            for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                             {
-                                y_to[(fixed ? NRHS : nrhs)()*i+k] += alpha * get_cast_y(i,k);
+                                y_to[(fixed ? NRHS : nrhs)*i+k] += alpha * get_cast_y(i,k);
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < (fixed ? NRHS : nrhs)(); ++k )
+                        for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
@@ -540,15 +540,15 @@ namespace Tensors
                     {
                         for( Int i = 0; i < ROWS; ++i )
                         {
-                            for( Int k = 0; k < (fixed ? NRHS : nrhs)(); ++k )
+                            for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                             {
-                                y_to[(fixed ? NRHS : nrhs)()*i+k] = alpha * get_cast_y(i,k) + beta * y_to[(fixed ? NRHS : nrhs)()*i+k];
+                                y_to[(fixed ? NRHS : nrhs)*i+k] = alpha * get_cast_y(i,k) + beta * y_to[(fixed ? NRHS : nrhs)*i+k];
                             }
                         }
                     }
                     else
                     {
-                        for( Int k = 0; k < (fixed ? NRHS : nrhs)(); ++k )
+                        for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                         {
                             for( Int i = 0; i < ROWS; ++i )
                             {
