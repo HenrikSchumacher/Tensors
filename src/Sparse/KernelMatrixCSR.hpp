@@ -20,18 +20,18 @@ namespace Tensors
             KernelMatrixCSR() = delete;
             
             //        KernelMatrixCSR()
-            //        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+            //        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
             //        {}
             
             explicit KernelMatrixCSR( const Pattern_T & pattern_ )
             :   pattern ( pattern_ )
-            ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+            ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
             {}
             
             // Copy constructor
             KernelMatrixCSR( const KernelMatrixCSR & other )
             :   pattern ( other.pattern )
-            ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT }
+            ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
             {}
             
             ~KernelMatrixCSR() = default;
@@ -39,7 +39,7 @@ namespace Tensors
         protected:
             
             const Pattern_T & pattern;
-            Kernel_T kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_RHS_COUNT };
+            Kernel_T kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS };
             
         public:
             
@@ -133,9 +133,9 @@ namespace Tensors
 //      Matrix multiplication
 //#####################################################################################
             
-            void Scale( mptr<Scal_out> Y, cref<Scal_out> beta, const Int rhs_count ) const
+            void Scale( mptr<Scal_out> Y, cref<Scal_out> beta, const Int nrhs ) const
             {
-                const Int size = RowCount() * rhs_count;
+                const Int size = RowCount() * nrhs;
                 
                 if( beta == static_cast<Scal_out>(0) )
                 {
@@ -151,14 +151,14 @@ namespace Tensors
                 cptr<Scal> A,
                 cref<Scal_out> alpha, cptr<Scal_in>  X,
                 cref<Scal_out> beta,  mptr<Scal_out> Y,
-                const Int rhs_count
+                const Int nrhs
             ) const
             {
                 ptic(ClassName()+"::Dot" );
                 
                 if( (alpha == static_cast<Scal_out>(0)) || (NonzeroCount() <= 0) )
                 {
-                    Scale( Y, beta, rhs_count );
+                    Scale( Y, beta, nrhs );
                     
                     ptoc(ClassName()+"::Dot" );
                     
@@ -173,7 +173,7 @@ namespace Tensors
                     [=, &job_ptr, this]( const Int thread )
                     {
                         // Initialize local kernel and feed it all the information that is going to be constant along its life time.
-                        Kernel_T ker ( A, alpha, X, beta, Y, rhs_count );
+                        Kernel_T ker ( A, alpha, X, beta, Y, nrhs );
                         
                         cptr<LInt> rp = pattern.Outer().data();
                         cptr< Int> ci = pattern.Inner().data();

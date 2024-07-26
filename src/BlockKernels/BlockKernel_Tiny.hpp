@@ -27,7 +27,7 @@ namespace Tensors
         using Int      = Int_;
         using LInt     = LInt_;
         
-        static constexpr Int MAX_RHS_COUNT = NRHS_;
+        static constexpr Int MAX_NRHS = NRHS_;
         static constexpr Int NRHS = NRHS_;
         static constexpr Int ROWS = ROWS_;
         static constexpr Int COLS = COLS_;
@@ -63,7 +63,7 @@ namespace Tensors
         mutable Tiny::Matrix<COLS,NRHS,x_T,Int> x;
         mutable Tiny::Matrix<ROWS,NRHS,x_T,Int> y;
         
-        const Int rhs_count = 1;
+        const Int nrhs = 1;
         const Int rows_size = ROWS;
         const Int cols_size = COLS;
         
@@ -84,18 +84,28 @@ namespace Tensors
             cptr<Scal> A_,
             cref<Scal_out> alpha_, cptr<Scal_in>  X_,
             cref<Scal_out> beta_,  mptr<Scal_out> Y_,
-            const Int      rhs_count_
+            const Int nrhs_
         )
-        :   A         ( nullptr          )
-        ,   A_const   ( A_               )
-        ,   alpha     ( alpha_           )
-        ,   X         ( X_               )
-        ,   beta      ( beta_            )
-        ,   Y         ( Y_               )
-        ,   rhs_count ( rhs_count_       )
-        ,   rows_size ( ROWS * rhs_count )
-        ,   cols_size ( COLS * rhs_count )
-        {}
+        :   A         ( nullptr     )
+        ,   A_const   ( A_          )
+        ,   alpha     ( alpha_      )
+        ,   X         ( X_          )
+        ,   beta      ( beta_       )
+        ,   Y         ( Y_          )
+        ,   nrhs      ( nrhs_       )
+        ,   rows_size ( ROWS * nrhs )
+        ,   cols_size ( COLS * nrhs )
+        {
+            if( nrhs > NRHS )
+            {
+                eprint( ClassName() + "(): nrhs = " + ToString(nrhs) + " > " + ToString(NRHS) + " = NRHS." );
+            }
+            
+            if( nrhs < NRHS )
+            {
+                eprint( ClassName() + "(): nrhs = " + ToString(nrhs) + " < " + ToString(NRHS) + " = NRHS." );
+            }
+        }
         
         // Copy constructor
         BlockKernel_Tiny( const BlockKernel_Tiny & other )
@@ -105,7 +115,7 @@ namespace Tensors
         ,   X         ( other.X           )
         ,   beta      ( other.beta        )
         ,   Y         ( other.Y           )
-        ,   rhs_count ( other.rhs_count_  )
+        ,   nrhs      ( other.nrhs_       )
         ,   rows_size ( other.rows_size   )
         ,   cols_size ( other.cols_size   )
         {}
@@ -169,13 +179,13 @@ namespace Tensors
         
         force_inline void CleanseY() const
         {
-            // Clear the local m x nrhs chunk of y.
+            // Clear the local m x NRHS chunk of y.
             y.SetZero();
         }
         
         force_inline void WriteY( const Int i_global ) const
         {
-            // Clear the local m x nrhs chunk y to destination in Y.
+            // Write the local m x NRHS chunk y to destination in Y.
             y.template Write<alpha_flag,beta_flag,opY,Op::Id>(
                 alpha, beta, &Y[ ROWS_SIZE * i_global ]
             );

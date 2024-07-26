@@ -95,7 +95,7 @@ namespace Tensors
                 
                 if constexpr ( mult_rhs )
                 {
-                    // X_0 is the part of X that interacts with U_0, size = n_0 x rhs_count.
+                    // X_0 is the part of X that interacts with U_0, size = n_0 x nrhs.
                     mptr<Scal> X_0 = &X[nrhs * SN_rp[s]];
                     
                     // Load the already computed values into X_1.

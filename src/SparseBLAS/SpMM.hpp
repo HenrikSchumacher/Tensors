@@ -361,11 +361,13 @@ template<
 >
 void SpMM_vec(
     cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-    cref<alpha_T> alpha,  cptr<X_T>  X, const Int ldX,
+    cref<alpha_T> alpha,  cptr<X_T> X, const Int ldX,
     cref<beta_T>  beta,   mptr<Y_T> Y, const Int ldY,
     cref<JobPointers<Int>> job_ptr
 )
 {
+    print("A");
+    
     (void)m;
     (void)n;
     
@@ -402,6 +404,7 @@ void SpMM_vec(
     
     // TODO: Use real types for alpha, beta, x, a, y if applicable.
     // TODO: Maybe use simple combine_buffer to merge y and z.
+    print("B");
     
     using y_T = typename std::conditional_t<
         Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
@@ -411,22 +414,31 @@ void SpMM_vec(
     
     using x_T = y_T;
     
-    constexpr bool prefetchQ = true;
+    dump( TypeName<X_T> );
+    dump( ToString(NRHS) );
     
+//    constexpr bool prefetchQ = true;
+    constexpr bool prefetchQ = false;
+    
+    dump(job_ptr.ThreadCount());
+         
     ParallelDo(
         [&]( const Int thread )
         {
+            print("a");
             vec_T<NRHS,x_T> x;
-            
+            print("a");
             const Int i_begin = job_ptr[thread  ];
             const Int i_end   = job_ptr[thread+1];
-            
+            print("b");
             const LInt last_l = rp[i_end];
-            
+            print("c");
             const LInt look_ahead = CacheLineWidth / NRHS;
-
+            print("d");
             for( Int i = i_begin; i < i_end; ++i )
             {
+                dump(i);
+                
                 vec_T<NRHS,y_T> y ( Scalar::Zero<y_T> );
                 
                 const LInt l_begin = rp[i  ];
@@ -449,9 +461,7 @@ void SpMM_vec(
                         }
 
                         copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
-                        
-                        
-                        
+
                         if constexpr ( a_flag == Generic )
                         {
                             y += a[l] * x;
