@@ -123,31 +123,8 @@ namespace Tensors
             return a[n-1];
         }
         
-        void Resize( const Int m_, const bool copy = true )
-        {
-//            ptic(ClassName()+"::Resize(" + ToString(m_) + ")");
-            const Int m = Tools::Ramp(m_);
-            
-            TENSOR_T b (m);
-            
-            if( copy )
-            {
-                if( m <= n )
-                {
-                    b.Read(a);
-                }
-                else
-                {
-                    Write(b.data());
-                }
-            }
-            
-            swap( *this, b );
-//            ptoc(ClassName()+"::Resize(" + ToString(m_) + ")");
-        }
-        
-        template<bool copy = false>
-        void Resize( const Int m_, const Int thread_count )
+        template<bool copy>
+        void Resize( const Int m_, const Int thread_count = 1 )
         {
             const Int m = Ramp(m_);
             
@@ -168,8 +145,8 @@ namespace Tensors
             swap( *this, b );
         }
         
-        template<bool copy = false>
-        void RequireSize( const Int m, const Int thread_count )
+        template<bool copy>
+        void RequireSize( const Int m, const Int thread_count = 1 )
         {
             if( m > n )
             {

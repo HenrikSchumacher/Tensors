@@ -4,14 +4,14 @@
 
 namespace Tensors
 {
-    // EQ_COUNT = number of right hand sides.
+    // NRHS_ = number of right hand sides.
     // If you know this at compile time, then enter it in the template.
-    // If you don't know this at compile time, then use EQ_COUNT = VarSize (==0) and specify
-    // the eq_count_ in the constructor.
+    // If you don't know this at compile time, then use NRHS_ = VarSize (==0) and specify
+    // the nrhs_ in the constructor.
     
     // Scal_ is the floating point type that is used internally.
     
-    template<Size_T EQ_COUNT,typename Scal_,typename Int_, Side side,
+    template<Size_T NRHS_,typename Scal_,typename Int_, Side side,
         bool A_verboseQ = true, bool P_verboseQ = true
     >
     class GMRES
@@ -22,19 +22,21 @@ namespace Tensors
         using Real     = Scalar::Real<Scal>;
         using Int      = Int_;
         
-        static constexpr Int EQ = int_cast<Int>(EQ_COUNT);
+        static constexpr Int NRHS = int_cast<Int>(NRHS_);
         
         static constexpr Int gram_schmidt_counts = 2;
         
         using Vector_T     = Tensor1<Scal,Int>;
         
         using RealVector_T = Tensor1<Real,Int>;
+        
+        using F_T = Scalar::Flag;
 
     protected:
         
         const Int n;
         const Int max_iter;
-        const Int eq;
+        const Int nrhs;
         const Int thread_count;
         
         JobPointers<Int> job_ptr;
@@ -49,8 +51,8 @@ namespace Tensors
         Tensor2<Scal,Int> x;
         Tensor2<Scal,Int> z;
 
-        ThreadTensor2<Scal,Int>      reduction_buffer;
-        ThreadTensor2<Real,Int> real_reduction_buffer;
+        ThreadTensor2<Scal,Int>      red_buf;
+        ThreadTensor2<Real,Int> real_red_buf;
         
         RealVector_T TOL;
         RealVector_T b_norms;
@@ -68,43 +70,46 @@ namespace Tensors
         GMRES(
             const Int n_,
             const Int max_iter_,
-            const Size_T eq_count_ = EQ,
+            const Size_T nrhs_ = NRHS,
             const Size_T thread_count_ = 1
         )
         :   n               ( n_                                    )
-        ,   max_iter        ( Min(max_iter_,n)                      )
-        ,   eq              ( ( (EQ > VarSize) ? EQ : eq_count_ )   )
+        ,   max_iter        ( Min(max_iter_,n+1)                    )
+        ,   nrhs            ( (NRHS > VarSize) ? NRHS : nrhs_       )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   job_ptr         ( n, thread_count                       )
-        ,   Q               ( max_iter + 1, n, eq                   )
-        ,   H               ( max_iter + 1, max_iter, eq            )
-        ,   cs              ( max_iter,     eq                      )
-        ,   sn              ( max_iter,     eq                      )
-        ,   beta            ( max_iter + 1, eq                      )
-        ,   x               ( n, eq                                 )
-        ,   z               ( n, eq                                 )
-        ,        reduction_buffer ( thread_count, eq )
-        ,   real_reduction_buffer ( thread_count, eq )
-        ,   TOL             ( eq                                    )
-        ,   b_norms         ( eq                                    )
-        ,   r_norms         ( eq                                    )
-        ,   q_norms         ( eq                                    )
-        ,   h               ( eq                                    )
+        ,   Q               ( max_iter + 1, n, nrhs                 )
+        ,   H               ( max_iter + 1, max_iter, nrhs          )
+        ,   cs              ( max_iter,     nrhs                    )
+        ,   sn              ( max_iter,     nrhs                    )
+        ,   beta            ( max_iter + 1, nrhs                    )
+        ,   x               ( n,            nrhs                    )
+        ,   z               ( n,            nrhs                    )
+        ,        red_buf    ( thread_count, nrhs                    )
+        ,   real_red_buf    ( thread_count, nrhs                    )
+        ,   TOL             ( nrhs                                  )
+        ,   b_norms         ( nrhs                                  )
+        ,   r_norms         ( nrhs                                  )
+        ,   q_norms         ( nrhs                                  )
+        ,   h               ( nrhs                                  )
         {}
         
         
         ~GMRES() = default;
         
         
+        // Computes X_inout <- a * A^{-1} . B_in + b * X_inout via CG method.
+        // Uses P as precondition, i.e., P should be a proxy of A^{-1}.
+        
         template<
             typename Operator_T, typename Preconditioner_T,
-            typename b_T, typename x_T
+            typename a_T, typename B_T, typename b_T, typename X_T
         >
         bool operator()(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cptr<b_T> b_in,    const Int ldb,
-            mptr<x_T> x_inout, const Int ldx,
+            cref<a_T> a, cptr<B_T> B_in,    const Int ldB,
+            cref<b_T> b, mptr<X_T> X_inout, const Int ldX,
             const Real relative_tolerance,
             const Int  max_restarts,
             // We force the use to actively request that the initial guess is used,
@@ -122,14 +127,14 @@ namespace Tensors
             //
             // They may return something, but the returned value is ignored.
             
-            std::string tag = ClassName() + "::operator<" + TypeName<b_T> + "," + TypeName<x_T> + ">()";
+            std::string tag = ClassName() + "::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
             ptic(tag);
             
             ptic(ClassName()+": Compute norm of right hand side.");
             
             // Compute norms of b.
-            x.Read( b_in, ldx, thread_count );
+            x.Read( B_in, ldX, thread_count );
             
             if constexpr ( side == Side::Left )
             {
@@ -154,9 +159,9 @@ namespace Tensors
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
                 ParallelDo(
-                    [x_inout,ldx,this]( const Int i )
+                    [X_inout,ldX,this]( const Int i )
                     {
-                        zerofy_buffer<EQ>( &x_inout[ldx * i], eq );
+                        zerofy_buffer<NRHS>( &X_inout[ldX * i], nrhs );
                     },
                     n, thread_count
                 );
@@ -177,7 +182,7 @@ namespace Tensors
             while( !succeeded && (restarts < max_restarts) )
             {
                 succeeded = Solve( 
-                    A, P, b_in, ldb, x_inout, ldx, relative_tolerance,
+                    A, P, a, B_in, ldB, b, X_inout, ldX, relative_tolerance,
                     use_initial_guessQ || (restarts > 0)
                 );
                 ++restarts;
@@ -195,19 +200,19 @@ namespace Tensors
     protected:
         
         template<
-        typename Operator_T, typename Preconditioner_T,
-            typename b_T, typename x_T
+            typename Operator_T, typename Preconditioner_T,
+            typename a_T, typename B_T, typename b_T, typename X_T
         >
         bool Solve(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cptr<b_T> b_in,       const Int ldb,
-            mptr<x_T> x_inout,    const Int ldx,
+            cref<a_T> a, cptr<B_T> B_in,    const Int ldB,
+            cref<b_T> b, mptr<X_T> X_inout, const Int ldX,
             const Real relative_tolerance,
             bool use_initial_guessQ
         )
         {
-            std::string tag = ClassName() + "::Solve<" + TypeName<b_T> + "," + TypeName<x_T> + ">";
+            std::string tag = ClassName() + "::Solve<" + TypeName<B_T> + "," + TypeName<X_T> + ">";
             
 //            ptic(tag);
             
@@ -217,8 +222,8 @@ namespace Tensors
             
             if( use_initial_guessQ )
             {
-                logprint( tag + ": Using x_inout as initial guess." );
-                x.Read( x_inout, ldx, thread_count );
+                logprint( tag + ": Using X_inout as initial guess." );
+                x.Read( X_inout, ldX, thread_count );
             }
             else
             {
@@ -233,16 +238,19 @@ namespace Tensors
                 {
                     // z = A.x - b;
                     ApplyOperator(A,x.data(),z.data());
-                    MulAdd<Scalar::Flag::Minus>( z.data(), eq, b_in, ldb, h );
+                    MulAdd<F_T::Minus>( z.data(), nrhs, B_in, ldB, h );
                 }
                 else
                 {
                     // z = -b
-                    combine_matrices<Scalar::Flag::Minus,Scalar::Flag::Zero,EQ,Parallel>
+                    combine_matrices<
+                        F_T::Minus,F_T::Zero,
+                        VarSize,NRHS,Parallel
+                    >
                     (
-                        -Scalar::One<Scal>, b_in,     ldb,
-                        Scalar::Zero<Scal>, z.data(), eq,
-                        n, eq, thread_count
+                        -Scalar::One<Scal>, B_in,     ldB,
+                        Scalar::Zero<Scal>, z.data(), nrhs,
+                        n, nrhs, thread_count
                     );
                 }
                 
@@ -259,16 +267,19 @@ namespace Tensors
                 {
                     // Q[0] = A.x-b
                     ApplyOperator(A,x.data(),Q.data(0));
-                    MulAdd<Scalar::Flag::Minus>( Q.data(0), eq, b_in, ldb, h );
+                    MulAdd<F_T::Minus>( Q.data(0), nrhs, B_in, ldB, h );
                 }
                 else
                 {
                     // Q[0] = -b
-                    combine_matrices<Scalar::Flag::Minus,Scalar::Flag::Zero,EQ,Parallel>
+                    combine_matrices<
+                        F_T::Minus,F_T::Zero,
+                        VarSize,NRHS,Parallel
+                    >
                     (
-                        -Scalar::One<Scal>, b_in,      ldb,
-                        Scalar::Zero<Scal>, Q.data(0), eq,
-                        n, eq, thread_count
+                        -Scalar::One<Scal>, B_in,      ldB,
+                        Scalar::Zero<Scal>, Q.data(0), nrhs,
+                        n, nrhs, thread_count
                     );
                 }
             }
@@ -311,9 +322,9 @@ namespace Tensors
             
             Tensor2<Scal,Int> H_mat    (iter,iter);
             Tensor1<Scal,Int> beta_vec (iter);
-            Tensor2<Scal,Int> y        (iter,eq);
+            Tensor2<Scal,Int> y        (iter,nrhs);
             
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
             {
                 for( Int i = 0; i < iter; ++i )
                 {
@@ -352,7 +363,7 @@ namespace Tensors
                         cptr<Scal> Q_ji = Q.data(j,i);
                         cptr<Scal> y_j  = y.data(j);
                         
-                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                        for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                         {
                             z_i[k] += y_j[k] * Q_ji[k];
                         }
@@ -375,16 +386,24 @@ namespace Tensors
             
             if( use_initial_guessQ )
             {
-                //x_inout = x_inout - x
-                combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Plus,VarSize,Parallel>(
-                    -Scalar::One<Real>, x.data(), Scalar::One<Real>, x_inout, n * eq, thread_count
+                // solution = X_inout - x.
+                // We return a * solution + b * X_inout = -a * x + (b+1) * X_inout
+                combine_matrices<F_T::Generic,F_T::Generic,VarSize,NRHS,Parallel>(
+                    -a,          x.data(), nrhs,
+                     b + b_T(1), X_inout,  ldX,
+                    n, nrhs, thread_count
                 );
             }
             else
             {
-                //x_inout = - x
-                combine_buffers<Scalar::Flag::Minus,Scalar::Flag::Zero,VarSize,Parallel>(
-                    -Scalar::One<Real>, x.data(), Scalar::Zero<Real>, x_inout, n * eq, thread_count
+                // solution = - x. (X_inout is implicitely assumed to be 0)
+                // We return a * solution + b * X_inout = -a * x
+                
+                //X_inout = - x
+                combine_matrices<F_T::Generic,F_T::Zero,VarSize,NRHS,Parallel>(
+                    -a,                 x.data(), nrhs,
+                    Scalar::Zero<Real>, X_inout,  ldX,
+                    n, nrhs, thread_count
                 );
             }
             
@@ -471,13 +490,13 @@ namespace Tensors
                     ComputeScalarProducts( Q.data(i), q, h );
                     
                     // H[i] += h;
-                    for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++ k )
+                    for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++ k )
                     {
                         H(i,iter,k) += h[k];
                     }
                     
                     // Q[iter+1] -= Q[i] * h;
-                    MulAdd<Scalar::Flag::Minus>( q, eq, Q.data(i), eq, h );
+                    MulAdd<F_T::Minus>( q, nrhs, Q.data(i), nrhs, h );
                 }
             }
             ptoc(ClassName()+" Gram-Schmidt");
@@ -486,7 +505,7 @@ namespace Tensors
             ComputeNorms( q, q_norms );
             
             // H[iter+1][iter] += q_norms;
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++ k )
+            for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++ k )
             {
                 H(iter+1,iter,k) = q_norms[k];
             }
@@ -503,7 +522,7 @@ namespace Tensors
             
             for( Int i = 0; i < iter; ++ i )
             {
-                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                 {
                     const Scal xi  = H(i  ,iter,k);
                     const Scal eta = H(i+1,iter,k);
@@ -517,7 +536,7 @@ namespace Tensors
             }
             
             {
-                for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                 {
                     const Scal xi  = H(iter  ,iter,k);
                     const Scal eta = H(iter+1,iter,k);
@@ -564,26 +583,26 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    RealVector_T sums ( eq );
+                    RealVector_T sums ( nrhs );
                     
                     sums.SetZero();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                        for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                         {
-                            sums[k] += AbsSquared(v[(EQ>VarSize ? EQ : eq) * i + k]);
+                            sums[k] += AbsSquared(v[(NRHS>VarSize ? NRHS : nrhs) * i + k]);
                         }
                     }
                     
-                    sums.Write( &real_reduction_buffer[thread][0] );
+                    sums.Write( &real_red_buf[thread][0] );
                 },
                 thread_count
             );
             
-            real_reduction_buffer.AddReduce( norms.data(), false );
+            real_red_buf.AddReduce( norms.data(), false );
             
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
             {
                 norms[k] = Sqrt( norms[k] );
             }
@@ -601,29 +620,29 @@ namespace Tensors
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
-                    Vector_T sums ( eq );
+                    Vector_T sums ( nrhs );
                     
                     sums.SetZero();
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                        for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                         {
-                            sums[k] += Conj(v[(EQ>VarSize ? EQ : eq) * i + k]) * w[(EQ>VarSize ? EQ : eq) * i + k];
+                            sums[k] += Conj(v[(NRHS>VarSize ? NRHS : nrhs) * i + k]) * w[(NRHS>VarSize ? NRHS : nrhs) * i + k];
                         }
                     }
                     
-                    sums.Write( &reduction_buffer[thread][0] );
+                    sums.Write( &red_buf[thread][0] );
                 },
                 thread_count
             );
             
-            reduction_buffer.AddReduce( dots.data(), false );
+            red_buf.AddReduce( dots.data(), false );
             
 //            ptoc(ClassName()+"::ComputeScalarProducts");
         }
         
-        template<Scalar::Flag flag>
+        template<F_T flag>
         void MulAdd( 
             mptr<Scal> v, const Int ldv,
             cptr<Scal> w, const Int ldw,
@@ -634,12 +653,12 @@ namespace Tensors
             ParallelDo(
                 [this,v,ldv,w,ldw,&factors]( const Int i )
                 {
-                    for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                    for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                     {
                         mptr<Scal> v_i = &v[ldv * i];
                         cptr<Scal> w_i = &w[ldw * i];
                         
-                        if constexpr ( flag == Scalar::Flag::Minus )
+                        if constexpr ( flag == F_T::Minus )
                         {
                             v_i[k] -= w_i[k] * factors[k];
                         }
@@ -662,9 +681,9 @@ namespace Tensors
             ParallelDo(
                 [this,q,&factors]( const Int thread )
                 {
-                    RealVector_T factors_inv ( eq );
+                    RealVector_T factors_inv ( nrhs );
                     
-                    for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                    for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                     {
                         factors_inv[k] = Inv( factors[k] );
                     }
@@ -674,9 +693,9 @@ namespace Tensors
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+                        for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                         {
-                            q[(EQ>VarSize ? EQ : eq) * i + k] *= factors_inv[k];
+                            q[(NRHS>VarSize ? NRHS : nrhs) * i + k] *= factors_inv[k];
                         }
                     }
                 },
@@ -705,9 +724,9 @@ namespace Tensors
         
         RealVector_T Residuals() const
         {
-            RealVector_T res ( eq );
+            RealVector_T res ( nrhs );
             
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
             {
                 res[k] = std::abs(beta[iter][k]);
             }
@@ -717,9 +736,9 @@ namespace Tensors
         
         RealVector_T RelativeResiduals() const
         {
-            RealVector_T res ( eq );
+            RealVector_T res ( nrhs );
             
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
             {
                 res[k] = Abs(beta[iter][k]) / b_norms[k];
             }
@@ -730,7 +749,7 @@ namespace Tensors
         {
             bool succeeded = true;
             
-            for( Int k = 0; k < (EQ>VarSize ? EQ : eq); ++k )
+            for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
             {
                 succeeded = succeeded && (Abs(beta[iter][k]) <= TOL[k]);
             }
@@ -751,7 +770,7 @@ namespace Tensors
         std::string ClassName() const
         {
             return std::string(
-                "GMRES<"+ToString(EQ)+","+TypeName<Scal>+","+TypeName<Int>+","+(side==Side::Left ? "Left" : "Right")+">(" + ToString(eq) + ")"
+                "GMRES<"+ToString(NRHS)+","+TypeName<Scal>+","+TypeName<Int>+","+(side==Side::Left ? "Left" : "Right")+">(" + ToString(nrhs) + ")"
             );
         }
     }; // class GMRES

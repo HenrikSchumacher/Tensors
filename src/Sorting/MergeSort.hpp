@@ -241,8 +241,8 @@ namespace Tensors
             last_row_begin      = (Size_T(1) << Depth(node_count-1)) - 1;
             offset              = node_count - interior_node_count - last_row_begin;
             
-            node_begin.RequireSize( node_count );
-            node_end.RequireSize( node_count );
+            node_begin.RequireSize<false>( node_count );
+            node_end  .RequireSize<false>( node_count );
 
             // TODO: Can we somehow avoid the use of node_begin and node_end?
             

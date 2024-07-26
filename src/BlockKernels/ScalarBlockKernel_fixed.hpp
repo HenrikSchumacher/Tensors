@@ -3,7 +3,7 @@
 #define CLASS ScalarBlockKernel_fixed
 
 #define BASE  BlockKernel_fixed<                            \
-    ROWS_,COLS_,RHS_COUNT_,fixed,                           \
+    ROWS_,COLS_,NRHS_,fixed,                           \
     Scal_,Scal_in_,Scal_out_,                               \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
@@ -15,7 +15,7 @@
 namespace Tensors
 {
     template<
-        int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
+        int ROWS_, int COLS_, int NRHS_, bool fixed,
         typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
@@ -40,7 +40,7 @@ namespace Tensors
         using BASE::COLS;
         using BASE::ROWS_SIZE;
         using BASE::COLS_SIZE;
-        using BASE::RHS_COUNT;
+        using BASE::NRHS;
         
         using BASE::FMA;
         
@@ -58,7 +58,7 @@ namespace Tensors
         using BASE::ReadX;
         using BASE::get_x;
         using BASE::get_y;
-        using BASE::rhs_count;
+        using BASE::nrhs;
         
     public:
         
@@ -72,9 +72,9 @@ namespace Tensors
             cptr<Scal> A_,
             cref<Scal_out> alpha_, cptr<Scal_in>  X_,
             cref<Scal_out> beta_,  mptr<Scal_out> Y_,
-            const Int      rhs_count_
+            const Int      nrhs_
         )
-        :   BASE( A_, alpha_, X_, beta_, Y_, rhs_count_ )
+        :   BASE( A_, alpha_, X_, beta_, Y_, nrhs_ )
         {}
         
         // Copy constructor
@@ -104,7 +104,7 @@ namespace Tensors
             for( Int j = 0; j < COLS; ++j )
             {
                 LOOP_UNROLL_FULL
-                for( Int k = 0; k < RHS_COUNT; ++k )
+                for( Int k = 0; k < NRHS; ++k )
                 {
                     FMA( a, get_x(j,k), get_y(j,k) );
                 }
@@ -119,7 +119,7 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+ToString(RHS_COUNT)
+            +","+ToString(NRHS)
             +","+ToString(fixed)
             +","+TypeName<Scal>
             +","+TypeName<Scal_in>

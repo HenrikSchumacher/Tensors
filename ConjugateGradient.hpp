@@ -11,7 +11,7 @@ namespace Tensors
     
     // Scal_ is the floating point type that is used internally.
     
-    template<Size_T EQ_COUNT, typename Scal_, typename Int_,
+    template<Size_T NRHS_, typename Scal_, typename Int_,
         bool A_verboseQ = true, bool P_verboseQ = true
     >
     class ConjugateGradient
@@ -22,7 +22,7 @@ namespace Tensors
         using Real     = Scalar::Real<Scal>;
         using Int      = Int_;
         
-        static constexpr Int EQ = int_cast<Int>(EQ_COUNT);
+        static constexpr Int NRHS = int_cast<Int>(NRHS_);
         
         using RealVector_T = Tensor1<Real,Int>;
 
@@ -30,7 +30,7 @@ namespace Tensors
         
         const Int n;
         const Int max_iter;
-        const Int eq;
+        const Int nrhs;
         const Int thread_count;
         
         Tensor2<Scal,Int> r;
@@ -60,40 +60,42 @@ namespace Tensors
         ConjugateGradient(
             const Int n_,
             const Int max_iter_,
-            const Size_T eq_count_ = EQ,
+            const Size_T eq_count_ = NRHS,
             const Size_T thread_count_ = 1
         )
         :   n               ( n_                                    )
         ,   max_iter        ( Min(max_iter_,n)                      )
-        ,   eq              ( ( EQ > VarSize ? EQ : static_cast<Int>(eq_count_ ) )  )
+        ,   nrhs            ( ( NRHS > VarSize ? NRHS : static_cast<Int>(eq_count_ ) )  )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
-        ,   r               ( n, eq                                 )
-        ,   u               ( n, eq                                 )
-        ,   p               ( n, eq                                 )
-        ,   x               ( n, eq                                 )
-        ,   z               ( n, eq                                 )
-        ,   reduction_buffer( thread_count, eq                      )
-        ,   TOL             ( eq                                    )
-        ,   b_squared_norms ( eq                                    )
-        ,   alpha           ( eq                                    )
-        ,   beta            ( eq                                    )
-        ,   rho             ( eq                                    )
-        ,   rho_old         ( eq                                    )
+        ,   r               ( n, nrhs                               )
+        ,   u               ( n, nrhs                               )
+        ,   p               ( n, nrhs                               )
+        ,   x               ( n, nrhs                               )
+        ,   z               ( n, nrhs                               )
+        ,   reduction_buffer( thread_count, nrhs                    )
+        ,   TOL             ( nrhs                                  )
+        ,   b_squared_norms ( nrhs                                  )
+        ,   alpha           ( nrhs                                  )
+        ,   beta            ( nrhs                                  )
+        ,   rho             ( nrhs                                  )
+        ,   rho_old         ( nrhs                                  )
         ,   job_ptr         ( n, thread_count                       )
         {}
         
         
         ~ConjugateGradient() = default;
         
+        // Computes X_inout <- a * A^{-1} . B_in + b * X_inout via CG method.
+        // Uses P as precondition, i.e., P should be a proxy of A^{-1}.
         template<
             typename Operator_T, typename Preconditioner_T,
-            typename b_T,        typename x_T
+            typename a_T, typename B_T, typename b_T, typename X_T
         >
         bool operator()(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cptr<b_T> b_in,    const Int ldb,
-            mptr<x_T> x_inout, const Int ldx,
+            cref<a_T> a, cptr<B_T> B_in,    const Int ldB,
+            cref<b_T> b, mptr<X_T> X_inout, const Int ldX,
             const Real relative_tolerance,
             // We force the use to actively request that the initial guess is used,
             // because this is a common source of bugs.
@@ -102,23 +104,41 @@ namespace Tensors
         {
             // `A` and `P` must be a functions or lambda with prototypes
             //
-            // `A( cptr<Scal> x, mptr<Scal> y)`
+            // `A( cptr<Scal> v, mptr<Scal> w)`
             //
             // and
             //
-            // `P( cptr<Scal> x, mptr<Scal> y)`
+            // `P( cptr<Scal> v, mptr<Scal> w)`
             //
             // They may return something, but the returned value is ignored.
             
-            std::string tag = ClassName() + "::operator<" + TypeName<b_T> + "," + TypeName<x_T> + ">()";
+            std::string tag = ClassName() + "::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
             ptic(tag);
-            
+
             iter = 0;
             bool succeeded = false;
             
+            if( a == a_T(0) )
+            {
+                wprint(tag + ": Factor a is 0. Returning b * X_inout");
+
+                scale_matrix<VarSize,NRHS,Parallel>(
+                    b, X_inout, ldX, n, nrhs, thread_count
+                );
+                
+                succeeded = true;
+
+                logvalprint( tag + " iter"      , iter      );
+                logvalprint( tag + " succeeded" , succeeded );
+                
+                ptoc(tag);
+                
+                return succeeded;
+            }
+            
             // r = b
-            r.Read( b_in, ldx, thread_count );
+            r.Read( B_in, ldX, thread_count );
             
             ptic(ClassName()+": Compute norm of right hand side.");
             
@@ -129,7 +149,7 @@ namespace Tensors
             ComputeScalarProducts( r, z, rho );
             
             Real factor = relative_tolerance * relative_tolerance;
-            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+            for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
             {
                 b_squared_norms[k] = std::abs(rho[k]);
                 TOL[k] = b_squared_norms[k] * factor;
@@ -139,10 +159,14 @@ namespace Tensors
             
             if( TOL.Max() <= Scalar::Zero<Scal> )
             {
-                zerofy_matrix<EQ,Parallel>(x_inout, ldx, n, eq, thread_count);
+                wprint(tag + ": Right-hand side is 0. Returning b * X_inout");
+
+                scale_matrix<VarSize,NRHS,Parallel>( 
+                    b, X_inout, ldX, n, nrhs, thread_count
+                );
                 
-                wprint(tag + ": Right-hand side is 0. Returning zero vector.");
-                
+                succeeded = true;
+
                 logvalprint( tag + " iter"      , iter      );
                 logvalprint( tag + " succeeded" , succeeded );
                 
@@ -156,7 +180,7 @@ namespace Tensors
             {
                 logprint( tag + ": Input x_inout is nonzero. Using it as initial guess." );
                 
-                x.Read( x_inout, ldx, thread_count );
+                x.Read( X_inout, ldX, thread_count );
                 
                 // u = A.x
                 ApplyOperator(A,x,u);
@@ -168,7 +192,7 @@ namespace Tensors
                         mptr<Scal> r_i = r.data(i);
                         cptr<Scal> u_i = u.data(i);
                         
-                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                        for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                         {
 //                            r[i][k] -= u[i][k];
                             r_i[k] -= u_i[k];
@@ -181,7 +205,7 @@ namespace Tensors
             // z = P.r
             ApplyPreconditioner(P,r,z);
             
-            p.Read( z.data(), eq, thread_count );
+            p.Read( z.data(), nrhs, thread_count );
             
             // rho = r.z
             ComputeScalarProducts( r, z, rho );
@@ -195,7 +219,7 @@ namespace Tensors
                 
                 // alpha = rho / (p.u);
                 ComputeScalarProducts( p, u, alpha );
-                for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                 {
                     alpha[k] = rho[k] / alpha[k];
                 }
@@ -214,7 +238,7 @@ namespace Tensors
                             cptr<Scal> p_i = p.data(i);
                             cptr<Scal> u_i = u.data(i);
                             
-                            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                            for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                             {
     //                            x[i][k]  = alpha[k] * p[i][k];
     //                            r[i][k] -= alpha[k] * u[i][k];
@@ -237,7 +261,7 @@ namespace Tensors
                             cptr<Scal> p_i = p.data(i);
                             cptr<Scal> u_i = u.data(i);
                             
-                            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                            for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                             {
     //                            x[i][k] += alpha[k] * p[i][k];
     //                            r[i][k] -= alpha[k] * u[i][k];
@@ -260,7 +284,7 @@ namespace Tensors
                 ComputeScalarProducts( r, z, rho );
                 
                 // beta = rho / rho_old;
-                for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                 {
                     beta[k] = rho[k] / rho_old[k];
                 }
@@ -273,7 +297,7 @@ namespace Tensors
                         mptr<Scal> p_i = p.data(i);
                         cptr<Scal> z_i = z.data(i);
                         
-                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                        for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                         {
 //                            p[i][k] = z[i][k] + beta[k] * p[i][k];
                             
@@ -287,7 +311,15 @@ namespace Tensors
                 ++iter;
             }
             
-            x.Write( x_inout, ldx, thread_count );
+            
+            combine_matrices<
+                Scalar::Flag::Generic,Scalar::Flag::Generic,
+                VarSize,NRHS,Parallel
+            >(
+                a, x.data(), nrhs, 
+                b, X_inout,  ldX,
+                n, nrhs, thread_count
+            );
             
             logvalprint( tag + " iter"      , iter      );
             logvalprint( tag + " succeeded" , succeeded );
@@ -320,7 +352,7 @@ namespace Tensors
         
         template<typename Preconditioner_T>
         void ApplyPreconditioner(
-            mref<Preconditioner_T> P, cref<Tensor2<Scal,Int>> X, mref<Tensor2<Scal,Int>> Y
+            mref<Preconditioner_T> P, cref<Tensor2<Scal,Int>> v, mref<Tensor2<Scal,Int>> w
         )
         {
             if constexpr ( P_verboseQ )
@@ -328,7 +360,7 @@ namespace Tensors
                 ptic(ClassName()+ "::ApplyPreconditioner");
             }
             
-            (void)P( X.data(), Y.data() );
+            (void)P( v.data(), w.data() );
             
             
             if constexpr ( P_verboseQ )
@@ -360,7 +392,7 @@ namespace Tensors
                         cptr<Scal> v_i = v.data(i);
                         cptr<Scal> w_i = w.data(i);
                         
-                        for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+                        for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                         {
                             // We know that all scalar products that we compute have to be real-valued.
 //                            sums[k] += Re(Conj(v[i][k]) * w[i][k]);
@@ -393,9 +425,9 @@ namespace Tensors
         
         RealVector_T Residuals() const
         {
-            RealVector_T res (eq);
+            RealVector_T res (nrhs);
             
-            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+            for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) );
             }
@@ -405,9 +437,9 @@ namespace Tensors
         
         RealVector_T RelativeResiduals() const
         {
-            RealVector_T res(eq);
+            RealVector_T res(nrhs);
             
-            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+            for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
             {
                 res[k] = Sqrt( Abs(rho[k]) / b_squared_norms[k] );
             }
@@ -418,7 +450,7 @@ namespace Tensors
         {
             bool succeeded = true;
             
-            for( Int k = 0; k < ((EQ>VarSize) ? EQ : eq); ++k )
+            for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
             {
                 succeeded = succeeded && ( Abs(rho[k]) <= TOL[k]);
             }
@@ -429,12 +461,12 @@ namespace Tensors
         std::string ClassName() const
         {
             return std::string( "ConjugateGradient")
-                + "<" + ToString(EQ)
+                + "<" + ToString(NRHS)
                 + "," + TypeName<Scal>
                 + "," + TypeName<Int>
                 + "," + ToString(A_verboseQ)
                 + "," + ToString(P_verboseQ)
-                + "> (" + ToString(eq) + ")";
+                + "> (" + ToString(nrhs) + ")";
         }
         
     }; // class ConjugateGradient

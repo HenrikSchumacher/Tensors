@@ -334,7 +334,7 @@ protected:
     void SN_UpperSolve()
     {
         // Solves U * X = B and stores the result back into B.
-        // Assumes that B has size n x rhs_count.
+        // Assumes that B has size n x nrhs.
         
         using Solver_T = UpperSolver<mult_rhsQ,Scal,Int,LInt>;
         
@@ -374,7 +374,7 @@ protected:
     void SN_LowerSolve()
     {
         // Solves L * X = B and stores the result back into B.
-        // Assumes that B has size n x rhs_count.
+        // Assumes that B has size n x nrhs.
         
         // Use locks if run in parallel.
         using Solver_T = LowerSolver<mult_rhsQ,( parQ == Parallel ? true : false),Scal,Int,LInt>;
