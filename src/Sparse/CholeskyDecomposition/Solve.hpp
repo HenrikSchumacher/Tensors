@@ -1,16 +1,34 @@
 public:
 
-    template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
-    void Solve( 
-        cptr<ExtScal> B,     const Int ldB,
-        mptr<ExtScal> X_out, const Int ldX,
-        const Int nrhs_ = ione 
+// TODO: Overloads for UpperSolve
+
+// TODO: Overloads for LowerSolve
+
+//####################################################################################
+//####          Solve
+//####################################################################################
+
+
+    // The most general Solve routine that is exposed to the user.
+    // It loads the inputs, runs the actual solver, and writes the outputs.
+
+    // Evaluate X = alpha * op(A)^{-1} . B + beta * X
+    template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
+    >
+    void Solve(
+        cref<a_T> alpha, cptr<B_T> B,     const Int ldB,
+        cref<b_T> beta,  mptr<X_T> X_out, const Int ldX,
+        const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
     )
     {
-        const std::string tag = ClassName() + "::Solve<"
-            + (parQ == Parallel ? "Parallel" : "Sequential") + ","
-            + ( op==Op::Id ? "N" : (op==Op::Trans ? "T" : (op==Op::ConjTrans ? "H" : "N/A" ) ) ) + ","
-            + TypeName<ExtScal>
+        const std::string tag = ClassName() + "::Solve"
+            + "<" + ToString(VarSize)
+            + "," + ToString(parQ)
+            + "," + ToString(op)
+            + "," + TypeName<a_T>
+            + "," + TypeName<B_T>
+            + "," + TypeName<b_T>
+            + "," + TypeName<X_T>
             + "> ( " + ToString(ldB) + "," + ToString(ldX) + "," + ToString(nrhs_) + " )";
         
         static_assert(
@@ -18,9 +36,19 @@ public:
             "Solve with Op::Trans not implemented for scalar of complex type."
         );
         ptic(tag);
-        // No problem if X_ and B overlap, since we load B into X anyways.
+        // No problem if X_out and B overlap, since we load B into X anyways.
         
-        ReadRightHandSide( B, ldB, nrhs_ );
+        if constexpr ( NRHS > VarSize )
+        {
+            if( nrhs_ != NRHS )
+            {
+                eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
+                ptoc(tag);
+                return;
+            }
+        }
+        
+        ReadRightHandSide<NRHS>( B, ldB, nrhs_ );
         
         if( nrhs == ione )
         {
@@ -44,38 +72,140 @@ public:
                 SN_Solve<true,Sequential,op>();
             }
         }
-        
-        WriteSolution( X_out, ldX );
-        
+
+        WriteSolution<NRHS>( alpha, beta, X_out, ldX );
+
         ptoc(tag);
     }
 
-    template<Parallel_T parQ = Sequential, Op op = Op::Id, typename ExtScal>
+    // Evaluate X = op(A)^{-1} . B
+    template<
+        Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id,
+        typename B_T, typename X_T
+    >
     void Solve(
-        cptr<ExtScal> B,
-        mptr<ExtScal> X_out,
-        const Int nrhs_ = ione
+        cptr<B_T> B,
+        mptr<X_T> X_out,
+        const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
     )
     {
-        Solve<parQ,op>( B, nrhs_, X_out, nrhs_, nrhs_ );
+        Solve<NRHS,parQ,op>(
+            Scalar::One <X_T>, B,     nrhs_,
+            Scalar::Zero<X_T>, X_out, nrhs_,
+            nrhs_
+        );
+    }
+
+    // Evaluate X = alpha * op(A)^{-1} . B + beta * X
+    template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T,
+        typename B_I, typename X_I
+    >
+    void Solve(
+        cref<a_T> alpha, cref<Tensor2<B_T,B_I>> B,
+        cref<b_T> beta,  mref<Tensor2<X_T,X_I>> X_out
+    )
+    {
+        
+        if ( B.Dimension(0) < RowCount() )
+        {
+            eprint( ClassName() + "::Solve: B.Dimension(0) < RowCount(). Aborting");
+            return;
+        }
+        
+        if ( X_out.Dimension(0) < RowCount() )
+        {
+            eprint( ClassName() + "::Solve: X.Dimension(0) < RowCount(). Aborting");
+            return;
+        }
+        
+        if ( B.Dimension(1) != X_out.Dimension(1) )
+        {
+            eprint( ClassName() + "::Solve: B.Dimension(1) != B.Dimension(1).");
+            return;
+        }
+        
+        const Int ldB = int_cast<Int>(B.Dimension(1));
+        const Int ldX = int_cast<Int>(X_out.Dimension(1));
+        
+        Solve<NRHS,parQ,op>(
+            alpha, B.data(),     ldB,
+            beta,  X_out.data(), ldX,
+            ldX
+        );
+    }
+
+    // Evaluate X = alpha * op(A)^{-1} . B + beta * X
+    template<Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T,
+        typename B_I, typename X_I
+    >
+    void Solve(
+        cref<a_T> alpha, cref<Tensor1<B_T,B_I>> B,
+        cref<b_T> beta,  mref<Tensor1<X_T,X_I>> X_out
+    )
+    {
+        
+        if ( B.Dimension(0) < RowCount() )
+        {
+            eprint( ClassName() + "::Solve: B.Dimension(0) < RowCount(). Aborting");
+            return;
+        }
+        
+        if ( X_out.Dimension(0) < RowCount() )
+        {
+            eprint( ClassName() + "::Solve: X.Dimension(0) < RowCount(). Aborting");
+            return;
+        }
+        
+        constexpr Int NRHS = 1;
+        
+        Solve<NRHS,parQ,op>(
+            alpha, B.data(),     NRHS,
+            beta,  X_out.data(), NRHS
+        );
     }
 
 
-    template<Parallel_T parQ = Sequential, typename ExtScal>
-    void UpperSolve( 
-        cptr<ExtScal> B,     const Int ldB,
-        mptr<ExtScal> X_out, const Int ldX,
-        const Int nrhs_ = ione )
-    {
-        const std::string tag = ClassName() + "::UpperSolve<"
-            + (parQ == Parallel ? "Parallel" : "Sequential") + ","
-            + TypeName<ExtScal>
-            + "> ( " + ToString(nrhs_) + " )";
+//####################################################################################
+//####          UpperSolve
+//####################################################################################
 
-        ptic(tag);
-        // No problem if X_ and B overlap, since we load B into X anyways.
+    // Evaluate X = alpha * op(U)^{-1} . B + beta * X
+    template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
+    >
+    void UpperSolve(
+        cref<a_T> alpha, cptr<B_T> B,     const Int ldB,
+        cref<b_T> beta,  mptr<X_T> X_out, const Int ldX,
+        const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
+    )
+    {
+        const std::string tag = ClassName() + "::UpperSolve"
+            + "<" + ToString(VarSize)
+            + "," + ToString(parQ)
+            + "," + ToString(op)
+            + "," + TypeName<a_T>
+            + "," + TypeName<B_T>
+            + "," + TypeName<b_T>
+            + "," + TypeName<X_T>
+            + "> ( " + ToString(ldB) + "," + ToString(ldX) + "," + ToString(nrhs_) + " )";
         
-        ReadRightHandSide( B, ldB, nrhs_ );
+        static_assert(
+            Scalar::RealQ<Scal> || op != Op::Trans,
+            "UpperSolve with Op::Trans not implemented for scalar of complex type."
+        );
+        ptic(tag);
+        // No problem if X_out and B overlap, since we load B into X anyways.
+        
+        if constexpr ( NRHS > VarSize )
+        {
+            if( nrhs_ != NRHS )
+            {
+                eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
+                ptoc(tag);
+                return;
+            }
+        }
+        
+        ReadRightHandSide<NRHS>( B, ldB, nrhs_ );
         
         if( nrhs == ione )
         {
@@ -99,75 +229,81 @@ public:
                 SN_UpperSolve<true,Sequential>();
             }
         }
-        
-        WriteSolution( X_out, ldX );
-        
+
+        WriteSolution<NRHS>( alpha, beta, X_out, ldX );
+
         ptoc(tag);
     }
 
-    template<Parallel_T parQ = Sequential, typename ExtScal>
-    void UpperSolve(
-        cptr<ExtScal> B,
-        mptr<ExtScal> X_out,
-        const Int nrhs_ = ione 
-    )
-    {
-        UpperSolve<parQ>( B, nrhs_, X_out, nrhs_, nrhs_ );
-    }
+//####################################################################################
+//####          LowerSolve
+//####################################################################################
 
-    template<Parallel_T parQ = Sequential, typename ExtScal>
-    void LowerSolve( 
-        cptr<ExtScal> B,     const Int ldB,
-        mptr<ExtScal> X_out, const Int ldX,
-        const Int nrhs_ = ione
+    // Evaluate X = alpha * op(L)^{-1} . B + beta * X
+    template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
+    >
+    void LowerSolve(
+        cref<a_T> alpha, cptr<B_T> B,     const Int ldB,
+        cref<b_T> beta,  mptr<X_T> X_out, const Int ldX,
+        const Int nrhs_ = ((NRHS > VarSize) ? NRHS : ione )
     )
     {
-        const std::string tag = ClassName() + "::LowerSolve<"
-            + (parQ == Parallel ? "Parallel" : "Sequential") + ","
-            + TypeName<ExtScal>
-            + "> ( " + ToString(nrhs_) + " )";
+        const std::string tag = ClassName() + "::LowerSolve"
+            + "<" + ToString(VarSize)
+            + "," + ToString(parQ)
+            + "," + ToString(op)
+            + "," + TypeName<a_T>
+            + "," + TypeName<B_T>
+            + "," + TypeName<b_T>
+            + "," + TypeName<X_T>
+            + "> ( " + ToString(ldB) + "," + ToString(ldX) + "," + ToString(nrhs_) + " )";
         
+        static_assert(
+            Scalar::RealQ<Scal> || op != Op::Trans,
+            "LowerSolve with Op::Trans not implemented for scalar of complex type."
+        );
         ptic(tag);
-        // No problem if X_ and B overlap, since we load B into X anyways.
         
-        ReadRightHandSide( B, ldB, nrhs_ );
+        // No problem if X_out and B overlap, since we load B into X anyways.
+        
+        if constexpr ( NRHS > VarSize )
+        {
+            if( nrhs_ != NRHS )
+            {
+                eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
+                ptoc(tag);
+                return;
+            }
+        }
+        
+        ReadRightHandSide<NRHS>( B, ldB, nrhs_ );
         
         if( nrhs == ione )
         {
             if( thread_count > 1 )
             {
-                SN_LowerSolve<false,parQ>();
+                SN_UpperSolve<false,parQ>();
             }
             else
             {
-                SN_LowerSolve<false,Sequential>();
+                SN_UpperSolve<false,Sequential>();
             }
         }
         else
         {
             if( thread_count > 1 )
             {
-                SN_LowerSolve<true,parQ>();
+                SN_UpperSolve<true,parQ>();
             }
             else
             {
-                SN_LowerSolve<true,Sequential>();
+                SN_UpperSolve<true,Sequential>();
             }
         }
-        
-        WriteSolution( X_out, ldX );
-        
-        ptoc(tag);
-    }
 
-    template<Parallel_T parQ = Sequential, typename ExtScal>
-    void LowerSolve(
-        cptr<ExtScal> B,
-        mptr<ExtScal> X_out,
-        const Int nrhs_ = ione
-    )
-    {
-        LowerSolve<parQ>( B, nrhs_, X_out, nrhs_, nrhs_ );
+        WriteSolution<NRHS>( alpha, beta, X_out, ldX );
+
+        ptoc(tag);
     }
 
 //####################################################################################
@@ -175,6 +311,8 @@ public:
 //####################################################################################
 
 protected:
+
+    // These are the internal solve commands.
 
 
     template<bool mult_rhsQ, Parallel_T parQ = Sequential, Op op = Op::Id>
@@ -191,7 +329,6 @@ protected:
             SN_LowerSolve<mult_rhsQ,parQ>();
         }
     }
-
 
     template<bool mult_rhsQ, Parallel_T parQ = Sequential>
     void SN_UpperSolve()
@@ -257,7 +394,9 @@ protected:
         const Int use_threads = ( parQ == Parallel) ? thread_count : 1;
         
         ptic("Initialize solvers");
-        std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
+        std::vector<std::unique_ptr<Solver_T>> F_list ( 
+            int_cast<Size_T>(use_threads)
+        );
         
         Do<VarSize,parQ>(
             [&F_list,this]( const Int thread )

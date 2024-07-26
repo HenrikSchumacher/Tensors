@@ -96,12 +96,12 @@ namespace Tensors
                 assert_positive(n);
                 assert_positive(ldA);
                 
-                work.RequireSize( 1 );
+                work.RequireSize<false>( 1 );
                 work[0] = 0;
                 
                 if constexpr ( Scalar::ComplexQ<Scal> )
                 {
-                    rwork.RequireSize( 3 * n - 2 );
+                    rwork.RequireSize<false>( 3 * n - 2 );
                 }
                 
                 int info;
@@ -109,9 +109,9 @@ namespace Tensors
                 lwork = -1;
                 
                 // Request the required work space from LAPACK
-                eigs.RequireSize( n );
+                eigs.RequireSize<false>( n );
                 
-                A.RequireSize( n, n );
+                A.RequireSize<false>( n, n );
                 
                 A.Read( A_, ldA );
                 
@@ -119,7 +119,7 @@ namespace Tensors
                 
                 lwork = static_cast<int>(Re(work[0]));
                                 
-                work.RequireSize( lwork );
+                work.RequireSize<false>( lwork );
                 
                 return info;
             }

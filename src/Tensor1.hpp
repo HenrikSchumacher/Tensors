@@ -123,36 +123,14 @@ namespace Tensors
             return a[n-1];
         }
         
-        void Resize( const Int m_, const bool copy = true )
-        {
-//            ptic(ClassName()+"::Resize(" + ToString(m_) + ")");
-            const Int m = Tools::Ramp(m_);
-            
-            TENSOR_T b (m);
-            
-            if( copy )
-            {
-                if( m <= n )
-                {
-                    b.Read(a);
-                }
-                else
-                {
-                    Write(b.data());
-                }
-            }
-            
-            swap( *this, b );
-//            ptoc(ClassName()+"::Resize(" + ToString(m_) + ")");
-        }
-        
-        void Resize( const Int m_, const Int thread_count, const bool copy = true )
+        template<bool copy>
+        void Resize( const Int m_, const Int thread_count = 1 )
         {
             const Int m = Ramp(m_);
             
             TENSOR_T b (m);
             
-            if( copy )
+            if constexpr ( copy )
             {
                 if( m <= n )
                 {
@@ -167,19 +145,12 @@ namespace Tensors
             swap( *this, b );
         }
         
-        void RequireSize( const Int m, const bool copy = false )
+        template<bool copy>
+        void RequireSize( const Int m, const Int thread_count = 1 )
         {
             if( m > n )
             {
-                Resize( m, copy );
-            }
-        }
-        
-        void RequireSize( const Int m, const Int thread_count, const bool copy = false )
-        {
-            if( m > n )
-            {
-                Resize( m, thread_count, copy );
+                Resize<copy>( m, thread_count );
             }
         }
         
@@ -222,7 +193,7 @@ namespace Tensors
         
         void iota( const Int thread_count = 1 )
         {
-            iota_buffer( a, n, thread_count );
+            iota_buffer( a, int_cast<Size_T>(n), int_cast<Size_T>(thread_count) );
         }
         
     public:

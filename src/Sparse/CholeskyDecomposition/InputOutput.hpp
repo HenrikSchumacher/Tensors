@@ -4,47 +4,80 @@
 
 public:
 
-    template<typename ExtScal>
-    void ReadRightHandSide( cptr<ExtScal> B, const Int ldB, const Int nrhs_ = ione )
+    template<Size_T NRHS = VarSize, typename B_T>
+    void ReadRightHandSide( 
+        cptr<B_T> B, const Int ldB,
+        const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
+    )
     {
         nrhs = Max( ione, nrhs_ );
         
-        const std::string tag = ClassName() + "::ReadRightHandSide<" + TypeName<ExtScal> + "> (" + ToString(nrhs)+ ")";
+        const std::string tag = ClassName() + "::ReadRightHandSide<" + TypeName<B_T> + ">(" + ToString(nrhs)+ ")";
         
         ptic(tag);
         
-        if( X.Size() < static_cast<LInt>(n) * nrhs )
+        LInt full_size = static_cast<LInt>(n) * static_cast<LInt>(nrhs);
+        
+        if( X.Size() < full_size )
         {
-            X         = VectorContainer_T(static_cast<LInt>(n)*nrhs);
-            X_scratch = VectorContainer_T(static_cast<LInt>(max_n_1)*nrhs);
+            X         = VectorContainer_T(full_size);
+            X_scratch = VectorContainer_T(
+                static_cast<LInt>(max_n_1)*static_cast<LInt>(nrhs)
+            );
         }
 
-        if ( nrhs == ione )
-        {
-            perm.Permute( B, ldB, X.data(), nrhs, Inverse::False );
-        }
-        else
-        {
-            perm.Permute( B, ldB, X.data(), nrhs, Inverse::False, nrhs );
-        }
+//        perm.Permute( B, ldB, X.data(), nrhs, Inverse::False, nrhs );
+        
+        perm.template PermuteCombine<NRHS,Parallel>(
+            Scalar::One <Scal>, B,        ldB,
+            Scalar::Zero<Scal>, X.data(), nrhs,
+            Inverse::False, nrhs
+        );
         
         ptoc(tag);
     }
 
-    template<typename ExtScal>
-    void WriteSolution( mptr<ExtScal> X_, const Int ldX )
+    template<typename X_T>
+    void WriteSolution( mptr<X_T> X_, const Int ldX )
     {
-        const std::string tag = ClassName() + "::WriteSolution<" + TypeName<ExtScal> + "> (" + ToString(nrhs)+ ")";
+        const std::string tag = ClassName() + "::WriteSolution<" + TypeName<X_T> + "> (" + ToString(nrhs)+ ")";
+        
+        ptic(tag);
+        
+        perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True, nrhs );
+        
+        ptoc(tag);
+    }
+
+    template<Size_T NRHS = VarSize, typename a_T, typename b_T, typename Y_T>
+    void WriteSolution(
+        cref<a_T> alpha,
+        cref<b_T> beta,  mptr<Y_T> Y_, const Int ldY )
+    {
+        const std::string tag = ClassName() + "::WriteSolution"
+            + "<" + ToString(NRHS)
+            + "," + TypeName<a_T>
+            + "," + TypeName<b_T>
+            + "," + TypeName<Y_T>
+            + ">(" + ToString(nrhs)+ ")";
         
         ptic(tag);
         
         if ( nrhs == ione )
         {
-            perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True );
+            perm.template PermuteCombine<1,Parallel>(
+                alpha, X.data(), nrhs,
+                beta,  Y_,       ldY,
+                Inverse::True, nrhs
+            );
         }
         else
         {
-            perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True, nrhs );
+            perm.template PermuteCombine<NRHS,Parallel>(
+                alpha, X.data(), nrhs,
+                beta,  Y_,       ldY,
+                Inverse::True, nrhs
+            );
         }
         
         ptoc(tag);

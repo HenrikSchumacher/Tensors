@@ -430,18 +430,98 @@ namespace Tensors
             }
             ptoc(ClassName()+"::Compose");
         }
-        
-        template<typename S, typename T>
-        void Permute( 
-            cptr<S> X, const Size_T ldX,
-            mptr<T> Y, const Size_T ldY,
+
+        template<
+            Size_T COLS = VarSize, Parallel_T parQ = Sequential,
+            Op opx = Op::Id, Op opy = Op::Id,
+            typename a_T, typename X_T, typename b_T, typename Y_T
+        >
+        void PermuteCombine(
+            cref<a_T> alpha, cptr<X_T> X, const Size_T ldX,
+            cref<b_T> beta,  mptr<Y_T> Y, const Size_T ldY,
             const Inverse inverseQ,
-            Size_T chunk = Scalar::One<Size_T>
+            Size_T cols = COLS
         )
         {
-            // Permute X chunkwise into Y, i.e., Y[size*i+k] <- X[size*p[i]+k];
+            // Computes
+            //
+            //   Y[i] = alpha * X[ p[i] ] + beta * Y[i]
+            //
+            // or
+            //
+            //   Y[i] = alpha * X[ q[i] ] + beta * Y[i]
             
-            std::string tag = ClassName()+"::Permute ( " + (inverseQ == Inverse::True ? "inv, " : "id, " ) + ToString(chunk) + " )";
+            std::string tag = ClassName()+"::PermuteCombine"
+                + "," + ToString(COLS)
+                + "," + ToString(parQ)
+                + "," + ToString(opx)
+                + "," + ToString(opy)
+                + "," + TypeName<a_T>
+                + "," + TypeName<X_T>
+                + "," + TypeName<b_T>
+                + "," + TypeName<Y_T>
+                + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
+                + ToString(cols) + ")";
+            
+            ptic(tag);
+            
+            if( cols == Size_T(0) )
+            {
+                wprint( tag + ": cols == 0. Doing nothing." );
+                
+                ptoc(tag);
+            }
+//            // TODO: PermuteCombine
+            
+            if( (alpha != a_T(1)) || (beta != b_T(0)) )
+            {
+                wprint( tag + ": Arguments alpha and beta are ignored in the current implementation. It is assumes that alpha = 1 and beta = 0." );
+            }
+//
+//            Permute( X, ldX, Y, ldY, inverseQ, cols );
+            
+            // TODO: Figure out a_flag and b_flag.
+            
+            // TODO: Special case ldX = 1 and ldY = 1
+            
+            // TODO: Special case trivial permutation.
+            
+            
+            Invert( inverseQ );
+            
+            cptr<Int> r = GetPermutation().data();
+
+            ParallelDo(
+                [=,this]( const Int i )
+                {
+                    combine_buffers<
+                        Scalar::Flag::Generic,Scalar::Flag::Generic,
+                        COLS,Sequential,opx,opy
+                    >
+                    ( alpha, &X[ldX * r[i]], beta, &Y[ldY * i], cols );
+                },
+                n, thread_count
+            );
+            
+            Invert( inverseQ );
+            
+            ptoc(tag);
+        }
+        
+        template<
+            Size_T COLS = VarSize, Parallel_T parQ = Sequential,
+            typename X_T, typename Y_T
+        >
+        void Permute(
+            cptr<X_T> X, const Size_T ldX,
+            mptr<Y_T> Y, const Size_T ldY,
+            const Inverse inverseQ,
+            Size_T cols = ( (COLS>VarSize) ? COLS : Scalar::One<Size_T> )
+        )
+        {
+            // Permute X chunkwise into Y, i.e., Y[ldY*i+k] <- X[ldX*p[i]+k];
+            
+            std::string tag = ClassName()+"::Permute<" + TypeName<X_T> + "," + TypeName<Y_T> + ">(" + (inverseQ == Inverse::True ? "inv," : "id," ) + ToString(cols) + ")";
             
             ptic(tag);
             
@@ -451,14 +531,14 @@ namespace Tensors
                 
                 cptr<Int> r = GetPermutation().data();
 
-                if( chunk == Scalar::One<Size_T> )
+                if( cols == Scalar::One<Size_T> )
                 {
                     if( (ldX == Scalar::One<Size_T>) && (ldY == Scalar::One<Size_T>) )
                     {
                         ParallelDo(
                             [=,this]( const Int i )
                             {
-                                Y[i] = static_cast<T>(X[r[i]]);
+                                Y[i] = static_cast<Y_T>(X[r[i]]);
                             },
                             n, thread_count
                         );
@@ -468,7 +548,7 @@ namespace Tensors
                         ParallelDo(
                             [=,this]( const Int i )
                             {
-                                Y[ldY * i] = static_cast<T>(X[ldX * r[i]]);
+                                Y[ldY * i] = static_cast<Y_T>(X[ldX * r[i]]);
                             },
                             n, thread_count
                         );
@@ -479,7 +559,7 @@ namespace Tensors
                     ParallelDo(
                         [=,this]( const Int i )
                         {
-                            copy_buffer( &X[ldX * r[i]], &Y[ldY * i], chunk );
+                            copy_buffer<COLS>( &X[ldX * r[i]], &Y[ldY * i], cols );
                         },
                         n, thread_count
                     );
@@ -489,18 +569,14 @@ namespace Tensors
             }
             else
             {
-                if( (ldX == chunk) && (ldY == chunk) )
+                if( (ldX == cols) && (ldY == cols) )
                 {
-                    copy_buffer<VarSize,Parallel>( X, Y, n*chunk, thread_count );
+                    copy_buffer<VarSize,Parallel>( X, Y, n*cols, thread_count );
                 }
                 else
                 {
-                    ParallelDo(
-                        [=,this]( const Int i )
-                        {
-                            copy_buffer( &X[ldX * i], &Y[ldY * i], chunk );
-                        },
-                        n, thread_count
+                    copy_matrix<COLS,Parallel>(
+                        X, ldX, Y, ldY, n, cols, thread_count
                     );
                 }
             }
@@ -508,19 +584,22 @@ namespace Tensors
             ptoc(tag);
         }
         
-        template<typename S, typename T>
+        template<
+            Size_T COLS = VarSize, Parallel_T parQ = Sequential,
+            typename X_T, typename Y_T
+        >
         void Permute(
-            cptr<S> X,
-            mptr<T> Y,
+            cptr<X_T> X,
+            mptr<Y_T> Y,
             const Inverse inverseQ,
-            Size_T chunk = Scalar::One<Size_T>
+            Size_T cols = Scalar::One<Size_T>
         )
         {
-            Permute( X, chunk, Y, chunk, inverseQ, chunk );
+            Permute<COLS,parQ>( X, cols, Y, cols, inverseQ, cols );
         }
         
-        template<typename S, typename T>
-        void Permute( const Tensor1<S,Int> & X, Tensor1<T,Int> & Y, const Inverse inverseQ )
+        template<Parallel_T parQ = Sequential, typename X_T, typename Y_T>
+        void Permute( const Tensor1<X_T,Int> & X, Tensor1<Y_T,Int> & Y, const Inverse inverseQ )
         {
             if( X.Size() != n )
             {
@@ -534,11 +613,11 @@ namespace Tensors
                 return;
             }
             
-            Permute( X.data(), Y.data(), inverseQ );
+            Permute<1,parQ>( X.data(), Y.data(), inverseQ, Int(1) );
         }
         
-        template<typename S, typename T>
-        void Permute( const Tensor2<S,Int> & X, Tensor2<T,Int> & Y, const Inverse inverseQ )
+        template<Parallel_T parQ = Sequential, typename X_T, typename Y_T>
+        void Permute( const Tensor2<X_T,Int> & X, Tensor2<Y_T,Int> & Y, const Inverse inverseQ )
         {
             if( X.Size() != n )
             {
@@ -558,7 +637,7 @@ namespace Tensors
                 return;
             }
             
-            Permute( X.data(), Y.data(), inverseQ, X.Dimension(1) );
+            Permute<VarSize,parQ>( X.data(), Y.data(), inverseQ, X.Dimension(1) );
         }
         
         

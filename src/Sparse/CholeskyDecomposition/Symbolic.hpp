@@ -34,9 +34,15 @@ public:
             
 //            TestRowToSupernode();
             
-            SN_rp.Resize( SN_count+1 );
+//            SN_rp   .template Resize<false>( SN_count+1 );
+//            
+//            SN_outer.template Resize<false>( SN_count+1 );
             
-            SN_outer.Resize( SN_count+1 );
+            // TODO: Unneccessary copy?
+            
+            SN_rp   .template Resize<true>( SN_count+1 );
+            
+            SN_outer.template Resize<true>( SN_count+1 );
             
             AllocateSupernodes();
 
@@ -318,7 +324,7 @@ protected:
                     
                     curr_n_1 = int_cast<Int>(k_end - k);
                     
-                    copy_buffer( &A.Inner(k), curr_row.data(), curr_n_1 );
+                    copy_buffer( &A.Inner(k), curr_row.data(), int_cast<Size_T>(curr_n_1) );
                 }
                 
                 // Next, we have to merge the column indices of the children of i_0 into row.
