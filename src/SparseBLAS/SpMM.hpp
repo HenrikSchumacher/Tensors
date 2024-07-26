@@ -69,93 +69,94 @@ public:
         
         if( a != nullptr )
         {
+            constexpr Scalar::Flag a_flag = Generic;
+            
             if( alpha == Scalar::One<alpha_T> )
             {
+                constexpr Scalar::Flag alpha_flag = One;
+                
                 if( beta == Scalar::Zero<beta_T> )
                 {
-                    SpMM_impl<Generic,One    ,Zero   ,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Zero;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == Scalar::One<beta_T> )
                 {
-                    SpMM_impl<Generic,One    ,One    ,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Zero;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<Generic,One    ,Generic,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Generic;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
             else
             {
+                constexpr Scalar::Flag alpha_flag = Generic;
+                
                 // general alpha
                 if( beta == Scalar::One<beta_T> )
                 {
-                    SpMM_impl<Generic,Generic,One    ,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = One;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == Scalar::Zero<beta_T> )
                 {
-                    SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Zero;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<Generic,Generic,Generic,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Generic;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
         }
         else // a == nullptr
         {
+            constexpr Scalar::Flag a_flag = One;
+            
             if( alpha == Scalar::One<alpha_T> )
             {
+                constexpr Scalar::Flag alpha_flag = One;
+                
                 if( beta == Scalar::Zero<beta_T> )
                 {
-                    SpMM_impl<One    ,One    ,Zero   ,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Zero;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == Scalar::One<beta_T> )
                 {
-                    SpMM_impl<One    ,One    ,One    ,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = One;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<One    ,One    ,Generic,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Generic;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
             else
             {
                 // general alpha
+                
+                constexpr Scalar::Flag alpha_flag = Generic;
+                
                 if( beta == Scalar::One<beta_T> )
                 {
-                    SpMM_impl<Generic,Generic,One    ,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = One;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else if( beta == Scalar::Zero<beta_T> )
                 {
-                    SpMM_impl<Generic,Generic,Zero   ,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Zero;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
                 {
-                    SpMM_impl<Generic,Generic,Generic,NRHS,base>(
-                        rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs
-                    );
+                    constexpr Scalar::Flag beta_flag = Generic;
+                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
             }
         }
@@ -195,8 +196,8 @@ private:
                 +TypeName<Y_T>+ ","
                 + ( ( NRHS == VarSize ) ? std::string("VarSize") : ToString(NRHS) ) + ","
                 + ToString(base)
-                +">("+ToString(nrhs)+")";
-
+                +">("+ToString(ldX)+","+ToString(ldY)+","+ToString(nrhs)+")";
+            
             ptic(tag);
             
             // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
@@ -219,6 +220,18 @@ private:
                 typename Scalar::Real<Scal>
             >;
             
+            if constexpr ( a_flag == Generic )
+            {
+                if ( a == nullptr )
+                {
+                    eprint( tag + ": a_flag == Scalar::Flag::Generic, but the pointer a is a nullptr. Aborting.");
+                    
+                    ptoc(tag);
+                    
+                    return;
+                }
+            }
+            
             constexpr bool prefetchQ = true;
             
             ParallelDo(
@@ -235,6 +248,9 @@ private:
                         y = Tensor1<T,Int>( nrhs );
                     }
                     
+                    print("a");
+                    
+                    
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
@@ -242,9 +258,11 @@ private:
                     
                     const LInt look_ahead = int_cast<LInt>(Tools::Max( Size_T(1), (CacheLineWidth / sizeof(Scal)) / Tools::Max(static_cast<Size_T>(nrhs),NRHS) ));
 
+                    dump(look_ahead);
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
+                        dump(i);
                         const LInt l_begin = rp[i  ];
                         const LInt l_end   = rp[i+1];
 
@@ -264,6 +282,7 @@ private:
                                     }
                                 }
                                 
+                                // We use this `if constexpr` here so that we do not read from a when it is a nullptr
                                 if constexpr ( a_flag == Generic )
                                 {
                                     combine_buffers<a_flag,Zero,NRHS,Seq>(
@@ -274,17 +293,15 @@ private:
                                 }
                                 else if constexpr ( a_flag == One )
                                 {
-                                    // We use if constexpr here so that we do not read from a when it is a nullptr
                                     combine_buffers<a_flag,Zero,NRHS,Seq>(
                                         Scalar::One<T>,  &X[ldX * j],
                                         Scalar::Zero<T>, &y[0],
                                         nrhs
                                     );
                                 }
-                                
                             }
                             
-                            // Add for first entry.
+                            // Add remaining entries.
                             for( LInt l = l_begin + static_cast<LInt>(1); l < l_end; ++l )
                             {
                                 const Int j = ci[l] - base;
@@ -317,13 +334,14 @@ private:
                                     );
                                 }
                             }
-
+                            print("e");
                             // Incorporate the local updates into Y-buffer.
                             combine_buffers<alpha_flag,beta_flag,NRHS,Seq>(
                                 alpha, &y[0],
                                 beta,  &Y[ldY * i],
                                 nrhs
                             );
+                            print("f");
                         }
                         else
                         {
@@ -354,198 +372,197 @@ private:
 #if defined(__clang__)
     #if( __has_attribute(ext_vector_type) )
 
-template<
-    Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-    Size_T NRHS = VarSize, bool base,
-    typename alpha_T, typename X_T, typename beta_T, typename Y_T
->
-void SpMM_vec(
-    cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-    cref<alpha_T> alpha,  cptr<X_T> X, const Int ldX,
-    cref<beta_T>  beta,   mptr<Y_T> Y, const Int ldY,
-    cref<JobPointers<Int>> job_ptr
-)
-{
-    print("A");
-    
-    (void)m;
-    (void)n;
-    
-    std::string tag = std::string(ClassName()+"::SpMM_vec<")
-        +ToString(a_flag)+","
-        +ToString(alpha_flag)+","
-        +ToString(beta_flag)+","
-        +ToString(NRHS)+","
-        +ToString(base)+","
-        +TypeName<alpha_T>+","
-        +TypeName<X_T>+","
-        +TypeName<beta_T>+","
-        +TypeName<Y_T>
-        +">";
+    template<
+        Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+        Size_T NRHS = VarSize, bool base,
+        typename alpha_T, typename X_T, typename beta_T, typename Y_T
+    >
+    void SpMM_vec(
+        cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
+        cref<alpha_T> alpha, cptr<X_T> X, const Int ldX,
+        cref<beta_T>  beta,  mptr<Y_T> Y, const Int ldY,
+        cref<JobPointers<Int>> job_ptr
+    )
+    {
+        (void)m;
+        (void)n;
+        
+        std::string tag = std::string(ClassName()+"::SpMM_vec<")
+            +ToString(a_flag)+","
+            +ToString(alpha_flag)+","
+            +ToString(beta_flag)+","
+            +ToString(NRHS)+","
+            +ToString(base)+","
+            +TypeName<alpha_T>+","
+            +TypeName<X_T>+","
+            +TypeName<beta_T>+","
+            +TypeName<Y_T>
+            +">(" + ToString(ldX) + "," + ToString(ldY) + ")";
 
-    ptic(tag);
-    
-    
-    static_assert(NRHS!=0, "SpMM_vec only implements static size behavior.");
-    
-    // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
-    //  - a_flag     == Generic
-    //  - a_flag     == One
-    //  - alpha_flag == One
-    //  - alpha_flag == Generic
-    //  - beta_flag  == Zero
-    //  - beta_flag  == Plus
-    //  - beta_flag  == Generic
+        ptic(tag);
+        
+        
+        static_assert(NRHS!=0, "SpMM_vec only implements static size behavior.");
+        
+        // Only to be called by SpMM_impl which guarantees that the following cases are the only once to occur:
+        //  - a_flag     == Generic
+        //  - a_flag     == One
+        //  - alpha_flag == One
+        //  - alpha_flag == Generic
+        //  - beta_flag  == Zero
+        //  - beta_flag  == Plus
+        //  - beta_flag  == Generic
 
-    // Treats sparse matrix as a binary matrix if a_flag != Scalar::Flag::Generic.
-    // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
-    
-    // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
-    
-    // TODO: Use real types for alpha, beta, x, a, y if applicable.
-    // TODO: Maybe use simple combine_buffer to merge y and z.
-    print("B");
-    
-    using y_T = typename std::conditional_t<
-        Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
-        typename Scalar::Complex<Scal>,
-        typename Scalar::Real<Scal>
-    >;
-    
-    using x_T = y_T;
-    
-    dump( TypeName<X_T> );
-    dump( ToString(NRHS) );
-    
-//    constexpr bool prefetchQ = true;
-    constexpr bool prefetchQ = false;
-    
-    dump(job_ptr.ThreadCount());
-         
-    ParallelDo(
-        [&]( const Int thread )
+        // Treats sparse matrix as a binary matrix if a_flag != Scalar::Flag::Generic.
+        // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
+        
+        // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
+        
+        // TODO: Use real types for alpha, beta, x, a, y if applicable.
+        // TODO: Maybe use simple combine_buffer to merge y and z.
+        
+        using y_T = typename std::conditional_t<
+            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
+            typename Scalar::Complex<Scal>,
+            typename Scalar::Real<Scal>
+        >;
+        
+        using x_T = y_T;
+        
+        if constexpr ( a_flag == Generic )
         {
-            print("a");
-            vec_T<NRHS,x_T> x;
-            print("a");
-            const Int i_begin = job_ptr[thread  ];
-            const Int i_end   = job_ptr[thread+1];
-            print("b");
-            const LInt last_l = rp[i_end];
-            print("c");
-            const LInt look_ahead = CacheLineWidth / NRHS;
-            print("d");
-            for( Int i = i_begin; i < i_end; ++i )
+            if ( a == nullptr )
             {
-                dump(i);
+                eprint( tag + ": a_flag == Scalar::Flag::Generic, but the pointer a is a nullptr. Aborting.");
                 
-                vec_T<NRHS,y_T> y ( Scalar::Zero<y_T> );
+                ptoc(tag);
                 
-                const LInt l_begin = rp[i  ];
-                const LInt l_end   = rp[i+1];
+                return;
+            }
+        }
+        
+        constexpr bool prefetchQ = true;
+             
+        ParallelDo(
+            [&]( const Int thread )
+            {
+                vec_T<NRHS,x_T> x;
+     
+                const Int i_begin = job_ptr[thread  ];
+                const Int i_end   = job_ptr[thread+1];
 
-                if( l_end > l_begin )
+                const LInt last_l = rp[i_end];
+
+                const LInt look_ahead = CacheLineWidth / NRHS;
+                for( Int i = i_begin; i < i_end; ++i )
                 {
-                    // Add for first entry.
-                    for( LInt l = l_begin; l < l_end; ++l )
-                    {
-                        const Int j = ci[l] - base;
+                    vec_T<NRHS,y_T> y ( Scalar::Zero<y_T> );
+                    
+                    const LInt l_begin = rp[i  ];
+                    const LInt l_end   = rp[i+1];
 
-                        if constexpr ( prefetchQ )
+                    if( l_end > l_begin )
+                    {
+                        // Add for first entry.
+                        for( LInt l = l_begin; l < l_end; ++l )
                         {
-                            // This prefetch would cause segfaults without the check.
-                            if( l + look_ahead < last_l )
+                            const Int j = ci[l] - base;
+
+                            if constexpr ( prefetchQ )
                             {
-                                prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
+                                // This prefetch would cause segfaults without the check.
+                                if( l + look_ahead < last_l )
+                                {
+                                    prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
+                                }
+                            }
+
+                            copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
+
+                            if constexpr ( a_flag == Generic )
+                            {
+                                y += a[l] * x;
+                            }
+                            else if constexpr ( a_flag == One )
+                            {
+                                y += x;
                             }
                         }
 
-                        copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
-
-                        if constexpr ( a_flag == Generic )
+                        
+                        // Incorporate the local updates into Y-buffer.
+                                   
+                        combine_buffers<alpha_flag,beta_flag,NRHS>(
+                            alpha, reinterpret_cast<y_T *>(&y), beta, &Y[ldY * i]
+                        );
+                        
+    //                    if constexpr ( beta_flag != Zero )
+    //                    {
+    //                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
+    //                    }
+    //
+    //
+    //                    if constexpr ( alpha_flag == One )
+    //                    {
+    //                        if constexpr ( beta_flag == Zero )
+    //                        {
+    //                            z = y;
+    //                        }
+    //                        else if constexpr ( beta_flag == One )
+    //                        {
+    //                            z += y;
+    //                        }
+    //                        else if constexpr ( beta_flag == Generic )
+    //                        {
+    //                            z = y + beta * z;
+    //                        }
+    //                    }
+    //                    else if constexpr( alpha_flag == Generic )
+    //                    {
+    //                        if constexpr ( beta_flag == Zero )
+    //                        {
+    //                            z = alpha * y;
+    //                        }
+    //                        else if constexpr ( beta_flag == One )
+    //                        {
+    //                            z += alpha * y;
+    //                        }
+    //                        else if constexpr ( beta_flag == Generic )
+    //                        {
+    //                            z = alpha * y + beta * z;
+    //                        }
+    //                    }
+    //
+    //                    copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
+    //
+                    }
+                    else
+                    {
+                        // Modify the relevant portion of the Y-buffer.
+                        if constexpr( beta_flag == Zero )
                         {
-                            y += a[l] * x;
+                            zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
                         }
-                        else if constexpr ( a_flag == One )
+                        else if constexpr( beta_flag == One )
                         {
-                            y += x;
+                            // Do nothing.
                         }
-                    }
-
-                    
-                    // Incorporate the local updates into Y-buffer.
-                               
-                    combine_buffers<alpha_flag,beta_flag,NRHS>(
-                        alpha, reinterpret_cast<y_T *>(&y), beta, &Y[ldY * i]
-                    );
-                    
-//                    if constexpr ( beta_flag != Zero )
-//                    {
-//                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
-//                    }
-//
-//
-//                    if constexpr ( alpha_flag == One )
-//                    {
-//                        if constexpr ( beta_flag == Zero )
-//                        {
-//                            z = y;
-//                        }
-//                        else if constexpr ( beta_flag == One )
-//                        {
-//                            z += y;
-//                        }
-//                        else if constexpr ( beta_flag == Generic )
-//                        {
-//                            z = y + beta * z;
-//                        }
-//                    }
-//                    else if constexpr( alpha_flag == Generic )
-//                    {
-//                        if constexpr ( beta_flag == Zero )
-//                        {
-//                            z = alpha * y;
-//                        }
-//                        else if constexpr ( beta_flag == One )
-//                        {
-//                            z += alpha * y;
-//                        }
-//                        else if constexpr ( beta_flag == Generic )
-//                        {
-//                            z = alpha * y + beta * z;
-//                        }
-//                    }
-//
-//                    copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
-//
-                }
-                else
-                {
-                    // Modify the relevant portion of the Y-buffer.
-                    if constexpr( beta_flag == Zero )
-                    {
-                        zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
-                    }
-                    else if constexpr( beta_flag == One )
-                    {
-                        // Do nothing.
-                    }
-                    else if constexpr( beta_flag == Generic )
-                    {
-                        scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
-//                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
-//
-//                        z *= beta;
-//
-//                        copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
+                        else if constexpr( beta_flag == Generic )
+                        {
+                            scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
+    //                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
+    //
+    //                        z *= beta;
+    //
+    //                        copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
+                        }
                     }
                 }
-            }
-        },
-        job_ptr.ThreadCount()
-    );
-    
-    ptoc(tag);
-}
+            },
+            job_ptr.ThreadCount()
+        );
+        
+        ptoc(tag);
+    }
     #endif
 #endif
