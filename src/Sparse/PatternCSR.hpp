@@ -1073,7 +1073,7 @@ namespace Tensors
             // Supply an external list of values.
             template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
             void Dot_(
-                      cptr<T_ext>  values,
+                      cptr<T_ext> values,
                       cref<R_out> alpha, cptr<T_in>  X, const Int ldX,
                       cref<S_out> beta,  mptr<T_out> Y, const Int ldY,
                       const Int   nrhs = static_cast<Int>(1)
