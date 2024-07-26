@@ -3,7 +3,7 @@
 #define CLASS ArrowheadBlockKernel_fixed
 
 #define BASE  BlockKernel_fixed<                            \
-    ROWS_,COLS_,RHS_COUNT_,fixed,                           \
+    ROWS_,COLS_,NRHS_,fixed,                           \
     Scal_,Scal_in_,Scal_out_,                               \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
@@ -13,7 +13,7 @@
 >
 
 //template<
-//    int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
+//    int ROWS_, int COLS_, int NRHS_, bool fixed,
 //    typename Scal_, typename Int_, typename Scal_in_, typename Scal_out_,
 //    Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
 //                                              bool a_copy = true,
@@ -23,7 +23,7 @@
 namespace Tensors
 {
     template<
-        int ROWS_, int COLS_, int RHS_COUNT_, bool fixed,
+        int ROWS_, int COLS_, int NRHS_, bool fixed,
         typename Scal_, typename Scal_in_, typename Scal_out_,
         typename Int_, typename LInt_,
         Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
@@ -50,7 +50,7 @@ namespace Tensors
         using Base_T::COLS;
         using Base_T::ROWS_SIZE;
         using Base_T::COLS_SIZE;
-        using Base_T::RHS_COUNT;
+        using Base_T::NRHS;
         
         using Base_T::FMA;
         
@@ -68,7 +68,7 @@ namespace Tensors
         using Base_T::ReadX;
         using Base_T::get_x;
         using Base_T::get_y;
-        using Base_T::rhs_count;
+        using Base_T::nrhs;
         
         const Scal * restrict a_from = nullptr;
         
@@ -86,9 +86,9 @@ namespace Tensors
             cptr<Scal> A_,
             cref<Scal_out> alpha_, cptr<Scal_in>  X_,
             cref<Scal_out> beta_,  mptr<Scal_out> Y_,
-            const Int rhs_count_
+            const Int nrhs_
         )
-        :   Base_T( A_, alpha_, X_, beta_, Y_, rhs_count_ )
+        :   Base_T( A_, alpha_, X_, beta_, Y_, nrhs_ )
         {}
         
         // Copy constructor
@@ -166,7 +166,7 @@ namespace Tensors
             */
             
             LOOP_UNROLL_FULL
-            for( Int k = 0; k < RHS_COUNT; ++k )
+            for( Int k = 0; k < NRHS; ++k )
             {
                 FMA( get_a(0), get_x(0,k), get_y(0,k) );
 
@@ -191,7 +191,7 @@ namespace Tensors
             return TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
-            +","+ToString(RHS_COUNT)
+            +","+ToString(NRHS)
             +","+ToString(fixed)
             +","+TypeName<Scal>
             +","+TypeName<Scal_in>
