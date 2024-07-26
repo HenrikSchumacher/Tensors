@@ -94,8 +94,8 @@ namespace Tensors
         bool operator()(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cref<a_T> a, cptr<B_T> B_in,    const Int ldB,
-            cref<b_T> b, mptr<X_T> X_inout, const Int ldX,
+            const a_T a, cptr<B_T> B_in,    const Int ldB,
+            const b_T b, mptr<X_T> X_inout, const Int ldX,
             const Real relative_tolerance,
             // We force the use to actively request that the initial guess is used,
             // because this is a common source of bugs.

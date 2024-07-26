@@ -437,8 +437,8 @@ namespace Tensors
             typename a_T, typename X_T, typename b_T, typename Y_T
         >
         void PermuteCombine(
-            cref<a_T> alpha, cptr<X_T> X, const Size_T ldX,
-            cref<b_T> beta,  mptr<Y_T> Y, const Size_T ldY,
+            const a_T alpha, cptr<X_T> X, const Size_T ldX,
+            const b_T beta,  mptr<Y_T> Y, const Size_T ldY,
             const Inverse inverseQ,
             Size_T cols = COLS
         )

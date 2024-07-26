@@ -1006,7 +1006,7 @@ namespace Tensors
                 {
                     RequireJobPtr();
                     
-                    Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
+                    Tensor2<LInt,Int> counters ( thread_count, m, static_cast<LInt>(0) );
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort
@@ -1135,39 +1135,39 @@ namespace Tensors
 //###################################################################################        
             
             // Use own nonzero values.
-            template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
-                cref<R_out> alpha, cptr<T_in>  X, const Int ldX,
-                cref<S_out> beta,  mptr<T_out> Y, const Int ldY,
-                const Int   nrhs = Int(1)
+                const a_T alpha, cptr<X_T> X, const Int ldX,
+                const b_T beta,  mptr<Y_T> Y, const Int ldY,
+                const Int nrhs = static_cast<Int>(1)
             ) const
             {
                 this->template Dot_<NRHS>( values.data(), alpha, X, ldX, beta, Y, ldY, nrhs );
             }
             
             // Use own nonzero values.
-            template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
-                cref<R_out> alpha, cptr<T_in>  X,
-                cref<S_out> beta,  mptr<T_out> Y,
-                const Int   nrhs = Int(1)
+                const a_T alpha, cptr<X_T> X,
+                const b_T beta,  mptr<Y_T> Y,
+                const Int nrhs = static_cast<Int>(1)
             ) const
             {
                 this->template Dot_<NRHS>( values.data(), alpha, X, nrhs, beta, Y, nrhs, nrhs );
             }
             
             // Use own nonzero values.
-            template<typename R_out, typename S_out, typename T_in, typename T_out>
+            template<typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
-                cref<R_out> alpha, cref<Tensor1<T_in, Int>> X,
-                cref<S_out> beta,  mref<Tensor1<T_out,Int>> Y
+                const a_T alpha, cref<Tensor1<X_T,Int>> X,
+                const b_T beta,  mref<Tensor1<Y_T,Int>> Y
             ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
                 {
-                    const Int one = static_cast<Int>(1);
+                    const Int nrhs = 1;
                     
-                    this->template Dot_<1>( values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
+                    this->template Dot_<1>( values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
                 }
                 else
                 {
@@ -1176,10 +1176,10 @@ namespace Tensors
             }
             
             // Use own nonzero values.
-            template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
-                 cref<R_out> alpha, cref<Tensor2<T_in, Int>> X,
-                 cref<S_out> beta,  mref<Tensor2<T_out,Int>> Y
+                 const a_T alpha, cref<Tensor2<X_T,Int>> X,
+                 const b_T beta,  mref<Tensor2<Y_T,Int>> Y
              ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
@@ -1197,41 +1197,41 @@ namespace Tensors
             
             
             // Use external list of values.
-            template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename T_ext, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
-                cptr<T_ext>  ext_values,
-                cref<R_out> alpha, cptr<T_ext> X, const Int ldX,
-                cref<S_out> beta,  mptr<T_ext> Y, const Int ldY,
-                const Int   nrhs = static_cast<Int>(1)
+                cptr<T_ext> ext_values,
+                const a_T alpha, cptr<T_ext> X, const Int ldX,
+                const b_T beta,  mptr<T_ext> Y, const Int ldY,
+                const Int nrhs = static_cast<Int>(1)
             ) const
             {
                 this->template Dot_<NRHS>( ext_values, alpha, X, ldX, beta, Y, ldY, nrhs );
             }
             
             // Use external list of values.
-            template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename T_ext, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
                 cptr<T_ext> ext_values,
-                cref<R_out> alpha, cptr<T_ext> X,
-                cref<S_out> beta,  mptr<T_ext> Y,
-                const Int   nrhs = static_cast<Int>(1)
+                const a_T alpha, cptr<T_ext> X,
+                const b_T beta,  mptr<T_ext> Y,
+                const Int nrhs = static_cast<Int>(1)
             ) const
             {
                 this->template Dot_<NRHS>( ext_values, alpha, X, nrhs, beta, Y, nrhs, nrhs );
             }
             
-            template<typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<typename T_ext, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
                 cref<Tensor1<T_ext,Int>> ext_values,
-                cref<R_out> alpha, cref<Tensor1<T_in, Int>> X,
-                cref<S_out> beta,  mref<Tensor1<T_out,Int>> Y
+                const a_T alpha, cref<Tensor1<X_T,Int>> X,
+                const b_T beta,  mref<Tensor1<Y_T,Int>> Y
             ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m )
                 {
-                    const Int one = static_cast<Int>(1);
+                    const Int nrhs = 1;
                     
-                    this->template Dot_<1>( ext_values.data(), alpha, X.data(), one, beta, Y.data(), one, one );
+                    this->template Dot_<1>( ext_values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
                 }
                 else
                 {
@@ -1239,11 +1239,11 @@ namespace Tensors
                 }
             }
             
-            template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename T_ext, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
                  cref<Tensor1<T_ext,Int>> ext_values,
-                 cref<R_out> alpha, cref<Tensor2<T_in, Int>> X,
-                 cref<S_out> beta,  mref<Tensor2<T_out,Int>> Y
+                 const a_T alpha, cref<Tensor2<X_T,Int>> X,
+                 const b_T beta,  mref<Tensor2<Y_T,Int>> Y
          ) const
             {
                 if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )

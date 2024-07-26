@@ -242,7 +242,7 @@ namespace Tensors
                 Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
             >
             force_inline mref<Vector> LinearCombine(
-                cref<a_T> a, cptr<x_T> x, cref<b_T> b, cptr<y_T> y
+                const a_T a, cptr<x_T> x, const b_T b, cptr<y_T> y
             )
             {
                 // Sets *this = a * x + b * y.
@@ -554,8 +554,8 @@ namespace Tensors
             Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
         >
         force_inline void LinearCombineInto(
-            cref<a_T> a, cref<Vector<n,x_T,x_Int>> x,
-            cref<b_T> b, mref<Vector<n,y_T,y_Int>> y
+            const a_T a, cref<Vector<n,x_T,x_Int>> x,
+            const b_T b, mref<Vector<n,y_T,y_Int>> y
         )
         {
             // Computes  y = a * x + b * y.
@@ -573,8 +573,8 @@ namespace Tensors
             Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
         >
         force_inline void LinearCombine(
-            cref<a_T> a, cref<Vector<n,x_T,x_Int>> x,
-            cref<b_T> b, cref<Vector<n,y_T,y_Int>> y,
+            const a_T a, cref<Vector<n,x_T,x_Int>> x,
+            const b_T b, cref<Vector<n,y_T,y_Int>> y,
                          mref<Vector<n,z_T,z_Int>> z
         )
         {
@@ -593,8 +593,8 @@ namespace Tensors
             typename b_T, typename y_T, typename y_Int
         >
         [[nodiscard]] force_inline const Vector<n,Scal,Int> MakeVector(
-            cref<a_T> a, cref<Vector<n,x_T,x_Int>> x,
-            cref<b_T> b, cref<Vector<n,y_T,y_Int>> y
+            const a_T a, cref<Vector<n,x_T,x_Int>> x,
+            const b_T b, cref<Vector<n,y_T,y_Int>> y
         )
         {
             // Returns z = a * x + b * y.
@@ -613,8 +613,8 @@ namespace Tensors
             typename a_T, typename x_T, typename b_T, typename y_T
         >
         [[nodiscard]] force_inline const Vector<n,Scal,Int> MakeVector(
-            cref<a_T> a, cptr<x_T> x,
-            cref<b_T> b, cptr<y_T> y
+            const a_T a, cptr<x_T> x,
+            const b_T b, cptr<y_T> y
         )
         {
             // Returns z = a * x + b * y.
@@ -685,7 +685,7 @@ namespace Tensors
         template<int n, typename a_T, typename x_T, typename Int>
         [[nodiscard]] force_inline const 
         Vector<n,decltype( x_T(1) * a_T(1) ),Int>
-        operator*( cref<a_T> a, cref<Vector<n,x_T,Int>> x )
+        operator*( const a_T a, cref<Vector<n,x_T,Int>> x )
         {
             // Returns z = a * x.
             using T = decltype(x_T(1) * a_T(1));
@@ -698,7 +698,7 @@ namespace Tensors
         template<int n, typename x_T, typename Int, typename a_T>
         [[nodiscard]] force_inline const 
         Vector<n,decltype( x_T(1) * a_T(1) ),Int>
-        operator*( cref<Vector<n,x_T,Int>> x, cref<a_T> a )
+        operator*( cref<Vector<n,x_T,Int>> x, const a_T a )
         {
             // Returns a * x.
             
@@ -712,7 +712,7 @@ namespace Tensors
         template<int n, typename x_T, typename Int, typename a_T>
         [[nodiscard]] force_inline const
         Vector<n,decltype( x_T(1) * a_T(1) ),Int>
-        operator/( cref<Vector<n,x_T,Int>> x, cref<a_T> a )
+        operator/( cref<Vector<n,x_T,Int>> x, const a_T a )
         {
             // Returns x/a.
             
@@ -722,7 +722,7 @@ namespace Tensors
         
         template<int n, typename a_T, typename x_T, typename z_T, typename Int>
         void
-        Times( cref<a_T> a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z )
+        Times( const a_T a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z )
         {
             // Returns z = a * x.
             combine_buffers<F_Gen, F_Zero, n, Sequential>(

@@ -6,13 +6,13 @@ public:
 
     // Calling this NRHS <= 0 will use generic implementation.
     // Calling with NRHS > 0  will uses dimension-dependent implementation
-    template<Int NRHS = VarSize, bool base = 0, typename R_out, typename T_in, typename S_out, typename T_out>
+    template<Int NRHS = VarSize, bool base = 0, typename a_T, typename X_T, typename b_T, typename Y_T>
     void Multiply_DenseMatrix
     (
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<R_out> alpha, cptr<T_in>  X, const Int ldX,
-        cref<S_out> beta,  mptr<T_out> Y, const Int ldY,
-        const Int   nrhs,
+        const a_T alpha, cptr<X_T> X, const Int ldX,
+        const b_T beta,  mptr<Y_T> Y, const Int ldY,
+        const Int nrhs,
         cref<JobPointers<Int>> job_ptr
     )
     {

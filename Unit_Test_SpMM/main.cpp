@@ -21,28 +21,28 @@ using namespace Tensors;
 //constexpr Scalar::Flag Minus   = Scalar::Flag::Minus;
 //constexpr Scalar::Flag Zero    = Scalar::Flag::Zero;
 
-int error_count = 0;
-int ineff_count = 0;
+int error_count  = 0;
+int ineff_count  = 0;
 int thread_count = 8;
 
-template<typename R_out, typename T_in, typename S_out, typename T_out, typename Scalar, typename Int, typename LInt>
+template<typename a_T, typename X_T, typename b_T, typename Y_T, typename Scalar, typename Int, typename LInt>
     __attribute__((noinline)) void Dot_True(
     cptr<LInt> rp, cptr<Int> ci, cptr<Scalar> a, const Int m, const Int n,
-    cref<R_out> alpha,  cptr<T_in>  X, const Int ldX,
-    cref<S_out> beta,   mptr<T_out> Y, const Int ldY,
+    cref<a_T> alpha, cptr<X_T> X, const Int ldX,
+    cref<b_T> beta,  mptr<Y_T> Y, const Int ldY,
     const Int   cols
 )
 {
     std::string tag = std::string("Dot_True<")
         +TypeName<Scalar>+","
-        +TypeName<R_out >+","
-        +TypeName<T_in  >+","
-        +TypeName<S_out >+","
-        +TypeName<T_out >+">";
+        +TypeName<a_T>+","
+        +TypeName<X_T>+","
+        +TypeName<b_T>+","
+        +TypeName<Y_T>+">";
         
     ptic(tag);
-    const T_out alpha_ = static_cast<T_out>(alpha);
-    const T_out beta_  = static_cast<T_out>(beta);
+    const Y_T alpha_ = static_cast<Y_T>(alpha);
+    const Y_T beta_  = static_cast<Y_T>(beta);
         
     for( Int i = 0; i < m; ++i )
     {
@@ -61,7 +61,7 @@ template<typename R_out, typename T_in, typename S_out, typename T_out, typename
             for( Int l = 0; l < cols; ++l )
             {
                 Y[ldY * i + l] +=
-                    alpha_ * (static_cast<T_out>(a[k]) * static_cast<T_out>(X[ldX * j + l]));
+                    alpha_ * (static_cast<Y_T>(a[k]) * static_cast<Y_T>(X[ldX * j + l]));
             }
         }
     }
@@ -69,8 +69,8 @@ template<typename R_out, typename T_in, typename S_out, typename T_out, typename
 }
 
 template<
-    typename R_out, typename T_in, typename S_out, typename T_out,
-    typename Scal,  typename Int,  typename LInt
+    typename a_T, typename X_T, typename b_T, typename Y_T,
+    typename Scal, typename Int,  typename LInt
 >
 void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
 {
@@ -78,28 +78,27 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
     const Int  m   = A.RowCount();
     const Int  n   = A.ColCount();
     
-    using Real = typename Scalar::Real<T_out>;
+    using Real = typename Scalar::Real<Y_T>;
     
     std::string s = std::string("\n    <")
-          +TypeName<R_out>+","
-          +TypeName<T_in >+","
-          +TypeName<S_out>+","
-          +TypeName<T_out>+
-    +">";
+          +TypeName<a_T>+","
+          +TypeName<X_T>+","
+          +TypeName<b_T>+","
+          +TypeName<Y_T>+">";
     logprint(s);
     
-    Tensor2<T_in, Int> X      ( n, cols );
-    Tensor2<T_out,Int> Y_0    ( m, cols );
-    Tensor2<T_out,Int> Y      ( m, cols );
-    Tensor2<T_out,Int> Y_True ( m, cols );
-    Tensor2<T_out,Int> Z      ( m, cols );
+    Tensor2<X_T,Int> X      ( n, cols );
+    Tensor2<Y_T,Int> Y_0    ( m, cols );
+    Tensor2<Y_T,Int> Y      ( m, cols );
+    Tensor2<Y_T,Int> Y_True ( m, cols );
+    Tensor2<Y_T,Int> Z      ( m, cols );
     
     X.Random( thread_count );
     Y_0.Random( thread_count );
 
     
-    const R_out alpha = 1;
-    const S_out beta  = 1;
+    const a_T alpha = 1;
+    const b_T beta  = 1;
 
     Y_True = Y_0;
     auto start_time_1 = Clock::now();

@@ -51,8 +51,8 @@ public:
 
     template<Size_T NRHS = VarSize, typename a_T, typename b_T, typename Y_T>
     void WriteSolution(
-        cref<a_T> alpha,
-        cref<b_T> beta,  mptr<Y_T> Y_, const Int ldY )
+        const a_T alpha,
+        const b_T beta,  mptr<Y_T> Y_, const Int ldY )
     {
         const std::string tag = ClassName() + "::WriteSolution"
             + "<" + ToString(NRHS)

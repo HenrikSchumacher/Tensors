@@ -16,8 +16,8 @@ public:
     template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
     >
     void Solve(
-        cref<a_T> alpha, cptr<B_T> B,     const Int ldB,
-        cref<b_T> beta,  mptr<X_T> X_out, const Int ldX,
+        const a_T alpha, cptr<B_T> B,     const Int ldB,
+        const b_T beta,  mptr<X_T> X_out, const Int ldX,
         const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
     )
     {
@@ -101,8 +101,8 @@ public:
         typename B_I, typename X_I
     >
     void Solve(
-        cref<a_T> alpha, cref<Tensor2<B_T,B_I>> B,
-        cref<b_T> beta,  mref<Tensor2<X_T,X_I>> X_out
+        const a_T alpha, cref<Tensor2<B_T,B_I>> B,
+        const b_T beta,  mref<Tensor2<X_T,X_I>> X_out
     )
     {
         
@@ -139,8 +139,8 @@ public:
         typename B_I, typename X_I
     >
     void Solve(
-        cref<a_T> alpha, cref<Tensor1<B_T,B_I>> B,
-        cref<b_T> beta,  mref<Tensor1<X_T,X_I>> X_out
+        const a_T alpha, cref<Tensor1<B_T,B_I>> B,
+        const b_T beta,  mref<Tensor1<X_T,X_I>> X_out
     )
     {
         
@@ -173,8 +173,8 @@ public:
     template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
     >
     void UpperSolve(
-        cref<a_T> alpha, cptr<B_T> B,     const Int ldB,
-        cref<b_T> beta,  mptr<X_T> X_out, const Int ldX,
+        const a_T alpha, cptr<B_T> B,     const Int ldB,
+        const b_T beta,  mptr<X_T> X_out, const Int ldX,
         const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
     )
     {
@@ -243,8 +243,8 @@ public:
     template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
     >
     void LowerSolve(
-        cref<a_T> alpha, cptr<B_T> B,     const Int ldB,
-        cref<b_T> beta,  mptr<X_T> X_out, const Int ldX,
+        const a_T alpha, cptr<B_T> B,     const Int ldB,
+        const b_T beta,  mptr<X_T> X_out, const Int ldX,
         const Int nrhs_ = ((NRHS > VarSize) ? NRHS : ione )
     )
     {

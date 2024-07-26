@@ -1,10 +1,10 @@
 public:
 
-    template<typename R_out, typename T_in, typename S_out, typename T_out>
+    template<typename a_T, typename X_T, typename b_T, typename Y_T>
     void SpMV_Transposed(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<R_out> alpha_, cptr<T_in>  X,
-        cref<S_out> beta_,  mptr<T_out> Y,
+        cref<a_T> alpha_, cptr<X_T> X,
+        cref<b_T> beta_,  mptr<Y_T> Y,
         cref<JobPointers<Int>> job_ptr
     )
     {
@@ -13,13 +13,13 @@ public:
         // This is basically a large switch to determine at runtime, which instantiation of SpMV_Transposed_impl is to be invoked.
         // In particular, this implies that all relevant cases of SpMV_Transposed_impl are instantiated.
         
-        using alpha_T = std::conditional_t< Scalar::RealQ<R_out>, Scalar::Real<T_out>, T_out>;
-        using beta_T  = std::conditional_t< Scalar::RealQ<S_out>, Scalar::Real<T_out>, T_out>;
+        using alpha_T = std::conditional_t< Scalar::RealQ<a_T>, Scalar::Real<Y_T>, Y_T>;
+        using beta_T  = std::conditional_t< Scalar::RealQ<b_T>, Scalar::Real<Y_T>, Y_T>;
         
-        StaticParameterCheck<alpha_T,T_in,beta_T,T_out>();
+        StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
         
-        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<T_out>(alpha_) : scalar_cast<R_out>(0);
-        const beta_T  beta  = scalar_cast<T_out>(beta_);
+        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<Y_T>(alpha_) : scalar_cast<a_T>(0);
+        const beta_T  beta  = scalar_cast<Y_T>(beta_);
         
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
@@ -112,11 +112,11 @@ public:
 
 private:
 
-    template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename R_out, typename T_in, typename S_out, typename T_out>
+    template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename a_T, typename X_T, typename b_T, typename Y_T>
     void SpMV_Transposed_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<R_out> alpha, cptr<T_in>  x,
-        cref<S_out> beta,  mptr<T_out> y,
+        cref<a_T> alpha, cptr<X_T>  x,
+        cref<b_T> beta,  mptr<Y_T> y,
         cref<JobPointers<Int>> job_ptr
     )
     {
@@ -126,10 +126,10 @@ private:
             +ToString(a_flag)+","
             +ToString(alpha_flag)+","
             +ToString(beta_flag)+","
-            +TypeName<R_out>+","
-            +TypeName<T_in >+","
-            +TypeName<S_out>+","
-            +TypeName<T_out>+">";
+            +TypeName<a_T>+","
+            +TypeName<X_T >+","
+            +TypeName<b_T>+","
+            +TypeName<Y_T>+">";
         
         ptic(tag);
         
@@ -148,7 +148,7 @@ private:
         // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
 
         using T = typename std::conditional_t<
-            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<T_in>,
+            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
             typename Scalar::Complex<Scal>,
             typename Scalar::Real<Scal>
         >;
