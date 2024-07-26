@@ -108,8 +108,8 @@ namespace Tensors
         bool operator()(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cref<a_T> a, cptr<B_T> B_in,    const Int ldB,
-            cref<b_T> b, mptr<X_T> X_inout, const Int ldX,
+            const a_T a, cptr<B_T> B_in,    const Int ldB,
+            const b_T b, mptr<X_T> X_inout, const Int ldX,
             const Real relative_tolerance,
             const Int  max_restarts,
             // We force the use to actively request that the initial guess is used,
@@ -142,6 +142,7 @@ namespace Tensors
             }
             else
             {
+                // TODO: Not whether this makes sense.
                 swap(x,z);
             }
             
@@ -170,16 +171,16 @@ namespace Tensors
                 
                 wprint(tag + ": Right-hand side is 0. Returning zero vector.");
                 
-                logvalprint( tag + ": iter      = ", iter );
-                logvalprint( tag + ": restarts  = ", restarts );
-                logvalprint( tag + ": succeeded = ", succeeded );
+                logvalprint( tag + ": iter      ", iter );
+                logvalprint( tag + ": restarts  ", restarts );
+                logvalprint( tag + ": succeeded ", succeeded );
                 
                 ptoc(tag);
                 
                 return succeeded;
             }
             
-            while( !succeeded && (restarts < max_restarts) )
+            while( !succeeded && (restarts <= max_restarts) )
             {
                 succeeded = Solve( 
                     A, P, a, B_in, ldB, b, X_inout, ldX, relative_tolerance,
@@ -188,9 +189,9 @@ namespace Tensors
                 ++restarts;
             }
             
-            logvalprint( tag + ": iter      = ", iter );
-            logvalprint( tag + ": restarts  = ", restarts );
-            logvalprint( tag + ": succeeded = ", succeeded );
+            logvalprint( tag + ": iter      ", iter );
+            logvalprint( tag + ": restarts  ", restarts );
+            logvalprint( tag + ": succeeded ", succeeded );
             
             ptoc(tag);
             
@@ -206,8 +207,8 @@ namespace Tensors
         bool Solve(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            cref<a_T> a, cptr<B_T> B_in,    const Int ldB,
-            cref<b_T> b, mptr<X_T> X_inout, const Int ldX,
+            const a_T a, cptr<B_T> B_in,    const Int ldB,
+            const b_T b, mptr<X_T> X_inout, const Int ldX,
             const Real relative_tolerance,
             bool use_initial_guessQ
         )
@@ -238,15 +239,18 @@ namespace Tensors
                 {
                     // z = A.x - b;
                     ApplyOperator(A,x.data(),z.data());
-                    MulAdd<F_T::Minus>( z.data(), nrhs, B_in, ldB, h );
+                    
+                    combine_matrices<F_T::Minus,F_T::Plus,VarSize,NRHS,Parallel>
+                    (
+                        -Scalar::One<Scal>, B_in,     ldB,
+                         Scalar::One<Scal>, z.data(), nrhs,
+                        n, nrhs, thread_count
+                    );
                 }
                 else
                 {
                     // z = -b
-                    combine_matrices<
-                        F_T::Minus,F_T::Zero,
-                        VarSize,NRHS,Parallel
-                    >
+                    combine_matrices<F_T::Minus,F_T::Zero,VarSize,NRHS,Parallel>
                     (
                         -Scalar::One<Scal>, B_in,     ldB,
                         Scalar::Zero<Scal>, z.data(), nrhs,
@@ -254,7 +258,7 @@ namespace Tensors
                     );
                 }
                 
-                // Q[0] = P.(A.x-b)
+                // Q[0] = P.( A.x - b )
                 ApplyPreconditioner(P,z.data(),Q.data(0));
             }
             else
@@ -262,20 +266,23 @@ namespace Tensors
                 // TODO: Test this!
                 wprint(tag + ": Right preconditioner is untested. Please double-check you results.");
                 
-                // Q[0] = A.x-b
+                // Q[0] = A.x - b
                 if( use_initial_guessQ )
                 {
-                    // Q[0] = A.x-b
+                    // Q[0] = A.x - b
                     ApplyOperator(A,x.data(),Q.data(0));
-                    MulAdd<F_T::Minus>( Q.data(0), nrhs, B_in, ldB, h );
+                    
+                    combine_matrices<F_T::Minus,F_T::Plus,VarSize,NRHS,Parallel>
+                    (
+                        -Scalar::One<Scal>, B_in,      ldB,
+                         Scalar::One<Scal>, Q.data(0), nrhs,
+                        n, nrhs, thread_count
+                    );
                 }
                 else
                 {
                     // Q[0] = -b
-                    combine_matrices<
-                        F_T::Minus,F_T::Zero,
-                        VarSize,NRHS,Parallel
-                    >
+                    combine_matrices<F_T::Minus,F_T::Zero,VarSize,NRHS,Parallel>
                     (
                         -Scalar::One<Scal>, B_in,      ldB,
                         Scalar::Zero<Scal>, Q.data(0), nrhs,
@@ -337,9 +344,9 @@ namespace Tensors
                 }
                 
                 // Solve H_mat.y = beta_vec.
-                BLAS::trsv<
-                    Layout::RowMajor, UpLo::Upper, Op::Id, Diag::NonUnit
-                >( iter, H_mat.data(), iter, beta_vec.data(), static_cast<Int>(1) );
+                BLAS::trsv<Layout::RowMajor, UpLo::Upper, Op::Id, Diag::NonUnit>(
+                    iter, H_mat.data(), iter, beta_vec.data(), Int(1)
+                );
                 
                 for( Int j = 0; j < iter; ++j )
                 {
@@ -356,16 +363,16 @@ namespace Tensors
             ParallelDo(
                 [&]( const Int i )
                 {
-                    mptr<Scal> z_i  = z.data(i);
+                    mptr<Scal> z_i = z.data(i);
                     
                     for( Int j = 0; j < iter; ++j )
                     {
-                        cptr<Scal> Q_ji = Q.data(j,i);
-                        cptr<Scal> y_j  = y.data(j);
+                        cptr<Scal> q_j_i = Q.data(j,i);
+                        cptr<Scal> y_j   = y.data(j);
                         
                         for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                         {
-                            z_i[k] += y_j[k] * Q_ji[k];
+                            z_i[k] += y_j[k] * q_j_i[k];
                         }
                     }
                 },
@@ -458,22 +465,23 @@ namespace Tensors
         {
             ptic(ClassName()+"::ArnoldiStep");
             
-            mptr<Scal> q = Q.data(iter+1);
+            // Pivot element
+            mptr<Scal> q_p = Q.data(iter+1);
                         
             if constexpr( side == Side::Left )
             {
                 // z = A.Q[iter]
-                ApplyOperator(A,Q.data(iter),z.data());
+                ApplyOperator      (A,Q.data(iter),z.data());
                 
                 // Q[iter+1] = P.A.Q[iter]
-                ApplyPreconditioner(P,z.data(),q);            }
+                ApplyPreconditioner(P,z.data(),q_p);            }
             else
             {
                 // z = P.Q[iter]
-                ApplyOperator(A,Q.data(iter),z.data());
+                ApplyPreconditioner(P,Q.data(iter),z.data());
                 
                 // Q[iter+1] = A.P.Q[iter]
-                ApplyPreconditioner(P,z.data(),q);
+                ApplyOperator      (A,z.data(),q_p);
             }
 
             // Several runs of Gram-Schmidt algorithm.
@@ -485,9 +493,10 @@ namespace Tensors
             {
                 for( Int i = 0; i < iter+1; ++ i )
                 {
-                
+                    mptr<Scal> q_i = Q.data(i);
+                    
                     // h = Q[i] . Q[iter+1];
-                    ComputeScalarProducts( Q.data(i), q, h );
+                    ComputeScalarProducts( q_i, q_p, h );
                     
                     // H[i] += h;
                     for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++ k )
@@ -496,22 +505,34 @@ namespace Tensors
                     }
                     
                     // Q[iter+1] -= Q[i] * h;
-                    MulAdd<F_T::Minus>( q, nrhs, Q.data(i), nrhs, h );
+                    ParallelDo(
+                        [this,q_i,q_p]( const Int j )
+                        {
+                            for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
+                            {
+                                mptr<Scal> q_p_j = &q_p[nrhs * j];
+                                cptr<Scal> q_i_j = &q_i[nrhs * j];
+                                
+                                q_p_j[k] -= q_i_j[k] * h[k];
+                            }
+                        },
+                        job_ptr
+                    );
                 }
             }
             ptoc(ClassName()+" Gram-Schmidt");
             
             // Residual norms
-            ComputeNorms( q, q_norms );
+            ComputeNorms( q_p, q_norms );
             
-            // H[iter+1][iter] += q_norms;
+            // H[iter+1][iter] += ||q||;
             for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++ k )
             {
                 H(iter+1,iter,k) = q_norms[k];
             }
             
-            // q /= q_norms;
-            InverseScale( q, q_norms );
+            // q /= ||q||;
+            InverseScale( q_p, q_norms );
             
             ptoc(ClassName()+"::ArnoldiStep");
         }
@@ -640,38 +661,6 @@ namespace Tensors
             red_buf.AddReduce( dots.data(), false );
             
 //            ptoc(ClassName()+"::ComputeScalarProducts");
-        }
-        
-        template<F_T flag>
-        void MulAdd( 
-            mptr<Scal> v, const Int ldv,
-            cptr<Scal> w, const Int ldw,
-            const Vector_T & factors )
-        {
-//            ptic(ClassName()+"::MulAdd<" + ToString(flag) + ">");
-            
-            ParallelDo(
-                [this,v,ldv,w,ldw,&factors]( const Int i )
-                {
-                    for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
-                    {
-                        mptr<Scal> v_i = &v[ldv * i];
-                        cptr<Scal> w_i = &w[ldw * i];
-                        
-                        if constexpr ( flag == F_T::Minus )
-                        {
-                            v_i[k] -= w_i[k] * factors[k];
-                        }
-                        else
-                        {
-                            v_i[k] += w_i[k] * factors[k];
-                        }
-                    }
-                },
-                job_ptr
-            );
-            
-//            ptoc(ClassName()+"::MulAdd<" + ToString(flag) + ">");
         }
         
         void InverseScale( mptr<Scal> q, const RealVector_T & factors )
