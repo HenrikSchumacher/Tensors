@@ -248,21 +248,15 @@ private:
                         y = Tensor1<T,Int>( nrhs );
                     }
                     
-                    print("a");
-                    
-                    
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
                     
                     const LInt last_l = rp[i_end];
                     
                     const LInt look_ahead = int_cast<LInt>(Tools::Max( Size_T(1), (CacheLineWidth / sizeof(Scal)) / Tools::Max(static_cast<Size_T>(nrhs),NRHS) ));
-
-                    dump(look_ahead);
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
-                        dump(i);
                         const LInt l_begin = rp[i  ];
                         const LInt l_end   = rp[i+1];
 
@@ -334,14 +328,13 @@ private:
                                     );
                                 }
                             }
-                            print("e");
+                            
                             // Incorporate the local updates into Y-buffer.
                             combine_buffers<alpha_flag,beta_flag,NRHS,Seq>(
                                 alpha, &y[0],
                                 beta,  &Y[ldY * i],
                                 nrhs
                             );
-                            print("f");
                         }
                         else
                         {
