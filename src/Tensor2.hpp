@@ -367,7 +367,7 @@ namespace Tensors
                 const Int ldX = Dimension(1);
                 const Int ldY = b.Dimension(1);
                 
-                copy_matrix<VarSize,Parallel>(
+                copy_matrix<VarSize,VarSize,Parallel>(
                     X, ldX, Y, ldY, row_count, col_count, thread_count
                 );
             }

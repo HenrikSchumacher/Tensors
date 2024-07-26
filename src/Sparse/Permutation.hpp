@@ -471,27 +471,139 @@ namespace Tensors
                 
                 ptoc(tag);
             }
-            // TODO: Figure out a_flag and b_flag.
-            
+
             // TODO: Special case ldX = 1 and ldY = 1
             
-            // TODO: Special case trivial permutation.
+            // TODO: Special case trivial permutation -> combine_matrices
             
             Invert( inverseQ );
             
             cptr<Int> r = GetPermutation().data();
 
-            ParallelDo(
-                [=,this]( const Int i )
+            auto do_job = [=,this]<Scalar::Flag a_flag,Scalar::Flag b_flag >()
+            {
+                if( !this->is_trivial )
                 {
-                    combine_buffers<
-                        Scalar::Flag::Generic,Scalar::Flag::Generic,
-                        COLS,Sequential,opx,opy
-                    >
-                    ( alpha, &X[ldX * r[i]], beta, &Y[ldY * i], cols );
-                },
-                n, thread_count
-            );
+                    ParallelDo(
+                        [=,this]( const Int i )
+                        {
+                            combine_buffers<a_flag,b_flag,COLS,Sequential,opx,opy>
+                            ( 
+                                alpha, &X[ldX * r[i]], beta, &Y[ldY * i], cols
+                            );
+                        },
+                        n, thread_count
+                    );
+                }
+                else
+                {
+                    combine_matrices<a_flag,b_flag,VarSize,COLS,Parallel,opx,opy>
+                    (
+                        alpha, X, ldX, beta, Y, ldY, n, cols, thread_count
+                    );
+                }
+            };
+            
+            if( alpha == a_T(1) )
+            {
+                constexpr Scalar::Flag a_flag = Scalar::Flag::Plus;
+                
+                if( beta == b_T(1) )
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Plus;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+                else if ( beta == b_T(0) )
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Zero;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+//                else if ( beta == b_T(-1) )
+//                {
+//                    constexpr Scalar::Flag beta_flag = Scalar::Flag::Minus;
+//                    do_job.template operator()<a_flag,b_flag>();
+//                }
+                else
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Generic;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+            }
+            else if ( alpha == a_T(0) )
+            {
+                constexpr Scalar::Flag a_flag = Scalar::Flag::Zero;
+                
+                if( beta == b_T(1) )
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Plus;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+                else if ( beta == b_T(0) )
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Zero;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+//                else if ( beta == b_T(-1) )
+//                {
+//                    constexpr Scalar::Flag beta_flag = Scalar::Flag::Minus;
+//                    do_job.template operator()<a_flag,b_flag>();
+//                }
+                else
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Generic;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+            }
+//            else if ( alpha == a_T(-1) )
+//            {
+//                constexpr Scalar::Flag a_flag = Scalar::Flag::Minus;
+//                
+//                if( beta == b_T(1) )
+//                {
+//                    constexpr Scalar::Flag b_flag = Scalar::Flag::Plus;
+//                    do_job.template operator()<a_flag,b_flag>();
+//                }
+//                else if ( beta == b_T(0) )
+//                {
+//                    constexpr Scalar::Flag b_flag = Scalar::Flag::Zero;
+//                    do_job.template operator()<a_flag,b_flag>();
+//                }
+////                else if ( beta == b_T(-1) )
+////                {
+////                    constexpr Scalar::Flag beta_flag = Scalar::Flag::Minus;
+////                    do_job.template operator()<a_flag,b_flag>();
+////                }
+//                else
+//                {
+//                    constexpr Scalar::Flag b_flag = Scalar::Flag::Generic;
+//                    do_job.template operator()<a_flag,b_flag>();
+//                }
+//            }
+            else
+            {
+                constexpr Scalar::Flag a_flag = Scalar::Flag::Generic;
+                
+                if( beta == b_T(1) )
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Plus;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+                else if ( beta == b_T(0) )
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Zero;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+//                else if ( beta == b_T(-1) )
+//                {
+//                    constexpr Scalar::Flag beta_flag = Scalar::Flag::Minus;
+//                    do_job.template operator()<a_flag,b_flag>();
+//                }
+                else
+                {
+                    constexpr Scalar::Flag b_flag = Scalar::Flag::Generic;
+                    do_job.template operator()<a_flag,b_flag>();
+                }
+            }
             
             Invert( inverseQ );
             
@@ -523,6 +635,9 @@ namespace Tensors
 
                 if( cols == Scalar::One<Size_T> )
                 {
+                    // TODO: Is there any merit in this specialization?
+                    // TODO: Shouldn't copy_buffer handle that appropriately?
+                    
                     if( (ldX == Scalar::One<Size_T>) && (ldY == Scalar::One<Size_T>) )
                     {
                         ParallelDo(
@@ -561,11 +676,13 @@ namespace Tensors
             {
                 if( (ldX == cols) && (ldY == cols) )
                 {
-                    copy_buffer<VarSize,Parallel>( X, Y, n*cols, thread_count );
+                    copy_buffer<VarSize,Parallel>( 
+                        X, Y, n*cols, thread_count
+                    );
                 }
                 else
                 {
-                    copy_matrix<COLS,Parallel>(
+                    copy_matrix<VarSize,COLS,Parallel>(
                         X, ldX, Y, ldY, n, cols, thread_count
                     );
                 }
