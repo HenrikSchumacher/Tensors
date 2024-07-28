@@ -1302,14 +1302,18 @@ namespace Tensors
                 
                 if( !wellformed )
                 {
-                    wprint(ClassName()+"::WellFormedQ: Matrix is not well formed");
+                    wprint(ClassName()+"::WellFormedQ: Matrix is not well formed.");
                     
                     dump(m);
                     dump(n);
                     dump(outer.Size());
                     dump(inner.Size());
-                    dump(outer.First());
-                    dump(outer.Last());
+                    
+                    if( outer.Size() > 0 )
+                    {
+                        dump(outer.First());
+                        dump(outer.Last());
+                    }
                 }
                 
                 return wellformed;

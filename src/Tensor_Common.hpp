@@ -483,11 +483,11 @@ public:
     }
 
 
-    void WriteToFile( const std::string & s ) const
+    void WriteToFile( const std::filesystem::path & s ) const
     {
         std::ofstream file ( s );
         
-        file << std::setprecision( std::numeric_limits<Scal>::digits10 + 1 );
+        file << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
         
         if( n > 0 )
         {
@@ -500,7 +500,7 @@ public:
         file.close();
     }
 
-    void ReadFromFile( const std::string & s ) const
+    void ReadFromFile( const std::filesystem::path & s ) const
     {
         std::ifstream file ( s );
         
