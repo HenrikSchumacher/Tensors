@@ -4,9 +4,6 @@
 
 #include <iostream>
 
-#include <sys/types.h>
-#include <pwd.h>
-
 #undef _OPENMP
 
 #define TOOLS_ENABLE_PROFILER
@@ -40,18 +37,11 @@ using Int    = int32_t;
 
 int main(int argc, const char * argv[])
 {
-    //    print("Hello world!");
     constexpr Int thread_count = 8;
+
+    std::filesystem::path home_dir = HomeDirectory();
     
-    const char * homedir = getenv("HOME");
-    
-    if( homedir == nullptr)
-    {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
-    std::string home_path ( homedir );
-    
-    Profiler::Clear( home_path );
+    Profiler::Clear( home_dir );
     
     print("");
     print("###############################################################");
@@ -60,7 +50,7 @@ int main(int argc, const char * argv[])
     print("");
     
     
-    std::string path = home_path + "/github/Tensors/SparseMatrices/";
+    std::filesystem::path path = home_dir / "/github/Tensors/SparseMatrices/";
     std::string name = "Spot_4";
 //    std::string name = "Spot_0";
     
@@ -106,7 +96,7 @@ int main(int argc, const char * argv[])
     
 //    // Using a matrix reordering created by TAUCS works splendidly.
 //    Tensor1<Int,Int> p ( n );
-//    p.ReadFromFile(path + name + "_Permutation.txt");
+//    p.ReadFromFile(path / (name + "_Permutation.txt") );
 //    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
 
 //    

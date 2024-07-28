@@ -1,13 +1,4 @@
-//
-//  main.cpp
-//  Unit_Test_SpMM
-//
-//  Created by Henrik on 04.02.23.
-//
-
 #include <iostream>
-#include <sys/types.h>
-#include <pwd.h>
 
 #define TOOLS_ENABLE_PROFILER
 
@@ -234,13 +225,7 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
 
 int main( int argc, const char * argv[] )
 {
-    const char * homedir = getenv("HOME");
-
-    if( homedir == nullptr)
-    {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
-    std::string path ( homedir );
+    std::string path = HomeDirectory().string();
     
     Profiler::Clear( path );
 
@@ -280,7 +265,7 @@ int main( int argc, const char * argv[] )
     valprint("Total error count", error_count);
     valprint("Total ineff count", ineff_count);
 
-    print("See file "+path+"Tools_Log.txt for details.");
+    print("See file " + path.string() + "Tools_Log.txt for details.");
     
     
     return 0;

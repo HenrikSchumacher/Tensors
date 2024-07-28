@@ -1,8 +1,5 @@
 #include <iostream>
 
-#include <sys/types.h>
-#include <pwd.h>
-
 #define TOOLS_ENABLE_PROFILER
 //#define TOOLS_DEBUG
 
@@ -35,13 +32,7 @@ int main(int argc, const char * argv[])
     //    print("Hello world!");
     constexpr Int thread_count   = 8;
     
-    const char * homedir = getenv("HOME");
-    
-    if( homedir == nullptr)
-    {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
-    std::string home_path ( homedir );
+    std::string home_path = HomeDirectory().string();
     
     Profiler::Clear( home_path );
     
@@ -59,7 +50,7 @@ int main(int argc, const char * argv[])
     const Int nrhs = 32;
     
     Sparse::MatrixCSR<Scal,Int,LInt> A = Sparse::MatrixCSR_FromFile<Scal,Int,LInt>(
-        path + name + "_Matrix.txt", thread_count
+        path / (name + "_Matrix.txt"), thread_count
     );
 
     dump(A.RowCount());
@@ -69,7 +60,7 @@ int main(int argc, const char * argv[])
 
     Tensor1<Int,Int> p ( n );
 
-    p.ReadFromFile(path + name + "_Permutation.txt");
+    p.ReadFromFile( path / (name + "_Permutation.txt") );
 
 
     Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );

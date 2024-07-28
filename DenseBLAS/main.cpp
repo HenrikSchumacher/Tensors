@@ -1,18 +1,16 @@
 #include <iostream>
 
-#include <sys/types.h>
-#include <pwd.h>
-
-#define NDEBUG
 #define TOOLS_ENABLE_PROFILER
 //#define TOOLS_DEBUG
 
-#define LAPACK_DISABLE_NAN_CHECK
-#define ACCELERATE_NEW_LAPACK
-#include <Accelerate/Accelerate.h>
-
-//#include <cblas.h>
-//#include <lapack.h>
+#ifdef __APPLE__
+/// Use these while on a mac. Don't forget to issue the compiler flag `-framework Accelerate`.
+///
+    #include "../Accelerate.hpp"
+#else
+/// This should work for OpenBLAS.
+    #include "../OpenBLAS.hpp"
+#endif
 
 #include "Tensors.hpp"
 #include "BLAS_Wrappers.hpp"
@@ -48,14 +46,8 @@ using Int     = int_fast32_t;
 int main(int argc, const char * argv[])
 {
     constexpr Int thread_count = 8;
-    
-    const char * homedir = getenv("HOME");
-    
-    if( homedir == nullptr)
-    {
-        homedir = getpwuid(getuid())->pw_dir;
-    }
-    std::string home_path ( homedir );
+
+    std::string home_path = HomeDirectory();
     
     print("");
     print("###############################################################");
