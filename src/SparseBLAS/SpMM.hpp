@@ -12,6 +12,8 @@ public:
         const Int nrhs = NRHS
     )
     {
+
+        
         // This is basically a large switch to determine at runtime, which instantiation of SpMM_impl is to be invoked.
         // In particular, this implies that all relevant cases of SpMM_impl are instantiated.
 
@@ -22,6 +24,11 @@ public:
         
         const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<alpha_T>(alpha_) : scalar_cast<alpha_T>(0);
         const beta_T  beta  = scalar_cast<beta_T>(beta_);
+        
+        auto dot = [&]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
+        {
+            SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+        };
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
         if( alpha == Scalar::Zero<alpha_T> )
@@ -69,94 +76,94 @@ public:
         
         if( a != nullptr )
         {
-            constexpr Scalar::Flag a_flag = Generic;
+            constexpr F_T a_flag = Generic;
             
             if( alpha == Scalar::One<alpha_T> )
             {
-                constexpr Scalar::Flag alpha_flag = One;
+                constexpr F_T alpha_flag = One;
                 
                 if( beta == Scalar::Zero<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == Scalar::One<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    constexpr Scalar::Flag beta_flag = Generic;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Generic;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
-                constexpr Scalar::Flag alpha_flag = Generic;
+                constexpr F_T alpha_flag = Generic;
                 
                 // general alpha
                 if( beta == Scalar::One<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = One;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = One;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == Scalar::Zero<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    constexpr Scalar::Flag beta_flag = Generic;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Generic;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
         else // a == nullptr
         {
-            constexpr Scalar::Flag a_flag = One;
+            constexpr F_T a_flag = One;
             
             if( alpha == Scalar::One<alpha_T> )
             {
-                constexpr Scalar::Flag alpha_flag = One;
+                constexpr F_T alpha_flag = One;
                 
                 if( beta == Scalar::Zero<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == Scalar::One<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = One;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = One;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    constexpr Scalar::Flag beta_flag = Generic;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Generic;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
                 // general alpha
                 
-                constexpr Scalar::Flag alpha_flag = Generic;
+                constexpr F_T alpha_flag = Generic;
                 
                 if( beta == Scalar::One<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = One;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = One;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == Scalar::Zero<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    constexpr Scalar::Flag beta_flag = Generic;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = Generic;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
@@ -166,7 +173,7 @@ private:
   
 
     template<
-        Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+        F_T a_flag, F_T alpha_flag, F_T beta_flag,
         Size_T NRHS = VarSize, bool base = 0,
         typename alpha_T, typename X_T, typename beta_T, typename Y_T
     >
@@ -180,7 +187,7 @@ private:
     {
         using namespace Scalar;
         
-        if constexpr( (NRHS > 0) && ( a_flag == Scalar::Flag::Zero || VectorizableQ<Scal> ) && VectorizableQ<Y_T> )
+        if constexpr( (NRHS > 0) && ( a_flag == F_T::Zero || VectorizableQ<Scal> ) && VectorizableQ<Y_T> )
         {
             SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
         }
@@ -209,7 +216,7 @@ private:
             //  - beta_flag  == Plus
             //  - beta_flag  == Generic
 
-            // Treats sparse matrix as a binary matrix if a_flag != Scalar::Flag::Generic.
+            // Treats sparse matrix as a binary matrix if a_flag != F_T::Generic.
             // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
             
             // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
@@ -224,7 +231,7 @@ private:
             {
                 if ( a == nullptr )
                 {
-                    eprint( tag + ": a_flag == Scalar::Flag::Generic, but the pointer a is a nullptr. Aborting.");
+                    eprint( tag + ": a_flag == F_T::Generic, but the pointer a is a nullptr. Aborting.");
                     
                     ptoc(tag);
                     
@@ -232,7 +239,8 @@ private:
                 }
             }
             
-            constexpr bool prefetchQ = true;
+            constexpr bool prefetchQ = false;
+//            constexpr bool prefetchQ = true;
             
             ParallelDo(
                 [&]( const Int thread )
@@ -366,7 +374,7 @@ private:
     #if( __has_attribute(ext_vector_type) )
 
     template<
-        Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+        F_T a_flag, F_T alpha_flag, F_T beta_flag,
         Size_T NRHS = VarSize, bool base,
         typename alpha_T, typename X_T, typename beta_T, typename Y_T
     >
@@ -406,7 +414,7 @@ private:
         //  - beta_flag  == Plus
         //  - beta_flag  == Generic
 
-        // Treats sparse matrix as a binary matrix if a_flag != Scalar::Flag::Generic.
+        // Treats sparse matrix as a binary matrix if a_flag != F_T::Generic.
         // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
         
         // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
@@ -422,11 +430,13 @@ private:
         
         using x_T = y_T;
         
+        using V_T = vec_T<NRHS,y_T>;
+        
         if constexpr ( a_flag == Generic )
         {
             if ( a == nullptr )
             {
-                eprint( tag + ": a_flag == Scalar::Flag::Generic, but the pointer a is a nullptr. Aborting.");
+                eprint( tag + ": a_flag == F_T::Generic, but the pointer a is a nullptr. Aborting.");
                 
                 ptoc(tag);
                 
@@ -434,12 +444,17 @@ private:
             }
         }
         
+        const auto alpha_ = scalar_cast<Y_T>(alpha);
+        const auto beta_  = scalar_cast<Y_T>(beta );
+        
         constexpr bool prefetchQ = true;
+        
+        print("SpMM_vec");
              
         ParallelDo(
             [&]( const Int thread )
             {
-                vec_T<NRHS,x_T> x;
+//                V_T x;
      
                 const Int i_begin = job_ptr[thread  ];
                 const Int i_end   = job_ptr[thread+1];
@@ -449,7 +464,7 @@ private:
                 const LInt look_ahead = CacheLineWidth / NRHS;
                 for( Int i = i_begin; i < i_end; ++i )
                 {
-                    vec_T<NRHS,y_T> y ( Scalar::Zero<y_T> );
+                    V_T y ( Scalar::Zero<y_T> );
                     
                     const LInt l_begin = rp[i  ];
                     const LInt l_end   = rp[i+1];
@@ -470,8 +485,19 @@ private:
                                 }
                             }
 
-                            copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
-
+//                            copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
+//
+//                            if constexpr ( a_flag == Generic )
+//                            {
+//                                y += a[l] * x;
+//                            }
+//                            else if constexpr ( a_flag == One )
+//                            {
+//                                y += x;
+//                            }
+                            
+                            const V_T & x = (*reinterpret_cast<const V_T *>(&X[ldX * j]));
+                            
                             if constexpr ( a_flag == Generic )
                             {
                                 y += a[l] * x;
@@ -480,14 +506,23 @@ private:
                             {
                                 y += x;
                             }
+                            
                         }
 
                         
                         // Incorporate the local updates into Y-buffer.
                                    
-                        combine_buffers<alpha_flag,beta_flag,NRHS>(
-                            alpha, reinterpret_cast<y_T *>(&y), beta, &Y[ldY * i]
-                        );
+//                        combine_buffers_vec<alpha_flag,beta_flag,NRHS>(
+//                            alpha_, reinterpret_cast<mptr<y_T>>(&y), 
+//                            beta_ , &Y[ldY * i]
+//                        );
+                        
+                        *reinterpret_cast<V_T *>(&Y[ldY * i])
+                            =
+                            alpha_ * y
+                            +
+                            beta_  * *reinterpret_cast<V_T *>(&Y[ldY * i]);
+                        
                         
     //                    if constexpr ( beta_flag != Zero )
     //                    {
@@ -534,7 +569,8 @@ private:
                         // Modify the relevant portion of the Y-buffer.
                         if constexpr( beta_flag == Zero )
                         {
-                            zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
+//                            zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
+                            *reinterpret_cast<V_T *>(&Y[ldY * i]) = 0;
                         }
                         else if constexpr( beta_flag == One )
                         {
@@ -542,12 +578,8 @@ private:
                         }
                         else if constexpr( beta_flag == Generic )
                         {
-                            scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
-    //                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
-    //
-    //                        z *= beta;
-    //
-    //                        copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
+//                            scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
+                            *reinterpret_cast<V_T *>(&Y[ldY * i]) *= beta;
                         }
                     }
                 }

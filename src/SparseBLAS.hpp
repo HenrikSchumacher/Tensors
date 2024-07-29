@@ -6,7 +6,7 @@ namespace Tensors
     class SparseBLAS
     {
         static_assert(IntQ<Int>,"");
-
+        static_assert(IntQ<LInt>,"");
     public:
         
         explicit SparseBLAS()
@@ -19,9 +19,12 @@ namespace Tensors
         
     private:
         
-        static constexpr typename Scalar::Flag Generic = Scalar::Flag::Generic;
-        static constexpr typename Scalar::Flag One     = Scalar::Flag::Plus;
-        static constexpr typename Scalar::Flag Zero    = Scalar::Flag::Zero;
+        using F_T = Scalar::Flag;
+        
+        static constexpr F_T Generic = F_T::Generic;
+        static constexpr F_T One     = F_T::Plus;
+        static constexpr F_T Zero    = F_T::Zero;
+        
         
     protected:
         

@@ -112,7 +112,7 @@ public:
 
 private:
 
-    template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename a_T, typename X_T, typename b_T, typename Y_T>
+    template<F_T a_flag, F_T alpha_flag, F_T beta_flag, typename a_T, typename X_T, typename b_T, typename Y_T>
     void SpMV_Transposed_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
         cref<a_T> alpha, cptr<X_T>  x,
@@ -154,15 +154,15 @@ private:
         >;
         
         
-//        if constexpr ( beta_flag == Scalar::Flag::Zero )
+//        if constexpr ( beta_flag == F_T::Zero )
 //        {
 //            zerofy_buffer<VarSize,Parallel>( y, n );
 //        }
-//        else if constexpr ( beta_flag == Scalar::Flag::Plus )
+//        else if constexpr ( beta_flag == F_T::Plus )
 //        {
 //            // Do nothing
 //        }
-//        else // beta_flag == Scalar::Flag::Generic or beta_flag == Scalar::Flag::Minus
+//        else // beta_flag == F_T::Generic or beta_flag == F_T::Minus
 //        {
 //            scale_buffer<VarSize,Parallel>( beta, y, n );
 //        }
@@ -177,15 +177,15 @@ private:
 
 //                constexpr LInt look_ahead = 1;
 
-                if constexpr ( beta_flag == Scalar::Flag::Zero )
+                if constexpr ( beta_flag == F_T::Zero )
                 {
                     zerofy_buffer<VarSize,Seq>( &y[i_begin], i_end - i_begin );
                 }
-                else if constexpr ( beta_flag == Scalar::Flag::Plus )
+                else if constexpr ( beta_flag == F_T::Plus )
                 {
                     // Do nothing
                 }
-                else // beta_flag == Scalar::Flag::Generic or beta_flag == Scalar::Flag::Minus
+                else // beta_flag == F_T::Generic or beta_flag == F_T::Minus
                 {
                     scale_buffer<VarSize,Seq>( beta, &y[i_begin], i_end - i_begin );
                 }
@@ -231,7 +231,7 @@ private:
                                 product = scalar_cast<T>(x[i]);
                             }
 
-                            combine_scalars<alpha_flag,Scalar::Flag::Plus>( alpha, product, Scalar::One<Scal>, y[j] );
+                            combine_scalars<alpha_flag,F_T::Plus>( alpha, product, Scalar::One<Scal>, y[j] );
 
                             ++l;
                         }

@@ -3,7 +3,7 @@ public:
     template<bool base, typename alpha_T_, typename X_T, typename beta_T_, typename Y_T>
     void SpMV(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<alpha_T_> alpha_, cptr<X_T>  X,
+        cref<alpha_T_> alpha_, cptr<X_T> X,
         cref< beta_T_> beta_,  mptr<Y_T> Y,
         cref<JobPointers<Int>> job_ptr
     )
@@ -11,8 +11,8 @@ public:
         // This is basically a large switch to determine at runtime, which instantiation of SpMV_impl is to be invoked.
         // In particular, this implies that all relevant cases of SpMM_impl are instantiated.
         
-        using alpha_T = std::conditional_t< Scalar::RealQ<alpha_T_>, Scalar::Real<Y_T>, Y_T>;
-        using beta_T  = std::conditional_t< Scalar::RealQ< beta_T_>, Scalar::Real<Y_T>, Y_T>;
+        using alpha_T = std::conditional_t<Scalar::RealQ<alpha_T_>, Scalar::Real<Y_T>, Y_T>;
+        using beta_T  = std::conditional_t<Scalar::RealQ< beta_T_>, Scalar::Real<Y_T>, Y_T>;
         
         StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
         
@@ -38,71 +38,101 @@ public:
             return;
         }
         
+        auto dot = [&]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
+        {
+            SpMV_impl<a_flag,alpha_flag,beta_flag,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+        };
+        
+        
         if( a != nullptr )
         {
+            constexpr F_T a_flag = Generic;
+    
             if( alpha == Scalar::One<alpha_T> )
             {
+                constexpr F_T alpha_flag = One;
+                
                 if( beta == Scalar::Zero<beta_T> )
                 {
-                    SpMV_impl<Generic,One,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == Scalar::One<beta_T> )
                 {
-                    SpMV_impl<Generic,One,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = One;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_impl<Generic,One,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = Generic;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
                 // general alpha
-                if( beta == Scalar::One<beta_T> )
+                constexpr F_T alpha_flag = Generic;
+                
+                if( beta == Scalar::Zero<beta_T> )
                 {
-                    SpMV_impl<Generic,Generic,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::Zero<beta_T> )
+                else if( beta == Scalar::One<beta_T> )
                 {
-                    SpMV_impl<Generic,Generic,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = One;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_impl<Generic,Generic,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = Generic;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
         else
         {
+            constexpr F_T a_flag = Zero;
+            
             if( alpha == Scalar::One<alpha_T> )
             {
+                constexpr F_T alpha_flag = One;
+                
                 if( beta == Scalar::Zero<beta_T> )
                 {
-                    SpMV_impl<One,One,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == Scalar::One<beta_T> )
                 {
-                    SpMV_impl<One,One,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = One;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_impl<One,One,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = Generic;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
                 // general alpha
-                if( beta == Scalar::One<beta_T> )
+                constexpr F_T alpha_flag = Generic;
+                
+                if( beta == Scalar::Zero<beta_T> )
                 {
-                    SpMV_impl<One,Generic,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = Zero;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::Zero<beta_T> )
+                else if( beta == Scalar::One<beta_T> )
                 {
-                    SpMV_impl<One,Generic,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = One;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_impl<One,Generic,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = Generic;
+                    dot.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
