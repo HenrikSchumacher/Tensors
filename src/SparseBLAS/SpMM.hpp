@@ -200,6 +200,21 @@ private:
             
             ptic(tag);
             
+            // TODO: Add better check for pointer overlap.
+            
+            if constexpr ( std::is_same_v<X_T,Y_T> )
+            {
+                if( X == Y )
+                {
+                    eprint( tag + ": Input and output pointer coincide. This is not safe. Aborting.");
+                    
+                    ptoc(tag);
+                    
+                    return;
+                }
+            }
+            
+            
             // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
             //  - a_flag     == Generic
             //  - a_flag     == One

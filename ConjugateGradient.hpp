@@ -116,6 +116,11 @@ namespace Tensors
             
             ptic(tag);
 
+            if( use_initial_guessQ && (b != b_T(0)) )
+            {
+                wprint( tag + ": use_initial_guessQ == true and b != 0. Typically, this does not make sense." );
+            }
+            
             iter = 0;
             bool succeeded = false;
             
@@ -157,11 +162,27 @@ namespace Tensors
             
             ptoc(ClassName()+": Compute norm of right hand side.");
             
-            if( TOL.Max() <= Scalar::Zero<Scal> )
+            if( b_squared_norms.CountNaNs() > 0 )
             {
-                wprint(tag + ": Right-hand side is 0. Returning b * X_inout");
+                eprint(tag + ": Right-hand side contains NaNs. Doing nothing.");
+                
+                succeeded = false;
 
-                scale_matrix<VarSize,NRHS,Parallel>( 
+                logvalprint( tag + " iter"      , iter      );
+                logvalprint( tag + " succeeded" , succeeded );
+                
+                ptoc(tag);
+                
+                return succeeded;
+            }
+            
+            if( b_squared_norms.Max() <= 0 )
+            {
+                wprint(tag + ": Right-hand side is 0. Returning b * X_inout.");
+
+                dump( b_squared_norms );
+                
+                scale_matrix<VarSize,NRHS,Parallel>(
                     b, X_inout, ldX, n, nrhs, thread_count
                 );
                 
@@ -312,12 +333,10 @@ namespace Tensors
             }
             
             
-            combine_matrices<
-                Scalar::Flag::Generic,Scalar::Flag::Generic,
-                VarSize,NRHS,Parallel
-            >(
-                a, x.data(), nrhs, 
-                b, X_inout,  ldX,
+            combine_matrices_auto<VarSize,NRHS,Parallel>
+            (
+                scalar_cast<X_T>(a), x.data(), nrhs,
+                scalar_cast<X_T>(b), X_inout,  ldX,
                 n, nrhs, thread_count
             );
             

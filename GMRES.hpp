@@ -131,6 +131,11 @@ namespace Tensors
             
             ptic(tag);
             
+            if( use_initial_guessQ && (b != b_T(0)) )
+            {
+                wprint( tag + ": use_initial_guessQ == true and b != 0. Typically, this does not make sense." );
+            }
+            
             ptic(ClassName()+": Compute norm of right hand side.");
             
             // Compute norms of b.
@@ -142,7 +147,7 @@ namespace Tensors
             }
             else
             {
-                // TODO: Not whether this makes sense.
+                // TODO: Not sure whether this makes sense.
                 swap(x,z);
             }
             
@@ -157,7 +162,22 @@ namespace Tensors
             restarts = 0;
             bool succeeded = false;
             
-            if( TOL.Max() <= Scalar::Zero<Scal> )
+            if( b_norms.CountNaNs() > 0 )
+            {
+                eprint(tag + ": Right-hand side contains NaNs. Doing nothing.");
+                
+                succeeded = false;
+                
+                logvalprint( tag + ": iter      ", iter );
+                logvalprint( tag + ": restarts  ", restarts );
+                logvalprint( tag + ": succeeded ", succeeded );
+                
+                ptoc(tag);
+                
+                return succeeded;
+            }
+            
+            if( b_norms.Max() <= 0 )
             {
                 ParallelDo(
                     [X_inout,ldX,this]( const Int i )
@@ -294,6 +314,7 @@ namespace Tensors
             // Residual norms
             ComputeNorms( Q.data(0), r_norms );
             
+            // TODO: What happens here if some entries of r are exactly 0.
             // Normalize Q[0]
             InverseScale( Q.data(0), r_norms );
             
@@ -391,28 +412,36 @@ namespace Tensors
             }
             
             
-            if( use_initial_guessQ )
-            {
-                // solution = X_inout - x.
-                // We return a * solution + b * X_inout = -a * x + (b+1) * X_inout
-                combine_matrices<F_T::Generic,F_T::Generic,VarSize,NRHS,Parallel>(
-                    -a,          x.data(), nrhs,
-                     b + b_T(1), X_inout,  ldX,
-                    n, nrhs, thread_count
-                );
-            }
-            else
-            {
-                // solution = - x. (X_inout is implicitely assumed to be 0)
-                // We return a * solution + b * X_inout = -a * x
-                
-                //X_inout = - x
-                combine_matrices<F_T::Generic,F_T::Zero,VarSize,NRHS,Parallel>(
-                    -a,                 x.data(), nrhs,
-                    Scalar::Zero<Real>, X_inout,  ldX,
-                    n, nrhs, thread_count
-                );
-            }
+            // solution = X_inout - x.
+            // We return a * solution + b * X_inout = -a * x + (b+1) * X_inout
+            combine_matrices_auto<VarSize,NRHS,Parallel>(
+                -scalar_cast<X_T>(a),    x.data(), nrhs,
+                scalar_cast<X_T>(b + 1), X_inout,  ldX,
+                n, nrhs, thread_count
+            );
+            
+//            if( use_initial_guessQ )
+//            {
+//                // solution = X_inout - x.
+//                // We return a * solution + b * X_inout = -a * x + (b+1) * X_inout
+//                combine_matrices_switch<VarSize,NRHS,Parallel>(
+//                    -scalar_cast<X_T>(a),    x.data(), nrhs,
+//                    scalar_cast<X_T>(b + 1), X_inout,  ldX,
+//                    n, nrhs, thread_count
+//                );
+//            }
+//            else
+//            {
+//                // solution = - x. (X_inout is implicitely assumed to be 0)
+//                // We return a * solution + b * X_inout = -a * x
+//                
+//                //X_inout = - x
+//                combine_matrices_switch<VarSize,NRHS,Parallel>(
+//                    -scalar_cast<X_T>(a), x.data(), nrhs,
+//                    Scalar::Zero<X_T>,    X_inout,  ldX,
+//                    n, nrhs, thread_count
+//                );
+//            }
             
             ptoc(ClassName()+": Synthesize solution.");
             

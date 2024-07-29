@@ -1,23 +1,23 @@
 public:
 
-    template<bool base, typename alpha_T_, typename X_T, typename beta_T_, typename Y_T>
+    template<bool base, typename alpha_T_, typename x_t, typename beta_T_, typename y_t>
     void SpMV(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<alpha_T_> alpha_, cptr<X_T>  X,
-        cref< beta_T_> beta_,  mptr<Y_T> Y,
+        cref<alpha_T_> alpha_, cptr<x_t> X,
+        cref< beta_T_> beta_,  mptr<y_t> Y,
         cref<JobPointers<Int>> job_ptr
     )
     {
         // This is basically a large switch to determine at runtime, which instantiation of SpMV_impl is to be invoked.
         // In particular, this implies that all relevant cases of SpMM_impl are instantiated.
         
-        using alpha_T = std::conditional_t< Scalar::RealQ<alpha_T_>, Scalar::Real<Y_T>, Y_T>;
-        using beta_T  = std::conditional_t< Scalar::RealQ< beta_T_>, Scalar::Real<Y_T>, Y_T>;
+        using alpha_T = std::conditional_t< Scalar::RealQ<alpha_T_>, Scalar::Real<y_t>, y_t>;
+        using beta_T  = std::conditional_t< Scalar::RealQ< beta_T_>, Scalar::Real<y_t>, y_t>;
         
-        StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
+        StaticParameterCheck<alpha_T,x_t,beta_T,y_t>();
         
-        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<Y_T>(alpha_) : scalar_cast<alpha_T_>(0);
-        const beta_T  beta  = scalar_cast<Y_T>(beta_);
+        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<y_t>(alpha_) : scalar_cast<alpha_T_>(0);
+        const beta_T  beta  = scalar_cast<y_t>(beta_);
         
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
@@ -112,11 +112,11 @@ private:
 
     template<
         Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, bool base = 0,
-        typename alpha_T_, typename X_T, typename  beta_T_, typename Y_T>
+        typename alpha_T_, typename x_t, typename  beta_T_, typename y_t>
     void SpMV_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<alpha_T_> alpha, cptr<X_T>  x,
-        cref< beta_T_> beta,  mptr<Y_T> y,
+        cref<alpha_T_> alpha, cptr<x_t> x,
+        cref< beta_T_> beta,  mptr<y_t> y,
         cref<JobPointers<Int>> job_ptr
     )
     {
@@ -129,11 +129,25 @@ private:
             +ToString(beta_flag)+","
             +ToString(base)+","
             +TypeName<alpha_T_>+","
-            +TypeName<X_T >+","
+            +TypeName<x_t >+","
             +TypeName<beta_T_>+","
-            +TypeName<Y_T>+">";
+            +TypeName<y_t>+">";
         
         ptic(tag);
+        
+        // TODO: Add better check for pointer overlap.
+        
+        if constexpr ( std::is_same_v<x_t,y_t> )
+        {
+            if( x == y )
+            {
+                eprint( tag + ": Input and output pointer coincide. This is not safe. Aborting.");
+                
+                ptoc(tag);
+                
+                return;
+            }
+        }
         
         // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
         //  - a_flag     == Generic
@@ -150,7 +164,7 @@ private:
         // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
 
         using T = typename std::conditional_t<
-            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
+            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<x_t>,
             typename Scalar::Complex<Scal>,
             typename Scalar::Real<Scal>
         >;

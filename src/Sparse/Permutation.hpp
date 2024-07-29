@@ -451,6 +451,8 @@ namespace Tensors
             //
             //   Y[i] = alpha * X[ q[i] ] + beta * Y[i]
             
+            using F_T = Scalar::Flag;
+            
             std::string tag = ClassName()+"::PermuteCombine"
                 + "," + ToString(COLS)
                 + "," + ToString(parQ)
@@ -480,7 +482,7 @@ namespace Tensors
             
             cptr<Int> r = GetPermutation().data();
 
-            auto do_job = [=,this]<Scalar::Flag a_flag,Scalar::Flag b_flag >()
+            auto do_job = [=,this]<F_T a_flag,F_T b_flag >()
             {
                 if( !this->is_trivial )
                 {
@@ -506,101 +508,101 @@ namespace Tensors
             
             if( alpha == a_T(1) )
             {
-                constexpr Scalar::Flag a_flag = Scalar::Flag::Plus;
+                constexpr F_T a_flag = F_T::Plus;
                 
                 if( beta == b_T(1) )
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Plus;
+                    constexpr F_T b_flag = F_T::Plus;
                     do_job.template operator()<a_flag,b_flag>();
                 }
                 else if ( beta == b_T(0) )
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Zero;
+                    constexpr F_T b_flag = F_T::Zero;
                     do_job.template operator()<a_flag,b_flag>();
                 }
 //                else if ( beta == b_T(-1) )
 //                {
-//                    constexpr Scalar::Flag beta_flag = Scalar::Flag::Minus;
+//                    constexpr F_T beta_flag = F_T::Minus;
 //                    do_job.template operator()<a_flag,b_flag>();
 //                }
                 else
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Generic;
+                    constexpr F_T b_flag = F_T::Generic;
                     do_job.template operator()<a_flag,b_flag>();
                 }
             }
             else if ( alpha == a_T(0) )
             {
-                constexpr Scalar::Flag a_flag = Scalar::Flag::Zero;
+                constexpr F_T a_flag = F_T::Zero;
                 
                 if( beta == b_T(1) )
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Plus;
+                    constexpr F_T b_flag = F_T::Plus;
                     do_job.template operator()<a_flag,b_flag>();
                 }
                 else if ( beta == b_T(0) )
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Zero;
+                    constexpr F_T b_flag = F_T::Zero;
                     do_job.template operator()<a_flag,b_flag>();
                 }
 //                else if ( beta == b_T(-1) )
 //                {
-//                    constexpr Scalar::Flag beta_flag = Scalar::Flag::Minus;
+//                    constexpr F_T beta_flag = F_T::Minus;
 //                    do_job.template operator()<a_flag,b_flag>();
 //                }
                 else
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Generic;
+                    constexpr F_T b_flag = F_T::Generic;
                     do_job.template operator()<a_flag,b_flag>();
                 }
             }
 //            else if ( alpha == a_T(-1) )
 //            {
-//                constexpr Scalar::Flag a_flag = Scalar::Flag::Minus;
+//                constexpr F_T a_flag = F_T::Minus;
 //                
 //                if( beta == b_T(1) )
 //                {
-//                    constexpr Scalar::Flag b_flag = Scalar::Flag::Plus;
+//                    constexpr F_T b_flag = F_T::Plus;
 //                    do_job.template operator()<a_flag,b_flag>();
 //                }
 //                else if ( beta == b_T(0) )
 //                {
-//                    constexpr Scalar::Flag b_flag = Scalar::Flag::Zero;
+//                    constexpr F_T b_flag = F_T::Zero;
 //                    do_job.template operator()<a_flag,b_flag>();
 //                }
 ////                else if ( beta == b_T(-1) )
 ////                {
-////                    constexpr Scalar::Flag beta_flag = Scalar::Flag::Minus;
+////                    constexpr F_T beta_flag = F_T::Minus;
 ////                    do_job.template operator()<a_flag,b_flag>();
 ////                }
 //                else
 //                {
-//                    constexpr Scalar::Flag b_flag = Scalar::Flag::Generic;
+//                    constexpr F_T b_flag = F_T::Generic;
 //                    do_job.template operator()<a_flag,b_flag>();
 //                }
 //            }
             else
             {
-                constexpr Scalar::Flag a_flag = Scalar::Flag::Generic;
+                constexpr F_T a_flag = F_T::Generic;
                 
                 if( beta == b_T(1) )
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Plus;
+                    constexpr F_T b_flag = F_T::Plus;
                     do_job.template operator()<a_flag,b_flag>();
                 }
                 else if ( beta == b_T(0) )
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Zero;
+                    constexpr F_T b_flag = F_T::Zero;
                     do_job.template operator()<a_flag,b_flag>();
                 }
 //                else if ( beta == b_T(-1) )
 //                {
-//                    constexpr Scalar::Flag beta_flag = Scalar::Flag::Minus;
+//                    constexpr F_T beta_flag = F_T::Minus;
 //                    do_job.template operator()<a_flag,b_flag>();
 //                }
                 else
                 {
-                    constexpr Scalar::Flag b_flag = Scalar::Flag::Generic;
+                    constexpr F_T b_flag = F_T::Generic;
                     do_job.template operator()<a_flag,b_flag>();
                 }
             }
