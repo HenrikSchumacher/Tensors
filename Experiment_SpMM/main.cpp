@@ -2,7 +2,7 @@
 #include <iostream>
 
 #define TOOLS_ENABLE_PROFILER
-#define TOOLS_AGGRESSIVE_INLINING
+//#define TOOLS_AGGRESSIVE_INLINING
 
 #ifdef __APPLE__
 /// Use these while on a mac. Don't forget to issue the compiler flag `-framework Accelerate`.
@@ -26,7 +26,6 @@ using Int     = Int32;
 
 int main(int argc, const char * argv[])
 {
-
     const Int thread_count = 8;
     
     Sparse::MatrixCSR<Complex,Int,Size_T> A;
