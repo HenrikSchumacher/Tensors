@@ -487,7 +487,7 @@ namespace Tensors
                 if( !this->is_trivial )
                 {
                     ParallelDo(
-                        [=,this]( const Int i )
+                        [=]( const Int i )
                         {
                             combine_buffers<a_flag,b_flag,COLS,Sequential,opx,opy>
                             ( 
