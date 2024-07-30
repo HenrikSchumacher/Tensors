@@ -397,7 +397,7 @@ namespace Tensors
 //            ptic(ClassName()+ "::ComputeScalarProducts");
             
             ParallelDo(
-                [this,&v,&w,&dots]( const Int thread )
+                [this,&v,&w]( const Int thread )
                 {
                     auto & sums = reduction_buffer[thread];
                     
