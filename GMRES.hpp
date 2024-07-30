@@ -62,6 +62,11 @@ namespace Tensors
         
         Int iter = 0;
         Int restarts = 0;
+        Int max_restarts = 30;
+        Real relative_tolerance = 0.00001;
+        
+        bool use_initial_guessQ = false;
+        bool succeeded          = false;
         
     public:
         
@@ -110,11 +115,11 @@ namespace Tensors
             mref<Preconditioner_T> P,
             const a_T a, cptr<B_T> B_in,    const Int ldB,
             const b_T b, mptr<X_T> X_inout, const Int ldX,
-            const Real relative_tolerance,
-            const Int  max_restarts,
+            const Real relative_tolerance_,
+            const Int  max_restarts_,
             // We force the use to actively request that the initial guess is used,
             // because this is a common source of bugs.
-            const bool use_initial_guessQ = false
+            const bool use_initial_guessQ_ = false
         )
         {
             // `A` and `P` must be a functions or lambda with prototypes
@@ -130,6 +135,10 @@ namespace Tensors
             std::string tag = ClassName() + "::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
             ptic(tag);
+            
+            relative_tolerance = relative_tolerance_;
+            max_restarts       = max_restarts_;
+            use_initial_guessQ = use_initial_guessQ_;
             
             if( use_initial_guessQ && (b != b_T(0)) )
             {
@@ -160,7 +169,7 @@ namespace Tensors
             
             iter = 0;
             restarts = 0;
-            bool succeeded = false;
+            succeeded = false;
             
             if( b_norms.CountNaNs() > 0 )
             {
@@ -168,9 +177,7 @@ namespace Tensors
                 
                 succeeded = false;
                 
-                logvalprint( tag + ": iter      ", iter );
-                logvalprint( tag + ": restarts  ", restarts );
-                logvalprint( tag + ": succeeded ", succeeded );
+                logprint( Stats() );
                 
                 ptoc(tag);
                 
@@ -191,9 +198,7 @@ namespace Tensors
                 
                 wprint(tag + ": Right-hand side is 0. Returning zero vector.");
                 
-                logvalprint( tag + ": iter      ", iter );
-                logvalprint( tag + ": restarts  ", restarts );
-                logvalprint( tag + ": succeeded ", succeeded );
+                logprint( Stats() );
                 
                 ptoc(tag);
                 
@@ -209,9 +214,10 @@ namespace Tensors
                 ++restarts;
             }
             
-            logvalprint( tag + ": iter      ", iter );
-            logvalprint( tag + ": restarts  ", restarts );
-            logvalprint( tag + ": succeeded ", succeeded );
+            // We have to correct this for the statistics.
+            --restarts;
+
+            logprint( Stats() );
             
             ptoc(tag);
             
@@ -314,7 +320,7 @@ namespace Tensors
             // Residual norms
             ComputeNorms( Q.data(0), r_norms );
             
-            // TODO: What happens here if some entries of r are exactly 0.
+            // TODO: What happens here if some entries of r are exactly 0?
             // Normalize Q[0]
             InverseScale( Q.data(0), r_norms );
             
@@ -328,14 +334,14 @@ namespace Tensors
             
             iter = 0;
             
-            bool succeeded = CheckResiduals();
+            bool succ = CheckResiduals();
             
-            if( succeeded )
+            if( succ )
             {
-                return succeeded;
+                return succ;
             }
             
-            while( !succeeded && iter < max_iter )
+            while( !succ && iter < max_iter )
             {
                 ArnoldiStep( A, P );
                 
@@ -343,7 +349,7 @@ namespace Tensors
                 
                 ++iter;
                 
-                succeeded = CheckResiduals();
+                succ = CheckResiduals();
             }
             
             ptic(ClassName()+": Solve least squares system.");
@@ -420,34 +426,11 @@ namespace Tensors
                 n, nrhs, thread_count
             );
             
-//            if( use_initial_guessQ )
-//            {
-//                // solution = X_inout - x.
-//                // We return a * solution + b * X_inout = -a * x + (b+1) * X_inout
-//                combine_matrices_switch<VarSize,NRHS,Parallel>(
-//                    -scalar_cast<X_T>(a),    x.data(), nrhs,
-//                    scalar_cast<X_T>(b + 1), X_inout,  ldX,
-//                    n, nrhs, thread_count
-//                );
-//            }
-//            else
-//            {
-//                // solution = - x. (X_inout is implicitely assumed to be 0)
-//                // We return a * solution + b * X_inout = -a * x
-//                
-//                //X_inout = - x
-//                combine_matrices_switch<VarSize,NRHS,Parallel>(
-//                    -scalar_cast<X_T>(a), x.data(), nrhs,
-//                    Scalar::Zero<X_T>,    X_inout,  ldX,
-//                    n, nrhs, thread_count
-//                );
-//            }
-            
             ptoc(ClassName()+": Synthesize solution.");
             
 //            ptoc(tag);
             
-            return succeeded;
+            return succ;
         }
         
         
@@ -765,14 +748,14 @@ namespace Tensors
         
         bool CheckResiduals() const
         {
-            bool succeeded = true;
+            bool succ = true;
             
             for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
             {
-                succeeded = succeeded && (Abs(beta[iter][k]) <= TOL[k]);
+                succ = succ && (Abs(beta[iter][k]) <= TOL[k]);
             }
             
-            return succeeded;
+            return succ;
         }
         
         const Tensor3<Scal,Int> & GetBasis() const
@@ -783,6 +766,25 @@ namespace Tensors
         const Tensor3<Scal,Int> & GetHessenbergMatrix() const
         {
             return H;
+        }
+        
+        std::string Stats() const
+        {
+            std:: stringstream s;
+            
+            s
+            << "\n==== " + ClassName() + " Stats ====" << "\n\n"
+            << " n                  = " << n << "\n"
+            << " nrhs               = " << nrhs << "\n"
+            << " restarts           = " << restarts << "\n"
+            << " max_restarts       = " << max_restarts << "\n"
+            << " iter               = " << iter     << "\n"
+            << " max_iter           = " << max_iter << "\n"
+            << " relative_tolerance = " << relative_tolerance << "\n"
+            << " use_initial_guessQ = " << use_initial_guessQ << "\n"
+            << "\n==== "+ClassName()+" Stats ====\n" << std::endl;
+            
+            return s.str();
         }
         
         std::string ClassName() const
