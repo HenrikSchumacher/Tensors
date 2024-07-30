@@ -19,6 +19,11 @@
 			<key>orderHint</key>
 			<integer>1</integer>
 		</dict>
+		<key>Experiment_SpMM.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>6</integer>
+		</dict>
 		<key>QRAlgorithm.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
@@ -58,6 +63,11 @@
 			<true/>
 		</dict>
 		<key>AFB30DCB2B955B320024B251</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>AFD4A1562C58C94200510A91</key>
 		<dict>
 			<key>primary</key>
 			<true/>

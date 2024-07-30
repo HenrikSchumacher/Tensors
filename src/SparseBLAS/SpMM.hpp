@@ -82,7 +82,7 @@ public:
                 }
                 else if( beta == Scalar::One<beta_T> )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
+                    constexpr Scalar::Flag beta_flag = One;
                     SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
                 }
                 else
@@ -267,8 +267,15 @@ private:
                     const Int i_end   = job_ptr[thread+1];
                     
                     const LInt last_l = rp[i_end];
-                    
-                    const LInt look_ahead = int_cast<LInt>(Tools::Max( Size_T(1), (CacheLineWidth / sizeof(Scal)) / Tools::Max(static_cast<Size_T>(nrhs),NRHS) ));
+
+                    const LInt look_ahead = static_cast<LInt>(
+                        Tools::Max(
+                            Size_T(1),
+                            CacheLineWidth 
+                            /
+                            (sizeof(X_T) * Tools::Max(static_cast<Size_T>(nrhs),NRHS))
+                        )
+                    );
                     
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -394,7 +401,7 @@ private:
     {
         (void)m;
         (void)n;
-        
+    
         std::string tag = std::string(ClassName()+"::SpMM_vec<")
             +ToString(a_flag)+","
             +ToString(alpha_flag)+","
@@ -408,7 +415,6 @@ private:
             +">(" + ToString(ldX) + "," + ToString(ldY) + ")";
 
         ptic(tag);
-        
         
         static_assert(NRHS!=0, "SpMM_vec only implements static size behavior.");
         
@@ -437,6 +443,7 @@ private:
         
         using x_T = y_T;
         
+        
         if constexpr ( a_flag == Generic )
         {
             if ( a == nullptr )
@@ -450,6 +457,15 @@ private:
         }
         
         constexpr bool prefetchQ = true;
+//        constexpr bool prefetchQ = false;
+        
+        
+        constexpr LInt look_ahead = static_cast<LInt>(
+            Tools::Max(
+                Size_T(1),
+                CacheLineWidth / (sizeof(Scal) * NRHS)
+            )
+        );
              
         ParallelDo(
             [&]( const Int thread )
@@ -461,7 +477,6 @@ private:
 
                 const LInt last_l = rp[i_end];
 
-                const LInt look_ahead = CacheLineWidth / NRHS;
                 for( Int i = i_begin; i < i_end; ++i )
                 {
                     vec_T<NRHS,y_T> y ( Scalar::Zero<y_T> );
@@ -496,7 +511,6 @@ private:
                                 y += x;
                             }
                         }
-
                         
                         // Incorporate the local updates into Y-buffer.
                                    

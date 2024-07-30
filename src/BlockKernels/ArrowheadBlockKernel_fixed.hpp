@@ -38,7 +38,7 @@ namespace Tensors
         
     public:
         
-        using Base_T   = BASE:
+        using Base_T   = BASE;
 
         using Scal     = Scal_;
         using Scal_out = Scal_out_;

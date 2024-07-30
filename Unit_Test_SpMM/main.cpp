@@ -225,7 +225,7 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
 
 int main( int argc, const char * argv[] )
 {
-    std::string path = HomeDirectory().string();
+    std::filesystem::path path = HomeDirectory().string();
     
     Profiler::Clear( path );
 

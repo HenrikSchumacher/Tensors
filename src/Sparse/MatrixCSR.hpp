@@ -1439,7 +1439,7 @@ namespace Tensors
                 
                 if ( scalar_type == "pattern" )
                 {
-                    for( Int k = 0; k < nonzero_count; ++k )
+                    for( LInt k = 0; k < nonzero_count; ++k )
                     {
                         Int i;
                         Int j;
@@ -1453,7 +1453,7 @@ namespace Tensors
                 }
                 else if ( scalar_type != "complex" )
                 {
-                    for( Int k = 0; k < nonzero_count; ++k )
+                    for( LInt k = 0; k < nonzero_count; ++k )
                     {
                         Int i;
                         Int j;
@@ -1468,7 +1468,7 @@ namespace Tensors
                 }
                 else if constexpr (Scalar::ComplexQ<Scal>)
                 {
-                    for( Int k = 0; k < nonzero_count; ++k )
+                    for( LInt k = 0; k < nonzero_count; ++k )
                     {
                         Int i;
                         Int j;
