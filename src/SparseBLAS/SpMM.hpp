@@ -24,9 +24,9 @@ public:
         const beta_T  beta  = scalar_cast<beta_T>(beta_);
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
-        if( alpha == Scalar::Zero<alpha_T> )
+        if( alpha == alpha_T(0) )
         {
-            if( beta == Scalar::Zero<beta_T> )
+            if( beta == beta_T(0) )
             {
                 if( ldY == nrhs )
                 {
@@ -43,7 +43,7 @@ public:
                     );
                 }
             }
-            else if( beta == Scalar::One<beta_T> )
+            else if( beta == beta_T(1) )
             {
                 // Do nothing.
             }
@@ -67,96 +67,103 @@ public:
             return;
         }
         
+        auto job = [=]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
+        {
+            SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+        };
+        
+        
+        
         if( a != nullptr )
         {
-            constexpr Scalar::Flag a_flag = Generic;
+            constexpr F_T a_flag = F_T::Generic;
             
-            if( alpha == Scalar::One<alpha_T> )
+            if( alpha == alpha_T(1) )
             {
-                constexpr Scalar::Flag alpha_flag = One;
+                constexpr F_T alpha_flag = F_T::Plus;
                 
-                if( beta == Scalar::Zero<beta_T> )
+                if( beta == beta_T(0) )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::One<beta_T> )
+                else if( beta == beta_T(1) )
                 {
-                    constexpr Scalar::Flag beta_flag = One;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    constexpr Scalar::Flag beta_flag = Generic;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
-                constexpr Scalar::Flag alpha_flag = Generic;
+                constexpr F_T alpha_flag = F_T::Generic;
                 
                 // general alpha
-                if( beta == Scalar::One<beta_T> )
+                if( beta == beta_T(1) )
                 {
-                    constexpr Scalar::Flag beta_flag = One;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::Zero<beta_T> )
+                else if( beta == beta_T(0) )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    constexpr Scalar::Flag beta_flag = Generic;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
         else // a == nullptr
         {
-            constexpr Scalar::Flag a_flag = One;
+            constexpr F_T a_flag = F_T::Plus;
             
-            if( alpha == Scalar::One<alpha_T> )
+            if( alpha == alpha_T(1) )
             {
-                constexpr Scalar::Flag alpha_flag = One;
+                constexpr F_T alpha_flag = F_T::Plus;
                 
-                if( beta == Scalar::Zero<beta_T> )
+                if( beta == beta_T(0) )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::One<beta_T> )
+                else if( beta == beta_T(1) )
                 {
-                    constexpr Scalar::Flag beta_flag = One;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    constexpr Scalar::Flag beta_flag = Generic;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
                 // general alpha
                 
-                constexpr Scalar::Flag alpha_flag = Generic;
+                constexpr F_T alpha_flag = F_T::Generic;
                 
-                if( beta == Scalar::One<beta_T> )
+                if( beta == beta_T(1) )
                 {
-                    constexpr Scalar::Flag beta_flag = One;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::Zero<beta_T> )
+                else if( beta == beta_T(0) )
                 {
-                    constexpr Scalar::Flag beta_flag = Zero;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    constexpr Scalar::Flag beta_flag = Generic;
-                    SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
@@ -166,7 +173,7 @@ private:
   
 
     template<
-        Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+        F_T a_flag, F_T alpha_flag, F_T beta_flag,
         Size_T NRHS = VarSize, bool base = 0,
         typename alpha_T, typename X_T, typename beta_T, typename Y_T
     >
@@ -180,7 +187,7 @@ private:
     {
         using namespace Scalar;
         
-        if constexpr( (NRHS > 0) && ( a_flag == Scalar::Flag::Zero || VectorizableQ<Scal> ) && VectorizableQ<Y_T> )
+        if constexpr( (NRHS > 0) && ( a_flag == F_T::Zero || VectorizableQ<Scal> ) && VectorizableQ<Y_T> )
         {
             SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
         }
@@ -224,7 +231,7 @@ private:
             //  - beta_flag  == Plus
             //  - beta_flag  == Generic
 
-            // Treats sparse matrix as a binary matrix if a_flag != Scalar::Flag::Generic.
+            // Treats sparse matrix as a binary matrix if a_flag != F_T::Generic.
             // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
             
             // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
@@ -235,11 +242,11 @@ private:
                 typename Scalar::Real<Scal>
             >;
             
-            if constexpr ( a_flag == Generic )
+            if constexpr ( a_flag == F_T::Generic )
             {
                 if ( a == nullptr )
                 {
-                    eprint( tag + ": a_flag == Scalar::Flag::Generic, but the pointer a is a nullptr. Aborting.");
+                    eprint( tag + ": a_flag == F_T::Generic, but the pointer a is a nullptr. Aborting.");
                     
                     ptoc(tag);
                     
@@ -299,17 +306,17 @@ private:
                                 }
                                 
                                 // We use this `if constexpr` here so that we do not read from a when it is a nullptr
-                                if constexpr ( a_flag == Generic )
+                                if constexpr ( a_flag == F_T::Generic )
                                 {
-                                    combine_buffers<a_flag,Zero,NRHS,Seq>(
+                                    combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
                                         a[l],            &X[ldX * j],
                                         Scalar::Zero<T>, &y[0],
                                         nrhs
                                     );
                                 }
-                                else if constexpr ( a_flag == One )
+                                else if constexpr ( a_flag == F_T::Plus )
                                 {
-                                    combine_buffers<a_flag,Zero,NRHS,Seq>(
+                                    combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
                                         Scalar::One<T>,  &X[ldX * j],
                                         Scalar::Zero<T>, &y[0],
                                         nrhs
@@ -332,18 +339,18 @@ private:
                                 }
 
                                 // Add-in
-                                if constexpr ( a_flag == Generic )
+                                if constexpr ( a_flag == F_T::Generic )
                                 {
-                                    combine_buffers<a_flag,One,NRHS,Seq>(
+                                    combine_buffers<a_flag,F_T::Plus,NRHS,Seq>(
                                         a[l],           &X[ldX * j],
                                         Scalar::One<T>, &y[0],
                                         nrhs
                                     );
                                 }
-                                else if constexpr ( a_flag == One )
+                                else if constexpr ( a_flag == F_T::Plus )
                                 {
                                     // We use if constexpr here so that we do not read from a when it is a nullptr
-                                    combine_buffers<a_flag,One,NRHS,Seq>(
+                                    combine_buffers<a_flag,F_T::Plus,NRHS,Seq>(
                                         Scalar::One<T>, &X[ldX * j],
                                         Scalar::One<T>, &y[0],
                                         nrhs
@@ -361,15 +368,15 @@ private:
                         else
                         {
                             // Modify the relevant portion of the Y-buffer.
-                            if constexpr( beta_flag == Zero )
+                            if constexpr( beta_flag == F_T::Zero )
                             {
                                 zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
                             }
-                            else if constexpr( beta_flag == Generic )
+                            else if constexpr( beta_flag == F_T::Generic )
                             {
                                 scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
                             }
-                            else if constexpr( beta_flag == One )
+                            else if constexpr( beta_flag == F_T::Plus )
                             {
                                 // Do nothing.
                             }
@@ -388,7 +395,7 @@ private:
     #if( __has_attribute(ext_vector_type) )
 
     template<
-        Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
+        F_T a_flag, F_T alpha_flag, F_T beta_flag,
         Size_T NRHS = VarSize, bool base,
         typename alpha_T, typename X_T, typename beta_T, typename Y_T
     >
@@ -427,7 +434,7 @@ private:
         //  - beta_flag  == Plus
         //  - beta_flag  == Generic
 
-        // Treats sparse matrix as a binary matrix if a_flag != Scalar::Flag::Generic.
+        // Treats sparse matrix as a binary matrix if a_flag != F_T::Generic.
         // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
         
         // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
@@ -444,11 +451,11 @@ private:
         using x_T = y_T;
         
         
-        if constexpr ( a_flag == Generic )
+        if constexpr ( a_flag == F_T::Generic )
         {
             if ( a == nullptr )
             {
-                eprint( tag + ": a_flag == Scalar::Flag::Generic, but the pointer a is a nullptr. Aborting.");
+                eprint( tag + ": a_flag == F_T::Generic, but the pointer a is a nullptr. Aborting.");
                 
                 ptoc(tag);
                 
@@ -502,11 +509,11 @@ private:
 
                             copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
 
-                            if constexpr ( a_flag == Generic )
+                            if constexpr ( a_flag == F_T::Generic )
                             {
                                 y += a[l] * x;
                             }
-                            else if constexpr ( a_flag == One )
+                            else if constexpr ( a_flag == F_T::Plus )
                             {
                                 y += x;
                             }
@@ -561,15 +568,15 @@ private:
                     else
                     {
                         // Modify the relevant portion of the Y-buffer.
-                        if constexpr( beta_flag == Zero )
+                        if constexpr( beta_flag == F_T::Zero )
                         {
                             zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
                         }
-                        else if constexpr( beta_flag == One )
+                        else if constexpr( beta_flag == F_T::Plus )
                         {
                             // Do nothing.
                         }
-                        else if constexpr( beta_flag == Generic )
+                        else if constexpr( beta_flag == F_T::Generic )
                         {
                             scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
     //                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );

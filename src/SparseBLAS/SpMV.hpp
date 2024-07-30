@@ -21,13 +21,13 @@ public:
         
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
-        if ( alpha == Scalar::Zero<alpha_T> )
+        if ( alpha == alpha_T(0) )
         {
-            if ( beta == Scalar::Zero<beta_T> )
+            if ( beta == beta_T(0) )
             {
                 zerofy_buffer( Y, m, job_ptr.ThreadCount() );
             }
-            else if ( beta == Scalar::One<beta_T> )
+            else if ( beta == beta_T(1) )
             {
                 // Do nothing.
             }
@@ -38,71 +38,100 @@ public:
             return;
         }
         
+        auto job = [=]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
+        {
+            SpMV_impl<a_flag,alpha_flag,beta_flag,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+        };
+        
         if( a != nullptr )
         {
-            if( alpha == Scalar::One<alpha_T> )
+            constexpr F_T a_flag = F_T::Generic;
+            
+            if( alpha == alpha_T(1) )
             {
-                if( beta == Scalar::Zero<beta_T> )
+                constexpr F_T alpha_flag = F_T::Plus;
+                
+                if( beta == beta_T(0) )
                 {
-                    SpMV_impl<Generic,One,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::One<beta_T> )
+                else if( beta == beta_T(1) )
                 {
-                    SpMV_impl<Generic,One,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_impl<Generic,One,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
+                constexpr F_T alpha_flag = F_T::Generic;
+                
                 // general alpha
-                if( beta == Scalar::One<beta_T> )
+                if( beta == beta_T(1) )
                 {
-                    SpMV_impl<Generic,Generic,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::Zero<beta_T> )
+                else if( beta == beta_T(0) )
                 {
-                    SpMV_impl<Generic,Generic,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_impl<Generic,Generic,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
         else
         {
-            if( alpha == Scalar::One<alpha_T> )
+            constexpr F_T a_flag = F_T::Plus;
+            
+            if( alpha == alpha_T(1) )
             {
-                if( beta == Scalar::Zero<beta_T> )
+                constexpr F_T alpha_flag = F_T::Plus;
+                
+                if( beta == beta_T(0) )
                 {
-                    SpMV_impl<One,One,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::One<beta_T> )
+                else if( beta == beta_T(1) )
                 {
-                    SpMV_impl<One,One,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_impl<One,One,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
                 // general alpha
-                if( beta == Scalar::One<beta_T> )
+                constexpr F_T alpha_flag = F_T::Generic;
+                
+                if( beta == beta_T(1) )
                 {
-                    SpMV_impl<One,Generic,One,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
-                else if( beta == Scalar::Zero<beta_T> )
+                else if( beta == beta_T(0) )
                 {
-                    SpMV_impl<One,Generic,Zero,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_impl<One,Generic,Generic,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
@@ -151,8 +180,8 @@ private:
         
         // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
         //  - a_flag     == Generic
-        //  - a_flag     == One
-        //  - alpha_flag == One
+        //  - a_flag     == Plus
+        //  - alpha_flag == Plus
         //  - alpha_flag == Generic
         //  - beta_flag  == Zero
         //  - beta_flag  == Plus
@@ -196,7 +225,7 @@ private:
                             prefetch( &x[ci[l + look_ahead] - base], 0, 0 );
                         }
     
-                        if constexpr ( a_flag == Generic )
+                        if constexpr ( a_flag == F_T::Generic )
                         {
                             sum += scalar_cast<T>(a[l]) * scalar_cast<T>(x[j]);
                         }

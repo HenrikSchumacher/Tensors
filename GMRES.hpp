@@ -343,6 +343,13 @@ namespace Tensors
             
             while( !succ && iter < max_iter )
             {
+                // DEBUGGING
+                if( NRHS == 3 )
+                {
+                    dump(iter);
+                    dump(r_norms);
+                }
+                
                 ArnoldiStep( A, P );
                 
                 ApplyGivensRotations();
@@ -350,6 +357,7 @@ namespace Tensors
                 ++iter;
                 
                 succ = CheckResiduals();
+
             }
             
             ptic(ClassName()+": Solve least squares system.");

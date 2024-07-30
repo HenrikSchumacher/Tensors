@@ -40,71 +40,101 @@ public:
             return;
         }
         
+        auto job = [=]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
+        {
+            SpMV_Transposed_impl<a_flag,alpha_flag,beta_flag>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+        };
+        
         if( a != nullptr )
         {
+            constexpr F_T a_flag = F_T::Generic;
+            
             if( alpha == static_cast<alpha_T>(1) )
             {
+                constexpr F_T alpha_flag = F_T::Plus;
+                
                 if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMV_Transposed_impl<Generic,One,Zero>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMV_Transposed_impl<Generic,One,One>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_Transposed_impl<Generic,One,Generic>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
                 // general alpha
+                
+                constexpr F_T alpha_flag = F_T::Generic;
+                
                 if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMV_Transposed_impl<Generic,Generic,One>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMV_Transposed_impl<Generic,Generic,Zero>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_Transposed_impl<Generic,Generic,Generic>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
         else
         {
+            constexpr F_T a_flag = F_T::Plus;
+            
             if( alpha == static_cast<alpha_T>(1) )
             {
+                constexpr F_T alpha_flag = F_T::Plus;
+                
                 if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMV_Transposed_impl<One,One,Zero>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMV_Transposed_impl<One,One,One>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_Transposed_impl<One,One,Generic>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
             else
             {
                 // general alpha
+                constexpr F_T alpha_flag = F_T::Generic;
+                
                 if( beta == static_cast<beta_T>(1) )
                 {
-                    SpMV_Transposed_impl<One,Generic,One>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Plus;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else if( beta == static_cast<beta_T>(0) )
                 {
-                    SpMV_Transposed_impl<One,Generic,Zero>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Zero;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
                 else
                 {
-                    SpMV_Transposed_impl<One,Generic,Generic>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+                    constexpr F_T beta_flag = F_T::Generic;
+                    job.template operator()<a_flag,alpha_flag,beta_flag>();
                 }
             }
         }
@@ -112,7 +142,7 @@ public:
 
 private:
 
-    template<Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, typename a_T, typename X_T, typename b_T, typename Y_T>
+    template<F_T a_flag, F_T alpha_flag, F_T beta_flag, typename a_T, typename X_T, typename b_T, typename Y_T>
     void SpMV_Transposed_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
         cref<a_T> alpha, cptr<X_T>  x,
@@ -154,15 +184,15 @@ private:
         >;
         
         
-//        if constexpr ( beta_flag == Scalar::Flag::Zero )
+//        if constexpr ( beta_flag == F_T::Zero )
 //        {
 //            zerofy_buffer<VarSize,Parallel>( y, n );
 //        }
-//        else if constexpr ( beta_flag == Scalar::Flag::Plus )
+//        else if constexpr ( beta_flag == F_T::Plus )
 //        {
 //            // Do nothing
 //        }
-//        else // beta_flag == Scalar::Flag::Generic or beta_flag == Scalar::Flag::Minus
+//        else // beta_flag == F_T::Generic or beta_flag == F_T::Minus
 //        {
 //            scale_buffer<VarSize,Parallel>( beta, y, n );
 //        }
@@ -177,15 +207,15 @@ private:
 
 //                constexpr LInt look_ahead = 1;
 
-                if constexpr ( beta_flag == Scalar::Flag::Zero )
+                if constexpr ( beta_flag == F_T::Zero )
                 {
                     zerofy_buffer<VarSize,Seq>( &y[i_begin], i_end - i_begin );
                 }
-                else if constexpr ( beta_flag == Scalar::Flag::Plus )
+                else if constexpr ( beta_flag == F_T::Plus )
                 {
                     // Do nothing
                 }
-                else // beta_flag == Scalar::Flag::Generic or beta_flag == Scalar::Flag::Minus
+                else // beta_flag == F_T::Generic or beta_flag == F_T::Minus
                 {
                     scale_buffer<VarSize,Seq>( beta, &y[i_begin], i_end - i_begin );
                 }
@@ -222,7 +252,7 @@ private:
 
                             Scal product;
 
-                            if constexpr ( a_flag == Generic )
+                            if constexpr ( a_flag == F_T::Generic )
                             {
                                 product = scalar_cast<T>(a[l]) * scalar_cast<T>(x[i]);
                             }
@@ -231,7 +261,7 @@ private:
                                 product = scalar_cast<T>(x[i]);
                             }
 
-                            combine_scalars<alpha_flag,Scalar::Flag::Plus>( alpha, product, Scalar::One<Scal>, y[j] );
+                            combine_scalars<alpha_flag,F_T::Plus>( alpha, product, Scalar::One<Scal>, y[j] );
 
                             ++l;
                         }
