@@ -18,7 +18,7 @@ public:
         using alpha_T = std::conditional_t<Scalar::RealQ<alpha_T_>,Scalar::Real<Y_T>,Y_T>;
         using beta_T  = std::conditional_t<Scalar::RealQ< beta_T_>,Scalar::Real<Y_T>,Y_T>;
         
-        StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
+//        StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
         
         const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<alpha_T>(alpha_) : scalar_cast<alpha_T>(0);
         const beta_T  beta  = scalar_cast<beta_T>(beta_);

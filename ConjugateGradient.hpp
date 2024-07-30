@@ -53,6 +53,10 @@ namespace Tensors
         
         Int iter = 0;
         
+        Real time_elapsed       = 0;
+        Real relative_tolerance = 0.0001;
+        bool use_initial_guessQ = false;
+        
     public:
         
         ConjugateGradient() = delete;
@@ -96,10 +100,10 @@ namespace Tensors
             mref<Preconditioner_T> P,
             const a_T a, cptr<B_T> B_in,    const Int ldB,
             const b_T b, mptr<X_T> X_inout, const Int ldX,
-            const Real relative_tolerance,
+            const Real relative_tolerance_,
             // We force the use to actively request that the initial guess is used,
             // because this is a common source of bugs.
-            const bool use_initial_guessQ = false
+            const bool use_initial_guessQ_ = false
         )
         {
             // `A` and `P` must be a functions or lambda with prototypes
@@ -115,6 +119,11 @@ namespace Tensors
             std::string tag = ClassName() + "::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
             ptic(tag);
+            
+            Time start_time = Clock::now();
+            
+            use_initial_guessQ = use_initial_guessQ_;
+            relative_tolerance = relative_tolerance_;
 
             if( use_initial_guessQ && (b != b_T(0)) )
             {
@@ -340,10 +349,13 @@ namespace Tensors
                 n, nrhs, thread_count
             );
             
-            logvalprint( tag + " iter"      , iter      );
-            logvalprint( tag + " succeeded" , succeeded );
+            time_elapsed = Tools::Duration( start_time, Clock::now() );
+            
+            logprint( Stats() );
             
             ptoc(tag);
+            
+            
             
             return succeeded;
         }
@@ -475,6 +487,24 @@ namespace Tensors
             }
             
             return succeeded;
+        }
+        
+        std::string Stats() const
+        {
+            std:: stringstream s;
+            
+            s
+            << "\n==== " + ClassName() + " Stats ====" << "\n\n"
+            << " time_elapsed       = " << time_elapsed << "\n"
+            << " n                  = " << n << "\n"
+            << " nrhs               = " << nrhs << "\n"
+            << " iter               = " << iter     << "\n"
+            << " max_iter           = " << max_iter << "\n"
+            << " relative_tolerance = " << relative_tolerance << "\n"
+            << " use_initial_guessQ = " << use_initial_guessQ << "\n"
+            << "\n==== " + ClassName() + " Stats ====\n" << std::endl;
+            
+            return s.str();
         }
         
         std::string ClassName() const

@@ -426,13 +426,31 @@ namespace Tensors
             }
             
             
-            // solution = X_inout - x.
-            // We return a * solution + b * X_inout = -a * x + (b+1) * X_inout
-            combine_matrices_auto<VarSize,NRHS,Parallel>(
-                -scalar_cast<X_T>(a),    x.data(), nrhs,
-                scalar_cast<X_T>(b + 1), X_inout,  ldX,
-                n, nrhs, thread_count
-            );
+            
+            
+            if( use_initial_guessQ )
+            {
+                // solution = X_inout - x.
+                
+                // We return a * solution + b * X_inout = -a * x + (b+1) * X_inout
+                combine_matrices_auto<VarSize,NRHS,Parallel>(
+                    -scalar_cast<X_T>(a),    x.data(), nrhs,
+                    scalar_cast<X_T>(b + 1), X_inout,  ldX,
+                    n, nrhs, thread_count
+                );
+            }
+            else
+            {
+                // solution = 0 - x.
+                
+                // We return a * solution + b * X_inout = -a * x + 0
+                combine_matrices_auto<VarSize,NRHS,Parallel>(
+                    -scalar_cast<X_T>(a), x.data(), nrhs,
+                    scalar_cast<X_T>(b), X_inout,  ldX,
+                    n, nrhs, thread_count
+                );
+            }
+
             
             ptoc(ClassName()+": Synthesize solution.");
             
@@ -619,7 +637,7 @@ namespace Tensors
 //            ptic(ClassName()+"::ComputeNorms");
             
             ParallelDo(
-                [this,v,&norms]( const Int thread )
+                [this,v]( const Int thread )
                 {
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
@@ -656,7 +674,7 @@ namespace Tensors
 //            ptic(ClassName()+"::ComputeScalarProducts");
             
             ParallelDo(
-                [this,v,w,&dots]( const Int thread )
+                [this,v,w]( const Int thread )
                 {
                     const Int i_begin = job_ptr[thread  ];
                     const Int i_end   = job_ptr[thread+1];
@@ -790,7 +808,7 @@ namespace Tensors
             << " max_iter           = " << max_iter << "\n"
             << " relative_tolerance = " << relative_tolerance << "\n"
             << " use_initial_guessQ = " << use_initial_guessQ << "\n"
-            << "\n==== "+ClassName()+" Stats ====\n" << std::endl;
+            << "\n==== " + ClassName() + " Stats ====\n" << std::endl;
             
             return s.str();
         }

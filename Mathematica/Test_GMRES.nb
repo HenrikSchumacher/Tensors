@@ -1,0 +1,127 @@
+Notebook[{
+Cell[BoxData["Exit"], "Input",
+ CellChangeTimes->{{3.890822537711602*^9, 3.890822538173267*^9}},
+ CellLabel->"In[24]:=",ExpressionUUID->"570c1adc-8cbc-4b4a-9716-f724f36dd82e"],
+
+Cell[BoxData[{
+ RowBox[{"Needs", "[", "\"\<PM`\>\"", "]"}], "\[IndentingNewLine]", 
+ RowBox[{"LoadPackages", "[", 
+  RowBox[{"{", 
+   RowBox[{"\"\<Geometries\>\"", ",", 
+    RowBox[{"(*", 
+     RowBox[{"\"\<RepulsorLink\>\"", ","}], "*)"}], "\"\<CPPShared\>\""}], 
+   "}"}], "]"}]}], "Input",
+ CellLabel->"In[1]:=",ExpressionUUID->"622a3673-56c1-4758-adc7-08e1ce038598"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"M", "=", 
+   RowBox[{"TriceratopsMesh", "[", "3", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"threadCount", "=", "8"}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"A", "=", 
+   RowBox[{"Mass", "[", "M", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"P", "=", 
+   RowBox[{"LumpedMassInverse", "[", "M", "]"}]}], ";"}]}], "Input",
+ CellLabel->
+  "In[480]:=",ExpressionUUID->"4acf248e-b57b-42b8-896e-32148f8d62bc"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"n", "=", 
+   RowBox[{"Length", "[", "A", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"X0", "=", 
+   RowBox[{"RandomReal", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "nrhs"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"Y0", "=", 
+   RowBox[{"RandomReal", "[", 
+    RowBox[{
+     RowBox[{"{", 
+      RowBox[{
+       RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+     RowBox[{"{", 
+      RowBox[{"n", ",", "nrhs"}], "}"}]}], "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"XTrue", "=", 
+    RowBox[{"LinearSolve", "[", 
+     RowBox[{"A", ",", "Y0"}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"Table", "[", "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"X", "=", 
+       RowBox[{"1.", "X0"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{"Y", "=", 
+       RowBox[{"1.", "Y0"}]}], ";", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"cppGMRES", "[", 
+        RowBox[{"nrhs", ",", "Real"}], "]"}], "[", "\[IndentingNewLine]", 
+       RowBox[{
+        RowBox[{"A", "[", "\"\<RowPointers\>\"", "]"}], ",", 
+        RowBox[{"A", "[", "\"\<ColumnIndices\>\"", "]"}], ",", 
+        RowBox[{"A", "[", "\"\<NonzeroValues\>\"", "]"}], ",", 
+        "\[IndentingNewLine]", 
+        RowBox[{"P", "[", "\"\<RowPointers\>\"", "]"}], ",", 
+        RowBox[{"P", "[", "\"\<ColumnIndices\>\"", "]"}], ",", 
+        RowBox[{"P", "[", "\"\<NonzeroValues\>\"", "]"}], ",", 
+        "\[IndentingNewLine]", "\[Alpha]", ",", "Y", ",", "\[Beta]", ",", "X",
+         ",", "100", ",", "3", ",", 
+        RowBox[{"10", "^", 
+         RowBox[{"(", 
+          RowBox[{"-", "12"}], ")"}]}], ",", "8"}], "\[IndentingNewLine]", 
+       "]"}], ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"{", 
+        RowBox[{"\[Alpha]", ",", "\[Beta]"}], "}"}], "->", 
+       RowBox[{"Max", "[", 
+        RowBox[{"Abs", "[", 
+         RowBox[{
+          RowBox[{"\[Alpha]", " ", "XTrue"}], "+", 
+          RowBox[{"\[Beta]", " ", "X0"}], "-", "X"}], "]"}], "]"}]}]}], 
+     RowBox[{"(*", 
+      RowBox[{"/", 
+       RowBox[{"(", 
+        RowBox[{"$MachineEpsilon", "+", 
+         RowBox[{"Max", "[", 
+          RowBox[{"Abs", "[", 
+           RowBox[{
+            RowBox[{"\[Alpha]", " ", "XTrue"}], "+", 
+            RowBox[{"\[Beta]", " ", "X0"}]}], "]"}], "]"}]}], ")"}]}], "*)"}],
+      "\[IndentingNewLine]", "\[IndentingNewLine]", ",", 
+     RowBox[{"{", 
+      RowBox[{"\[Alpha]", ",", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "Pi"}], "}"}]}], 
+      "}"}], "\[IndentingNewLine]", ",", 
+     RowBox[{"{", 
+      RowBox[{"\[Beta]", ",", 
+       RowBox[{"{", 
+        RowBox[{
+         RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "Pi"}], "}"}]}], 
+      "}"}]}], "]"}], "//", "MatrixForm"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]"}], \
+"Input",ExpressionUUID->"8d976ecc-65db-4f17-a179-393fdee14d02"]
+},
+WindowSize->{1496, 905},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+TaggingRules-><|"TryRealOnly" -> False|>,
+FrontEndVersion->"13.3 for Mac OS X ARM (64-bit) (July 24, 2023)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"2a6dd99d-9cbb-43d2-9418-daa6c614310d"
+]
+

@@ -1,0 +1,198 @@
+Notebook[{
+Cell[BoxData["Exit"], "Input",
+ CellChangeTimes->{{3.890822537711602*^9, 3.890822538173267*^9}},
+ CellLabel->"In[24]:=",ExpressionUUID->"570c1adc-8cbc-4b4a-9716-f724f36dd82e"],
+
+Cell[BoxData[{
+ RowBox[{"Needs", "[", "\"\<PM`\>\"", "]"}], "\[IndentingNewLine]", 
+ RowBox[{"LoadPackages", "[", 
+  RowBox[{"{", 
+   RowBox[{"\"\<Geometries\>\"", ",", 
+    RowBox[{"(*", 
+     RowBox[{"\"\<RepulsorLink\>\"", ","}], "*)"}], "\"\<CPPShared\>\""}], 
+   "}"}], "]"}]}], "Input",
+ CellLabel->"In[1]:=",ExpressionUUID->"622a3673-56c1-4758-adc7-08e1ce038598"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"M", "=", 
+   RowBox[{"TriceratopsMesh", "[", "4", "]"}]}], ";"}]], "Input",
+ CellLabel->"In[3]:=",ExpressionUUID->"348b90ed-d329-4293-8265-d2ca9bbb0eee"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"threadCount", "=", "8"}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"A", "=", 
+    RowBox[{"WeakBiLaplacian", "[", "M", "]"}]}], ";"}], 
+  "\[IndentingNewLine]", 
+  RowBox[{"(*", 
+   RowBox[{
+    RowBox[{"A", "=", 
+     RowBox[{"Mass", "[", "M", "]"}]}], ";"}], 
+   "*)"}]}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"rp", "=", 
+   RowBox[{"A", "[", "\"\<RowPointers\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"ci", "=", 
+   RowBox[{"A", "[", "\"\<ColumnIndices\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"val", "=", 
+   RowBox[{"A", "[", "\"\<NonzeroValues\>\"", "]"}]}], 
+  ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{
+   RowBox[{"{", 
+    RowBox[{"m", ",", "n"}], "}"}], "=", 
+   RowBox[{"Dimensions", "[", "A", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"J", "=", 
+   RowBox[{"cppJobPointers", "[", 
+    RowBox[{"rp", ",", "threadCount", ",", "False"}], "]"}]}], 
+  ";"}]}], "Input",
+ CellLabel->"In[4]:=",ExpressionUUID->"4acf248e-b57b-42b8-896e-32148f8d62bc"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"TestSpMM", "[", 
+   RowBox[{
+   "nrhs_", ",", "Scal_", ",", "\[Alpha]_", ",", "\[Beta]_", ",", 
+    "A_SparseArray", ",", "threadCount_"}], "]"}], ":=", 
+  RowBox[{"Module", "[", 
+   RowBox[{
+    RowBox[{"{", 
+     RowBox[{
+     "m", ",", "n", ",", "rp", ",", "ci", ",", "val", ",", "X0", ",", "Y0", 
+      ",", "X", ",", "Y", ",", "Z", ",", "J"}], "}"}], ",", 
+    "\[IndentingNewLine]", 
+    RowBox[{
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"m", ",", "n"}], "}"}], "=", 
+      RowBox[{"Dimensions", "[", "A", "]"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"rp", "=", 
+      RowBox[{"A", "[", "\"\<RowPointers\>\"", "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"ci", "=", 
+      RowBox[{"A", "[", "\"\<ColumnIndices\>\"", "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"val", "=", 
+      RowBox[{"A", "[", "\"\<NonzeroValues\>\"", "]"}]}], ";", 
+     "\[IndentingNewLine]", "\[IndentingNewLine]", 
+     RowBox[{"X0", "=", 
+      RowBox[{"RandomReal", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"n", ",", "nrhs"}], "}"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"Y0", "=", 
+      RowBox[{"RandomReal", "[", 
+       RowBox[{
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"-", "1"}], ",", "1"}], "}"}], ",", 
+        RowBox[{"{", 
+         RowBox[{"n", ",", "nrhs"}], "}"}]}], "]"}]}], ";", 
+     "\[IndentingNewLine]", 
+     RowBox[{"X", "=", 
+      RowBox[{"1.", "X0"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"Y", "=", 
+      RowBox[{"1.", "Y0"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"Z", "=", 
+      RowBox[{"1.", "Y0"}]}], ";", "\[IndentingNewLine]", 
+     "\[IndentingNewLine]", 
+     RowBox[{"J", "=", 
+      RowBox[{"cppJobPointers", "[", 
+       RowBox[{"rp", ",", "threadCount", ",", "False"}], "]"}]}], ";", 
+     "\[IndentingNewLine]", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"cppSpMM", "[", 
+       RowBox[{"nrhs", ",", "Scal"}], "]"}], "[", 
+      RowBox[{
+      "rp", ",", "ci", ",", "val", ",", "\[Alpha]", ",", "X", ",", "\[Beta]", 
+       ",", "Y", ",", "J"}], "]"}], ";", "\[IndentingNewLine]", 
+     RowBox[{"Z", "=", 
+      RowBox[{
+       RowBox[{"\[Alpha]", " ", 
+        RowBox[{"A", ".", "X"}]}], "+", 
+       RowBox[{"\[Beta]", " ", "Z"}]}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"Max", "[", 
+       RowBox[{"Abs", "[", 
+        RowBox[{"Y", "-", "Z"}], "]"}], "]"}], "/", 
+      RowBox[{"Max", "[", 
+       RowBox[{"$MachineEpsilon", "+", 
+        RowBox[{"Abs", "[", "Z", "]"}]}], "]"}]}]}]}], "\[IndentingNewLine]", 
+   "]"}]}]], "Input",
+ CellLabel->"In[11]:=",ExpressionUUID->"b8edfc36-2fd1-4455-9bb8-ec320a3a034b"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"errors", "=", 
+    RowBox[{"Table", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"TestSpMM", "[", 
+       RowBox[{
+       "32", ",", "Real", ",", "\[Alpha]", ",", "\[Beta]", ",", "A", ",", 
+        "8"}], "]"}], "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"\[Alpha]", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "2."}], "}"}]}], 
+       "}"}], "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"\[Beta]", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "2."}], "}"}]}], 
+       "}"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{"errors", "//", "Max"}]}], "Input",
+ CellLabel->"In[12]:=",ExpressionUUID->"6df20bfe-ff87-4704-a492-a38aaeafeded"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{
+   RowBox[{"errors", "=", 
+    RowBox[{"Table", "[", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"TestSpMM", "[", 
+       RowBox[{
+       "1", ",", "Real", ",", "\[Alpha]", ",", "\[Beta]", ",", "A", ",", 
+        "8"}], "]"}], "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"\[Alpha]", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "2."}], "}"}]}], 
+       "}"}], "\[IndentingNewLine]", ",", 
+      RowBox[{"{", 
+       RowBox[{"\[Beta]", ",", 
+        RowBox[{"{", 
+         RowBox[{
+          RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "2."}], "}"}]}], 
+       "}"}]}], "]"}]}], ";"}], 
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
+ RowBox[{"errors", "//", "Max"}]}], "Input",
+ CellLabel->
+  "In[14]:=",ExpressionUUID->"501497f6-23fd-4318-9383-3ef3156adcbd"]
+},
+WindowSize->{1496, 905},
+WindowMargins->{{0, Automatic}, {Automatic, 0}},
+TaggingRules-><|"TryRealOnly" -> False|>,
+FrontEndVersion->"13.3 for Mac OS X ARM (64-bit) (July 24, 2023)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"2a6dd99d-9cbb-43d2-9418-daa6c614310d"
+]
+
