@@ -1,7 +1,7 @@
 Notebook[{
 Cell[BoxData["Exit"], "Input",
  CellChangeTimes->{{3.890822537711602*^9, 3.890822538173267*^9}},
- CellLabel->"In[24]:=",ExpressionUUID->"570c1adc-8cbc-4b4a-9716-f724f36dd82e"],
+ CellLabel->"In[22]:=",ExpressionUUID->"570c1adc-8cbc-4b4a-9716-f724f36dd82e"],
 
 Cell[BoxData[{
  RowBox[{"Needs", "[", "\"\<PM`\>\"", "]"}], "\[IndentingNewLine]", 
@@ -9,8 +9,8 @@ Cell[BoxData[{
   RowBox[{"{", 
    RowBox[{"\"\<Geometries\>\"", ",", 
     RowBox[{"(*", 
-     RowBox[{"\"\<RepulsorLink\>\"", ","}], "*)"}], "\"\<CPPShared\>\""}], 
-   "}"}], "]"}]}], "Input",
+     RowBox[{"\"\<RepulsorLink\>\"", ","}], "*)"}], "\"\<CPPLab\>\""}], "}"}],
+   "]"}]}], "Input",
  CellLabel->"In[1]:=",ExpressionUUID->"622a3673-56c1-4758-adc7-08e1ce038598"],
 
 Cell[BoxData[{
@@ -25,13 +25,14 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"P", "=", 
    RowBox[{"LumpedMassInverse", "[", "M", "]"}]}], ";"}]}], "Input",
- CellLabel->
-  "In[480]:=",ExpressionUUID->"4acf248e-b57b-42b8-896e-32148f8d62bc"],
+ CellLabel->"In[3]:=",ExpressionUUID->"4acf248e-b57b-42b8-896e-32148f8d62bc"],
 
 Cell[BoxData[{
  RowBox[{
   RowBox[{"n", "=", 
    RowBox[{"Length", "[", "A", "]"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"nrhs", "=", "4"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"X0", "=", 
    RowBox[{"RandomReal", "[", 
@@ -82,7 +83,7 @@ Cell[BoxData[{
          ",", "100", ",", "3", ",", 
         RowBox[{"10", "^", 
          RowBox[{"(", 
-          RowBox[{"-", "12"}], ")"}]}], ",", "8"}], "\[IndentingNewLine]", 
+          RowBox[{"-", "8"}], ")"}]}], ",", "8"}], "\[IndentingNewLine]", 
        "]"}], ";", "\[IndentingNewLine]", "\[IndentingNewLine]", 
       RowBox[{
        RowBox[{"{", 
@@ -114,8 +115,39 @@ Cell[BoxData[{
         RowBox[{
          RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "Pi"}], "}"}]}], 
       "}"}]}], "]"}], "//", "MatrixForm"}], 
-  "\[IndentingNewLine]"}], "\[IndentingNewLine]"}], \
-"Input",ExpressionUUID->"8d976ecc-65db-4f17-a179-393fdee14d02"]
+  "\[IndentingNewLine]"}], "\[IndentingNewLine]"}], "Input",
+ CellLabel->"In[17]:=",ExpressionUUID->"8d976ecc-65db-4f17-a179-393fdee14d02"],
+
+Cell[BoxData[
+ RowBox[{"0.1729292157516827", "/", "7474267.944955121"}]], "Input",
+ CellLabel->"In[23]:=",ExpressionUUID->"67eed493-45c2-4ef7-ac2a-ca939481b359"],
+
+Cell[BoxData[{
+ RowBox[{
+  RowBox[{"Y", "=", 
+   RowBox[{"1.", "Y0"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"X", "=", 
+   RowBox[{"0.", "X0"}]}], ";"}], "\[IndentingNewLine]", 
+ RowBox[{
+  RowBox[{"cppGMRES", "[", 
+   RowBox[{"nrhs", ",", "Real"}], "]"}], "[", "\[IndentingNewLine]", 
+  RowBox[{
+   RowBox[{"A", "[", "\"\<RowPointers\>\"", "]"}], ",", 
+   RowBox[{"A", "[", "\"\<ColumnIndices\>\"", "]"}], ",", 
+   RowBox[{"A", "[", "\"\<NonzeroValues\>\"", "]"}], ",", 
+   "\[IndentingNewLine]", 
+   RowBox[{"P", "[", "\"\<RowPointers\>\"", "]"}], ",", 
+   RowBox[{"P", "[", "\"\<ColumnIndices\>\"", "]"}], ",", 
+   RowBox[{"P", "[", "\"\<NonzeroValues\>\"", "]"}], ",", 
+   "\[IndentingNewLine]", "1.", ",", "Y", ",", "0.", ",", "X", ",", "100", 
+   ",", "3", ",", " ", 
+   RowBox[{"10", "^", 
+    RowBox[{"(", 
+     RowBox[{"-", "8"}], ")"}]}], ",", "8"}], 
+  "]"}], "\[IndentingNewLine]"}], "Input",
+ CellLabel->
+  "In[24]:=",ExpressionUUID->"34d5c454-a275-4705-ad8d-ea13a24114ca"]
 },
 WindowSize->{1496, 905},
 WindowMargins->{{0, Automatic}, {Automatic, 0}},

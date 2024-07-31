@@ -149,6 +149,13 @@ namespace Tensors
             
             // Compute norms of b.
             x.Read( B_in, ldX, thread_count );
+
+            
+//            ComputeNorms( x.data(), b_norms );
+//
+//            TOL = b_norms;
+//            
+//            TOL *= relative_tolerance;
             
             if constexpr ( side == Side::Left )
             {
@@ -163,6 +170,7 @@ namespace Tensors
             ComputeNorms( z.data(), b_norms );
             
             TOL = b_norms;
+            
             TOL *= relative_tolerance;
             
             ptoc(ClassName()+": Compute norm of right hand side.");
@@ -801,6 +809,12 @@ namespace Tensors
             << " relative_tolerance = " << relative_tolerance << "\n"
             << " use_initial_guessQ = " << use_initial_guessQ << "\n"
             << "\n==== " + ClassName() + " Stats ====\n" << std::endl;
+            
+            
+            s << " beta             = " << ArrayToString( beta.data(), {iter,nrhs} ) << "\n";
+            s << " TOL              = " << ToString(TOL) << "\n";
+            s << " b_norms          = " << ToString(b_norms) << "\n";
+            
             
             return s.str();
         }
