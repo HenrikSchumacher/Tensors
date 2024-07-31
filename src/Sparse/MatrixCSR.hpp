@@ -342,8 +342,7 @@ namespace Tensors
                     
                     // TODO: False sharing can be prevented by not distributing whole sublists of idx, jdx, val to the threads but by distributing the rows of the final matrix, instead. It's just a bit fiddly, though.
                     
-                    ptic(ClassName()+"::FromTriples -- writing reordered data");
-                    
+                    // Writing reordered data.
                     ParallelDo(
                         [=,&counters]( const Int thread )
                         {
@@ -378,8 +377,6 @@ namespace Tensors
                         },
                         list_count
                     );
-                    
-                    ptoc(ClassName()+"::FromTriples -- writing reordered data");
                     
                     // Now all j-indices and nonzero values lie in the correct row (as indexed by outer).
 

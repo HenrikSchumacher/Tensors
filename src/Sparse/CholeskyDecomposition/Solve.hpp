@@ -352,7 +352,6 @@ protected:
         
         const Int use_threads = ( parQ == Parallel) ? thread_count : 1;
         
-        ptic("Initialize solvers");
         std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
         
         Do<VarSize,parQ>(
@@ -362,7 +361,6 @@ protected:
             },
             use_threads, use_threads
         );
-        ptoc("Initialize solvers");
         
         // Parallel traversal in preorder
         aTree.template Traverse_Preordered<parQ>( F_list );
@@ -393,7 +391,6 @@ protected:
         
         const Int use_threads = ( parQ == Parallel) ? thread_count : 1;
         
-        ptic("Initialize solvers");
         std::vector<std::unique_ptr<Solver_T>> F_list ( 
             int_cast<Size_T>(use_threads)
         );
@@ -405,7 +402,6 @@ protected:
             },
             use_threads, use_threads
         );
-        ptoc("Initialize solvers");
         
         // Parallel traversal in postorder
         aTree.template Traverse_Postordered<parQ>( F_list );
