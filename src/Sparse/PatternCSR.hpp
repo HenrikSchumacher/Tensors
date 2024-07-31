@@ -735,10 +735,8 @@ namespace Tensors
                 
                 if( WellFormedQ() )
                 {
-                    //            ptic("Counting sort");
                     // Use counting sort to sort outer indices of output matrix.
                     // https://en.wikipedia.org/wiki/Counting_sort
-                    //            ptic("Counting");
                     
                     ParallelDo(
                         [&,this]( const Int thread )
@@ -935,7 +933,7 @@ namespace Tensors
                 {
                     RequireJobPtr();
                     
-                    ptic("Create counters for counting sort");
+                    // Create counters for counting sort
                     
                     Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
                     
@@ -975,8 +973,6 @@ namespace Tensors
                         thread_count
                     );
                     
-                    ptoc("Create counters for counting sort");
-                    
                     AccumulateAssemblyCounters_Parallel<LInt,Int>(counters);
                     
                     const LInt nnz = counters[thread_count-1][m-1];
@@ -985,7 +981,7 @@ namespace Tensors
                     
                     copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
                     
-                    ptic("Counting sort");
+                    // Counting sort.
                     
                     ParallelDo(
                         [&,this]( const Int thread )
@@ -1030,7 +1026,6 @@ namespace Tensors
                     );
                     
                     // Finished expansion phase (counting sort).
-                    ptoc("Counting sort");
                     
                     // Finally we rwo-sort inner and remove duplicates in inner and values.
                     C.Compress();

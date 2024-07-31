@@ -5,7 +5,10 @@ namespace Tensors {
     template<typename LInt, typename Int>
     inline void AccumulateAssemblyCounters( mref<Tensor2<LInt,Int>> counters )
     {
-        ptic("AccumulateAssemblyCounters");
+        ptic( std::string( "AccumulateAssemblyCounters") 
+            + "<" + TypeName<LInt>
+            + "," + TypeName<Int>
+            + ">" );
 
         const Int thread_count = counters.Dimension(0);
 
@@ -30,7 +33,7 @@ namespace Tensors {
             }
         }
 
-        ptoc("AccumulateAssemblyCounters");
+        ptoc( std::string( "AccumulateAssemblyCounters") + "<" + TypeName<LInt> + "," + TypeName<Int> + ">" );
     }
 
 
@@ -41,7 +44,12 @@ namespace Tensors {
 
         constexpr Int per_line = CacheLineWidth / sizeof(LInt);
 
-        ptic("AccumulateAssemblyCounters (parallel)");
+        std::string tag = std::string("AccumulateAssemblyCounters_Parallel")
+            + "<" + TypeName<LInt>
+            + "," + TypeName<Int>
+            + ">";
+        
+        ptic( tag );
         
         const Int thread_count = counters.Dimension(0);
         
@@ -49,7 +57,7 @@ namespace Tensors {
         
         if( (m <= 0) || (thread_count <= 0) )
         {
-            ptoc("AccumulateAssemblyCounters (parallel)");
+            ptoc( tag );
             return;
         }
         
@@ -131,7 +139,7 @@ namespace Tensors {
             thread_count
         );
         
-        ptoc("AccumulateAssemblyCounters (parallel)");
+        ptoc( tag );
     }
 
 
@@ -147,7 +155,12 @@ namespace Tensors {
         const  int symmetrize = 0
     )
     {
-        ptic("AssemblyCounters");
+        std::string tag = std::string( "AssemblyCounters") 
+            + "<" + TypeName<LInt>
+            + "," + TypeName<Int>
+            + ">";
+        
+        ptic( tag );
         
         Tensor2<LInt,Int> counters ( list_count, m, static_cast<LInt>(0) );
 
@@ -196,7 +209,7 @@ namespace Tensors {
         
     //        print(counters.ToString());
         
-        ptoc("AssemblyCounters");
+        ptoc( tag );
         
         return counters;
     }

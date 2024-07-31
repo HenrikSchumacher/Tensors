@@ -70,9 +70,7 @@ namespace Tensors
         ,   parents           ( std::move(parents_) )
         ,   costs             ( n, 1.               )
         {
-            ptic(ClassName());
             Init();
-            ptoc(ClassName());
         }
         
         Tree(
@@ -86,9 +84,7 @@ namespace Tensors
         ,   parents           ( std::move(parents_) )
         ,   costs             ( std::move(costs_)   )
         {
-            ptic(ClassName());
             Init();
-            ptoc(ClassName());
         }
         
     public:

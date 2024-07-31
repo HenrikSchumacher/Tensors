@@ -19,7 +19,13 @@ namespace Tensors
             //
             // is ordered.
             
-            ptic("Sparse::EliminationTreeParents");
+            std::string tag = std::string("Sparse::EliminationTreeParents") 
+                + "<" + TypeName<Int>
+                + "," + TypeName<Int2>
+                + "," + TypeName<LInt>
+                + ">";
+            
+            ptic(tag);
 
             // I want to make it possible to use unsigned integer types for Int.
             // Hence using -1 as "no_element" is not an option.
@@ -57,7 +63,7 @@ namespace Tensors
                 }
             }
             
-            ptoc("Sparse::EliminationTreeParents");
+            ptoc(tag);
         }
         
         
@@ -73,7 +79,14 @@ namespace Tensors
         {
             // We want to compute the elimination tree of B = A[p,p].
             
-            ptic("Sparse::PermutedEliminationTreeParents");
+            std::string tag = std::string("Sparse::PermutedEliminationTreeParents")
+                + "<" + TypeName<Int>
+                + "," + TypeName<Int2>
+                + "," + TypeName<LInt>
+                + "," + ToString(checkQ)
+                + ">";
+            
+            ptic(tag);
 
             // I want to make it possible to use unsigned integer types for Int.
             // Hence using -1 as "no_element" is not an option.
@@ -96,15 +109,15 @@ namespace Tensors
                 {
                     if( p_k < 0 )
                     {
-                        eprint(std::string("Sparse::PermutedEliminationTreeParents: perm[") + ToString(k) + "] < 0.");
-                        ptoc("Sparse::PermutedEliminationTreeParents");
+                        eprint( tag + ": perm[" + ToString(k) + "] < 0.");
+                        ptoc(tag);
                         return false;
                     }
                     
                     if( p_k > n )
                     {
-                        eprint(std::string("Sparse::PermutedEliminationTreeParents: perm[") + ToString(k) + "] > " + ToString(n) + ".");
-                        ptoc("Sparse::PermutedEliminationTreeParents");
+                        eprint( tag + ": perm[" + ToString(k) + "] > " + ToString(n) + ".");
+                        ptoc(tag);
                         return false;
                     }
                 }
@@ -128,15 +141,15 @@ namespace Tensors
                     {
                         if( q_j < 0 )
                         {
-                            eprint(std::string("Sparse::PermutedEliminationTreeParents: perm_inv[") + ToString(j) + "] < 0.");
+                            eprint( tag + ": perm_inv[" + ToString(j) + "] < 0.");
                             ptoc("Sparse::PermutedEliminationTreeParents");
                             return false;
                         }
                         
                         if( q_j > n )
                         {
-                            eprint(std::string("Sparse::PermutedEliminationTreeParents: perm_inv[") + ToString(j) + "] > " + ToString(n) + ".");
-                            ptoc("Sparse::PermutedEliminationTreeParents");
+                            eprint(tag  + ": perm_inv[" + ToString(j) + "] > " + ToString(n) + ".");
+                            ptoc(tag);
                             return false;
                         }
                     }
@@ -166,7 +179,7 @@ namespace Tensors
                 }
             }
             
-            ptoc("Sparse::PermutedEliminationTreeParents");
+            ptoc(tag);
             
             return true;
         }
@@ -186,7 +199,11 @@ namespace Tensors
             // descendant_counts has to be an array of n+1(!) integers,
             // so that every node, including the root, has a valid number of descendants.
             
-            ptic("Sparse::PostOrderedQ");
+            std::string tag = std::string("Sparse::PostOrderedQ")
+                + "<" + TypeName<Int>
+                + ">";
+            
+            ptic(tag);
             
             fill_buffer( descendant_counts, Int(1), n+1 );
             
@@ -197,7 +214,7 @@ namespace Tensors
                 
                 if( i >= p_i )
                 {
-                    ptoc("Sparse::PostOrderedQ");
+                    ptoc(tag);
                     return false;
                 }
                 
@@ -214,12 +231,12 @@ namespace Tensors
                 
                 if( i + descendant_counts[p_i] < p_i + descendant_counts[i]  )
                 {
-                    ptoc("Sparse::PostOrderedQ");
+                    ptoc(tag);
                     return false;
                 }
             }
             
-            ptoc("Sparse::PostOrderedQ");
+            ptoc(tag);
             
             return true;
         }

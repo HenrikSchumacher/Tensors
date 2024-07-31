@@ -24,65 +24,92 @@ public:
         debug_print(ClassName() + "::Traverse_Descendants_Preordered ( node = " + ToString(node) + " ) ends.");
     }
 
-    //template<class Worker_T>
-    //void Traverse_Children_Preordered( mref<Worker_T> worker, const Int node ) const
-    //{
-    //    debug_print(ClassName() + "::Traverse_Children_Preordered ( node = " + ToString(node) + " ) begins.");
-    //
-    //    // Applies ker to the direct children of the node in postorder.
-    //    // CAUTION: Does not apply ker to the node itself!
-    //    // This is to guarantee that all children of node are processed on the same thread to avoid write-conflicts in the case they attempt to write to some of their common parent's memory.
-    //
-    //
-    //    const Int child_begin =  ChildPointer(node     );
-    //    const Int child_end   =  ChildPointer(node + 1 );
-    //
-    //    for( Int k = child_end; k --> child_begin; )
-    //    {
-    //        const Int child = ChildIndex(k);
-    //
-    //        debug_assert(
-    //            parents[child] == node,
-    //            "Node " + ToString(child) + " is not the child of node " + ToString(node)+ "."
-    //        );
-    //
-    //        worker(child);
-    //    }
-    //
-    //    debug_print(ClassName() + "::Traverse_Children_Preordered ( node = " + ToString(node) + " ) ends.");
-    //}
 
-
-    bool Traverse_Preordered_Test() const
+    template<Parallel_T parQ = Parallel, class Worker_T>
+    void Traverse_Preordered( std::vector<std::unique_ptr<Worker_T>> & workers ) const
     {
-        ptic(ClassName()+"::Traverse_Preordered_Test");
-        AllocateCheckList();
+        std::string tag = ClassName() + "::Traverse_Preordered<" + (parQ == Parallel ? "Parallel" : "Sequential") + ">";
+        if( !PostOrderedQ() )
+        {
+            eprint(tag+" requires postordered tree! Doing nothing.");
+            return;
+        }
+        
+        ptic(tag);
+        
+//        std::string tag_1 = "Apply worker " + workers[0]->ClassName() + " to level";
+//        
+//        const Int target_split_level = static_cast<Int>(tree_top_levels.size()-1);
 
-        std::vector<std::unique_ptr<DebugWorker>> workers (thread_count );
-        
-        ParallelDo(
-            [this,&workers]( const Int thread )
-            {
-                workers[thread] = std::make_unique<DebugWorker>( *this );
-            },
-            thread_count
-        );
-        
-        Traverse_Preordered( workers );
-        
-        bool succeededQ = PrintCheckList();
-        
-        if( succeededQ )
+        for( Int d = Scalar::One<Int>; d < static_cast<Int>(tree_top_levels.size()); ++d )
         {
-            print(ClassName()+"::Traverse_Preordered_Test succeeded.");
-            logprint(ClassName()+"::Traverse_Preordered_Test succeeded.");
-        }
-        else
+            const Int k_begin = 0;
+            const Int k_end   = static_cast<Int>(tree_top_levels[d].size());
+
+            const Int use_threads = parQ == Parallel ? Min( thread_count, k_end - k_begin ) : one;
+
+//            ptic(tag_1 + " = " + ToString(d) + "; using " + ToString(use_threads) + " threads.");
+            
+            ParallelDo_Dynamic(
+                [=,this,&workers]( const Int thread, const Int k )
+                {
+//                    const Time start_time = Clock::now();
+
+                    Worker_T & worker = *workers[thread];
+
+                    const Int node = tree_top_levels[d][k];
+
+                    worker( node );
+
+//                    const Time stop_time = Clock::now();
+//                    logprint(
+//                        tag + ": Worker " + ToString(thread) + " required " +
+//                             ToString(Tools::Duration(start_time,stop_time)) +
+//                            " s for completing node " + ToString(node) + " and its direct children."
+//                    );
+                },
+                k_begin, k_end, Scalar::One<Int>, use_threads
+            );
+
+
+//            ptoc(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
+
+        } // for( Int d = target_split_level; d --> Scalar::One<Int> ; )
+
+
+        // Process the subtrees, but not their roots!
+        // (That is to be done by these roots' parents!)
         {
-            eprint(ClassName()+"::Traverse_Preordered_Test failed.");
+            const Int k_begin = 0;
+            const Int k_end   = static_cast<Int>(subtrees.size());
+            
+            const Int use_threads = (parQ == Parallel) ? Min( thread_count, k_end - k_begin ) : 1;
+            
+//            ptic(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
+            
+            ParallelDo_Dynamic(
+                [=,this,&workers]( const Int thread, const Int k )
+                {
+//                    const Time start_time = Clock::now();
+
+                    Worker_T & worker = *workers[thread];
+
+                    const Int node = subtrees[k];
+
+                    Traverse_Descendants_Preordered( worker, node );
+
+//                    const Time stop_time = Clock::now();
+//                    
+//                    logprint(
+//                        tag + ": Worker " + ToString(thread) + " required " +
+//                             ToString(Tools::Duration(start_time,stop_time)) +
+//                            " s for the " + ToString(DescendantCount(node)) + " descendants of node " + ToString(node) + "."
+//                    );
+                },
+                k_begin, k_end, Scalar::One<Int>, use_threads
+            );
+            
+//            ptoc(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
         }
-        
-        ptoc(ClassName()+"::Traverse_Preordered_Test");
-        
-        return succeededQ;
+        ptoc(tag);
     }
