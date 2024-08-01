@@ -270,9 +270,6 @@ namespace Tensors
                             
                             for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                             {
-    //                            x[i][k]  = alpha[k] * p[i][k];
-    //                            r[i][k] -= alpha[k] * u[i][k];
-                                
                                 x_i[k]  = alpha[k] * p_i[k];
                                 r_i[k] -= alpha[k] * u_i[k];
                             }
@@ -293,9 +290,6 @@ namespace Tensors
                             
                             for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                             {
-    //                            x[i][k] += alpha[k] * p[i][k];
-    //                            r[i][k] -= alpha[k] * u[i][k];
-                                
                                 x_i[k] += alpha[k] * p_i[k];
                                 r_i[k] -= alpha[k] * u_i[k];
                             }
@@ -329,8 +323,6 @@ namespace Tensors
                         
                         for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                         {
-//                            p[i][k] = z[i][k] + beta[k] * p[i][k];
-                            
                             p_i[k] = z_i[k] + beta[k] * p_i[k];
                         }
                     },
@@ -510,12 +502,13 @@ namespace Tensors
         std::string ClassName() const
         {
             return std::string( "ConjugateGradient")
-                + "<" + ToString(NRHS)
+                + "<" + (NRHS <= VarSize ? std::string("VarSize") : ToString(NRHS) )
                 + "," + TypeName<Scal>
                 + "," + TypeName<Int>
                 + "," + ToString(A_verboseQ)
                 + "," + ToString(P_verboseQ)
-                + "> (" + ToString(nrhs) + ")";
+                +">(" + ToString(nrhs)
+                + ")";
         }
         
     }; // class ConjugateGradient

@@ -193,17 +193,20 @@ private:
         }
         else
         {
-            std::string tag = std::string(ClassName()+"::SpMM_impl<")
-                +ToString(a_flag)+","
-                +ToString(alpha_flag)+","
-                +ToString(beta_flag)+","
-                +TypeName<alpha_T>+","
-                +TypeName<X_T>+","
-                +TypeName<beta_T>+","
-                +TypeName<Y_T>+ ","
-                + ( ( NRHS == VarSize ) ? std::string("VarSize") : ToString(NRHS) ) + ","
-                + ToString(base)
-                +">("+ToString(ldX)+","+ToString(ldY)+","+ToString(nrhs)+")";
+            std::string tag = std::string(ClassName()+"::SpMM_impl")
+                + "<" + ToString(a_flag) 
+                + "," + ToString(alpha_flag)
+                + "," + ToString(beta_flag)
+                + "," + (NRHS <= 0 ? std::string("VarSize") : ToString(NRHS) )
+                + "," + ToString(base)
+                + "," + TypeName<alpha_T>
+                + "," + TypeName<X_T>
+                + "," + TypeName<beta_T>
+                + "," + TypeName<Y_T>
+                +">(" + ToString(ldX)
+                + "," + ToString(ldY) 
+                + "," + ToString(nrhs)
+                + ")";
             
             ptic(tag);
             
@@ -409,18 +412,20 @@ private:
         (void)m;
         (void)n;
     
-        std::string tag = std::string(ClassName()+"::SpMM_vec<")
-            +ToString(a_flag)+","
-            +ToString(alpha_flag)+","
-            +ToString(beta_flag)+","
-            +ToString(NRHS)+","
-            +ToString(base)+","
-            +TypeName<alpha_T>+","
-            +TypeName<X_T>+","
-            +TypeName<beta_T>+","
-            +TypeName<Y_T>
-            +">(" + ToString(ldX) + "," + ToString(ldY) + ")";
-
+        std::string tag = std::string(ClassName()+"::SpMM_vec")
+            + "<" + ToString(a_flag)
+            + "," + ToString(alpha_flag)
+            + "," + ToString(beta_flag)
+            + "," + ToString(NRHS <= 0 ? std::string("VarSize") : ToString(NRHS) )
+            + "," + ToString(base)
+            + "," + TypeName<alpha_T>
+            + "," + TypeName<X_T>
+            + "," + TypeName<beta_T>
+            + "," + TypeName<Y_T>
+            +">(" + ToString(ldX)
+            + "," + ToString(ldY)
+            + ")";
+        
         ptic(tag);
         
         static_assert(NRHS!=0, "SpMM_vec only implements static size behavior.");

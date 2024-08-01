@@ -152,15 +152,16 @@ private:
         (void)m;
         (void)n;
         
-        std::string tag = std::string(ClassName()+"::SpMV_impl<")
-            +ToString(a_flag)+","
-            +ToString(alpha_flag)+","
-            +ToString(beta_flag)+","
-            +ToString(base)+","
-            +TypeName<alpha_T_>+","
-            +TypeName<x_t >+","
-            +TypeName<beta_T_>+","
-            +TypeName<y_t>+">";
+        std::string tag = std::string(ClassName()+"::SpMV_impl")
+            + "<" + ToString(a_flag)
+            + "," + ToString(alpha_flag)
+            + "," + ToString(beta_flag)
+            + "," + ToString(base)
+            + "," + TypeName<alpha_T_>
+            + "," + TypeName<x_t>
+            + "," + TypeName<beta_T_>
+            + "," + TypeName<y_t>
+            + ">";
         
         ptic(tag);
         

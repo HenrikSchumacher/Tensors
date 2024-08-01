@@ -149,13 +149,6 @@ namespace Tensors
             
             // Compute norms of b.
             x.Read( B_in, ldX, thread_count );
-
-            
-//            ComputeNorms( x.data(), b_norms );
-//
-//            TOL = b_norms;
-//            
-//            TOL *= relative_tolerance;
             
             if constexpr ( side == Side::Left )
             {
@@ -815,6 +808,8 @@ namespace Tensors
             s << " TOL              = " << ToString(TOL) << "\n";
             s << " b_norms          = " << ToString(b_norms) << "\n";
             
+            s << " relative residuals = " << ArrayToString( RelativeResiduals().data(), {nrhs} ) << "\n";
+            
             
             return s.str();
         }
@@ -822,7 +817,13 @@ namespace Tensors
         std::string ClassName() const
         {
             return std::string(
-                "GMRES<"+ToString(NRHS)+","+TypeName<Scal>+","+TypeName<Int>+","+(side==Side::Left ? "Left" : "Right")+">(" + ToString(nrhs) + ")"
+                std::string("GMRES")
+                    + "<" + (NRHS <= VarSize ? std::string("VarSize") : ToString(NRHS) )
+                    + "," + TypeName<Scal>
+                    + "," + TypeName<Int>
+                    + "," + (side==Side::Left ? "Left" : "Right")
+                    +">(" + ToString(nrhs)
+                    + ")"
             );
         }
     }; // class GMRES
