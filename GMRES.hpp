@@ -623,7 +623,7 @@ namespace Tensors
                     Scal sin;
                     
                     const Real r = Sqrt( AbsSquared(xi) + AbsSquared(eta) );
-                    
+
                     if( Abs(xi) <= Scalar::eps<Scal> * r )
                     {
                         cos = Scalar::Zero<Scal>;
@@ -669,7 +669,9 @@ namespace Tensors
                     {
                         for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
                         {
-                            sums[k] += AbsSquared(v[(NRHS>VarSize ? NRHS : nrhs) * i + k]);
+                            sums[k] += AbsSquared(
+                                v[ (NRHS>VarSize ? NRHS : nrhs) * i + k ]
+                            );
                         }
                     }
                     
@@ -818,14 +820,14 @@ namespace Tensors
             return solution;
         }
         
-        template<typename alpha_T, typename beta_T, typename X_T>
+        template<typename a_T, typename b_T, typename X_T>
         void WriteSolution(
-            const alpha_T alpha, const beta_T beta, mptr<X_T> X, const Int ldX
+            const a_T a, const b_T b, mptr<X_T> X, const Int ldX
         )
         {
             combine_matrices_auto<VarSize,NRHS,Parallel>(
-                alpha, solution.data(), nrhs,
-                beta,  X,               ldX,
+                a, solution.data(), nrhs,
+                b, X,               ldX,
                 n, nrhs, thread_count
             );
         }
@@ -849,7 +851,7 @@ namespace Tensors
             << "\n==== " + ClassName() + " Stats ====\n" << std::endl;
             
             
-            s << " beta             = " << ArrayToString( beta.data(), {iter,nrhs} ) << "\n";
+            s << " beta             = " << ArrayToString( beta.data(), {iter+1,nrhs} ) << "\n";
             s << " TOL              = " << ToString(TOL) << "\n";
             s << " b_norms          = " << ToString(b_norms) << "\n";
             

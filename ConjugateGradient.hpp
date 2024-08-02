@@ -496,6 +496,8 @@ namespace Tensors
             << " use_initial_guessQ = " << use_initial_guessQ << "\n"
             << "\n==== " + ClassName() + " Stats ====\n" << std::endl;
             
+            s << " relative residuals = " << ArrayToString( RelativeResiduals().data(), {nrhs} ) << "\n";
+            
             return s.str();
         }
         
