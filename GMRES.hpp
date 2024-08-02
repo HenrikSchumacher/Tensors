@@ -50,6 +50,7 @@ namespace Tensors
         
         Tensor2<Scal,Int> x;
         Tensor2<Scal,Int> z;
+        Tensor2<Scal,Int> solution;
 
         ThreadTensor2<Scal,Int>      red_buf;
         ThreadTensor2<Real,Int> real_red_buf;
@@ -90,6 +91,7 @@ namespace Tensors
         ,   beta            ( max_iter + 1, nrhs                    )
         ,   x               ( n,            nrhs                    )
         ,   z               ( n,            nrhs                    )
+        ,   solution        ( n,            nrhs                    )
         ,        red_buf    ( thread_count, nrhs                    )
         ,   real_red_buf    ( thread_count, nrhs                    )
         ,   TOL             ( nrhs                                  )
@@ -187,30 +189,48 @@ namespace Tensors
             
             if( b_norms.Max() <= 0 )
             {
-                ParallelDo(
-                    [X_inout,ldX,this]( const Int i )
-                    {
-                        zerofy_buffer<NRHS>( &X_inout[ldX * i], nrhs );
-                    },
-                    n, thread_count
-                );
-               
-                succeeded = true;
-                
-                wprint(tag + ": Right-hand side is 0. Returning zero vector.");
+                wprint(tag + ": Right-hand side is 0. Returning scaled X_inout.");
                 
                 logprint( Stats() );
                 
+                if( b == b_T(0) )
+                {
+                    zerofy_matrix<VarSize,NRHS,Parallel>(
+                        X_inout, ldX, n, nrhs, thread_count
+                    );
+                    
+                }
+                else
+                {
+                    scale_matrix<VarSize,NRHS,Parallel>(
+                        b, X_inout, ldX, n, nrhs, thread_count
+                    );
+                }
+               
+                succeeded = true;
+                        
                 ptoc(tag);
                 
                 return succeeded;
+            }
+
+            {
+                if( use_initial_guessQ )
+                {
+                    solution.Read( X_inout, ldX, thread_count );
+                }
+                
+                succeeded = Solve(
+                    A, P, B_in, ldB, !use_initial_guessQ
+                );
+                
+                ++restarts;
             }
             
             while( !succeeded && (restarts <= max_restarts) )
             {
                 succeeded = Solve( 
-                    A, P, a, B_in, ldB, b, X_inout, ldX, relative_tolerance,
-                    use_initial_guessQ || (restarts > 0)
+                    A, P, B_in, ldB, false
                 );
                 ++restarts;
             }
@@ -220,6 +240,8 @@ namespace Tensors
 
             logprint( Stats() );
             
+            WriteSolution( a, b, X_inout, ldX );
+            
             ptoc(tag);
             
             return succeeded;
@@ -228,19 +250,16 @@ namespace Tensors
     protected:
         
         template<
-            typename Operator_T, typename Preconditioner_T,
-            typename a_T, typename B_T, typename b_T, typename X_T
+            typename Operator_T, typename Preconditioner_T, typename B_T
         >
         bool Solve(
             mref<Operator_T>       A,
             mref<Preconditioner_T> P,
-            const a_T a, cptr<B_T> B_in,    const Int ldB,
-            const b_T b, mptr<X_T> X_inout, const Int ldX,
-            const Real relative_tolerance,
-            bool use_initial_guessQ
+            cptr<B_T> B, const Int ldB,
+            bool implicit_zeroQ
         )
         {
-            std::string tag = ClassName() + "::Solve<" + TypeName<B_T> + "," + TypeName<X_T> + ">";
+            std::string tag = ClassName() + "::Solve<" + TypeName<B_T> + ">";
             
 //            ptic(tag);
             
@@ -248,39 +267,39 @@ namespace Tensors
             
             // TODO: Remove the redudant computations in the case of a restart.
             
-            if( use_initial_guessQ )
-            {
-                logprint( tag + ": Using X_inout as initial guess." );
-                x.Read( X_inout, ldX, thread_count );
-            }
-            else
+            if( implicit_zeroQ )
             {
                 // Not neccessary anymore.
 //                x.SetZero( thread_count );
+            }
+            else
+            {
+                logprint( tag + ": Using X_inout as initial guess." );
+                x.Read( solution.data(), nrhs, thread_count );
             }
             
             if constexpr ( side == Side::Left )
             {
                 // z = A.x - b;
-                if( use_initial_guessQ )
+                if( implicit_zeroQ )
+                {
+                    // z = -b
+                    combine_matrices<F_T::Minus,F_T::Zero,VarSize,NRHS,Parallel>
+                    (
+                        -Scalar::One<Scal>, B,        ldB,
+                        Scalar::Zero<Scal>, z.data(), nrhs,
+                        n, nrhs, thread_count
+                    );
+                }
+                else
                 {
                     // z = A.x - b;
                     ApplyOperator(A,x.data(),z.data());
                     
                     combine_matrices<F_T::Minus,F_T::Plus,VarSize,NRHS,Parallel>
                     (
-                        -Scalar::One<Scal>, B_in,     ldB,
+                        -Scalar::One<Scal>, B,        ldB,
                          Scalar::One<Scal>, z.data(), nrhs,
-                        n, nrhs, thread_count
-                    );
-                }
-                else
-                {
-                    // z = -b
-                    combine_matrices<F_T::Minus,F_T::Zero,VarSize,NRHS,Parallel>
-                    (
-                        -Scalar::One<Scal>, B_in,     ldB,
-                        Scalar::Zero<Scal>, z.data(), nrhs,
                         n, nrhs, thread_count
                     );
                 }
@@ -294,25 +313,25 @@ namespace Tensors
                 wprint(tag + ": Right preconditioner is untested. Please double-check you results.");
                 
                 // Q[0] = A.x - b
-                if( use_initial_guessQ )
+                if( implicit_zeroQ )
+                {
+                    // Q[0] = -b
+                    combine_matrices<F_T::Minus,F_T::Zero,VarSize,NRHS,Parallel>
+                    (
+                        -Scalar::One<Scal>, B,         ldB,
+                        Scalar::Zero<Scal>, Q.data(0), nrhs,
+                        n, nrhs, thread_count
+                    );
+                }
+                else
                 {
                     // Q[0] = A.x - b
                     ApplyOperator(A,x.data(),Q.data(0));
                     
                     combine_matrices<F_T::Minus,F_T::Plus,VarSize,NRHS,Parallel>
                     (
-                        -Scalar::One<Scal>, B_in,      ldB,
+                        -Scalar::One<Scal>, B,         ldB,
                          Scalar::One<Scal>, Q.data(0), nrhs,
-                        n, nrhs, thread_count
-                    );
-                }
-                else
-                {
-                    // Q[0] = -b
-                    combine_matrices<F_T::Minus,F_T::Zero,VarSize,NRHS,Parallel>
-                    (
-                        -Scalar::One<Scal>, B_in,      ldB,
-                        Scalar::Zero<Scal>, Q.data(0), nrhs,
                         n, nrhs, thread_count
                     );
                 }
@@ -339,6 +358,8 @@ namespace Tensors
             
             if( succ )
             {
+                wprint( tag + ": Converged after 0 iterations." );
+                
                 return succ;
             }
             
@@ -419,31 +440,36 @@ namespace Tensors
             }
             
             
-            
-            
-            if( use_initial_guessQ )
+            if( implicit_zeroQ )
             {
-                // solution = X_inout - x.
-                
-                // We return a * solution + b * X_inout = -a * x + (b+1) * X_inout
-                combine_matrices_auto<VarSize,NRHS,Parallel>(
-                    -scalar_cast<X_T>(a),    x.data(), nrhs,
-                    scalar_cast<X_T>(b + 1), X_inout,  ldX,
-                    n, nrhs, thread_count
+                // solution = 0 - x.
+                combine_buffers<F_T::Minus,F_T::Zero,VarSize,Parallel>(
+                    -Scalar::One<Scal>, x.data(),
+                    Scalar::Zero<Scal>, solution.data(),
+                    n * nrhs, thread_count
                 );
+                
+//                combine_matrices<F_T::Minus,F_T::Zero,VarSize,NRHS,Parallel>(
+//                    -Scalar::One<Scal>, x.data(),        nrhs,
+//                    Scalar::Zero<Scal>, solution.data(), nrhs,
+//                    n, nrhs, thread_count
+//                );
             }
             else
             {
-                // solution = 0 - x.
-                
-                // We return a * solution + b * X_inout = -a * x + 0
-                combine_matrices_auto<VarSize,NRHS,Parallel>(
-                    -scalar_cast<X_T>(a), x.data(), nrhs,
-                    scalar_cast<X_T>(b), X_inout,  ldX,
-                    n, nrhs, thread_count
+                // solution = X - x.
+                combine_buffers<F_T::Minus,F_T::Plus,VarSize,Parallel>(
+                    -Scalar::One<Scal>, x.data(),
+                     Scalar::One<Scal>, solution.data(),
+                    n * nrhs, thread_count
                 );
+                
+//                combine_matrices<F_T::Minus,F_T::Plus,VarSize,NRHS,Parallel>(
+//                    -Scalar::One<Scal>, x.data(),        nrhs,
+//                     Scalar::One<Scal>, solution.data(), nrhs,
+//                    n, nrhs, thread_count
+//                );
             }
-
             
             ptoc(ClassName()+": Synthesize solution.");
             
@@ -787,18 +813,37 @@ namespace Tensors
             return H;
         }
         
+        const Tensor2<Scal,Int> & Solution() const
+        {
+            return solution;
+        }
+        
+        template<typename alpha_T, typename beta_T, typename X_T>
+        void WriteSolution(
+            const alpha_T alpha, const beta_T beta, mptr<X_T> X, const Int ldX
+        )
+        {
+            combine_matrices_auto<VarSize,NRHS,Parallel>(
+                alpha, solution.data(), nrhs,
+                beta,  X,               ldX,
+                n, nrhs, thread_count
+            );
+        }
+        
         std::string Stats() const
         {
             std:: stringstream s;
             
             s
             << "\n==== " + ClassName() + " Stats ====" << "\n\n"
+            << " succeeded          = " << ( succeeded ? std::string("true") : std::string("false") ) << "\n"
             << " n                  = " << n << "\n"
             << " nrhs               = " << nrhs << "\n"
             << " restarts           = " << restarts << "\n"
             << " max_restarts       = " << max_restarts << "\n"
             << " iter               = " << iter     << "\n"
             << " max_iter           = " << max_iter << "\n"
+            << " total iter         = " << max_iter * restarts + iter << "\n"
             << " relative_tolerance = " << relative_tolerance << "\n"
             << " use_initial_guessQ = " << use_initial_guessQ << "\n"
             << "\n==== " + ClassName() + " Stats ====\n" << std::endl;
