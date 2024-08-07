@@ -44,12 +44,13 @@ namespace Tensors
             );
                           
             static_assert(
+                Scalar::Prec<alpha_T> == Scalar::Prec<X_T>,
+                "Precision of template parameter alpha_T does not coincide with the one of Y_T."
+            );
+
+            static_assert(
                 Scalar::Prec<beta_T> == Scalar::Prec<Y_T>,
                 "Precision of template parameter beta_T does not coincide with the one of Y_T."
-            );
-            static_assert(
-                Scalar::Prec<alpha_T> == Scalar::Prec<Y_T>,
-                "Precision of template parameter alpha_T does not coincide with the one of Y_T."
             );
         }
         

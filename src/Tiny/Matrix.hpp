@@ -471,13 +471,21 @@ namespace Tensors
             }
 
             /// BLAS-like write-modify method _without stride_.
-            template<Op op = Op::Id, typename B_T>
+            template<Op op, typename B_T>
             void Write( mptr<B_T> B ) const
             {
                 /// B = opA(A)
                 Write<Scalar::Flag::Plus,Scalar::Flag::Zero,op,Op::Id>(
                     Scalar::One<B_T>, Scalar::Zero<B_T>, B
                 );
+            }
+            
+            /// Simple copy routine. (Need, e.g. for integer types.)
+            template<typename B_T>
+            void Write( mptr<B_T> B ) const
+            {
+                /// B = A
+                copy_buffer<m * n>( &A[0][0], B );
             }
 
         //    /// Row-scattered write-modify method.

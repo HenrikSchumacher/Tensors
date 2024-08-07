@@ -2,26 +2,19 @@ public:
 
     template<
         Size_T NRHS = VarSize, bool base,
-        typename alpha_T_, typename X_T, typename beta_T_, typename Y_T
+        typename alpha_T, typename X_T, typename beta_T, typename Y_T
     >
     void SpMM(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<alpha_T_> alpha_, cptr<X_T> X, const Int ldX,
-        cref<beta_T_ > beta_,  mptr<Y_T> Y, const Int ldY,
+        cref<alpha_T> alpha, cptr<X_T> X, const Int ldX,
+        cref<beta_T>  beta,  mptr<Y_T> Y, const Int ldY,
         cref<JobPointers<Int>> job_ptr,
         const Int nrhs = NRHS
     )
     {
         // This is basically a large switch to determine at runtime, which instantiation of SpMM_impl is to be invoked.
         // In particular, this implies that all relevant cases of SpMM_impl are instantiated.
-
-        using alpha_T = std::conditional_t<Scalar::RealQ<alpha_T_>,Scalar::Real<Y_T>,Y_T>;
-        using beta_T  = std::conditional_t<Scalar::RealQ< beta_T_>,Scalar::Real<Y_T>,Y_T>;
         
-//        StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
-        
-        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<alpha_T>(alpha_) : scalar_cast<alpha_T>(0);
-        const beta_T  beta  = scalar_cast<beta_T>(beta_);
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
         if( alpha == alpha_T(0) )
@@ -32,12 +25,15 @@ public:
             return;
         }
         
-        auto job = [=]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
+        auto job = [=]<F_T a_flag,F_T alpha_flag,F_T beta_flag>()
         {
-            SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
+            SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(
+                rp, ci, a, m, n,
+                alpha, X, ldX,
+                beta,  Y, ldY,
+                job_ptr, nrhs
+            );
         };
-        
-        
         
         if( a != nullptr )
         {
@@ -145,14 +141,26 @@ private:
     void SpMM_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
         cref<alpha_T> alpha, cptr<X_T> X, const Int ldX,
-        cref< beta_T>  beta, mptr<Y_T> Y, const Int ldY,
+        cref<beta_T>  beta,  mptr<Y_T> Y, const Int ldY,
         cref<JobPointers<Int>> job_ptr,
         const Int nrhs = NRHS
     )
     {
         using namespace Scalar;
         
-        if constexpr( (NRHS > 0) && ( a_flag == F_T::Zero || VectorizableQ<Scal> ) && VectorizableQ<Y_T> )
+        if constexpr( 
+            (NRHS > 0) && ( a_flag == F_T::Zero )
+            &&
+            VectorizableQ<Y_T>
+            &&
+            std::is_same_v<Scal,Y_T>
+            &&
+            std::is_same_v<X_T,Y_T>
+            &&
+            std::is_same_v<alpha_T,X_T>
+            &&
+            std::is_same_v<beta_T,Y_T>
+        )
         {
             SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
         }
@@ -203,13 +211,7 @@ private:
             // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
             
             // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
-            
-            using T = typename std::conditional_t<
-                Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
-                typename Scalar::Complex<Scal>,
-                typename Scalar::Real<Scal>
-            >;
-            
+
             if constexpr ( a_flag == F_T::Generic )
             {
                 if ( a == nullptr )
@@ -222,6 +224,66 @@ private:
                 }
             }
             
+            // We have to do z += a * x quite often.
+            // a could be complex or real.
+            // x could be complex or real.
+            // a*x is real only if a_T and X_T are real.
+            //
+            // Which precision to use?
+            // We have the following options:
+            // -- use min( Prec<a_T>, Prec<X_T> );
+            // -- use max( Prec<a_T>, Prec<X_T> );
+            // -- use Prec<a_T>;
+            // -- use Prec<X_T>;
+            
+            // With many right-hand sides, casting x will be more expensive
+            // than casting a.
+            
+            // Make precisions of a and X compatible.
+            // Using precision of X to minimize casting during runtime.
+            using a_T = std::conditional_t<
+                Scalar::ComplexQ<Scal>,
+                Scalar::Complex<X_T>,
+                Scalar::Real<X_T>
+            >;
+            
+            // Define z_T so that it can hold a * x.
+            using z_T = typename std::conditional_t<
+                Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
+                typename Scalar::Complex<X_T>,
+                typename Scalar::Real<X_T>
+            >;
+
+            // Check whether z = a * x will work.
+            StaticParameterCheck<Scalar::Real<z_T>,z_T,a_T,X_T>();
+
+            // Not as often we have to do y = alpha * z + beta * y;
+            // Nonetheless, we should cast alpha and beta to specific
+            // types to make this efficient.
+            //
+            // The current implementation of combine_scalars computes this
+            // by y = ( alpha * z) + (beta * y);
+            //
+            
+            using alpha_T_ = std::conditional_t<
+                Scalar::ComplexQ<alpha_T>,
+                Scalar::Complex<z_T>,
+                Scalar::Real<z_T>
+            >;
+            
+            using beta_T_ = std::conditional_t<
+                Scalar::ComplexQ<beta_T>,
+                Scalar::Complex<Y_T>,
+                Scalar::Real<Y_T>
+            >;
+            
+            const alpha_T_ alpha_ = static_cast<alpha_T_>(alpha);
+            const beta_T_  beta_  = static_cast<beta_T_ >(beta );
+            
+            
+            // Check whether y = alpha_ * z + beta_ * y will work.
+            StaticParameterCheck<alpha_T_,z_T,beta_T_,Y_T>();
+            
             constexpr bool prefetchQ = true;
             
             ParallelDo(
@@ -229,13 +291,13 @@ private:
                 {
                     std::conditional_t<
                         NRHS==VarSize,
-                        Tensor1<T,Int>,
-                        Tiny::Vector<NRHS,T,Int>
-                    > y;
+                        Tensor1<z_T,Int>,
+                        Tiny::Vector<NRHS,z_T,Int>
+                    > z;
                     
                     if constexpr ( NRHS==VarSize )
                     {
-                        y = Tensor1<T,Int>( nrhs );
+                        z = Tensor1<z_T,Int>( nrhs );
                     }
                     
                     const Int i_begin = job_ptr[thread  ];
@@ -277,16 +339,16 @@ private:
                                 if constexpr ( a_flag == F_T::Generic )
                                 {
                                     combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
-                                        a[l],            &X[ldX * j],
-                                        Scalar::Zero<T>, &y[0],
+                                        static_cast<a_T>(a[l]), &X[ldX * j],
+                                        Scalar::Zero<z_T>,      &z[0],
                                         nrhs
                                     );
                                 }
                                 else if constexpr ( a_flag == F_T::Plus )
                                 {
                                     combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
-                                        Scalar::One<T>,  &X[ldX * j],
-                                        Scalar::Zero<T>, &y[0],
+                                        Scalar::One <a_T>, &X[ldX * j],
+                                        Scalar::Zero<z_T>, &z[0],
                                         nrhs
                                     );
                                 }
@@ -309,18 +371,18 @@ private:
                                 // Add-in
                                 if constexpr ( a_flag == F_T::Generic )
                                 {
-                                    combine_buffers<a_flag,F_T::Plus,NRHS,Seq>(
-                                        a[l],           &X[ldX * j],
-                                        Scalar::One<T>, &y[0],
+                                    combine_buffers<F_T::Generic,F_T::Plus,NRHS,Sequential>(
+                                        static_cast<a_T>(a[l]), &X[ldX * j],
+                                        Scalar::One<z_T>,       &z[0],
                                         nrhs
                                     );
                                 }
                                 else if constexpr ( a_flag == F_T::Plus )
                                 {
-                                    // We use if constexpr here so that we do not read from a when it is a nullptr
-                                    combine_buffers<a_flag,F_T::Plus,NRHS,Seq>(
-                                        Scalar::One<T>, &X[ldX * j],
-                                        Scalar::One<T>, &y[0],
+                                    // We use if Scalar::One<a_T> here so that we do not read from a when it is a nullptr
+                                    combine_buffers<F_T::Plus,F_T::Plus,NRHS,Sequential>(
+                                        Scalar::One<a_T>, &X[ldX * j],
+                                        Scalar::One<z_T>, &z[0],
                                         nrhs
                                     );
                                 }
@@ -328,8 +390,8 @@ private:
                             
                             // Incorporate the local updates into Y-buffer.
                             combine_buffers<alpha_flag,beta_flag,NRHS,Seq>(
-                                alpha, &y[0],
-                                beta,  &Y[ldY * i],
+                                alpha_, &z[0],
+                                beta_,  &Y[ldY * i],
                                 nrhs
                             );
                         }
@@ -338,11 +400,11 @@ private:
                             // Modify the relevant portion of the Y-buffer.
                             if constexpr( beta_flag == F_T::Zero )
                             {
-                                zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
+                                zerofy_buffer<NRHS,Sequential>( &Y[ldY * i] );
                             }
                             else if constexpr( beta_flag == F_T::Generic )
                             {
-                                scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
+                                scale_buffer<NRHS,Sequential>( beta_, &Y[ldY * i] );
                             }
                             else if constexpr( beta_flag == F_T::Plus )
                             {

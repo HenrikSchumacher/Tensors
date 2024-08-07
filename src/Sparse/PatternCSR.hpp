@@ -1043,20 +1043,23 @@ namespace Tensors
         protected:
             
             // Assume all nonzeros are equal to 1.
-            template<Int NRHS = VarSize, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename alpha_T, typename X_T, typename beta_T, typename Y_T>
             void Dot_(
-                const R_out alpha, cptr<T_in>  X, const Int ldX,
-                const S_out beta,  mptr<T_out> Y, const Int ldY,
+                const alpha_T alpha, cptr<X_T> X, const Int ldX,
+                const beta_T  beta,  mptr<Y_T> Y, const Int ldY,
                 const Int nrhs = static_cast<Int>(1)
             ) const
             {
                 if( WellFormedQ() )
                 {
-                    SparseBLAS<T_out,Int,LInt> sblas;
+                    SparseBLAS<Scalar::Real<X_T>,Int,LInt> sblas;
                     
                     sblas.template Multiply_DenseMatrix<NRHS>(
                         outer.data(), inner.data(), nullptr,
-                        m, n, alpha, X, ldX, beta, Y, ldY, nrhs, JobPtr()
+                        m, n,
+                        alpha, X, ldX,
+                        beta,  Y, ldY,
+                        nrhs, JobPtr()
                     );
                 }
                 else
@@ -1066,22 +1069,26 @@ namespace Tensors
             }
             
             // Supply an external list of values.
-            template<Int NRHS = VarSize, typename T_ext, typename R_out, typename S_out, typename T_in, typename T_out>
+            template<Int NRHS = VarSize, typename a_T, typename alpha_T, typename X_T, typename beta_T, typename Y_T>
             void Dot_(
-                      cptr<T_ext> values,
-                      const R_out alpha, cptr<T_in>  X, const Int ldX,
-                      const S_out beta,  mptr<T_out> Y, const Int ldY,
+                      cptr<a_T> values,
+                      const alpha_T alpha, cptr<X_T> X, const Int ldX,
+                      const beta_T  beta,  mptr<Y_T> Y, const Int ldY,
                       const Int   nrhs = static_cast<Int>(1)
             ) const
             {
                 if( WellFormedQ() )
                 {
-                    SparseBLAS<T_ext,Int,LInt> sblas;
+                    SparseBLAS<a_T,Int,LInt> sblas;
                     
                     sblas.template Multiply_DenseMatrix<NRHS>(
                         outer.data(), inner.data(), values,
-                        m, n, alpha, X, ldX, beta, Y, ldY, nrhs, JobPtr()
+                        m, n, 
+                        alpha, X, ldX,
+                        beta,  Y, ldY,
+                        nrhs, JobPtr()
                     );
+                    
                 }
                 else
                 {
