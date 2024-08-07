@@ -1,7 +1,7 @@
 Notebook[{
 Cell[BoxData["Exit"], "Input",
  CellChangeTimes->{{3.890822537711602*^9, 3.890822538173267*^9}},
- CellLabel->"In[47]:=",ExpressionUUID->"570c1adc-8cbc-4b4a-9716-f724f36dd82e"],
+ CellLabel->"In[66]:=",ExpressionUUID->"570c1adc-8cbc-4b4a-9716-f724f36dd82e"],
 
 Cell[BoxData[{
  RowBox[{"Needs", "[", "\"\<PM`\>\"", "]"}], "\[IndentingNewLine]", 
@@ -11,7 +11,7 @@ Cell[BoxData[{
     RowBox[{"(*", 
      RowBox[{"\"\<RepulsorLink\>\"", ","}], "*)"}], "\"\<CPPLab\>\""}], "}"}],
    "]"}]}], "Input",
- CellLabel->"In[1]:=",ExpressionUUID->"622a3673-56c1-4758-adc7-08e1ce038598"],
+ CellLabel->"In[3]:=",ExpressionUUID->"622a3673-56c1-4758-adc7-08e1ce038598"],
 
 Cell[BoxData[{
  RowBox[{
@@ -25,7 +25,7 @@ Cell[BoxData[{
  RowBox[{
   RowBox[{"P", "=", 
    RowBox[{"LumpedMassInverse", "[", "M", "]"}]}], ";"}]}], "Input",
- CellLabel->"In[3]:=",ExpressionUUID->"4acf248e-b57b-42b8-896e-32148f8d62bc"],
+ CellLabel->"In[5]:=",ExpressionUUID->"4acf248e-b57b-42b8-896e-32148f8d62bc"],
 
 Cell[BoxData[{
  RowBox[{
@@ -60,14 +60,14 @@ Cell[BoxData[{
      RowBox[{"A", ",", "Y0"}], "]"}]}], ";"}], 
   "\[IndentingNewLine]"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"maxiter", "=", "6"}], ";"}], "\[IndentingNewLine]", 
+  RowBox[{"maxiter", "=", "100"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
-  RowBox[{"maxrestarts", "=", "10"}], ";"}], "\[IndentingNewLine]", 
+  RowBox[{"maxrestarts", "=", "100"}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"tol", "=", 
    RowBox[{"10", "^", 
     RowBox[{"(", 
-     RowBox[{"-", "8"}], ")"}]}]}], ";"}], "\[IndentingNewLine]", 
+     RowBox[{"-", "12"}], ")"}]}]}], ";"}], "\[IndentingNewLine]", 
  RowBox[{
   RowBox[{"Table", "[", "\[IndentingNewLine]", 
    RowBox[{
@@ -120,7 +120,64 @@ Cell[BoxData[{
        RowBox[{
         RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "Pi"}], "}"}]}], 
      "}"}]}], "]"}], "//", "MatrixForm"}]}], "Input",
- CellLabel->"In[16]:=",ExpressionUUID->"8d976ecc-65db-4f17-a179-393fdee14d02"],
+ CellLabel->
+  "In[109]:=",ExpressionUUID->"8d976ecc-65db-4f17-a179-393fdee14d02"],
+
+Cell[BoxData[
+ RowBox[{
+  RowBox[{"Table", "[", "\[IndentingNewLine]", 
+   RowBox[{
+    RowBox[{
+     RowBox[{"X", "=", 
+      RowBox[{"1.", "X0"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{"Y", "=", 
+      RowBox[{"1.", "Y0"}]}], ";", "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"cppGMRESflat", "[", 
+       RowBox[{"nrhs", ",", "Real"}], "]"}], "[", "\[IndentingNewLine]", 
+      RowBox[{
+       RowBox[{"A", "[", "\"\<RowPointers\>\"", "]"}], ",", 
+       RowBox[{"A", "[", "\"\<ColumnIndices\>\"", "]"}], ",", 
+       RowBox[{"A", "[", "\"\<NonzeroValues\>\"", "]"}], ",", 
+       "\[IndentingNewLine]", 
+       RowBox[{"P", "[", "\"\<RowPointers\>\"", "]"}], ",", 
+       RowBox[{"P", "[", "\"\<ColumnIndices\>\"", "]"}], ",", 
+       RowBox[{"P", "[", "\"\<NonzeroValues\>\"", "]"}], ",", 
+       "\[IndentingNewLine]", "\[Alpha]", ",", "Y", ",", "\[Beta]", ",", "X", 
+       ",", "maxiter", ",", "maxrestarts", ",", "tol", ",", "8", ",", 
+       "False"}], "\[IndentingNewLine]", "]"}], ";", "\[IndentingNewLine]", 
+     "\[IndentingNewLine]", 
+     RowBox[{
+      RowBox[{"{", 
+       RowBox[{"\[Alpha]", ",", "\[Beta]"}], "}"}], "->", 
+      RowBox[{
+       RowBox[{"Max", "[", 
+        RowBox[{"Abs", "[", 
+         RowBox[{
+          RowBox[{"\[Alpha]", " ", "XTrue"}], "+", 
+          RowBox[{"\[Beta]", " ", "X0"}], "-", "X"}], "]"}], "]"}], "/", 
+       RowBox[{"(", 
+        RowBox[{"$MachineEpsilon", "+", 
+         RowBox[{"Max", "[", 
+          RowBox[{"Abs", "[", 
+           RowBox[{
+            RowBox[{"\[Alpha]", " ", "XTrue"}], "+", 
+            RowBox[{"\[Beta]", " ", "X0"}]}], "]"}], "]"}]}], ")"}]}]}]}], 
+    "\[IndentingNewLine]", "\[IndentingNewLine]", ",", 
+    RowBox[{"{", 
+     RowBox[{"\[Alpha]", ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "Pi"}], "}"}]}], 
+     "}"}], "\[IndentingNewLine]", ",", 
+    RowBox[{"{", 
+     RowBox[{"\[Beta]", ",", 
+      RowBox[{"{", 
+       RowBox[{
+        RowBox[{"-", "1."}], ",", "0.", ",", "1.", ",", "Pi"}], "}"}]}], 
+     "}"}]}], "]"}], "//", "MatrixForm"}]], "Input",
+ CellLabel->
+  "In[118]:=",ExpressionUUID->"a35bd2fb-cda2-403d-ad3c-a3465319673c"],
 
 Cell[BoxData[
  RowBox[{"0.1729292157516827", "/", "7474267.944955121"}]], "Input",

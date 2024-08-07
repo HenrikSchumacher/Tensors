@@ -26,44 +26,9 @@ public:
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
         if( alpha == alpha_T(0) )
         {
-            if( beta == beta_T(0) )
-            {
-                if( ldY == nrhs )
-                {
-                    zerofy_buffer<VarSize,Parallel>( Y, m * nrhs, job_ptr.ThreadCount() );
-                }
-                else
-                {
-                    ParallelDo(
-                        [&]( const Int i )
-                        {
-                            zerofy_buffer<NRHS,Seq>( &Y[ldY*i], nrhs );
-                        },
-                        m, job_ptr.ThreadCount()
-                    );
-                }
-            }
-            else if( beta == beta_T(1) )
-            {
-                // Do nothing.
-            }
-            else
-            {
-                if( ldY == nrhs )
-                {
-                    scale_buffer<VarSize,Parallel>( beta, Y, m * nrhs, job_ptr.ThreadCount() );
-                }
-                else
-                {
-                    ParallelDo(
-                        [&]( const Int i )
-                        {
-                            scale_buffer<NRHS,Seq>( beta, &Y[ldY*i], nrhs );
-                        },
-                        m, job_ptr.ThreadCount()
-                    );
-                }
-            }
+            modify_matrix_auto<VarSize,NRHS,Parallel>(
+                beta, Y, ldY, m, nrhs, job_ptr.ThreadCount()
+            );
             return;
         }
         
@@ -394,8 +359,7 @@ private:
         }
     }
 
-#if defined(__clang__)
-    #if( __has_attribute(ext_vector_type) )
+#if( __has_attribute(ext_vector_type) )
 
     template<
         F_T a_flag, F_T alpha_flag, F_T beta_flag,
@@ -598,5 +562,4 @@ private:
         
         ptoc(tag);
     }
-    #endif
 #endif

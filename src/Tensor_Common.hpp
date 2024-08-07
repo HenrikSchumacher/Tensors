@@ -200,7 +200,7 @@ public:
     {
         static_assert( Scalar::FloatQ<Scal>, "" );
         
-        tic("Random");
+        ptic("Random");
         // This uses std::mt19937_64.
         // Moreover, the pseudorandom number generators are initilized per call.
         // So this is not very efficient.
@@ -217,7 +217,7 @@ public:
         
         std::vector<MT_T> engines;
         
-        tic("Random - Initialize");
+        ptic("Random - Initialize");
         for( Int thread = 0; thread < thread_count; ++thread )
         {
             std::generate( seed_array.begin(), seed_array.end(), SD_T() );
@@ -226,7 +226,7 @@ public:
         
             engines.emplace_back( seed );
         }
-        toc("Random - Initialize");
+        ptoc("Random - Initialize");
         
         if constexpr (Scalar::RealQ<Scal> )
         {
@@ -269,7 +269,7 @@ public:
            );
         }
         
-        toc("Random");
+        ptoc("Random");
     }
 
 private:

@@ -29,6 +29,11 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>Scratch.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>7</integer>
+		</dict>
 		<key>Tensors.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
@@ -48,6 +53,11 @@
 	<key>SuppressBuildableAutocreation</key>
 	<dict>
 		<key>AF5D050A2B52F09000E946CA</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>AF7C6C142C5E903800EA899D</key>
 		<dict>
 			<key>primary</key>
 			<true/>

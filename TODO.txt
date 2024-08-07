@@ -1,13 +1,9 @@
-//
-//  TODO.h
-//  Tensors
-//
-//  Created by Henrik on 04.08.24.
-//
+- Does SpMM_vec have any advantage at all?
+- Check whether copy_buffers harms the performance of SpMM_vec.
 
-#ifndef TODO_h
-#define TODO_h
+- Permute vs. Sparse::BinaryMatrixCSR?
+- PermuteCombine vs. Sparse::BinaryMatrixCSR?
 
-#include <stdio.h>
+- PermuteCombine -> combine_scatter_write
 
-#endif /* TODO_h */
+- combine_scatter_write needs leading dimensions.

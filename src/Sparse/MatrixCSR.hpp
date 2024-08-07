@@ -130,7 +130,7 @@ namespace Tensors
             :   Base_T  ( other        )
             ,   values  ( other.values )
             {
-                logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
+                logprint("Copy of "+ ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
             }
             
             friend void swap (MatrixCSR & A, MatrixCSR & B ) noexcept
@@ -1269,6 +1269,57 @@ namespace Tensors
             
             
         public:
+            
+            
+            void LoadFromFile(
+                const std::filesystem::path & file, const Int thread_count_
+            )
+            {
+                std::string tag = ClassName() + "::LoadFromMatrixMarket";
+                
+                ptic(tag);
+                
+                std::ifstream  s ( file );
+        
+                if( !s.good() )
+                {
+                    eprint(tag + ": File " + file.string() + " not found. Aborting.");
+                    
+                    ptoc(tag);
+                    
+                    return;
+                }
+                
+                Int m;
+                Int n;
+                Int nnz;
+                
+                s >> m;
+                s >> n;
+                s >> nnz;
+                
+                MatrixCSR<Scal,Int,LInt> A( m, n, nnz, thread_count );
+                
+                mptr<LInt> rp = A.Outer().data();
+                for( Int i = 0; i < n+1; ++i )
+                {
+                    s >> rp[i];
+                }
+                
+                mptr<Int> ci = A.Inner().data();
+                for( Int i = 0; i < nnz; ++i )
+                {
+                    s >> ci[i];
+                }
+                
+                mptr<Scal> a = A.Values().data();
+                for( Int i = 0; i < nnz; ++i )
+                {
+                    s >> a[i];
+                }
+                
+                swap( A, *this);
+            }
 
             void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
             {
@@ -1654,44 +1705,7 @@ namespace Tensors
             
         }; // MatrixCSR
     
-        
-        template<typename Scal, typename Int, typename LInt>
-        MatrixCSR<Scal,Int,LInt> MatrixCSR_FromFile(
-            const std::filesystem::path & filename, const Int thread_count
-        )
-        {
-            std::ifstream s ( filename );
-            
-            Int m;
-            Int n;
-            Int nnz;
-            
-            s >> m;
-            s >> n;
-            s >> nnz;
-            
-            MatrixCSR<Scal,Int,LInt> A( m, n, nnz, thread_count );
-            
-            mptr<LInt> rp = A.Outer().data();
-            for( Int i = 0; i < n+1; ++i )
-            {
-                s >> rp[i];
-            }
-            
-            mptr<Int> ci = A.Inner().data();
-            for( Int i = 0; i < nnz; ++i )
-            {
-                s >> ci[i];
-            }
-            
-            mptr<Scal> a = A.Values().data();
-            for( Int i = 0; i < nnz; ++i )
-            {
-                s >> a[i];
-            }
-            
-            return A;
-        }
+    
         
     } // namespace Sparse
     

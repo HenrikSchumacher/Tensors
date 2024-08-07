@@ -35,7 +35,7 @@ using Real   = Scalar::Real<Scal>;
 using LInt   = long;
 using Int    = int32_t;
 
-int main(int argc, const char * argv[])
+int main()
 {
     constexpr Int thread_count = 8;
 
@@ -50,16 +50,15 @@ int main(int argc, const char * argv[])
     print("");
     
     
-    std::filesystem::path path = home_dir / "/github/Tensors/SparseMatrices/";
     std::string name = "Spot_4";
 //    std::string name = "Spot_0";
     
     constexpr Int NRHS = 32;
     const     Int nrhs = NRHS;
     
-    Sparse::MatrixCSR<Scal,Int,LInt> A = Sparse::MatrixCSR_FromFile<Scal,Int,LInt>(
-        path + name + "_Matrix.txt", thread_count
-    );
+    Sparse::MatrixCSR<Scal,Int,LInt> A;
+    
+    A.LoadFromFile( home_dir / "github/Tensors/SparseMatrices" / (name + "_Matrix.txt"), thread_count );
 
     dump(A.ThreadCount());
     dump(A.RowCount());
@@ -131,7 +130,6 @@ int main(int argc, const char * argv[])
 
     print("");
     print("");
-
 
     tic("Cholesky constructor");
     Sparse::CholeskyDecomposition<Scal,Int,LInt> S (

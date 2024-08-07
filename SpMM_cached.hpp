@@ -5,14 +5,14 @@ namespace Tensors
 {
     
     template<
-        Size_T NRHS = VarSize, bool base = 0,
+        bool base = 0,
         typename a_T, typename alpha_T, typename X_T, typename beta_T, typename Y_T, typename Int, typename LInt
     >
     void SpMM_cached(
         cptr<LInt> rp, cptr<Int> ci, cptr<a_T> a,
         const Size_T m, const Size_T n, const Size_T nrhs,
         cref<alpha_T> alpha, cptr<X_T> X, const Size_T ldX,
-        cref< beta_T>  beta, mptr<Y_T> Y, const Size_T ldY,
+        cref<beta_T>  beta,  mptr<Y_T> Y, const Size_T ldY,
         cref<JobPointers<Int>> job_ptr
     )
     {
@@ -37,45 +37,63 @@ namespace Tensors
             typename Scalar::Real<a_T>
         >;
         
-        F_T a_flag     = (a == nullptr) ? F_T::Plus : F_T::Generic;
-        
-        F_T alpha_flag =
-            ( alpha == alpha_T( 0) ) ? F_T::Zero :
-            ( alpha == alpha_T( 1) ) ? F_T::Plus :
-            ( alpha == alpha_T(-1) ) ? F_T::Minus : F_T::Generic;
-        
-        dump(alpha_flag);
-                      
-        F_T beta_flag =
-            ( beta == beta_T( 0) ) ? F_T::Zero :
-            ( beta == beta_T( 1) ) ? F_T::Plus :
-            ( beta == beta_T(-1) ) ? F_T::Minus : F_T::Generic;
-        
-        dump(beta_flag);
+        const F_T a_flag     = (a == nullptr) ? F_T::Plus : F_T::Generic;
+        const F_T alpha_flag = Scalar::ToFlag( alpha );
+        const F_T beta_flag  = Scalar::ToFlag( beta );
         
         const Op opx = Op::Id;
         const Op opy = Op::Id;
         
-        const auto ker_over = BufferCombiner::GetKernel<a_T,X_T,T,T>(
-            a_flag,F_T::Zero,nrhs,Sequential,opx,opy
+        if ( alpha_flag == F_T::Zero )
+        {
+            if( beta_flag == F_T::Plus  )
+            {
+                // Do nothing.
+            }
+            if( ( ldX == nrhs ) && ( ldY == nrhs ) )
+            {
+                scale_buffer<VarSize,Parallel>( beta, Y, m * nrhs );
+            }
+            else
+            {
+                Do<VarSize,Parallel,Static>(
+                    [=]( const Size_T i )
+                    {
+                        const auto ker_scale = BufferCombiner::GetKernel<Scalar::Real<Y_T>,T,beta_T,Y_T>(
+                            F_T::Zero,beta_flag,nrhs,opx,opy
+                        );
+                        
+                        ker_scale( Scalar::Zero<a_T>, nullptr, beta, &Y[ldY * i], nrhs );
+                    },
+                    m, job_ptr.Size()
+                );
+            }
+
+            ptoc(tag);
+            return;
+        }
+
+        
+        const auto ker_write = BufferCombiner::GetKernel<a_T,X_T,T,T>(
+            a_flag,F_T::Zero,nrhs,opx,opy
         );
         
-        const auto ker_add = BufferCombiner::GetKernel<a_T,X_T,T,T>(
-            a_flag,F_T::Plus,nrhs,Sequential,opx,opy
+        const auto ker_add  = BufferCombiner::GetKernel<a_T,X_T,T,T>(
+            a_flag,F_T::Plus,nrhs,opx,opy
         );
         
         const auto ker_merge = BufferCombiner::GetKernel<alpha_T,T,beta_T,Y_T>(
-            alpha_flag,beta_flag,nrhs,Sequential,opx,opy
+            alpha_flag,beta_flag,nrhs,opx,opy
         );
         
-        const auto ker_scal = BufferCombiner::GetKernel<Scalar::Real<Y_T>,T,beta_T,Y_T>(
-            F_T::Zero,beta_flag,nrhs,Sequential,opx,opy
+        const auto ker_scale = BufferCombiner::GetKernel<Scalar::Real<Y_T>,T,beta_T,Y_T>(
+            F_T::Zero,beta_flag,nrhs,opx,opy
         );
         
         constexpr bool prefetchQ = true;
         
         ParallelDo(
-            [&]( const Int thread )
+            [=,&job_ptr]( const Int thread )
             {
                 Tensor1<T,Int> y ( nrhs );
 
@@ -89,7 +107,7 @@ namespace Tensors
                         Size_T(1),
                         CacheLineWidth
                         /
-                        (sizeof(X_T) * Tools::Max(static_cast<Size_T>(nrhs),NRHS))
+                        (sizeof(X_T) * nrhs)
                     )
                 );
                 
@@ -114,11 +132,11 @@ namespace Tensors
                                 }
                             }
                             
-                            
-                            ker_over(
+                            // TODO: This might not work if a == nullptr;
+                            ker_write(
                                 a[l],            &X[ldX * j],
                                 Scalar::Zero<T>, &y[0],
-                                nrhs, Size_T(1)
+                                nrhs
                             );
                         }
                         
@@ -136,11 +154,12 @@ namespace Tensors
                                 }
                             }
 
+                            // TODO: This might not work if a == nullptr;
                             // Add-in
                             ker_add (
-                                a[l],            &X[ldX * j],
-                                Scalar::Zero<T>, &y[0],
-                                nrhs, Size_T(1)
+                                a[l],           &X[ldX * j],
+                                Scalar::One<T>, &y[0],
+                                nrhs
                             );
                         }
                         
@@ -153,8 +172,6 @@ namespace Tensors
                     }
                     else
                     {
-                        // TODO: adjust this here
-                        
                         ker_scale(
                             Scalar::Zero<Y_T>, &y[0],
                             beta,              &Y[ldY * i],

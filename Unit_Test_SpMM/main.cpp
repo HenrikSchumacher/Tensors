@@ -99,19 +99,19 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
         beta,  Y_True.data(), cols,
         cols
     );
-    float time_1 = Tools::Duration( start_time_1, Clock::now() );
+    double time_1 = Tools::Duration( start_time_1, Clock::now() );
     
     Y = Y_0;
     A.SetThreadCount(1);
     auto start_time_2 = Clock::now();
     A.Dot( alpha, X, beta, Y );
-    float time_2 = Tools::Duration( start_time_2, Clock::now() );
+    double time_2 = Tools::Duration( start_time_2, Clock::now() );
     
     Y = Y_0;
     A.SetThreadCount(thread_count);
     auto start_time_3 = Clock::now();
     A.Dot( alpha, X, beta, Y );
-    float time_3 = Tools::Duration( start_time_3, Clock::now() );
+    double time_3 = Tools::Duration( start_time_3, Clock::now() );
     
     Real max   = 0;
     Real error = 0;
@@ -131,8 +131,8 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
         error /= max;
     }
     
-    const float seq_speedup = time_1/time_2;
-    const float par_speedup = time_2/time_3;
+    const double seq_speedup = time_1/time_2;
+    const double par_speedup = time_2/time_3;
     
     logvalprint("         Time 1     ", time_1 );
     logvalprint("         Time 2     ", time_2 );
