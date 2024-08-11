@@ -1,31 +1,22 @@
 public:
 
-    template<bool base, typename alpha_T_, typename x_t, typename beta_T_, typename y_t>
+    template<bool base, typename alpha_T, typename x_t, typename beta_T, typename y_t>
     void SpMV(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<alpha_T_> alpha_, cptr<x_t> X,
-        cref< beta_T_> beta_,  mptr<y_t> Y,
+        cref<alpha_T> alpha, cptr<x_t> x,
+        cref< beta_T> beta,  mptr<y_t> y,
         cref<JobPointers<Int>> job_ptr
     )
     {
         // This is basically a large switch to determine at runtime, which instantiation of SpMV_impl is to be invoked.
-        // In particular, this implies that all relevant cases of SpMM_impl are instantiated.
-        
-        using alpha_T = std::conditional_t< Scalar::RealQ<alpha_T_>, Scalar::Real<y_t>, y_t>;
-        using beta_T  = std::conditional_t< Scalar::RealQ< beta_T_>, Scalar::Real<y_t>, y_t>;
-        
-        StaticParameterCheck<alpha_T,x_t,beta_T,y_t>();
-        
-        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<y_t>(alpha_) : scalar_cast<alpha_T_>(0);
-        const beta_T  beta  = scalar_cast<y_t>(beta_);
-        
+        // In particular, this implies that all relevant cases of SpMV_impl are instantiated.
         
         // We can exit early if alpha is 0 or if there are no nozeroes in the matrix.
         if ( alpha == alpha_T(0) )
         {
             if ( beta == beta_T(0) )
             {
-                zerofy_buffer( Y, m, job_ptr.ThreadCount() );
+                zerofy_buffer( y, m, job_ptr.ThreadCount() );
             }
             else if ( beta == beta_T(1) )
             {
@@ -33,14 +24,14 @@ public:
             }
             else
             {
-                scale_buffer( beta, Y, m, job_ptr.ThreadCount() );
+                scale_buffer( beta, y, m, job_ptr.ThreadCount() );
             }
             return;
         }
         
         auto job = [=]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
         {
-            SpMV_impl<a_flag,alpha_flag,beta_flag,base>(rp,ci,a,m,n,alpha,X,beta,Y,job_ptr);
+            SpMV_impl<a_flag,alpha_flag,beta_flag,base>(rp,ci,a,m,n,alpha,x,beta,y,job_ptr);
         };
         
         if( a != nullptr )
@@ -141,11 +132,11 @@ private:
 
     template<
         Scalar::Flag a_flag, Scalar::Flag alpha_flag, Scalar::Flag beta_flag, bool base = 0,
-        typename alpha_T_, typename x_t, typename  beta_T_, typename y_t>
+        typename alpha_T, typename x_T, typename  beta_T, typename y_T>
     void SpMV_impl(
         cptr<LInt> rp, cptr<Int> ci, cptr<Scal> a, const Int m, const Int n,
-        cref<alpha_T_> alpha, cptr<x_t> x,
-        cref< beta_T_> beta,  mptr<y_t> y,
+        cref<alpha_T> alpha, cptr<x_T> x,
+        cref< beta_T> beta,  mptr<y_T> y,
         cref<JobPointers<Int>> job_ptr
     )
     {
@@ -157,17 +148,17 @@ private:
             + "," + ToString(alpha_flag)
             + "," + ToString(beta_flag)
             + "," + ToString(base)
-            + "," + TypeName<alpha_T_>
-            + "," + TypeName<x_t>
-            + "," + TypeName<beta_T_>
-            + "," + TypeName<y_t>
+            + "," + TypeName<alpha_T>
+            + "," + TypeName<x_T>
+            + "," + TypeName<beta_T>
+            + "," + TypeName<y_T>
             + ">";
         
         ptic(tag);
         
         // TODO: Add better check for pointer overlap.
         
-        if constexpr ( std::is_same_v<x_t,y_t> )
+        if constexpr ( std::is_same_v<x_T,y_T> )
         {
             if( x == y )
             {
@@ -193,11 +184,65 @@ private:
         
         // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
 
-        using T = typename std::conditional_t<
-            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<x_t>,
-            typename Scalar::Complex<Scal>,
-            typename Scalar::Real<Scal>
+        
+        // We have to do z += a * x quite often.
+        // a could be complex or real.
+        // x could be complex or real.
+        // a*x is real only if a_T and X_T are real.
+        //
+        // Which precision to use?
+        // We have the following options:
+        // -- use min( Prec<a_T>, Prec<X_T> );
+        // -- use max( Prec<a_T>, Prec<X_T> );
+        // -- use Prec<a_T>;
+        // -- use Prec<X_T>;
+        
+        // With many right-hand sides, casting x will be more expensive
+        // than casting a.
+        
+        // Make precisions of a and X compatible.
+        // Using precision of X to minimize casting during runtime.
+        using a_T = std::conditional_t<
+            Scalar::ComplexQ<Scal>,
+            Scalar::Complex<x_T>,
+            Scalar::Real<x_T>
         >;
+        
+        // Define z_T so that it can hold a * x.
+        using z_T = typename std::conditional_t<
+            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<x_T>,
+            typename Scalar::Complex<x_T>,
+            typename Scalar::Real<x_T>
+        >;
+
+        // Check whether z = a * x will work.
+        StaticParameterCheck<Scalar::Real<z_T>,z_T,a_T,x_T>();
+
+        // Not as often we have to do y = alpha * z + beta * y;
+        // Nonetheless, we should cast alpha and beta to specific
+        // types to make this efficient.
+        //
+        // The current implementation of combine_scalars computes this
+        // by y = ( alpha * z) + (beta * y);
+        //
+        
+        using alpha_T_ = std::conditional_t<
+            Scalar::ComplexQ<alpha_T>,
+            Scalar::Complex<z_T>,
+            Scalar::Real<z_T>
+        >;
+        
+        using beta_T_ = std::conditional_t<
+            Scalar::ComplexQ<beta_T>,
+            Scalar::Complex<y_T>,
+            Scalar::Real<y_T>
+        >;
+        
+        const alpha_T_ alpha_ = static_cast<alpha_T_>(alpha);
+        const beta_T_  beta_  = static_cast<beta_T_ >(beta );
+        
+        // Check whether y = alpha_ * z + beta_ * y will work.
+        StaticParameterCheck<alpha_T_,z_T,beta_T_,y_T>();
         
         ParallelDo(
             [&]( const Int thread )
@@ -214,7 +259,7 @@ private:
                     const LInt l_begin = rp[i  ];
                     const LInt l_end   = rp[i+1];
 
-                    T sum ( Scalar::Zero<T> );
+                    z_T z ( 0 );
                     
                     for( LInt l = l_begin; l < l_end; ++l )
                     {
@@ -228,15 +273,15 @@ private:
     
                         if constexpr ( a_flag == F_T::Generic )
                         {
-                            sum += scalar_cast<T>(a[l]) * scalar_cast<T>(x[j]);
+                            z += static_cast<a_T>(a[l]) * static_cast<z_T>(x[j]);
                         }
                         else
                         {
-                            sum += scalar_cast<T>(x[j]);
+                            z += static_cast<z_T>(x[j]);
                         }
                     }
                     
-                    combine_scalars<alpha_flag,beta_flag>( alpha, sum, beta, y[i] );
+                    combine_scalars<alpha_flag,beta_flag>( alpha_, z, beta_, y[i] );
                 }
             },
             job_ptr.ThreadCount()
