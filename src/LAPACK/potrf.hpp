@@ -19,7 +19,7 @@ namespace Tensors
             constexpr char flag = to_LAPACK(
                 layout == Layout::ColMajor
                 ? uplo
-                : ( uplo == UpLo::Upper ) ? UpLo::Lower : UpLo::Upper
+                : Transpose(uplo)
             );
             
             assert_positive(n);

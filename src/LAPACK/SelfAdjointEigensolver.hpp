@@ -18,9 +18,7 @@ namespace Tensors
         private:
             
             static constexpr char flag = to_LAPACK(
-                layout == Layout::ColMajor
-                ? uplo
-                : ( uplo == UpLo::Upper ) ? UpLo::Lower : UpLo::Upper
+                layout == Layout::ColMajor ? uplo : Transpose(uplo)
             );
             
             Int n;

@@ -27,9 +27,7 @@ namespace Tensors
             auto * work = to_LAPACK(work_);
             
             constexpr char flag = to_LAPACK(
-                layout == Layout::ColMajor
-                ? uplo
-                : ( uplo == UpLo::Upper ) ? UpLo::Lower : UpLo::Upper
+                layout == Layout::ColMajor ? uplo : Transpose(uplo)
             );
             
             
