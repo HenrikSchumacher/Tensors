@@ -62,6 +62,28 @@ namespace Tensors
                 eprint("potrf not defined for scalar type " + TypeName<Scal> );
             }
             
+            if( info != 0 )
+            {
+                std::string tag = std::string("BLAS::potrf")
+                    + "<" + ToString(layout)
+                    + "," + ToString(uplo)
+                    + "," + TypeName<Scal>
+                    + ">(" + ToString(n) + ")";
+                
+                if( info < 0 )
+                {
+                    eprint( tag + ": input " + ToString(-info) + " is invalid." );
+                }
+                else
+                {
+                    eprint( tag + ": The leading minor of order " + ToString(info) + " is not positive-definite." );
+                    if( info <= 16 )
+                    {
+                        logvalprint("leading minor",  ArrayToString( A_, {info,info} ) );
+                    }
+                }
+            }
+            
             return info;
         }
         
