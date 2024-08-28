@@ -1,6 +1,6 @@
-//#######################################################################################
-//####                              General matrices                                #####
-//#######################################################################################
+//#######################################################################
+//####                        General matrices                      #####
+//#######################################################################
 
 public:
 
@@ -16,6 +16,15 @@ public:
         cref<JobPointers<Int>> job_ptr
     )
     {
+        if( (NRHS > VarSize) && ( nrhs != NRHS ) )
+        {
+            eprint( ClassName() + "Multiply_DenseMatrix: nrhs != NRHS. Doing nothing." );
+            dump(NRHS);
+            dump(nrhs);
+            
+            return;
+        }
+        
         if( nrhs == Scalar::One<Int> )
         {
             if( (ldX == Scalar::One<Int>) && (ldY == Scalar::One<Int>) )
@@ -31,6 +40,6 @@ public:
         }
         else
         {
-            SpMM<NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs );
+            SpMM<NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr,nrhs);
         }
     }
