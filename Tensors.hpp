@@ -21,6 +21,7 @@
 
 
 #include "src/Sparse/Permutation.hpp"
+#include "src/Sparse/Dot.hpp"
 #include "src/SparseBLAS.hpp"
 #include "src/Sparse/PatternCSR.hpp"
 #include "src/Sparse/BinaryMatrixCSR.hpp"
