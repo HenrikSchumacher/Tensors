@@ -109,7 +109,7 @@ namespace Tensors
         ,   cols_size ( other.cols_size   )
         {}
         
-        ~BlockKernel_fixed() = default;
+        virtual ~BlockKernel_fixed() = default;
 
 
     public:

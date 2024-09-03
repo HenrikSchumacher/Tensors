@@ -238,7 +238,7 @@ namespace Tensors
             :   Base_T( idx, m_, n_, final_thread_count, compressQ, symmetrize )
             {}
             
-            virtual ~BinaryMatrixCSR() = default;
+            virtual ~BinaryMatrixCSR() override = default;
             
             
             BinaryMatrixCSR Transpose() const

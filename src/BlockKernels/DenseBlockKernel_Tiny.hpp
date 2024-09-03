@@ -97,7 +97,7 @@ namespace Tensors
         // Copy constructor
         CLASS( const CLASS & other ) : BASE(other) {}
         
-        ~CLASS()  = default;
+        virtual ~CLASS() override = default;
         
     public:
         

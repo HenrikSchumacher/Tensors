@@ -1191,7 +1191,19 @@ namespace Tensors
                     cptr<Int> A_inner = inner.data();
                     
                     LInt L = outer[i  ];
-                    LInt R = outer[i+1]-1;
+                    LInt R = outer[i+1];
+                    
+                    // We need to be careful here
+                    // since outer[i+1] could be zero,
+                    // and LInt could be an unsigned integer type.
+                    
+                    if( L == R )
+                    {
+                        // No matrix entries in this row. We can abort.
+                        return Sparse::Position<LInt>{0, false};
+                    }
+                    
+                    --R;
                     
                     if( inner_sorted && ( L + threshold > R ) )
                     {
@@ -1222,14 +1234,17 @@ namespace Tensors
                     }
                     else
                     {
+                        // If unsorted or if only few entries
+                        // are around in this row, we just do a linear search.
                         while( (L < R) && (A_inner[L] < j) )
                         {
                             ++L;
                         }
-                        
                     }
                     
-                    return (A_inner[L]==j) ? Sparse::Position<LInt> {L, true} : Sparse::Position<LInt>{0, false};
+                    return (A_inner[L]==j) 
+                        ? Sparse::Position<LInt>{L, true }
+                        : Sparse::Position<LInt>{0, false};
                 }
                 else
                 {

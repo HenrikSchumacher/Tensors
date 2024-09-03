@@ -109,6 +109,51 @@ namespace Tensors
                 }
             }
         }
+
+        
+//        template<typename Scal, typename Int>
+//        Scal Dot_BinarySearch(
+//            cptr<Int> u_idx, mptr<Scal> u_val, const Int u_nnz,
+//            cptr<Int> v_idx, mptr<Scal> v_val, const Int v_nnz,
+//            const Int n
+//        )
+//        {
+//            if( (u_nnz == 0) || (v_nnz == 0) )
+//            {
+//                return Scal(0);
+//            }
+//
+//            if( u_nnz > v_nnz )
+//            {
+//                return Dot_BinarySearch(
+//                    v_idx, v_val, v_nnz,
+//                    u_idx, u_val, u_nnz,
+//                    n
+//                );
+//            }
+//            
+//            // Assuming that u_nnz <= v_nnz.
+//            
+//            Size_T v_ptr = 0;
+//            Size_T pos   = 0;
+//            
+//            Scal result {0};
+//            
+//            for( Int i = 0; i < u_nnz; ++i)
+//            {
+//                const bool found = BinarySearch( &v_idx[v_ptr], v_nnz - v_ptr, u_idx[i], pos );
+//                
+//                v_ptr += pos;
+//                
+//                if( found )
+//                {
+//                    result += u_val[i] * v_val[v_ptr];
+//                }
+//            }
+//            
+//            return result;
+//        }
+
         
     } // namespace Sparse
     
