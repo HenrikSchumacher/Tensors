@@ -117,7 +117,7 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   Base_T   ( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            :   Base_T ( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
             ,   values ( std::move(values_) )
             {
                 static_assert(IntQ<I_0>,"");
@@ -456,27 +456,83 @@ namespace Tensors
                 return ( pos.found ) ? values[pos.index] : static_cast<Scal>(0);
             }
             
-        protected:
+        public:
             
-            template< bool conjugate>
-            MatrixCSR transpose() const
+            template<Tools::Op op,
+                typename Return_T =
+                std::conditional_t<
+                    (op == Tools::Op::Re) || (op == Tools::Op::ReTrans)
+                    ||
+                    (op == Tools::Op::Im) || (op == Tools::Op::ImTrans)
+                    ,
+                    Scalar::Real<Scal>,
+                    Scal
+                >
+            >
+            MatrixCSR<Return_T,Int,LInt> Op() const
             {
-                if( this->WellFormedQ() )
+                std::string tag = ClassName() + "::Op"
+                    + "<" + ToString(op)
+                    + "," + TypeName<Return_T>
+                    + ">";
+                
+                ptic(tag);
+                
+                if( !this->WellFormedQ() )
                 {
-                    if constexpr ( conjugate )
+                    ptoc(tag);
+                    return MatrixCSR<Return_T,Int,LInt> ( m, n, 0, 1 );
+                }
+                
+                if constexpr (
+                    (op == Op::Id)
+                    ||
+                    (Scalar::RealQ<Scal> && ( (op == Op::Conj) || (op == Op::Re) ) )
+                )
+                {
+                    ptoc(tag);
+                    return MatrixCSR<Return_T,Int,LInt>( *this );
+                }
+                else if constexpr ( Scalar::RealQ<Scal> && (op == Op::Im) )
+                {
+                    if constexpr ( NotTransposedQ(op) )
                     {
-                        ptic(ClassName()+"::ConjugateTranspose");
+                        ptoc(tag);
+                        return MatrixCSR<Return_T,Int,LInt> ( m, n, 0, 1 );
                     }
                     else
                     {
-                        ptic(ClassName()+"::Transpose");
+                        ptoc(tag);
+                        return MatrixCSR<Return_T,Int,LInt> ( n, m, 0, 1 );
                     }
+                }
+                else if constexpr ( NotTransposedQ(op) )
+                {
+                    MatrixCSR<Return_T,Int,LInt> B ( m, n, outer[m], thread_count );
                     
+                    B.Outer().Read( outer.data(), thread_count );
+                    B.Inner().Read( inner.data(), thread_count );
+                    
+                    mptr<Return_T> B_val = B.Values();
+                    
+                    ParallelDo(
+                        [B_val,this]( LInt k )
+                        {
+                            B_val[k] = Scalar::Op<op>( values[k] );
+                        },
+                        outer[m], thread_count
+                    );
+                    
+                    ptoc(tag);
+                    return B;
+                }
+                else // if constexpr ( TransposedQ(op) )
+                {
                     RequireJobPtr();
                     
                     Tensor2<LInt,Int> counters = CreateTransposeCounters();
                     
-                    MatrixCSR B ( n, m, outer[m], thread_count );
+                    MatrixCSR<Return_T,Int,LInt> B ( n, m, outer[m], thread_count );
 
                     copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
 
@@ -491,7 +547,7 @@ namespace Tensors
                             mptr<Scal> B_values = B.Value().data();
                             cptr<LInt> A_outer  = Outer().data();
                             cptr<Int > A_inner  = Inner().data();
-                            cptr<Scal> A_value = Value().data();
+                            cptr<Scal> A_value  = Value().data();
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
@@ -504,14 +560,7 @@ namespace Tensors
                                     const LInt pos = --c[j];
                                     B_inner [pos] = i;
                                     
-                                    if constexpr ( conjugate )
-                                    {
-                                        B_values[pos] = Conj(A_value[k]);
-                                    }
-                                    else
-                                    {
-                                        B_values[pos] = A_value[k];
-                                    }
+                                    B_values[pos] = Scalar::Op<op>(A_value[k]);
                                 }
                             }
                         },
@@ -523,22 +572,20 @@ namespace Tensors
                     // We only have to care about the correct ordering of inner indices and values.
                     B.SortInner();
 
-                    if constexpr ( conjugate )
-                    {
-                        ptoc(ClassName()+"::ConjugateTranspose");
-                    }
-                    else
-                    {
-                        ptoc(ClassName()+"::Transpose");
-                    }
+                    ptoc(tag);
+                    return B;
+                }
                     
-                    return B;
-                }
-                else
-                {
-                    MatrixCSR B ( n, m, 0, thread_count );
-                    return B;
-                }
+            }
+            
+            MatrixCSR Transpose() const
+            {
+                return Op<Op::Trans>();
+            }
+            
+            MatrixCSR ConjugateTranspose() const
+            {
+                return Op<Op::ConjTrans>();
             }
             
         public:
@@ -555,16 +602,6 @@ namespace Tensors
             Tensor2<A_T,LInt> ToTensor2() const
             {
                 return this->template ToTensor2_<A_T>( values.data() );
-            }
-            
-            MatrixCSR Transpose() const
-            {
-                return transpose<false>();
-            }
-            
-            MatrixCSR ConjugateTranspose() const
-            {
-                return transpose<true>();
             }
             
             
@@ -818,8 +855,6 @@ namespace Tensors
                 {
                     auto & B_job_ptr = B.JobPtr();
                     
-                    const Int thread_count = B_job_ptr.ThreadCount();
-                    
                     cptr<LInt> A_outer  = outer.data();
                     cptr<Int > A_inner  = inner.data();
                     mptr<Scal> A_value = values.data();
@@ -1025,7 +1060,7 @@ namespace Tensors
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
-                                Int c_i = 0;
+                                LInt c_i = 0;
                                 
                                 const LInt jj_begin = A_outer[i  ];
                                 const LInt jj_end   = A_outer[i+1];
