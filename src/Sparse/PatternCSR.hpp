@@ -1336,6 +1336,43 @@ namespace Tensors
                 return wellformed;
             }
             
+            bool StructurallySymmetricQ() const
+            {
+                // This routine is not optimized.
+                // Only meant for debugging.
+                
+                bool symmetricQ = true;
+                
+                LInt unmatched_count = 0;
+                
+                for( Int i = 0; i < m; ++i )
+                {
+                    const LInt k_begin = outer[i    ];
+                    const LInt k_end   = outer[i + 1];
+                    
+                    for( LInt k = k_begin; k < k_end; ++k )
+                    {
+                        const Int j = inner[k];
+                        
+                        if( i < j )
+                        {
+                            const bool found = NonzeroPositionQ(j,i);
+                            
+                            symmetricQ = symmetricQ && found;
+                            
+                            unmatched_count += (!found);
+                        }
+                    }
+                }
+                
+                if( !symmetricQ )
+                {
+                    dump(unmatched_count);
+                }
+                
+                return symmetricQ;
+            }
+            
         public:
             
             virtual Int Dimension( const bool dim )
