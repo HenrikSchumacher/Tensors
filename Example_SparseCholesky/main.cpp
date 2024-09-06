@@ -4,7 +4,7 @@
 
 #include <iostream>
 
-#undef _OPENMP
+//#undef _OPENMP
 
 #define TOOLS_ENABLE_PROFILER
 //#define TOOLS_DEBUG
@@ -22,9 +22,7 @@
 //#include "../src/Sparse/Metis.hpp"
 #include "../src/Sparse/ApproximateMinimumDegree.hpp"
 
-//#include "../src/CHOLMOD/CholeskyDecomposition.hpp"
-//#include "../src/CHOLMOD/ApproximateMinimumDegree.hpp"
-//#include "../src/CHOLMOD/NestedDissection.hpp"
+#include "../src/CHOLMOD/CholeskyDecomposition.hpp"
 
 using namespace Tools;
 using namespace Tensors;
@@ -37,7 +35,7 @@ using Int    = int32_t;
 
 int main()
 {
-    constexpr Int thread_count = 8;
+    constexpr Int thread_count = 1;
 
     std::filesystem::path home_dir = HomeDirectory();
     
@@ -59,14 +57,20 @@ int main()
     Sparse::MatrixCSR<Scal,Int,LInt> A;
     
     A.LoadFromFile( home_dir / "github/Tensors/SparseMatrices" / (name + "_Matrix.txt"), thread_count );
+    
+//    A.LoadFromMatrixMarket( home_dir / "MatrixMarket" / "bcsstk14.mtx", thread_count );
 
-    dump(A.ThreadCount());
-    dump(A.RowCount());
-    dump(A.NonzeroCount());
-    dump(nrhs);
+    
+//    std::vector< Int> i = { 0, 0, 0, 1, 1, 1, 2, 2, 2 };
+//    std::vector< Int> j = { 0, 1, 2, 0, 1, 2, 0, 1, 2 };
+//    std::vector<Scal> a = { 2.2, 1.1, 0, 1.1, 2.2, 0, 0, 0, 2.2 };
+//    
+//    Sparse::MatrixCSR<Scal,Int,LInt> A(
+//        9, &i[0], &j[0], &a[0], 3, 3, 1, true, false
+//    );
     
     const Int n = A.RowCount();
-
+    
     Tensor1<Scal,Int> b (n);
     Tensor1<Scal,Int> x (n);
     
@@ -110,22 +114,6 @@ int main()
         A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
     );
     toc("AMD");
-
-    
-    
-//    tic("CHOLMOD::ApproximateMinimumDegree");
-//    Permutation<Int> perm = CHOLMOD::ApproximateMinimumDegree<Int>()(
-//        A.Outer().data(), A.Inner().data(), n, thread_count
-//    );
-//    toc("CHOLMOD::ApproximateMinimumDegree");
-
-//    print("");
-//
-//    tic("CHOLMOD::NestedDissection");
-//    Permutation<Int> perm = CHOLMOD::NestedDissection<int>()(
-//        A.Outer().data(), A.Inner().data(), n, thread_count
-//    );
-//    toc("CHOLMOD::NestedDissection");
 
 
     print("");
@@ -238,38 +226,6 @@ int main()
     A.Dot<NRHS>( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
     dump(Y.MaxNorm());
 
-    
-////    CHOLMOD::CholeskyDecomposition<Scal,Int,LInt> cholmod ( A.Outer().data(), A.Inner().data(), n );
-////
-////    cholmod.SymbolicFactorization();
-////
-////    cholmod.NumericFactorization(A.Values().data());
-////
-////    cholmod.Solve(B.data(), X.data(), nrhs);
-////
-////    Y = B;
-////
-////    A.Dot(Scal(-1), X, Scal(1), Y);
-////
-////    dump(Y.MaxNorm());
-//
-////    print(ToString(Y));
-////
-////    {
-////        Tensor2<Real,Int> ZZ  (3,3, 2.);
-////
-////        print( ToString( ZZ.data(), {3,3} ) );
-////    }
-////
-////
-////    {
-////        Tensor1<Real,Int> ZZ  (1*2*3*4, 4.);
-////
-////        print( ToString( ZZ.data(), {1,2,3,4} ) );
-////
-////    }
-////
-
 
     print("");
     print("");
@@ -344,6 +300,63 @@ int main()
         A.Dot(Scal(-1), X, Scal(1), Y);
         dump(Y.MaxNorm());
     }
+    
+    
+    
+//    dump(x[0]);
+//    dump(x[1]);
+//    dump(x[2]);
+//    dump(x[3]);
+//    
+//    print("");
+//    print("");
+//    
+//    tic("CHOLMOD constructor");
+//    CHOLMOD::CholeskyDecomposition<Scal,Int32,Int32> cholmod (
+//        A.Outer().data(), A.Inner().data(), A.ColCount()
+//    );
+//    toc("CHOLMOD constructor");
+//    
+//    print("");
+//    
+//    tic("CHOLMOD symbolic factorization");
+//    cholmod.SymbolicFactorization();
+//    toc("CHOLMOD symbolic factorization");
+//    
+//    print("");
+//    
+//    tic("CHOLMOD numeric factorization");
+//    cholmod.NumericFactorization(A.Values().data());
+//    toc("CHOLMOD numeric factorization");
+//
+//    print("");
+//    print("");
+//
+//    dump(b[0]);
+//    dump(b[1]);
+//    dump(b[2]);
+//    dump(b[3]);
+//    x.SetZero();
+//    
+//    tic("CHOLMOD Cholesky vector solve");
+//    cholmod.Solve( b.data(), x.data() );
+//    toc("CHOLMOD Cholesky vector solve");
+//    
+//    dump(b[0]);
+//    dump(b[1]);
+//    dump(b[2]);
+//    dump(b[3]);
+//    
+//    dump(x[0]);
+//    dump(x[1]);
+//    dump(x[2]);
+//    dump(x[3]);
+//    
+//    y = b;
+//    A.Dot(Scal(-1), x, Scal(1), y);
+//    dump(y.MaxNorm());
+//
+//    print("");
     
     return 0;
 }

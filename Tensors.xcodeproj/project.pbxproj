@@ -664,19 +664,22 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
-					"/opt/homebrew/Cellar/suite-sparse/7.7.0/lib",
+					/opt/homebrew/opt/suitesparse/lib,
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
+					"-lcolamd",
+					"-lcamd",
 					"-lamd",
 					"-lmetis",
+					"-lcholmod",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
-					"/opt/homebrew/Cellar/suite-sparse/7.7.0/include/suitesparse",
+					/opt/homebrew/opt/suitesparse/include/suitesparse,
 				);
 			};
 			name = Debug;
@@ -689,19 +692,22 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
-					"/opt/homebrew/Cellar/suite-sparse/7.7.0/lib",
+					/opt/homebrew/opt/suitesparse/lib,
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
+					"-lcolamd",
+					"-lcamd",
 					"-lamd",
 					"-lmetis",
+					"-lcholmod",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
-					"/opt/homebrew/Cellar/suite-sparse/7.7.0/include/suitesparse",
+					/opt/homebrew/opt/suitesparse/include/suitesparse,
 				);
 			};
 			name = Release;
