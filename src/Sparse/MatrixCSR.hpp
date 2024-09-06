@@ -1715,6 +1715,46 @@ namespace Tensors
             }
             
             
+            bool SymmetricQ() const
+            {
+                // This routine is not optimized.
+                // Only meant for debugging.
+                
+                bool symmetricQ = true;
+                
+                LInt unmatched_count = 0;
+                
+                for( Int i = 0; i < m; ++i )
+                {
+                    const LInt k_begin = outer[i    ];
+                    const LInt k_end   = outer[i + 1];
+                    
+                    for( LInt k = k_begin; k < k_end; ++k )
+                    {
+                        const Int j = inner[k];
+                        
+                        if( i < j )
+                        {
+                            const Scal A_ij = values[k];
+                            const Scal A_ji = this->operator()(j,i);
+
+                            const bool found = (A_ij == A_ji);
+                            
+                            symmetricQ = symmetricQ && found;
+                            
+                            unmatched_count += (!found);
+                        }
+                    }
+                }
+                
+                if( !symmetricQ )
+                {
+                    dump(unmatched_count);
+                }
+                
+                return symmetricQ;
+            }
+            
             std::string Stats() const
             {
                 std::stringstream s;
