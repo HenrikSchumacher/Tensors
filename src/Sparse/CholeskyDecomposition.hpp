@@ -362,40 +362,41 @@ namespace Tensors
             }
 
             
+            // Copy constructor
+            CholeskyDecomposition( const CholeskyDecomposition & other ) = default;
             
-            
-            /* Copy constructor */
-            CholeskyDecomposition( const CholeskyDecomposition & other )
-            :   CachedObject        ( other                     )
-            ,   n                   ( other.n                   )
-            ,   thread_count        ( other.thread_count        )
-            ,   perm                ( other.perm                )
-            ,   A                   ( other.A                   )
-            ,   A_inner_perm        ( other.A_inner_perm        )
-            ,   A_val               ( other.A_val               )
-            ,   eTree_initialized   ( other.eTree_initialized   )
-            ,   eTree               ( other.eTree               )
-            ,   aTree               ( other.aTree               )
-            ,   SN_initialized      ( other.SN_initialized      )
-            ,   SN_count            ( other.SN_count            )
-            ,   SN_rp               ( other.SN_rp               )
-            ,   SN_outer            ( other.SN_outer            )
-            ,   SN_inner            ( other.SN_inner            )
-            ,   row_to_SN           ( other.row_to_SN           )
-            ,   SN_tri_ptr          ( other.SN_tri_ptr          )
-            ,   SN_tri_val          ( other.SN_tri_val          )
-            ,   SN_rec_ptr          ( other.SN_rec_ptr          )
-            ,   SN_rec_val          ( other.SN_rec_val          )
-            ,   SN_updates          ( other.SN_updates          )
-            ,   max_n_0             ( other.max_n_0             )
-            ,   max_n_1             ( other.max_n_1             )
-            ,   nrhs                ( other.nrhs                )
-            ,   X                   ( other.X                   )
-            ,   X_scratch           ( other.X_scratch           )
-            ,   row_mutexes         ( n                         )
-            {
-                Init();
-            }
+//            /* Copy constructor */
+//            CholeskyDecomposition( const CholeskyDecomposition & other )
+//            :   CachedObject        ( other                     )
+//            ,   n                   ( other.n                   )
+//            ,   thread_count        ( other.thread_count        )
+//            ,   perm                ( other.perm                )
+//            ,   A                   ( other.A                   )
+//            ,   A_inner_perm        ( other.A_inner_perm        )
+//            ,   A_val               ( other.A_val               )
+//            ,   eTree_initialized   ( other.eTree_initialized   )
+//            ,   eTree               ( other.eTree               )
+//            ,   aTree               ( other.aTree               )
+//            ,   SN_initialized      ( other.SN_initialized      )
+//            ,   SN_count            ( other.SN_count            )
+//            ,   SN_rp               ( other.SN_rp               )
+//            ,   SN_outer            ( other.SN_outer            )
+//            ,   SN_inner            ( other.SN_inner            )
+//            ,   row_to_SN           ( other.row_to_SN           )
+//            ,   SN_tri_ptr          ( other.SN_tri_ptr          )
+//            ,   SN_tri_val          ( other.SN_tri_val          )
+//            ,   SN_rec_ptr          ( other.SN_rec_ptr          )
+//            ,   SN_rec_val          ( other.SN_rec_val          )
+//            ,   SN_updates          ( other.SN_updates          )
+//            ,   max_n_0             ( other.max_n_0             )
+//            ,   max_n_1             ( other.max_n_1             )
+//            ,   nrhs                ( other.nrhs                )
+//            ,   X                   ( other.X                   )
+//            ,   X_scratch           ( other.X_scratch           )
+//            ,   row_mutexes         ( n                         )
+//            {
+//                Init();
+//            }
             
             /* Swap function */
             friend void swap (CholeskyDecomposition & A_, CholeskyDecomposition & B_ ) noexcept
@@ -404,6 +405,7 @@ namespace Tensors
                 using std::swap;
                 
                 swap( static_cast<CachedObject&>(A_), static_cast<CachedObject&>(B_) );
+                
                 swap( A_.n,                  B_.n                     );
                 swap( A_.thread_count,       B_.thread_count          );
                 swap( A_.A,                  B_.A                     );
@@ -442,23 +444,11 @@ namespace Tensors
                 return *this;
             }
             
-//            /* Move constructor */
-//            CholeskyDecomposition( CholeskyDecomposition && other ) noexcept
-//            {
-//                swap(*this, other);
-//            }
-            
-//            /* Move assignment operator */
-//            CholeskyDecomposition & operator=( CholeskyDecomposition && other ) noexcept
-//            {
-//                if( this == &other )
-//                {
-//                    wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
-//                }
-//                swap( *this, other );
-//                return *this;
-//            }
-            
+            /* Move constructor */
+            CholeskyDecomposition( CholeskyDecomposition && other ) noexcept
+            {
+                swap(*this, other);
+            }
             
             
         protected:
