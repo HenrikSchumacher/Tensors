@@ -228,7 +228,7 @@ namespace Tensors
             
             CholeskyDecomposition() = default;
             
-            ~CholeskyDecomposition() = default;
+            virtual ~CholeskyDecomposition() override = default;
             
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
