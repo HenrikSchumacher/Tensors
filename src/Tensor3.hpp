@@ -184,7 +184,11 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return std::string("Tensor3<")+TypeName<Scal>+","+TypeName<Int>+","+Tools::ToString(alignment)+">";
+            return std::string("Tensor3")
+                + "<" + TypeName<Scal>
+                + "," + TypeName<Int>
+                + "," + ToString(alignment)
+                + ">";
         }
         
     }; // Tensor3

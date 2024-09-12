@@ -58,7 +58,7 @@ public:
         
         if( &A == &B )
         {
-            wprint("An object of type " + ClassName() + " has been swapped to itself.");
+            wprint( std::string("An object of type ") + ClassName() + " has been swapped to itself.");
         }
         else
         {

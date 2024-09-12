@@ -212,12 +212,17 @@ namespace Tensors
                 return ToString(T.a,0);
             }
         }
+
+    public:
         
         static std::string ClassName()
         {
-            return std::string("Tensor1<")+TypeName<Scal>+","+TypeName<Int>+","+ToString(alignment)+">";
+            return std::string("Tensor1")
+                + "<" + TypeName<Scal>
+                + "," + TypeName<Int>
+                + "," + ToString(alignment)
+                + ">";
         }
-        
         
     }; // Tensor1
     

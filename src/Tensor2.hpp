@@ -6,7 +6,7 @@ namespace Tensors
 #define TENSOR_T Tensor2
 
     template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
-    class Tensor2
+    class TENSOR_T
     {
 
 #include "Tensor_Common.hpp"
@@ -384,9 +384,15 @@ namespace Tensors
             }
         }
         
+    public:
+        
         static std::string ClassName()
         {
-            return std::string("Tensor2<")+TypeName<Scal>+","+TypeName<Int>+","+ToString(alignment)+">";
+            return std::string("Tensor2")
+                + "<" + TypeName<Scal>
+                + "," + TypeName<Int>
+                + "," + ToString(alignment)
+                + ">";
         }
         
     }; // Tensor2
