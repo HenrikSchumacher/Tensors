@@ -712,7 +712,7 @@ namespace Tensors
                 
                 const LInt l_begin = SN_outer[t  ];
                 
-                debug_assert( l_begin < l_end, "We should have l_begin < l_end; otherwise t would not be a descendant of s, right?" ); // bc. s would not be a child of t otherwise.
+                TOOLS_DEBUG_ASSERT( l_begin < l_end, "We should have l_begin < l_end; otherwise t would not be a descendant of s, right?" ); // bc. s would not be a child of t otherwise.
                 
                  Int i = i_begin;
                 LInt l = l_begin;

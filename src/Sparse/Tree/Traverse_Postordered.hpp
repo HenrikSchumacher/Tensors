@@ -3,7 +3,7 @@ public:
     template<class Worker_T>
     void Traverse_Descendants_Postordered( mref<Worker_T> worker, const Int node ) const
     {
-        debug_print(ClassName() + "::Traverse_Descendants_Postordered ( node = " + ToString(node) + " ) begins.");
+        TOOLS_DEBUG_PRINT(ClassName() + "::Traverse_Descendants_Postordered ( node = " + ToString(node) + " ) begins.");
 
         // Applies ker to the descendants of the node _and the node itself_ in postorder.
 
@@ -22,7 +22,7 @@ public:
             worker(desc);
         }
         
-        debug_print(ClassName() + "::Traverse_Descendants_Postordered ( node = " + ToString(node) + " ) ends.");
+        TOOLS_DEBUG_PRINT(ClassName() + "::Traverse_Descendants_Postordered ( node = " + ToString(node) + " ) ends.");
     }
 
     template<Parallel_T parQ = Parallel, class Worker_T>
