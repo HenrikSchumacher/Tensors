@@ -25,7 +25,7 @@ public:
             return;
         }
         
-        auto job = [=]<F_T a_flag,F_T alpha_flag,F_T beta_flag>()
+        auto job = [=,this]<F_T a_flag,F_T alpha_flag,F_T beta_flag>()
         {
             SpMM_impl<a_flag,alpha_flag,beta_flag,NRHS,base>(
                 rp, ci, a, m, n,

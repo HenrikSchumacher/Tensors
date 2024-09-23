@@ -29,7 +29,7 @@ public:
             return;
         }
         
-        auto job = [=]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
+        auto job = [=,this]<F_T a_flag, F_T alpha_flag, F_T beta_flag>()
         {
             SpMV_impl<a_flag,alpha_flag,beta_flag,base>(rp,ci,a,m,n,alpha,x,beta,y,job_ptr);
         };

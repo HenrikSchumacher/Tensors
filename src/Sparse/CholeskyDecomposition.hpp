@@ -488,8 +488,9 @@ namespace Tensors
                 
                 if( !okay )
                 {
-                    dump( A.Diag() );
                     eprint(ClassName()+"::PostOrdering: Diagonal of input matrix is not marked as nonzero.");
+                    dump( A.Diag() );
+                    
                 }
                 
                 ptoc(ClassName()+"CheckDiagonal()");
