@@ -41,3 +41,6 @@
 
 //#include "src/BlockKernels/ScalarBlockKernel_fixed.hpp"
 #include "src/BlockKernels/ScalarBlockKernel_Tiny.hpp"
+
+
+#include "src/Stack.hpp"
