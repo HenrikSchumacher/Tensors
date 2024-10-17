@@ -66,6 +66,12 @@ namespace Tensors
             ptr = 0;
         }
         
+        void Reset( const Int minimum_size)
+        {
+            a.RequireSize<false>(minimum_size);
+            ptr = 0;
+        }
+        
         void Push( cref<Entry_T> value )
         {
             a[++ptr] = value;
