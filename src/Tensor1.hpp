@@ -202,14 +202,14 @@ namespace Tensors
         {
             if( (i_begin >= 0) && ( i_end <= T.n) )
             {
-                return ToString(
+                return ArrayToString(
                     &T.a[i_begin],
                     {Tools::Max(int_cast<Size_T>(0),int_cast<Size_T>(i_end-i_begin))}
                 );
             }
             else
             {
-                return ToString(T.a,0);
+                return ArrayToString(T.a,0);
             }
         }
 

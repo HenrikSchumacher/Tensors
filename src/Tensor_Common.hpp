@@ -477,9 +477,14 @@ public:
         }
     }
 
-    inline friend std::string to_string( cref<TENSOR_T> A )
+    inline friend std::string to_string( cref<TENSOR_T> A, const int prec = 16 )
     {
-        return A.ToString();
+        return ArrayToString( A.a, A.dims.data(), Rank(), prec );
+    }
+
+    inline friend std::string ToString( cref<TENSOR_T> A, const int prec = 16 )
+    {
+        return ArrayToString( A.a, A.dims.data(), Rank(), prec );
     }
 
 
@@ -511,10 +516,10 @@ public:
         file.close();
     }
 
-    [[nodiscard]] std::string CreateString( int prec = 16 ) const
-    {
-        return ArrayToString( a, dims.data(), Rank(), prec );
-    }
+//    [[nodiscard]] std::string ToString( int prec = 16 ) const
+//    {
+//        return ArrayToString( a, dims.data(), Rank(), prec );
+//    }
 
     template<class Stream_T>
     Stream_T & ToStream( Stream_T & s ) const
