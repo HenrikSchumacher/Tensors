@@ -163,10 +163,10 @@ namespace Tensors
             
             template<typename ExtInt, typename ExtScal>
             MatrixCSR(
-                  const ExtInt    * const * const idx,
-                  const ExtInt    * const * const jdx,
-                  const ExtScal   * const * const val,
-                  const LInt   *         const entry_counts,
+                  const ExtInt  * const * const idx,
+                  const ExtInt  * const * const jdx,
+                  const ExtScal * const * const val,
+                  const LInt   * const entry_counts,
                   const Int list_count,
                   const Int m_,
                   const Int n_,
@@ -274,6 +274,34 @@ namespace Tensors
                             list_count, final_thread_count, compressQ, symmetrize );
             }
             
+            template<typename ExtInt, typename ExtScal>
+            MatrixCSR(
+                  cref<TripleAggregator<ExtInt,ExtInt,ExtScal,LInt>> triples,
+                  const Int m_,
+                  const Int n_,
+                  const Int final_thread_count,
+                  const bool compressQ  = true,
+                  const int  symmetrize = 0
+            )
+            : MatrixCSR(
+                triples.Size(),
+                triples.Get_0().data(), triples.Get_1().data(), triples.Get_2().data(),
+                m_, n_, final_thread_count, compressQ, symmetrize )
+            {}
+            
+//            :   Base_T ( m_, n_, static_cast<Int>(1) )
+//            {
+//                LInt entry_counts = static_cast<LInt>(triples.Size());
+//                
+//                const ExtInt  * const i = triples.Get_0().data();
+//                const ExtInt  * const j = triples.Get_1().data();
+//                const ExtScal * const a = triples.Get_2().data();
+//
+//                FromTriples(
+//                    &i,&j,&a,&entry_counts,ExtInt(1),final_thread_count,compressQ,symmetrize
+//                );
+//            }
+            
             virtual ~MatrixCSR() override = default;
             
         protected:
@@ -283,10 +311,10 @@ namespace Tensors
                 const ExtInt  * const * const idx,               // list of lists of i-indices
                 const ExtInt  * const * const jdx,               // list of lists of j-indices
                 const ExtScal * const * const val,               // list of lists of nonzero values
-                const LInt             * const entry_counts,      // list of lengths of the lists above
+                const LInt            * const entry_counts,      // list of lengths of the lists above
                 const Int list_count,                         // number of lists
                 const Int final_thread_count,                 // number of threads that the matrix shall use
-                const bool compressQ   = true,                 // whether to do additive assembly or not
+                const bool compressQ   = true,                // whether to do additive assembly or not
                 const int  symmetrize = 0                     // whether to symmetrize the matrix
             )
             {

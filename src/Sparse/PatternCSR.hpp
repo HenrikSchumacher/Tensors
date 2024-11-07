@@ -361,7 +361,7 @@ namespace Tensors
             void FromPairs(
                 const  ExtInt * const * const idx,
                 const  ExtInt * const * const jdx,
-                const LInt             *       entry_counts,
+                const LInt            *       entry_counts,
                 const  Int list_count,
                 const  Int final_thread_count,
                 const bool compressQ   = true,
@@ -370,7 +370,9 @@ namespace Tensors
             {
                 ptic(ClassName()+"::FromPairs");
                 
-                Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>( idx, jdx, entry_counts, list_count, m, symmetrize );
+                Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
+                    idx, jdx, entry_counts, list_count, m, symmetrize
+                );
                 
                 const LInt nnz = counters(list_count-1,m-1);
                 
