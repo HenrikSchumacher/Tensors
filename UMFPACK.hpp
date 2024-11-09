@@ -33,50 +33,81 @@ namespace Tensors
         
         Real * null     = nullptr;
         
-        const Int m;
-        const Int n;
-        Tensor1<Int ,Int> outer;
-        Tensor1<Int ,Int> inner;
+        Sparse::BinaryMatrix<Int,Int> A;
         Tensor1<Scal,Int> values;
-        
-        Int  * Ap = nullptr;
-        Int  * Ai = nullptr;
-        Real * Ax = nullptr;
         
         Tensor1<Scal,Int> x_buffer;
         Tensor1<Scal,Int> b_buffer;
         
     public:
+
         
         template<typename ExtInt, typename ExtLInt>
         explicit UMFPACK(
-            const ExtInt m_, const ExtInt n_,
-            cptr<ExtInt> outer_, cptr<ExtLInt> inner_
+            const ExtInt m_, const ExtInt n_, cptr<ExtInt> outer_, cptr<ExtLInt> inner_
         )
-        : m        { int_cast<Int>(m_) }
-        , n        { int_cast<Int>(n_) }
-        , outer    { outer_,  m + 1    }
-        , inner    { inner_,  outer[m] }
-        , values   { outer[m]          }
-        , Ap       { outer.data()      }
-        , Ai       { inner.data()      }
-        , Ax       { values.data()     }
-        , x_buffer { n }
-        , b_buffer { m }
+        ,   A        { outer_, inner_, int_cast<Int>(m_), int_cast<Int>(n_), Int(1) }
+        ,   x_buffer { A.ColCount() }
+        ,   b_buffer { A.RowCount() }
         {
             SymbolicFactorization();
         }
         
         
+        template<typename ExtInt, typename ExtLInt, typename ExtScal>
+        explicit UMFPACK(
+            const ExtInt m_, const ExtInt n_,
+            cptr<ExtInt> outer_, cptr<ExtLInt> inner_, cptr<ExtScal> values_
+        )
+        :   UMFPACK( m_, n_, outer_, inner_ )
+        {
+            SymbolicFactorization();
+            NumericFactorization(values_);
+        }
+        
+        
         template<typename ExtScal, typename ExtInt, typename ExtLInt>
         explicit UMFPACK( cref<Sparse::MatrixCSR<ExtScal,ExtInt,ExtLInt>> A )
-        : UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner(), A.Values() )
+        :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner(), A.Values() )
+        {}
+        
+        template<typename ExtScal, typename ExtInt, typename ExtLInt>
+        explicit UMFPACK( cref<Sparse::BinaryMatrixCSR<ExtScal,ExtInt>> A )
+        :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner() )
         {}
         
         ~UMFPACK()
         {
             FreeSymbolic();
             FreeNumeric ();
+        }
+        
+        
+    public:
+        
+        Int RowCount() const
+        {
+            return A.RowCount();
+        }
+        
+        Int ColCount() const
+        {
+            return A.ColCount();
+        }
+        
+        Int NonzeroCount() const
+        {
+            return A.NonzeroCount();
+        }
+        
+        cref<Sparse::BinaryMatrixCSR<Int,Int>> GetA() const
+        {
+            return A;
+        }
+        
+        cref<Tensor1<Scal,Int>> Values() const
+        {
+            return values;
         }
         
     private:
@@ -140,12 +171,15 @@ namespace Tensors
                 F_T::Plus, F_T::Zero, VarSize, Sequential,
                 Op::ConjTrans ? Op::Conj : Op::Id, Op::Id
             >(
-                Scal(1), B, Scal(0), b_buffer.data(), m
+                Scal(1), B, Scal(0), b_buffer.data(), A.RowCount()
             );
-
 
             Real * x_ptr = reinterpret_cast<Real *>(x_buffer.data());
             Real * b_ptr = reinterpret_cast<Real *>(b_buffer.data());
+            
+            Int  * Ap = A.Outer().data();
+            Int  * Ai = A.Inner().data();
+            Real * Ax = reinterpret_cast<Real *>(values.data());
             
             if constexpr( SameQ<Int,Int64> )
             {
@@ -326,42 +360,48 @@ namespace Tensors
             
             int status = 0;
             
+            const Int m = A.RowCount();
+            const Int n = A.ColCount();
+            
+            Int  * Ap = A.Outer().data();
+            Int  * Ai = A.Inner().data();
+            
             if constexpr( SameQ<Int,Int64> )
             {
                 if constexpr( SameQ<Scal,Real64> )
                 {
-                    status = umfpack_dl_symbolic(n,n,Ap,Ai,null,&symbolic,null,null);
+                    status = umfpack_dl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Real32> )
                 {
-                    status = umfpack_sl_symbolic(n,n,Ap,Ai,null,&symbolic,null,null);
+                    status = umfpack_sl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
-                    status = umfpack_zl_symbolic(n,n,Ap,Ai,null,null,&symbolic,null,null);
+                    status = umfpack_zl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex32> )
                 {
-                    status = umfpack_cl_symbolic(n,n,Ap,Ai,null,null,&symbolic,null,null);
+                    status = umfpack_cl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
             }
             else if constexpr( SameQ<Int,Int32> )
             {
                 if constexpr( SameQ<Scal,Real64> )
                 {
-                    status = umfpack_di_symbolic(n,n,Ap,Ai,null,&symbolic,null,null);
+                    status = umfpack_di_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Real32> )
                 {
-                    status = umfpack_si_symbolic(n,n,Ap,Ai,null,&symbolic,null,null);
+                    status = umfpack_si_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
-                    status = umfpack_zi_symbolic(n,n,Ap,Ai,null,null,&symbolic,null,null);
+                    status = umfpack_zi_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex32> )
                 {
-                    status = umfpack_ci_symbolic(n,n,Ap,Ai,null,null,&symbolic,null,null);
+                    status = umfpack_ci_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
             }
             
@@ -383,6 +423,10 @@ namespace Tensors
             values.Read(a_);
             
             int status = 0;
+            
+            Int  * Ap = A.Outer().data();
+            Int  * Ai = A.Inner().data();
+            Real * Ax = reinterpret_cast<Real *>(values.data());
             
             if constexpr( SameQ<Int,Int64> )
             {
