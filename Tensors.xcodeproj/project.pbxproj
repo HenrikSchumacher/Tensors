@@ -110,6 +110,7 @@
 		AF4B5C212C5FB5DB0061A826 /* TODO.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = TODO.txt; sourceTree = "<group>"; };
 		AF5D050B2B52F09000E946CA /* DenseBLAS */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = DenseBLAS; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF5D050D2B52F09000E946CA /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		AF73C89E2CE017A8009F74B1 /* UMFPACK.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = UMFPACK.hpp; sourceTree = "<group>"; };
 		AF7C6BF92C5E5DC200EA899D /* BufferCombiner.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BufferCombiner.hpp; sourceTree = "<group>"; };
 		AF7C6BFA2C5E5DC200EA899D /* Library.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Library.hpp; sourceTree = "<group>"; };
 		AF7C6C152C5E903800EA899D /* Scratch */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Scratch; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -271,6 +272,7 @@
 				AFFB63192A49BB8900F90D2D /* SparseMatrices */,
 				AF1F64DF29337FEF00146E64 /* src */,
 				AFAD0F822B8ED004002B7179 /* Accelerate.hpp */,
+				AF73C89E2CE017A8009F74B1 /* UMFPACK.hpp */,
 				AFAD0F812B8ED004002B7179 /* OpenBLAS.hpp */,
 				AFD2569A2B8ED72000245E2B /* Base.hpp */,
 				AF13DAEC2B5D94B00040B903 /* BLAS_Wrappers.hpp */,
@@ -477,7 +479,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1540;
+				LastUpgradeCheck = 1610;
 				TargetAttributes = {
 					AF5D050A2B52F09000E946CA = {
 						CreatedOnToolsVersion = 15.2;
@@ -720,6 +722,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -735,6 +738,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = Y6DQ749ZRT;
+				ENABLE_HARDENED_RUNTIME = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
