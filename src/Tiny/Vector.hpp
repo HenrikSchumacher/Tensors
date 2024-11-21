@@ -339,9 +339,14 @@ namespace Tensors
             }
             
 
-            force_inline Real SquaredNorm() const
+            force_inline Real NormSquared() const
             {
                 return norm_2_squared<n>( &v[0] );
+            }
+            
+            force_inline Real SquaredNorm() const
+            {
+                return NormSquared();
             }
             
             force_inline Real Norm() const
@@ -399,8 +404,8 @@ namespace Tensors
   
             [[nodiscard]] force_inline friend Real AngleBetweenUnitVectors( cref<Vector> u, cref<Vector> w )
             {
-                const Real a = (u-w).SquaredNorm();
-                const Real b = (u+w).SquaredNorm();
+                const Real a = (u-w).NormSquared();
+                const Real b = (u+w).NormSquared();
                                 
                 return Scalar::Two<Real> * atan( Sqrt(a/b) );
             }
@@ -529,11 +534,19 @@ namespace Tensors
         
         
         template<int n, typename Scal, typename Int>
+        [[nodiscard]] force_inline const Scalar::Real<Scal> DistanceSquared(
+            cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v
+        )
+        {
+            return (u-v).NormSquared();
+        }
+        
+        template<int n, typename Scal, typename Int>
         [[nodiscard]] force_inline const Scalar::Real<Scal> SquaredDistance(
             cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v
         )
         {
-            return (u-v).SquaredNorm();
+            return DistanceSquared(u,v);
         }
         
         template<int n, typename Scal, typename Int>
@@ -541,7 +554,7 @@ namespace Tensors
             cref<Vector<n,Scal,Int>> u, cref<Vector<n,Scal,Int>> v
         )
         {
-            return Sqrt(SquaredDistance(u,v));
+            return Sqrt(DistanceSquared(u,v));
         }
         
         

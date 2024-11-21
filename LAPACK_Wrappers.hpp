@@ -8,9 +8,9 @@ namespace Tensors
         using Int = lapack_int;
 #else
     #if defined(TENSORS_ILP64)
-        using Int = int64_t;
+        using Int = std::int64_t;
     #else
-        using Int = int32_t;
+        using Int = std::int32_t;
     #endif
 #endif
         

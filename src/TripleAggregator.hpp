@@ -89,16 +89,17 @@ namespace Tensors
             return current_size;
         }
 
-        void Push( const T_0 a, const T_1 b, const T_2 c )
+        template<typename Ext_T_0, typename Ext_T_1, typename Ext_T_2>
+        void Push( const Ext_T_0 a, const Ext_T_1 b, const Ext_T_2 c )
         {
             if( current_buffer_size >= BUFFER_CAP )
             {
                 FlushBuffer();
             }
 
-            buffer_0[current_buffer_size] = a;
-            buffer_1[current_buffer_size] = b;
-            buffer_2[current_buffer_size] = c;
+            buffer_0[current_buffer_size] = static_cast<T_0>(a);
+            buffer_1[current_buffer_size] = static_cast<T_1>(b);
+            buffer_2[current_buffer_size] = static_cast<T_2>(c);
             ++current_buffer_size;
         }
 

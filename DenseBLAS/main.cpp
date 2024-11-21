@@ -40,8 +40,8 @@ using beta_T  = Real;
 //using beta_T  = Complex;
 
 using LInt    = long;
-using Int     = int_fast32_t;
-//using Int     = int64_t;
+using Int     = std::int_fast32_t;
+//using Int     = std::int64_t;
 
 int main(int argc, const char * argv[])
 {
