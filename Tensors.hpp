@@ -2,6 +2,7 @@
 
 #include "Base.hpp"
 
+#include "src/BitField.hpp"
 #include "src/ThreadTensor2.hpp"
 #include "src/ThreadTensor3.hpp"
 
