@@ -19,6 +19,11 @@ namespace Tensors
         
     public:
         
+        BitField()
+        :   n { 0 }
+        ,   a { 0 }
+        {}
+        
         BitField( UInt n_ )
         :   n { n_ }
         ,   a { (n + size - 1) / size }
@@ -38,6 +43,11 @@ namespace Tensors
             return get_bit(a[j],k);
         }
 
+        bool operator[]( const UInt i ) const
+        {
+            return GetBit(i);
+        }
+            
         void SetBit( const UInt i, bool bit )
         {
             const UInt j = i / size;
