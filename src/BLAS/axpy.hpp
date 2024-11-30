@@ -35,11 +35,11 @@ namespace Tensors
             }
             else if constexpr ( SameQ<Scal,std::complex<double>> )
             {
-                return cblas_caxpy( n, to_BLAS(&alpha), x, inc_x, y, inc_y );
+                return cblas_zaxpy( n, to_BLAS(&alpha), x, inc_x, y, inc_y );
             }
             else if constexpr ( SameQ<Scal,std::complex<float>> )
             {
-                return cblas_zaxpy( n, to_BLAS(&alpha), x, inc_x, y, inc_y );
+                return cblas_caxpy( n, to_BLAS(&alpha), x, inc_x, y, inc_y );
             }
             else
             {

@@ -17,7 +17,8 @@ namespace Tensors
             
         private:
             
-            static constexpr char flag = to_LAPACK(
+            // Caution: Older versions of Apple Accelerate expect this to be a non-const pointer!
+            char flag = to_LAPACK(
                 layout == Layout::ColMajor ? uplo : Transpose(uplo)
             );
             
