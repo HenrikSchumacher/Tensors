@@ -26,7 +26,7 @@ namespace Tensors
             
             
             using Chol_T   = CholeskyDecomposition<Scal,Int,LInt>;
-            using Update_T = Chol_T::Update_T;
+            using Update_T = typename Chol_T::Update_T;
             
         protected:
             
