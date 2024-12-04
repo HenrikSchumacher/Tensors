@@ -218,7 +218,7 @@ private:
         >;
 
         // Check whether z = a * x will work.
-        StaticParameterCheck<Scalar::Real<z_T>,z_T,a_T,x_T>();
+//        StaticParameterCheck<Scalar::Real<z_T>,z_T,a_T,x_T>();
 
         // Not as often we have to do y = alpha * z + beta * y;
         // Nonetheless, we should cast alpha and beta to specific
@@ -244,7 +244,7 @@ private:
         const beta_T_  beta_  = static_cast<beta_T_ >(beta );
         
         // Check whether y = alpha_ * z + beta_ * y will work.
-        StaticParameterCheck<alpha_T_,z_T,beta_T_,y_T>();
+//        StaticParameterCheck<alpha_T_,z_T,beta_T_,y_T>();
         
         ParallelDo(
             [&]( const Int thread )

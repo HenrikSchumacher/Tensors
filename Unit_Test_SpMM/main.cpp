@@ -200,27 +200,27 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
     
     Sparse::MatrixCSR<Scal,Int,LInt> A( nnz, idx.data(), jdx.data(), a.data(), m, n, thread_count );
 
-//    if constexpr ( Scalar::Prec<Scal> == 32 )
-//    {
-//        if constexpr ( Scalar::RealQ<Scal> )
-//        {
-//            test_SpMM<Real32   ,Real32   ,Real32   ,Real32   >(A, cols);
-//        }
-//            test_SpMM<Real32   ,Real32   ,Real32   ,Complex32>(A, cols);
-//            test_SpMM<Real32   ,Complex32,Real32   ,Complex32>(A, cols);
-//            test_SpMM<Complex32,Complex32,Complex32,Complex32>(A, cols);
-//    }
-//    
-//    if constexpr ( Scalar::Prec<Scal> == 64 )
-//    {
-//        if constexpr ( Scalar::RealQ<Scal> )
-//        {
-//            test_SpMM<Real64   ,Real64   ,Real64   ,Real64   >(A, cols);
-//        }
-//            test_SpMM<Real64   ,Real64   ,Real64   ,Complex64>(A, cols);
-//            test_SpMM<Real64   ,Complex64,Real64   ,Complex64>(A, cols);
-//            test_SpMM<Complex64,Complex64,Complex64,Complex64>(A, cols);
-//    }
+    if constexpr ( Scalar::Prec<Scal> == 32 )
+    {
+        if constexpr ( Scalar::RealQ<Scal> )
+        {
+            test_SpMM<Real32   ,Real32   ,Real32   ,Real32   >(A, cols);
+        }
+            test_SpMM<Real32   ,Real32   ,Real32   ,Complex32>(A, cols);
+            test_SpMM<Real32   ,Complex32,Real32   ,Complex32>(A, cols);
+            test_SpMM<Complex32,Complex32,Complex32,Complex32>(A, cols);
+    }
+    
+    if constexpr ( Scalar::Prec<Scal> == 64 )
+    {
+        if constexpr ( Scalar::RealQ<Scal> )
+        {
+            test_SpMM<Real64   ,Real64   ,Real64   ,Real64   >(A, cols);
+        }
+            test_SpMM<Real64   ,Real64   ,Real64   ,Complex64>(A, cols);
+            test_SpMM<Real64   ,Complex64,Real64   ,Complex64>(A, cols);
+            test_SpMM<Complex64,Complex64,Complex64,Complex64>(A, cols);
+    }
 }
 
 int main( int argc, const char * argv[] )
