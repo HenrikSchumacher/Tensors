@@ -31,6 +31,9 @@ namespace Tensors
         using RealVector_T = Tensor1<Real,Int>;
         
         using F_T = Scalar::Flag;
+        
+//        static constexpr bool residual_verboseQ = true;
+        static constexpr bool residual_verboseQ = false;
 
     protected:
         
@@ -796,6 +799,12 @@ namespace Tensors
         bool CheckResiduals() const
         {
             bool succ = true;
+            
+            if constexpr ( residual_verboseQ )
+            {
+                valprint( ClassName() + " iter", iter );
+                valprint( ClassName() + " residual", norm_max<NRHS>(beta.data(iter),nrhs) );
+            }
             
             for( Int k = 0; k < (NRHS>VarSize ? NRHS : nrhs); ++k )
             {
