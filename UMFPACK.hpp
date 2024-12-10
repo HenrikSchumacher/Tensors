@@ -111,6 +111,11 @@ namespace Tensors
             return values;
         }
         
+        mref<Tensor1<Scal,Int>> Values()
+        {
+            return values;
+        }
+        
         void SymbolicFactorization()
         {
             if( symbolic != nullptr )
@@ -175,12 +180,18 @@ namespace Tensors
             ptoc( ClassName() + "::SymbolicFactorization" );
         }
         
+        // You can either fill this->Values().data() and call this->NumericFactorization() or you can provide a pointer to the array of nonzero values.
         template<typename ExtScal>
         void NumericFactorization( cptr<ExtScal> a_ )
         {
-            ptic( ClassName() + "::NumericFactorization" );
-            
             values.Read(a_);
+            
+            NumericFactorization();
+        }
+        
+        void NumericFactorization()
+        {
+            ptic( ClassName() + "::NumericFactorization" );
             
             int status = 0;
             

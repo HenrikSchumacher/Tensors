@@ -108,6 +108,23 @@ namespace Tensors
                 static_assert(IntQ<I_3>,"");
             }
             
+            // CAUTION: This reserves memory for the nonzero values, but it does not initialize the nonzero values!
+            template<typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
+            MatrixCSR(
+                const J_0 * const outer_,
+                const J_1 * const inner_,
+                const I_0 m_,
+                const I_1 n_,
+                const I_3 thread_count_
+            )
+            :   Base_T  ( outer_,  inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            ,   values  ( outer_[static_cast<Int>(m_)] )
+            {
+                static_assert(IntQ<I_0>,"");
+                static_assert(IntQ<I_1>,"");
+                static_assert(IntQ<I_3>,"");
+            }
+            
             template<typename I_0, typename I_1, typename I_3>
             MatrixCSR(
                 Tensor1<LInt, Int> && outer_,
