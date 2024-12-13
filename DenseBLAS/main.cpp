@@ -13,8 +13,8 @@
 #endif
 
 #include "Tensors.hpp"
-#include "BLAS_Wrappers.hpp"
-#include "LAPACK_Wrappers.hpp"
+#include "../src/BLAS_Wrappers.hpp"
+#include "../src/LAPACK_Wrappers.hpp"
 #include "Dense.hpp"
 
 

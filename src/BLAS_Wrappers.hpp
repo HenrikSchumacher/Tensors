@@ -1,31 +1,24 @@
 #pragma once
 
+// To make this work, you should have loaded Tensors/OpenBLAS.hpp or Tensors/Accelerate.hpp.
+
 namespace Tensors
 {
     namespace BLAS
     {
+        std::string Info()
+        {
+            std::string s;
+            
+            s = s + "BLAS::Int           = " + TypeName<Int>              + "\n"
+                  + "BLAS::Bool          = " + TypeName<Bool>             + "\n"
+                  + "BLAS::ComplexDouble = " + TypeName<ComplexDouble>    + "\n"
+                  + "BLAS::ComplexFloat  = " + TypeName<ComplexFloat>;
+            
+            return s;
+        }
+        
         // This namespace is to provide wrappers for some BLAS routines.
-#ifdef blasint
-        using Int = blasint;
-#else
-    #if defined(TENSORS_ILP64)
-        using Int = std::int64_t;
-    #else
-        using Int = std::int32_t;
-    #endif
-#endif
-        
-#ifdef lapack_complex_double
-        using ComplexDouble = lapack_complex_double;
-#else
-        using ComplexDouble = std::complex<double>;
-#endif
-        
-#ifdef lapack_complex_float
-        using ComplexFloat  = lapack_complex_float;
-#else
-        using ComplexFloat  = std::complex<float>;
-#endif
         
         inline double * to_BLAS( double * x )
         {
@@ -133,17 +126,17 @@ namespace Tensors
     }
 }
 
-#include "src/BLAS/scal.hpp"
-#include "src/BLAS/dot.hpp"
-#include "src/BLAS/axpy.hpp"
-#include "src/BLAS/copy.hpp"
+#include "BLAS/scal.hpp"
+#include "BLAS/dot.hpp"
+#include "BLAS/axpy.hpp"
+#include "BLAS/copy.hpp"
 
-#include "src/BLAS/gemv.hpp"
-#include "src/BLAS/gemm.hpp"
+#include "BLAS/gemv.hpp"
+#include "BLAS/gemm.hpp"
 
-#include "src/BLAS/trsv.hpp"
-#include "src/BLAS/trsm.hpp"
+#include "BLAS/trsv.hpp"
+#include "BLAS/trsm.hpp"
 
-#include "src/BLAS/ger.hpp"
-#include "src/BLAS/her.hpp"
-#include "src/BLAS/herk.hpp"
+#include "BLAS/ger.hpp"
+#include "BLAS/her.hpp"
+#include "BLAS/herk.hpp"

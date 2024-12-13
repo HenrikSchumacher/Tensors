@@ -2,34 +2,90 @@
 
 #include "Base.hpp"
 
-#if defined(TENSORS_ILP64)
 
-    #define OPENBLAS_USE64BITINT
+#ifdef CBLAS_H
 
-    #define LAPACK_ILP64
+    #ifdef TENSORS_ILP64
 
+        #ifndef OPENBLAS_USE64BITINT
+    
+            static_assert(false,"cblas.h loaded, TENSORS_ILP64 defined, but OPENBLAS_USE64BITINT undefined. This will result in clashes for the integer types in BLAS.");
+        #endif
+
+    #else
+
+        #ifdef OPENBLAS_USE64BITINT
+
+            #define TENSORS_ILP64
+
+        #endif
+
+    #endif
+                      
 #else
 
-    #if defined(OPENBLAS_USE64BITINT)
-        #undef OPENBLAS_USE64BITINT
+    #ifdef TENSORS_ILP64
+
+        #define OPENBLAS_USE64BITINT
+
     #endif
 
-    #if defined(LAPACK_ILP64)
-        #undef LAPACK_ILP64
-    #endif
+    #include <cblas.h>
 
 #endif
 
-#define LAPACK_DISABLE_NAN_CHECK
+#ifdef LAPACK_H
 
-#include <cblas.h>
-#include <lapack.h>
+    #ifdef TENSORS_ILP64
+
+        #ifndef LAPACK_ILP64
+
+            static_assert(false,"cblas.h loaded, TENSORS_ILP64 defined, but LAPACK_ILP64 undefined. This will result in clashes for the integer types in BLAS and LAPACK.");
+        #endif
+
+    #else
+
+        #ifdef LAPACK_ILP64
+
+            #define TENSORS_ILP64
+
+        #endif
+
+    #endif
+                      
+#else
+
+    #ifdef TENSORS_ILP64
+
+        #define LAPACK_ILP64
+
+    #endif
+
+    #include <lapack.h>
+
+#endif
 
 namespace Tensors
 {
     constexpr bool AppleAccelerateQ = false;
     constexpr bool OpenBLASQ        = true;
+    
+    namespace BLAS
+    {
+        using Int           = blasint;
+        using Bool          = bool;
+        using ComplexFloat  = lapack_complex_float;
+        using ComplexDouble = lapack_complex_double;
+    }
+    
+    namespace LAPACK
+    {
+        using Int           = lapack_int;
+        using Bool          = bool;
+        using ComplexFloat  = lapack_complex_float;
+        using ComplexDouble = lapack_complex_double;
+    }
 }
 
-#include "BLAS_Wrappers.hpp"
-#include "LAPACK_Wrappers.hpp"
+#include "src/BLAS_Wrappers.hpp"
+#include "src/LAPACK_Wrappers.hpp"

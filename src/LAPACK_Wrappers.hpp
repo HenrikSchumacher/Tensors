@@ -1,32 +1,23 @@
 #pragma once
 
+// To make this work, you should have loaded Tensors/OpenBLAS.hpp or Tensors/Accelerate.hpp.
+
 namespace Tensors
 {
     namespace LAPACK
     {
-#ifdef lapack_int
-        using Int = lapack_int;
-#else
-    #if defined(TENSORS_ILP64)
-        using Int = std::int64_t;
-    #else
-        using Int = std::int32_t;
-    #endif
-#endif
+        std::string Info()
+        {
+            std::string s;
+            
+            s = s + "BLAS::Int           = " + TypeName<Int>              + "\n"
+                  + "BLAS::Bool          = " + TypeName<Bool>             + "\n"
+                  + "BLAS::ComplexDouble = " + TypeName<ComplexDouble>    + "\n"
+                  + "BLAS::ComplexFloat  = " + TypeName<ComplexFloat>;
+            
+            return s;
+        }
         
-        
-#ifdef lapack_complex_double
-        using ComplexDouble = lapack_complex_double;
-#else
-        using ComplexDouble = std::complex<double>;
-#endif
-        
-#ifdef lapack_complex_float
-        using ComplexFloat  = lapack_complex_float;
-#else
-        using ComplexFloat  = std::complex<float>;
-#endif
-
         inline double * to_LAPACK( double * x )
         {
             return x;
@@ -112,18 +103,18 @@ namespace Tensors
     }
 }
 
-#include "src/LAPACK/potrf.hpp"
-#include "src/LAPACK/potrs.hpp"
+#include "LAPACK/potrf.hpp"
+#include "LAPACK/potrs.hpp"
 
-#include "src/LAPACK/getrf.hpp"
+#include "LAPACK/getrf.hpp"
 
-#include "src/LAPACK/hetrf.hpp"
-#include "src/LAPACK/hetrs.hpp"
+#include "LAPACK/hetrf.hpp"
+#include "LAPACK/hetrs.hpp"
 
-#include "src/LAPACK/hetrf_rk.hpp"
+#include "LAPACK/hetrf_rk.hpp"
 
-#include "src/LAPACK/hetrf_rook.hpp"
-#include "src/LAPACK/hetrs_rook.hpp"
+#include "LAPACK/hetrf_rook.hpp"
+#include "LAPACK/hetrs_rook.hpp"
 
-#include "src/LAPACK/SelfAdjointEigensolver.hpp"
+#include "LAPACK/SelfAdjointEigensolver.hpp"
 

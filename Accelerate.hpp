@@ -2,35 +2,76 @@
 
 #include "Base.hpp"
 
-#if defined(TENSORS_ILP64)
+#ifdef __ACCELERATE__
 
-    #define ACCELERATE_LAPACK_ILP64
+    #ifdef TENSORS_ILP64
 
-    #define blasint __LAPACK_int
+        #ifndef ACCELERATE_LAPACK_ILP64
+    
+            static_assert(false,"Apple Accelerate.h loaded, TENSORS_ILP64 defined, but ACCELERATE_LAPACK_ILP64 undefined. This will result in clashes for the integer types in BLAS and LAPACK.");
+        #endif
 
-    #define lapack_int __LAPACK_int
+    #else
 
+        #ifdef ACCELERATE_LAPACK_ILP64
+
+            #define TENSORS_ILP64
+
+        #endif
+
+    #endif
+                      
 #else
 
-    #ifdef ACCELERATE_LAPACK_ILP64
-        #undef ACCELERATE_LAPACK_ILP64
+    #ifdef TENSORS_ILP64
+
+        #define ACCELERATE_LAPACK_ILP64
+
     #endif
 
-    #define blasint __LAPACK_int
+    #ifndef TENSORS_USE_ACCELERATE_OLD_LAPACK
+        #define ACCELERATE_NEW_LAPACK
+    #endif
 
-    #define lapack_int __LAPACK_int
+    #include <Accelerate/Accelerate.h>
 
 #endif
-
-#define LAPACK_DISABLE_NAN_CHECK
-#define ACCELERATE_NEW_LAPACK
-#include <Accelerate/Accelerate.h>
 
 namespace Tensors
 {
     constexpr bool AppleAccelerateQ = true;
     constexpr bool OpenBLASQ        = false;
+
+    namespace BLAS
+    {
+        #ifdef ACCELERATE_NEW_LAPACK
+            using Int           = __LAPACK_int;
+            using Bool          = __LAPACK_bool;
+            using ComplexDouble = __LAPACK_double_complex; // std::complex<double>
+            using ComplexFloat  = __LAPACK_float_complex;  // std::complex<float>
+        #else
+            using Int           = __CLPK_integer;
+            using Bool          = __CLPK_logical;
+            using ComplexDouble = __CLPK_doublecomplex; // a struct with members r, i
+            using ComplexFloat  = __CLPK_complex;       // a struct with members r, i
+        #endif
+    }
+    
+    namespace LAPACK
+    {
+        #ifdef ACCELERATE_NEW_LAPACK
+            using Int           = __LAPACK_int;
+            using Bool          = __LAPACK_bool;
+            using ComplexDouble = __LAPACK_double_complex; // std::complex<double>
+            using ComplexFloat  = __LAPACK_float_complex;  // std::complex<float>
+        #else
+            using Int           = __CLPK_integer;
+            using Bool          = __CLPK_logical;
+            using ComplexDouble = __CLPK_doublecomplex; // a struct with members r, i
+            using ComplexFloat  = __CLPK_complex;       // a struct with members r, i
+        #endif
+    }
 }
 
-#include "BLAS_Wrappers.hpp"
-#include "LAPACK_Wrappers.hpp"
+#include "src/BLAS_Wrappers.hpp"
+#include "src/LAPACK_Wrappers.hpp"

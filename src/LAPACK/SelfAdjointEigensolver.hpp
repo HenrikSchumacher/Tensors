@@ -90,7 +90,7 @@ namespace Tensors
             
             
             template< typename S>
-            force_inline int Prepare( char job, mptr<S> A_ )
+            force_inline Int Prepare( char job, mptr<S> A_ )
             {
                 assert_positive(n);
                 assert_positive(ldA);
@@ -103,7 +103,7 @@ namespace Tensors
                     rwork.template RequireSize<false>( 3 * n - 2 );
                 }
                 
-                int info;
+                Int info;
                 
                 lwork = -1;
                 
@@ -123,7 +123,7 @@ namespace Tensors
                 return info;
             }
             
-            force_inline int heev( char job  )
+            force_inline Int heev( char job  )
             {
                 Int info = 0;
                 
