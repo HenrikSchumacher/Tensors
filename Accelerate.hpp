@@ -41,6 +41,7 @@ namespace Tensors
 {
     constexpr bool AppleAccelerateQ = true;
     constexpr bool OpenBLASQ        = false;
+    constexpr bool MKLQ             = false;
 
     namespace BLAS
     {

@@ -100,8 +100,6 @@
 /* Begin PBXFileReference section */
 		AF07F1FD2957022B00A82341 /* Dense.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Dense.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		AF07F1FE2957025400A82341 /* Sparse.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Sparse.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		AF13DAEC2B5D94B00040B903 /* BLAS_Wrappers.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = BLAS_Wrappers.hpp; sourceTree = "<group>"; };
-		AF13DAED2B5D94F80040B903 /* LAPACK_Wrappers.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = LAPACK_Wrappers.hpp; sourceTree = "<group>"; };
 		AF1F64DD29337FEF00146E64 /* Tensors.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Tensors.hpp; sourceTree = "<group>"; };
 		AF1F64DE29337FEF00146E64 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		AF1F64DF29337FEF00146E64 /* src */ = {isa = PBXFileReference; lastKnownFileType = folder; path = src; sourceTree = "<group>"; };
@@ -135,6 +133,7 @@
 		AFD4A1592C58C94300510A91 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AFD9EA0929337F7E00FC8A85 /* QRAlgorithm */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = QRAlgorithm; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFD9EA0B29337F7E00FC8A85 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		AFF805F02D171A9500FECD58 /* MKL.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MKL.hpp; sourceTree = "<group>"; };
 		AFFAC624298ECE5800A2CF4B /* Unit_Test_SpMM */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Unit_Test_SpMM; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFFAC626298ECE5900A2CF4B /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AFFAC62B298ECE6A00A2CF4B /* Unit_Test_SpMM.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Unit_Test_SpMM.entitlements; sourceTree = "<group>"; };
@@ -275,14 +274,13 @@
 				AF73C89E2CE017A8009F74B1 /* UMFPACK.hpp */,
 				AFAD0F812B8ED004002B7179 /* OpenBLAS.hpp */,
 				AFD2569A2B8ED72000245E2B /* Base.hpp */,
-				AF13DAEC2B5D94B00040B903 /* BLAS_Wrappers.hpp */,
-				AF13DAED2B5D94F80040B903 /* LAPACK_Wrappers.hpp */,
 				AF99BC1729F7BF3A007CE9D7 /* ConjugateGradient.hpp */,
 				AF99BC1629F4432F007CE9D7 /* GMRES.hpp */,
 				AF07F1FD2957022B00A82341 /* Dense.hpp */,
 				AF07F1FE2957025400A82341 /* Sparse.hpp */,
 				AF1F64DD29337FEF00146E64 /* Tensors.hpp */,
 				AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */,
+				AFF805F02D171A9500FECD58 /* MKL.hpp */,
 				AF7C6BF92C5E5DC200EA899D /* BufferCombiner.hpp */,
 				AF7C6C1C2C5F4FC800EA899D /* SpMM_cached.hpp */,
 				AF7C6BFA2C5E5DC200EA899D /* Library.hpp */,
