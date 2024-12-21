@@ -64,7 +64,7 @@ namespace Tensors
     
     namespace LAPACK
     {
-        using Int           = lapack_int;
+        using Int           = MKL_INT;
         using Bool          = bool;
         using ComplexFloat  = MKL_Complex8;
         using ComplexDouble = MKL_Complex16;
