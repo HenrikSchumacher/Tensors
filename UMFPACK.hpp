@@ -39,6 +39,11 @@ namespace Tensors
         Tensor1<Scal,Int> x_buffer;
         Tensor1<Scal,Int> b_buffer;
         
+        int symbolic_status = -1;
+        int numeric_status  = -1;
+        int solve_status    = -1;
+        
+        
     public:
 
         
@@ -116,6 +121,23 @@ namespace Tensors
             return values;
         }
         
+        int SymbolicStatus() const
+        {
+            return symbolic_status;
+        }
+        
+        int NumericStatus() const
+        {
+            return numeric_status;
+        }
+        
+        
+        int SolveStatus() const
+        {
+            return solve_status;
+        }
+        
+        
         void SymbolicFactorization()
         {
             if( symbolic != nullptr )
@@ -124,8 +146,6 @@ namespace Tensors
             }
             
             ptic( ClassName() + "::SymbolicFactorization" );
-            
-            int status = 0;
             
             const Int m = A.RowCount();
             const Int n = A.ColCount();
@@ -137,48 +157,49 @@ namespace Tensors
             {
                 if constexpr( SameQ<Scal,Real64> )
                 {
-                    status = umfpack_dl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
+                    symbolic_status = umfpack_dl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Real32> )
                 {
-                    status = umfpack_sl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
+                    symbolic_status = umfpack_sl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
-                    status = umfpack_zl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
+                    symbolic_status = umfpack_zl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex32> )
                 {
-                    status = umfpack_cl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
+                    symbolic_status = umfpack_cl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
             }
             else if constexpr( SameQ<Int,Int32> )
             {
                 if constexpr( SameQ<Scal,Real64> )
                 {
-                    status = umfpack_di_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
+                    symbolic_status = umfpack_di_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Real32> )
                 {
-                    status = umfpack_si_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
+                    symbolic_status = umfpack_si_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
-                    status = umfpack_zi_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
+                    symbolic_status = umfpack_zi_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex32> )
                 {
-                    status = umfpack_ci_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
+                    symbolic_status = umfpack_ci_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
             }
             
-            if( status != 0 )
-            {
-                eprint(ClassName()+"::SymbolicFactorization: Returned error code is " + ToString(status) + ".");
-            }
+//            if( symbolic_status != 0 )
+//            {
+//                eprint(ClassName()+"::SymbolicFactorization: Returned error code is " + ToString(symbolic_status) + ".");
+//            }
             
             ptoc( ClassName() + "::SymbolicFactorization" );
         }
+
         
         // You can either fill this->Values().data() and call this->NumericFactorization() or you can provide a pointer to the array of nonzero values.
         template<typename ExtScal>
@@ -193,7 +214,10 @@ namespace Tensors
         {
             ptic( ClassName() + "::NumericFactorization" );
             
-            int status = 0;
+            if( symbolic_status != 0 )
+            {
+                eprint( ClassName() + "::NumericFactorization: Called with invalid symbolic factorization. symbolic_status = " + ToString(symbolic_status) + "." );
+            }
             
             Int  * Ap = A.Outer().data();
             Int  * Ai = A.Inner().data();
@@ -203,45 +227,45 @@ namespace Tensors
             {
                 if constexpr( SameQ<Scal,Real64> )
                 {
-                    status = umfpack_dl_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
+                    numeric_status = umfpack_dl_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
                 }
                 else if constexpr( SameQ<Scal,Real32> )
                 {
-                    status = umfpack_sl_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
+                    numeric_status = umfpack_sl_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
-                    status = umfpack_zl_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
+                    numeric_status = umfpack_zl_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex32> )
                 {
-                    status = umfpack_cl_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
+                    numeric_status = umfpack_cl_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
                 }
             }
             else //  if constexpr( SameQ<Int,Int32> )
             {
                 if constexpr( SameQ<Scal,Real64> )
                 {
-                    status = umfpack_di_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
+                    numeric_status = umfpack_di_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
                 }
                 else if constexpr( SameQ<Scal,Real32> )
                 {
-                    status = umfpack_si_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
+                    numeric_status = umfpack_si_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
-                    status = umfpack_zi_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
+                    numeric_status = umfpack_zi_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
                 }
                 else if constexpr( SameQ<Scal,Complex32> )
                 {
-                    status = umfpack_ci_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
+                    numeric_status = umfpack_ci_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
                 }
             }
             
-            if( status != 0 )
-            {
-                eprint(ClassName()+"::NumericFactorization: Returned error code is " + ToString(status) + ".");
-            }
+//            if( numeric_status != 0 )
+//            {
+//                eprint(ClassName()+"::NumericFactorization: Returned error code is " + ToString(numeric_status) + ".");
+//            }
             
             ptoc( ClassName() + "::NumericFactorization" );
         }
@@ -281,11 +305,18 @@ namespace Tensors
         >
         void Solve( const a_T alpha, cptr<B_T> B, const b_T beta, mptr<X_T> X )
         {
+            if( numeric_status != 0 )
+            {
+                eprint( ClassName()+"::Solve: Called without valid numeric factorization. numeric_status = " + ToString(numeric_status) + "." );
+                return;
+            }
+            
             if( numeric == nullptr )
             {
                 eprint( ClassName()+"::Solve: NumericFactorization has not been called, yet." );
                 return;
             }
+            
             
             ptic( ClassName() + "::Solve"
                  + "<" + TypeName<a_T>
@@ -294,8 +325,6 @@ namespace Tensors
                  + "," + TypeName<X_T>
                  + ">"
             );
-            
-            int status = 0;
             
             // UMFPACK works with CSC format; we use CSR format.
             // Hence we have to make sure that things are correctly transposed.
@@ -321,25 +350,25 @@ namespace Tensors
             {
                 if constexpr( SameQ<Scal,Real64> )
                 {
-                    status = umfpack_dl_solve(
+                    solve_status = umfpack_dl_solve(
                         mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
                     );
                 }
                 else if constexpr( SameQ<Scal,Real32> )
                 {
-                    status = umfpack_sl_solve(
+                    solve_status = umfpack_sl_solve(
                         mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
                     );
                 }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
-                    status = umfpack_zl_solve(
+                    solve_status = umfpack_zl_solve(
                         mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
                     );
                 }
                 else if constexpr( SameQ<Scal,Complex32> )
                 {
-                    status = umfpack_cl_solve(
+                    solve_status = umfpack_cl_solve(
                         mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
                     );
                 }
@@ -348,33 +377,33 @@ namespace Tensors
             {
                 if constexpr( SameQ<Scal,Real64> )
                 {
-                    status = umfpack_di_solve(
+                    solve_status = umfpack_di_solve(
                         mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
                     );
                 }
                 else if constexpr( SameQ<Scal,Real32> )
                 {
-                    status = umfpack_si_solve(
+                    solve_status = umfpack_si_solve(
                         mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
                     );
                 }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
-                    status = umfpack_zi_solve(
+                    solve_status = umfpack_zi_solve(
                         mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
                     );
                 }
                 else if constexpr( SameQ<Scal,Complex32> )
                 {
-                    status = umfpack_ci_solve(
+                    solve_status = umfpack_ci_solve(
                         mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
                     );
                 }
             }
             
-            if( status != 0 )
+            if( solve_status != 0 )
             {
-                eprint(ClassName()+"::Solve: Returned error code is "+ToString(status) + ".");
+                eprint(ClassName()+"::Solve: Returned error code is "+ToString(solve_status) + ".");
             }
 
             // We have to conjugate x to emulate the conjugate-transpose solve.
@@ -402,6 +431,7 @@ namespace Tensors
             Solve<op,F_T::Plus,F_T::Zero>( Scal(1), B, Scal(0), X );
         }
         
+        
         std::pair<Scal,Real> Determinant()
         {
             ptic( ClassName() + "::Determinant" );
@@ -409,6 +439,14 @@ namespace Tensors
             if( numeric == nullptr )
             {
                 eprint( ClassName()+"::Determinant: NumericFactorization has not been called, yet." );
+                
+                ptoc( ClassName() + "::Determinant" );
+                return std::pair<Scal,Real>( 0, 0 );
+            }
+            
+            if( (symbolic_status != 0) || (numeric_status != 0) )
+            {
+//                wprint( ClassName()+"::Determinant: Called without valid numeric factorization. numeric_status = " + ToString(numeric_status) + "." );
                 
                 ptoc( ClassName() + "::Determinant" );
                 return std::pair<Scal,Real>( 0, 0 );
