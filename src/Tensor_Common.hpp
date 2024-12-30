@@ -8,7 +8,7 @@ public:
 
     static constexpr Size_T Alignment = alignment;
 
-private:
+protected:
 
     Int n = 0;
 
@@ -272,7 +272,7 @@ public:
         ptoc("Random");
     }
 
-private:
+protected:
 
     force_inline void allocate()
     {

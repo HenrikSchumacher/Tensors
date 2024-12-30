@@ -11,7 +11,7 @@ namespace Tensors
         
 #include "Tensor_Common.hpp"
         
-    private:
+    protected:
         
         std::array<Int,3> dims = {0,0,0};     // dimensions visible to user
 
@@ -42,7 +42,7 @@ namespace Tensors
             return static_cast<Int>(3);
         }
         
-    private:
+    protected:
         
         void BoundCheck( const Int i ) const
         {
