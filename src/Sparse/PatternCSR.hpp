@@ -307,16 +307,16 @@ namespace Tensors
             
             template<typename ExtInt>
             PatternCSR(
-                cref<std::vector<PairAggregator<ExtInt,ExtInt,LInt>>> idx,
+                cref<std::vector<PairAggregator<ExtInt,ExtInt,LInt>>> pairs,
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
                 const bool compressQ   = true,
                 const int  symmetrize = 0
             )
-            :   PatternCSR ( m_, n_, static_cast<Int>(idx.size()) )
+            :   PatternCSR ( m_, n_, static_cast<Int>(pairs.size()) )
             {
-                Int list_count = static_cast<Int>(idx.size());
+                Int list_count = static_cast<Int>(pairs.size());
                 Tensor1<const ExtInt *,Int> i (list_count);
                 Tensor1<const ExtInt *,Int> j (list_count);
                 
@@ -324,13 +324,16 @@ namespace Tensors
                 
                 for( Int thread = 0; thread < list_count; ++thread )
                 {
-                    i[thread] = idx[thread].Get_0().data();
-                    j[thread] = idx[thread].Get_1().data();
+                    i[thread] = pairs[thread].Get_0().data();
+                    j[thread] = pairs[thread].Get_1().data();
                     
-                    entry_counts[thread] = static_cast<LInt>(idx[thread].Size());
+                    entry_counts[thread] = static_cast<LInt>(pairs[thread].Size());
                 }
                 
-                FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compressQ, symmetrize );
+                FromPairs(
+                    i.data(), j.data(), entry_counts.data(),
+                    list_count, final_thread_count, compressQ, symmetrize
+                );
             }
             
             virtual ~PatternCSR() = default;

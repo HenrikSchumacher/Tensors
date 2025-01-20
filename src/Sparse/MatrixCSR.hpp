@@ -263,7 +263,7 @@ namespace Tensors
             
             template<typename ExtInt, typename ExtScal>
             MatrixCSR(
-                  const std::vector<TripleAggregator<ExtInt,ExtInt,ExtScal,LInt>> & triples,
+                  cref<std::vector<TripleAggregator<ExtInt,ExtInt,ExtScal,LInt>>> triples,
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
@@ -274,9 +274,9 @@ namespace Tensors
             {
                 Int list_count = static_cast<Int>(triples.size());
                 
-                Tensor1<const ExtInt  *,Int> i     (list_count);
-                Tensor1<const ExtInt  *,Int> j     (list_count);
-                Tensor1<const ExtScal *,Int> a     (list_count);
+                Tensor1<const ExtInt  *,Int> i (list_count);
+                Tensor1<const ExtInt  *,Int> j (list_count);
+                Tensor1<const ExtScal *,Int> a (list_count);
                 Tensor1<LInt,Int> entry_counts (list_count);
                 
                 for( Int thread = 0; thread < list_count; ++thread )
@@ -287,8 +287,10 @@ namespace Tensors
                     entry_counts[thread] = static_cast<LInt>(triples[thread].Size());
                 }
                 
-                FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
-                            list_count, final_thread_count, compressQ, symmetrize );
+                FromTriples(
+                    i.data(), j.data(), a.data(), entry_counts.data(),
+                    list_count, final_thread_count, compressQ, symmetrize
+                );
             }
             
             template<typename ExtInt, typename ExtScal>
@@ -300,24 +302,19 @@ namespace Tensors
                   const bool compressQ  = true,
                   const int  symmetrize = 0
             )
-            : MatrixCSR(
-                triples.Size(),
-                triples.Get_0().data(), triples.Get_1().data(), triples.Get_2().data(),
-                m_, n_, final_thread_count, compressQ, symmetrize )
-            {}
-            
-//            :   Base_T ( m_, n_, static_cast<Int>(1) )
-//            {
-//                LInt entry_counts = static_cast<LInt>(triples.Size());
-//                
-//                const ExtInt  * const i = triples.Get_0().data();
-//                const ExtInt  * const j = triples.Get_1().data();
-//                const ExtScal * const a = triples.Get_2().data();
-//
-//                FromTriples(
-//                    &i,&j,&a,&entry_counts,ExtInt(1),final_thread_count,compressQ,symmetrize
-//                );
-//            }
+            :   Base_T ( m_, n_, static_cast<Int>(1) )
+            {
+                LInt entry_counts = static_cast<LInt>(triples.Size());
+                
+                const ExtInt  * const i = triples.Get_0().data();
+                const ExtInt  * const j = triples.Get_1().data();
+                const ExtScal * const a = triples.Get_2().data();
+
+                FromTriples(
+                    &i,&j,&a,&entry_counts,
+                    ExtInt(1),final_thread_count,compressQ,symmetrize
+                );
+            }
             
             virtual ~MatrixCSR() override = default;
             

@@ -228,7 +228,7 @@ namespace Tensors
             {}
             
             BinaryMatrixCSR(
-                  const std::vector<PairAggregator<Int, Int, LInt>> & idx,
+                  cref<std::vector<PairAggregator<Int, Int, LInt>>> idx,
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,

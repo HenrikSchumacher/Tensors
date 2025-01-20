@@ -13,17 +13,17 @@ namespace Tensors
         using Container_1_T = Tensor1<T_1,LInt>;
         using Container_2_T = Tensor1<T_2,LInt>;
 
-        LInt current_size = static_cast<LInt>(0);
-        LInt capacity     = static_cast<LInt>(1);
+        mutable LInt current_size = static_cast<LInt>(0);
+        mutable LInt capacity     = static_cast<LInt>(1);
 
-        LInt current_buffer_size = static_cast<LInt>(0);
-        std::array<T_0,BUFFER_CAP> buffer_0;
-        std::array<T_0,BUFFER_CAP> buffer_1;
-        std::array<T_2,BUFFER_CAP> buffer_2;
+        mutable LInt current_buffer_size = static_cast<LInt>(0);
+        mutable std::array<T_0,BUFFER_CAP> buffer_0;
+        mutable std::array<T_0,BUFFER_CAP> buffer_1;
+        mutable std::array<T_2,BUFFER_CAP> buffer_2;
         
-        Container_0_T container_0 {static_cast<LInt>(BUFFER_CAP)};
-        Container_1_T container_1 {static_cast<LInt>(BUFFER_CAP)};
-        Container_2_T container_2 {static_cast<LInt>(BUFFER_CAP)};
+        mutable Container_0_T container_0 {static_cast<LInt>(BUFFER_CAP)};
+        mutable Container_1_T container_1 {static_cast<LInt>(BUFFER_CAP)};
+        mutable Container_2_T container_2 {static_cast<LInt>(BUFFER_CAP)};
 
     public:
 
@@ -86,7 +86,7 @@ namespace Tensors
 
         LInt Size() const
         {
-            return current_size;
+            return current_size + current_buffer_size;
         }
 
         template<typename Ext_T_0, typename Ext_T_1, typename Ext_T_2>
@@ -103,33 +103,39 @@ namespace Tensors
             ++current_buffer_size;
         }
 
-        Container_0_T& Get_0()
+        mref<Container_0_T> Get_0()
         {
+            Finalize();
             return container_0;
         }
 
-        const Container_0_T & Get_0() const
+        cref<Container_0_T> Get_0() const
         {
+            Finalize();
             return container_0;
         }
 
-        Container_1_T & Get_1()
+        mref<Container_1_T> Get_1()
         {
+            Finalize();
             return container_1;
         }
 
-        const Container_1_T & Get_1() const
+        cref<Container_1_T> Get_1() const
         {
+            Finalize();
             return container_1;
         }
         
-        Container_2_T & Get_2()
+        mref<Container_2_T> Get_2()
         {
+            Finalize();
             return container_2;
         }
 
-        const Container_2_T & Get_2() const
+        cref<Container_2_T> Get_2() const
         {
+            Finalize();
             return container_2;
         }
 
@@ -140,7 +146,7 @@ namespace Tensors
             return capacity;
         }
         
-        void RequireCapacity( const LInt new_capacity )
+        void RequireCapacity( const LInt new_capacity ) const
         {
             if( new_capacity > capacity)
             {
@@ -161,7 +167,7 @@ namespace Tensors
             }
         }
         
-        void Finalize()
+        void Finalize() const
         {
             if( current_buffer_size > 0 )
             {
