@@ -105,18 +105,6 @@ namespace Tensors
                 }
             }
             
-            
-            
-        protected:
-            
-            alignas(Tools::Alignment) std::array<Scal,n> v;
-            
-//######################################################
-//##                     Memory                       ##
-//######################################################
-            
-        public:
-            
             explicit Vector( const Scal init )
             :   v {{init}}
             {}
@@ -134,6 +122,10 @@ namespace Tensors
                 
                 swap( A.v, B.v );
             }
+            
+        protected:
+            
+            alignas(Tools::Alignment) std::array<Scal,n> v;
             
         public:
             
@@ -154,9 +146,21 @@ namespace Tensors
             }
             
             template<typename T>
+            void Write( mptr<T> target, const Int i ) const
+            {
+                copy_buffer<n>( &v[0], &target[n * i] );
+            }
+            
+            template<typename T>
             void Read( cptr<T> source )
             {
                 copy_buffer<n>( source, &v[0] );
+            }
+            
+            template<typename T>
+            void Read( cptr<T> source, const Int i )
+            {
+                copy_buffer<n>( &source[n * i], &v[0] );
             }
             
             template<typename S, Size_T alignment>
