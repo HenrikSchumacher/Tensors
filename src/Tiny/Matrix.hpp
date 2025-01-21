@@ -234,11 +234,11 @@ namespace Tensors
                     
                     for( Int j = 0; j < n; ++j )
                     {
-                        cptr<B_T> B_j = &B[n * j];
+                        cptr<B_T> B_j = &B[m * j];
                         
                         for( Int i = 0; i < m; ++i )
                         {
-                            combine_scalars<alpha_flag,beta_flag,op,opA>(
+                            combine_scalars<beta_flag,alpha_flag,op,opA>(
                                 beta, B_j[i], alpha, A[i][j]
                             );
                         }
@@ -446,7 +446,7 @@ namespace Tensors
                     
                     for( Int j = 0; j < n; ++j )
                     {
-                        mptr<B_T> B_j = &B[n * j];
+                        mptr<B_T> B_j = &B[m * j];
                         
                         for( Int i = 0; i < m; ++i )
                         {
@@ -1325,6 +1325,21 @@ namespace Tensors
                     y[i]  = dot_buffers<n>( &A[i][0], x.data() );
                 }
             }
+        }
+        
+        template<int m, int n, typename A_T, typename x_T, typename Int
+        >
+        force_inline Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
+        Dot(
+            cref<Tiny::Matrix<m,n,A_T,Int>> A,
+            cref<Tiny::Vector<n,  x_T,Int>> x
+        )
+        {
+            Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int> y;
+            
+            Dot<AddTo_T::False>(A,x,y);
+            
+            return y;
         }
         
         template<typename Scal, typename Int>
