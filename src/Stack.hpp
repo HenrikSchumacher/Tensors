@@ -10,8 +10,8 @@ namespace Tensors
         
     public:
         
-        using Entry_T = Entry_T_;
-        using Int     = Int_;
+        using Entry_T     = Entry_T_;
+        using Int         = Int_;
         
         Stack()
         :   a ( 1 )
@@ -33,13 +33,6 @@ namespace Tensors
         ,   ptr ( other.ptr )
         {}
         
-        // Move constructor
-        Stack( Stack && other ) noexcept
-        :   Stack()
-        {
-            swap(*this, other);
-        }
-        
         inline friend void swap( Stack & A, Stack & B) noexcept
         {
             using std::swap;
@@ -55,10 +48,26 @@ namespace Tensors
             }
         }
         
+        // Copy-assignment operator
+        Stack & operator=( Stack other ) noexcept
+        {
+            swap(*this, other);
+            
+            return *this;
+        }
+        
+        
+        // Move constructor
+        Stack( Stack && other ) noexcept
+        :   Stack()
+        {
+            swap(*this, other);
+        }
+        
         
         Int Size() const
         {
-            a.Size()-1;
+            return a.Size()-1;
         }
         
         void Reset()
@@ -106,6 +115,10 @@ namespace Tensors
             return ptr;
         }
         
+        bool HasRoom( const Int element_count ) const
+        {
+            return ( (ptr + element_count) < Size() );
+        }
         
         std::string String() const
         {
@@ -142,49 +155,45 @@ namespace Tensors
     }; // class Stack
     
     
-//    template<Size_T max_size_, typename X_T_, typename y_T_, typename Int_>
-//    class PairStack
+//    template<Size_T max_element_count_, typename Entry_T_, typename Int_>
+//    class FixedSizePairStack
 //    {
 //        static_assert(IntQ<Int_>, "");
-//        
+//
 //    public:
 //        
-//        using X_T = X_T_;
-//        using Y_T = y_T_;
-//        using Int = Int_;
+//        using Entry_T = Entry_T_;
+//        using Int     = Int_;
 //        
-//        static constexpr Int max_size  = static_cast<Int>(max_size_);
+//        static constexpr Int max_element_count = static_cast<Int>(max_element_count_);
+//        static constexpr Int actual_element_count = max_element_count + 1;
 //        
-//        PairStack()
+////        using Pair_T      = std::array<Entry_T,2>;
+//        using Pair_T      = std::pair<Entry_T,Entry_T>;
+////        using Container_T = std::array<Pair_T,actual_size>;
+//        
+//        using Container_T = Tiny::Matrix<actual_element_count,2,Entry_T,Int>;
+//        
+//        
+//        FixedSizePairStack()
 //        {
-//            X[0] = X_T();
-//            Y[0] = Y_T();
+//            a[0][0] = Entry_T();
+//            a[0][1] = Entry_T();
+//             
+////            a[0] = { Entry_T(), Entry_T() };
 //        }
 //        
-////        PairStack( Int max_size_ )
-////        :   a { max_size + 1, 2 }
-////        {
-////            X[0] = X_T();
-////            Y[0] = Y_T();
-////        }
-//        
-//        ~PairStack() = default;
+//        ~FixedSizePairStack() = default;
 //        
 //        // Copy constructor
-//        PairStack( const PairStack & other )
-//        :   X   ( other.X )
-//        ,   Y   ( other.Y )
-//        ,   ptr ( other.ptr )
-//        {}
-//        
-//        // Move constructor
-//        PairStack( PairStack && other ) noexcept
-//        :   PairStack()
+//        FixedSizePairStack( const FixedSizePairStack & other )
+////        :   a   ( other.a   )
+//        :   ptr ( other.ptr )
 //        {
-//            swap(*this, other);
+//            std::copy<actual_element_count * 2>( &other.a[0][0], &a[0][0] );
 //        }
 //        
-//        inline friend void swap( PairStack & A, PairStack & B) noexcept
+//        inline friend void swap( FixedSizePairStack & A, FixedSizePairStack & B) noexcept
 //        {
 //            using std::swap;
 //            
@@ -194,89 +203,105 @@ namespace Tensors
 //            }
 //            else
 //            {
-//                swap( A.X  , B.X   );
-//                swap( A.Y  , B.Y   );
-//                swap( A.ptr      , B.ptr       );
+////                swap( A.a  , B.a   );
+//                
+//                std::swap_ranges(
+//                    &A.a[0][0],
+//                    &A.a[0][0] + 2 * actual_element_count,
+//                    &B.a[0][0]
+//                );
+//                swap( A.ptr, B.ptr );
 //            }
 //        }
 //        
-//        
-//        force_inline Int Size() const
+//        // Copy-assignment operator
+//        FixedSizePairStack & operator=( FixedSizePairStack other ) noexcept
 //        {
-//            max_size;
+//            swap(*this, other);
+//            
+//            return *this;
 //        }
 //        
-//        force_inline void Reset()
+//        
+//        // Move constructor
+//        FixedSizePairStack( FixedSizePairStack && other ) noexcept
+//        :   FixedSizePairStack()
+//        {
+//            swap(*this, other);
+//        }
+//        
+//        
+//        static constexpr Int Size()
+//        {
+//            return max_element_count;
+//        }
+//        
+//        void Reset()
 //        {
 //            ptr = 0;
 //        }
 //        
-////        void Reset( const Int minimum_size)
-////        {
-////            a.RequireSize<false>(minimum_size);
-////            ptr = 0;
-////        }
-//        
-//        force_inline void Push( cref<X_T> x, cref<Y_T> y )
+//        inline void Push( cref<Entry_T> val_0, cref<Entry_T> val_1 )
 //        {
 //            ++ptr;
-//            X[ptr] = x;
-//            Y[ptr] = y;
+//            a[ptr][0] = val_0;
+//            a[ptr][1] = val_1;
+//        }
+//
+//        Pair_T Top() const
+//        {
+//            return { a[ptr][0], a[ptr][1] };
 //        }
 //        
-//        force_inline void Push( X_T && x, Y_T && y )
+//        inline Pair_T Pop()
 //        {
-//            ++ptr;
-//            X[ptr] = std::move(x);
-//            Y[ptr] = std::move(y);
-//        }
-//        
-//        force_inline std::pair<cref<X_T>,cref<Y_T>> Top() const
-//        {
-//            return std::pair(X[ptr],Y[ptr]);
-//        }
-//        
-//        force_inline std::pair<X_T,Y_T> Pop()
-//        {
-//            std::pair<X_T,Y_T> r ( std::move(X[ptr]), std::move(Y[ptr]) );
-//            
-//            ptr--;
-//            
-////            ptr = (ptr > 0) ? (ptr - 1) : 0;
-//            
+//            Pair_T r { a[ptr][0], a[ptr][1] };
+//            --ptr;
 //            return r;
 //        }
 //        
-//        force_inline bool EmptyQ() const
+//        bool EmptyQ() const
 //        {
 //            return ptr <= 0;
 //        }
 //        
-//        force_inline Int ElementCount() const
+//        Int ElementCount() const
 //        {
 //            return ptr;
 //        }
+//         
+//        template<Int element_count>
+//        bool HasRoom() const
+//        {
+//            static_assert( element_count <= actual_element_count, "" );
+//            
+//            return ( ptr < actual_element_count - element_count );
+//        }
 //        
+//        bool HasRoom( const Int element_count ) const
+//        {
+//            return ( (ptr + element_count) < actual_element_count );
+//        }
 //        
-////        std::string String() const
-////        {
-////            return ArrayToString( &a[1][0], {max_size,2} );
-////        }
+//        std::string String() const
+//        {
+//            return ArrayToString( &a[1][0], {ptr,2} );
+//        }
 //        
-////        friend std::string ToString( const PairStack & stack )
-////        {
-////            return stack.String();
-////        }
+//        friend std::string ToString( const FixedSizePairStack & stack )
+//        {
+//            return stack.String();
+//        }
 //        
-////        Tensor2<Entry_T,Int> & GetTensor()
+////        cref<Container_T> GetCcontainer() const
 ////        {
 ////            return a;
 ////        }
 //        
 //    private:
 //        
-//        std::array<X_T,max_size+1> X;
-//        std::array<Y_T,max_size+1> Y;
+//        
+//        Entry_T a [actual_element_count][2];
 //        
 //        Int ptr = 0;
 //        
@@ -284,14 +309,13 @@ namespace Tensors
 //        
 //        static std::string ClassName()
 //        {
-//            return std::string("Stack")
-//            + "<" + TypeName<X_T>
-//            + "<" + TypeName<Y_T>
+//            return std::string("FixedSizePairStack")
+//            + "<" + TypeName<Entry_T>
 //            + "," + TypeName<Int>
 //            + ">";
 //        }
 //        
 //        
-//    }; // class PairxStack
+//    }; // class FixedSizePairStack
 
 } // namespace Tensors
