@@ -672,37 +672,37 @@ namespace Tensors
                 return *this;
             }
             
-            // TODO: Not sure whether I want * to represent compontenwise multiplication.
-            template<class T>
-            force_inline
-            mref<Matrix> operator*=( cref<Tiny::Matrix<m,n,T,Int>> B )
-            {
-                for( Int i = 0; i < m; ++i )
-                {
-                    for( Int j = 0; j < n; ++j )
-                    {
-                        A[i][j] *= B.A[i][j];
-                    }
-                }
-                
-                return *this;
-            }
-            
-            // TODO: Not sure whether I want / to represent compontenwise division.
-            template<class T>
-            force_inline
-            mref<Matrix> operator/=( cref<Tiny::Matrix<m,n,T,Int>> B )
-            {
-                for( Int i = 0; i < m; ++i )
-                {
-                    for( Int j = 0; j < n; ++j )
-                    {
-                        A[i][j] /= B.A[i][j];
-                    }
-                }
-                
-                return *this;
-            }
+//            // TODO: Not sure whether I want * to represent compontenwise multiplication.
+//            template<class T>
+//            force_inline
+//            mref<Matrix> operator*=( cref<Tiny::Matrix<m,n,T,Int>> B )
+//            {
+//                for( Int i = 0; i < m; ++i )
+//                {
+//                    for( Int j = 0; j < n; ++j )
+//                    {
+//                        A[i][j] *= B.A[i][j];
+//                    }
+//                }
+//                
+//                return *this;
+//            }
+//            
+//            // TODO: Not sure whether I want / to represent compontenwise division.
+//            template<class T>
+//            force_inline
+//            mref<Matrix> operator/=( cref<Tiny::Matrix<m,n,T,Int>> B )
+//            {
+//                for( Int i = 0; i < m; ++i )
+//                {
+//                    for( Int j = 0; j < n; ++j )
+//                    {
+//                        A[i][j] /= B.A[i][j];
+//                    }
+//                }
+//                
+//                return *this;
+//            }
             
         public:
             
@@ -1271,8 +1271,23 @@ namespace Tensors
                 return std::string("Tiny::Matrix") + "<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
-        };
+        }; // Tiny::Matrix
                 
+        
+        
+        template<AddTo_T addto,
+            int m, int k, int n, typename X_T, typename Y_T, typename Z_T, typename Int
+        >
+        force_inline void
+        Dot(
+            cref<Tiny::Matrix<m,k,X_T,Int>> X,
+            cref<Tiny::Matrix<k,n,Y_T,Int>> Y,
+            mref<Tiny::Matrix<m,n,Z_T,Int>> Z
+        )
+        {
+            fixed_dot_mm<m,n,k,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
+        }
+        
         template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
         [[nodiscard]] force_inline 
         Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
@@ -1288,18 +1303,15 @@ namespace Tensors
             return Z;
         }
         
-        
-        template<AddTo_T addto,
-            int m, int k, int n, typename X_T, typename Y_T, typename Z_T, typename Int
-        >
-        force_inline void
-        Dot(
-            cref<Tiny::Matrix<m,k,X_T,Int>> X,
-            cref<Tiny::Matrix<k,n,Y_T,Int>> Y,
-            mref<Tiny::Matrix<m,n,Z_T,Int>> Z
+        template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
+        [[nodiscard]] force_inline
+        Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
+        operator*(
+            cref<Tiny::Matrix<m,K,X_T,Int>> X,
+            cref<Tiny::Matrix<K,n,Y_T,Int>> Y
         )
         {
-            fixed_dot_mm<m,n,k,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
+            return Dot(X,Y);
         }
         
         template<AddTo_T addto, int m, int n, typename A_T, typename x_T, typename y_T, typename Int
@@ -1325,10 +1337,12 @@ namespace Tensors
                     y[i]  = dot_buffers<n>( &A[i][0], x.data() );
                 }
             }
+            
+            // This is measurably slower.
+//            fixed_dot_mm<m,1,n,addto>( &A[0][0], x.data(), y.data() );
         }
         
-        template<int m, int n, typename A_T, typename x_T, typename Int
-        >
+        template<int m, int n, typename A_T, typename x_T, typename Int>
         force_inline Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
         Dot(
             cref<Tiny::Matrix<m,n,A_T,Int>> A,
@@ -1341,6 +1355,18 @@ namespace Tensors
             
             return y;
         }
+        
+        template<int m, int n, typename A_T, typename x_T, typename Int>
+        force_inline Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
+        operator*(
+             cref<Tiny::Matrix<m,n,A_T,Int>> A,
+             cref<Tiny::Vector<n,  x_T,Int>> x
+        )
+        {
+            return Dot(A,x);
+        }
+        
+        
         
         template<typename Scal, typename Int>
         [[nodiscard]] force_inline Scal Det_Kahan( cref<Tiny::Matrix<2,2,Scal,Int>> A )

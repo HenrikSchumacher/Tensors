@@ -23,6 +23,7 @@ public:
     // Destructor
     ~TENSOR_T()
     {
+//        logprint("Destuctor of "+ClassName()+" of size "+ToString(Size()) );
         safe_free(a);
     }
 
@@ -62,14 +63,11 @@ public:
         }
         else
         {
-
-            
             swap( A.dims, B.dims );
             
             swap( A.n, B.n );
             
             swap( A.a, B.a );
-            
         }
     }
 

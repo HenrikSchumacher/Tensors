@@ -363,9 +363,9 @@ namespace Tensors
                 return u.Norm();
             }
             
-            force_inline void Normalize()
+            force_inline Vector Normalize()
             {
-                *this *= Inv(Norm());
+                return (*this *= Inv(Norm()));
             }
             
             

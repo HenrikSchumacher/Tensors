@@ -21,6 +21,7 @@ namespace Tensors
         :   n    { d0 }
         ,   dims { d0 }
         {
+//            logprint("Constuctor of "+ClassName()+" of size "+ToString(d0) );
             allocate();
         }
         
