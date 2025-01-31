@@ -129,6 +129,11 @@ namespace Tensors
             
         public:
             
+            static constexpr Int Size()
+            {
+                return n;
+            }
+            
             constexpr void SetZero()
             {
                 zerofy_buffer<n>( &v[0] );
