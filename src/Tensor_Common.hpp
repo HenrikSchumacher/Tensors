@@ -485,9 +485,12 @@ public:
         return ArrayToString( A.a, A.dims.data(), Rank(), prec );
     }
 
-    inline friend std::string ToString( cref<TENSOR_T> A, const int prec = 16 )
+    inline friend std::string ToString( cref<TENSOR_T> A,
+        const int prec = 16,
+        std::string line_prefix = std::string("")
+    )
     {
-        return ArrayToString( A.a, A.dims.data(), Rank(), prec );
+        return ArrayToString( A.a, A.dims.data(), Rank(), prec, line_prefix );
     }
 
 

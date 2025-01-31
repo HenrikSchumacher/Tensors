@@ -342,6 +342,10 @@ namespace Tensors
                 return *this;
             }
             
+            force_inline Real Total() const
+            {
+                return total_buffer<n>( &v[0] );
+            }
 
             force_inline Real NormSquared() const
             {

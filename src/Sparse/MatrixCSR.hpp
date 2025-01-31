@@ -1375,7 +1375,7 @@ namespace Tensors
                 s >> n;
                 s >> nnz;
                 
-                MatrixCSR<Scal,Int,LInt> A( m, n, nnz, thread_count );
+                MatrixCSR<Scal,Int,LInt> A( m, n, nnz, thread_count_ );
                 
                 mptr<LInt> rp = A.Outer().data();
                 for( Int i = 0; i < n+1; ++i )
