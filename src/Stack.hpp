@@ -77,7 +77,7 @@ namespace Tensors
         
         void Reset( const Int minimum_size)
         {
-            a.RequireSize<false>(minimum_size);
+            a.template RequireSize<false>(minimum_size);
             ptr = 0;
         }
         

@@ -522,11 +522,6 @@ public:
         file.close();
     }
 
-//    [[nodiscard]] std::string ToString( int prec = 16 ) const
-//    {
-//        return ArrayToString( a, dims.data(), Rank(), prec );
-//    }
-
     template<class Stream_T>
     Stream_T & ToStream( Stream_T & s ) const
     {

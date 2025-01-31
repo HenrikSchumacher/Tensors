@@ -44,7 +44,7 @@ namespace Tensors
             }
 
             /* Move constructor */
-            Vector( Vector && other ) noexcept
+            explicit Vector( Vector && other ) noexcept
             {
                 swap(*this, other);
             }
@@ -70,13 +70,13 @@ namespace Tensors
             
             
             template<typename S>
-            Vector( cptr<S> vector )
+            explicit Vector( cptr<S> vector )
             {
                 Read( vector );
             }
             
             template<typename S>
-            constexpr Vector( const std::initializer_list<S> w )
+            explicit constexpr Vector( const std::initializer_list<S> w )
             {
                 const Int n_ = Tools::Min(n,static_cast<Int>(w.size()));
 //
