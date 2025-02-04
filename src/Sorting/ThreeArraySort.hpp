@@ -50,8 +50,8 @@ namespace Tensors
 
             Ordering<N>( keys.data(), perm.data(), n, comp );
             
-            copy_buffer<N>( v_0_, v_0.data(), n);
-            copy_buffer<N>( v_1_, v_1.data(), n);
+            copy_buffer<N>( v_0_, v_0.data(), n );
+            copy_buffer<N>( v_1_, v_1.data(), n );
                 
             {
                 for( Int i = 0; i < n; ++i )

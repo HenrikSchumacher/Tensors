@@ -3,9 +3,15 @@ public:
     friend void swap( Class_T & X, Class_T & Y ) noexcept
     {
         // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-        using std::swap;
+//        using std::swap;
+//        
+//        swap( X.A, Y.A );
         
-        swap( X.A, Y.A );
+        Scal buffer [X.RowCount()][X.ColCount()];
+        
+        X.Write( &buffer[0][0] );
+        X.Read ( &Y[0][0]      );
+        Y.Read ( &buffer[0][0] );
     }
 
 

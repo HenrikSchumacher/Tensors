@@ -18,10 +18,9 @@ namespace Tensors
             using Class_T = Matrix;
             
 #include "Tiny_Constants.hpp"
-                        
+            
             static constexpr Int m = ROW_COUNT;
             static constexpr Int n = COL_COUNT;
-            
             
             using ColVector_T = Vector<m,Scal,Int>;
             using RowVector_T = Vector<n,Scal,Int>;
@@ -30,11 +29,9 @@ namespace Tensors
             
         protected:
             
+//            alignas(Tools::Alignment) std::array<std::array<Scal,n>,m> A;
             
-            // TODO: Switching to std::array<RowVector_T,m> A would simplify several things...
-            // TODO: But beware: Tiny::Vector has some nontrivial memory alignment!
-            
-            alignas(Tools::Alignment) std::array<std::array<Scal,n>,m> A;
+            alignas(Tools::Alignment) Scal A[m][n];
             
             
         public:

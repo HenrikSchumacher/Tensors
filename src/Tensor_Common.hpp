@@ -135,9 +135,9 @@ public:
 
     //// Parallelized version.
     template<typename S>
-    void ReadParallel( cptr<S> a_, const Size_T thread_count )
+    void ReadParallel( cptr<S> a_, const Int thread_count )
     {
-        copy_buffer<VarSize,Parallel>( a_, a, static_cast<Size_T>(n), thread_count );
+        copy_buffer<VarSize,Parallel>( a_, a, ToSize_T(n), ToSize_T(thread_count) );
     }
 
     template<typename R>
@@ -158,9 +158,9 @@ public:
     }
 
     template<typename S>
-    void WriteParallel( mptr<S> a_, const Size_T thread_count ) const
+    void WriteParallel( mptr<S> a_, const Int thread_count ) const
     {
-        copy_buffer<VarSize,Parallel>( a, a_, static_cast<Size_T>(n), thread_count );
+        copy_buffer<VarSize,Parallel>( a, a_, ToSize_T(n), ToSize_T(thread_count) );
     }
 
     template<typename R>

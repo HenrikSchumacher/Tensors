@@ -13,7 +13,7 @@ namespace Tensors
         {
 //            ptic("SparseBLAS()");
 //            ptoc("SparseBLAS()");
-        };
+        }
         
         ~SparseBLAS() = default;
         

@@ -22,8 +22,8 @@ namespace Tensors
             
             Int length = 0;
             
-            std::array<std::array<Tensor_T,n>,m> A;
-//            Tensor_T A [m][n];
+//            std::array<std::array<Tensor_T,n>,m> A;
+            Tensor_T A [m][n];
             
         public:
             //  The big four and half:
@@ -172,14 +172,24 @@ namespace Tensors
                 return A[i][j][k];
             }
             
-            mref<std::array<Tensor_T,n>> operator[]( const Int i )
+//            mref<std::array<Tensor_T,n>> operator[]( const Int i )
+//            {
+//                return A[i];
+//            }
+//            
+//            cref<std::array<Tensor_T,n>> operator[]( const Int i ) const
+//            {
+//                return A[i];
+//            }
+            
+            mptr<Tensor_T> operator[]( const Int i )
             {
-                return A[i];
+                return &A[i];
             }
             
-            cref<std::array<Tensor_T,n>> operator[]( const Int i ) const
+            cptr<Tensor_T> operator[]( const Int i ) const
             {
-                return A[i];
+                return &A[i];
             }
             
             

@@ -32,6 +32,32 @@ namespace Tensors
             {
                 Read(a);
             }
+            
+            explicit Vector( const Scal init )
+            :   v {{init}}
+            {}
+            
+            // Copy constructor
+            Vector( const Vector & other )
+            {
+                Read( &other.v[0] );
+            }
+
+            friend void swap( Vector & A, Vector & B ) noexcept
+            {
+                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+//                using std::swap;
+                
+//                swap( A.v, B.v );
+                
+                Scal buffer [n];
+                
+                A.Write( &buffer[0] );
+                A.Read ( &B.v[0] );
+                B.Read ( &buffer[0] );
+                
+//                std::swap_ranges( &A.v[0], &A.v[n], &B.v[0] );
+            }
 
             // Copy assignment operator
             Vector & operator=( Vector other )
@@ -104,28 +130,13 @@ namespace Tensors
                     }
                 }
             }
-            
-            explicit Vector( const Scal init )
-            :   v {{init}}
-            {}
-            
-            // Copy constructor
-            Vector( const Vector & other )
-            {
-                Read( &other.v[0] );
-            }
 
-            friend void swap( Vector & A, Vector & B ) noexcept
-            {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                swap( A.v, B.v );
-            }
             
         protected:
             
-            alignas(Tools::Alignment) std::array<Scal,n> v;
+//            alignas(Tools::Alignment) std::array<Scal,n> v;
+            
+            alignas(Tools::Alignment) Scal v [n];
             
         public:
             
@@ -578,7 +589,7 @@ namespace Tensors
             cref<Vector<2,Real,Int>> y
         )
         {
-            return DetSign2D_Kahan( x[0], x[1], y[0], y[1] );
+            return DetSign2D_Kahan<Out_T>( x[0], x[1], y[0], y[1] );
         }
         
         

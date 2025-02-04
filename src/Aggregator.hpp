@@ -25,7 +25,7 @@ namespace Tensors
         
         Container_0_T container_0 {capacity};
 
-        Size_T thread_count = 1;
+        LInt thread_count = 1;
         
     public:
 

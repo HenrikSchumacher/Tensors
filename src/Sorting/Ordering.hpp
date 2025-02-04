@@ -21,7 +21,7 @@ namespace Tensors
             return;
         }
         
-        iota_buffer<N,Sequential>( perm, n );
+        iota_buffer<N,Sequential>( perm, static_cast<Size_T>(n) );
         
         Sort( perm, &perm[n],
             [=]( const Int i, const Int j ) -> bool

@@ -40,6 +40,14 @@ namespace Tensors
             
             Int thread_count = 1;
             
+            
+            // diag_ptr[i] is the first nonzero element in row i such that inner[diag_ptr[i]] >= i
+            mutable Tensor1<LInt,Int> diag_ptr;
+            mutable JobPointers<Int> job_ptr;
+            mutable JobPointers<Int> upper_triangular_job_ptr;
+            mutable JobPointers<Int> lower_triangular_job_ptr;
+            
+            
             mutable bool inner_sorted         = false;
             mutable bool duplicate_free       = false;
             
@@ -49,13 +57,6 @@ namespace Tensors
             mutable bool lower_triangular_job_ptr_initialized  = false;
             
             bool symmetric                    = false;
-            
-            
-            // diag_ptr[i] is the first nonzero element in row i such that inner[diag_ptr[i]] >= i
-            mutable Tensor1<LInt,Int> diag_ptr;
-            mutable JobPointers<Int> job_ptr;
-            mutable JobPointers<Int> upper_triangular_job_ptr;
-            mutable JobPointers<Int> lower_triangular_job_ptr;
             
         public:
             
@@ -234,11 +235,11 @@ namespace Tensors
                 const ExtInt  * const j,
                 const Int m_,
                 const Int n_,
-                const Int thread_count,
+                const Int thread_count_,
                 const bool compressQ   = true,
                 const int  symmetrize = 0
             )
-            :   PatternCSR ( m_, n_, thread_count )
+            :   PatternCSR ( m_, n_, thread_count_ )
             {
                 Tensor1<const ExtInt *,Int> idx    (thread_count);
                 Tensor1<const ExtInt *,Int> jdx    (thread_count);

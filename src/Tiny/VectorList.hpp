@@ -12,7 +12,7 @@ namespace Tensors
             
 #include "Tiny_Constants.hpp"
             
-            static constexpr Int n = n_;
+            static constexpr Int n = static_cast<Int>(n_);
             
             static constexpr Size_T Alignment = alignment;
             
@@ -24,7 +24,9 @@ namespace Tensors
             
             Int length = 0;
             
-            std::array<Tensor_T,n> v;
+//            std::array<Tensor_T,n> v;
+            
+            Tensor_T v [n];
             
         public:
             

@@ -61,11 +61,11 @@ namespace Tensors {
             return;
         }
         
-        const Int line_count = int_cast<Int>( (m * sizeof(LInt) + CacheLineWidth - 1 ) / CacheLineWidth );
+        const Int line_count = int_cast<Int>( ( ToSize_T(m) * sizeof(LInt) + CacheLineWidth - 1 ) / CacheLineWidth );
         
-        std::vector<LInt> S_buffer (thread_count+1);
+        Tensor1<LInt,Int> S_buffer ( thread_count+1 );
         
-        mptr<LInt> S = &S_buffer[0];
+        mptr<LInt> S = S_buffer.data();
         
         S[0] = static_cast<LInt>(0);
 
