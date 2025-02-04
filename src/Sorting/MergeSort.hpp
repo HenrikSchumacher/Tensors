@@ -279,7 +279,7 @@ namespace Tensors
         
         static constexpr Size_T LeftChild( const Size_T node )
         {
-            return 2 * node + 1;
+            retreturn 2 * node + 1;
         }
         
         static constexpr Size_T RightChild( const Size_T node )

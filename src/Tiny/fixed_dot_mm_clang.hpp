@@ -32,35 +32,6 @@ namespace Tensors
             }
         }
         
-        
-        template<Size_T M, Size_T N, Size_T K, AddTo_T addto, typename Scal>
-        void fixed_dot_mm_clang_2( cptr<Scal> A, cptr<Scal> B, mptr<Scal> C )
-        {
-            static_assert( mat_enabledQ && (SameQ<Scal,double> || SameQ<Scal,float>), "Chosen scalar type is illegal for clang matrix extension." );
-    
-            // Caution: mat_T is column-major!
-            // So we have to compute C^T = B^T * A^T.
-            
-            if constexpr ( addto == AddTo_T::True )
-            {
-                (*reinterpret_cast<mat_T<N,M,Scal>*>(C))
-                +=
-                (*reinterpret_cast<const mat_T<N,K,Scal>*>(B))
-                *
-                (*reinterpret_cast<const mat_T<K,M,Scal>*>(A));
-            }
-            else
-            {
-                (*reinterpret_cast<mat_T<N,M,Scal>*>(C))
-                =
-                (*reinterpret_cast<const mat_T<N,K,Scal>*>(B))
-                *
-                (*reinterpret_cast<const mat_T<K,M,Scal>*>(A));
-            }
-        }
-
-        
-        
     } // namespace Tiny
     
 } // namespace Tensors

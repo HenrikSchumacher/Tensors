@@ -20,7 +20,7 @@ namespace Tensors
 }
 
 #include "src/Tiny/fixed_dot_mm_naive.hpp"
-#include "src/Tiny/fixed_dot_mm_vec.hpp"
+//#include "src/Tiny/fixed_dot_mm_vec.hpp"
 
 #if ( __has_attribute(matrix_type) )
     #include "src/Tiny/fixed_dot_mm_clang.hpp"

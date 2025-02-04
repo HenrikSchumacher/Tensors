@@ -28,7 +28,7 @@ namespace Tensors
                 Row_T B [K];
                 Row_T C [M];
                 
-                copy_buffer<K*N>( B_, reinterpret_cast<C_T *>(&B[0]) );
+                copy_buffer<K*N>( B_, get_ptr(&B[0]) );
                 
                 // First pass to overwrite (if desired).
                 {
@@ -56,7 +56,7 @@ namespace Tensors
                     }
                 }
 
-                copy_buffer<M*N>( reinterpret_cast<C_T *>(&C[0]), C_ );
+                copy_buffer<M*N>( get_ptr(&C[0]), C_ );
             }
             else // Generic fallback method.
             {

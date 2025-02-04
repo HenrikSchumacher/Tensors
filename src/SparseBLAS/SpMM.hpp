@@ -421,7 +421,7 @@ private:
         }
     }
 
-#if( __has_attribute(ext_vector_type) )
+#if( __has_attribute(__ext_vector_type__) )
 
     template<
         F_T a_flag, F_T alpha_flag, F_T beta_flag,
@@ -537,8 +537,8 @@ private:
                                     prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
                                 }
                             }
-
-                            copy_buffer<NRHS>( &X[ldX * j], reinterpret_cast<y_T *>(&x) );
+                            
+                            copy_buffer<NRHS>( &X[ldX * j], get_ptr(x) );
 
                             if constexpr ( a_flag == F_T::Generic )
                             {
@@ -553,48 +553,8 @@ private:
                         // Incorporate the local updates into Y-buffer.
                                    
                         combine_buffers<alpha_flag,beta_flag,NRHS>(
-                            alpha, reinterpret_cast<y_T *>(&y), beta, &Y[ldY * i]
+                            alpha, get_ptr(y), beta, &Y[ldY * i]
                         );
-                        
-    //                    if constexpr ( beta_flag != Zero )
-    //                    {
-    //                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
-    //                    }
-    //
-    //
-    //                    if constexpr ( alpha_flag == One )
-    //                    {
-    //                        if constexpr ( beta_flag == Zero )
-    //                        {
-    //                            z = y;
-    //                        }
-    //                        else if constexpr ( beta_flag == One )
-    //                        {
-    //                            z += y;
-    //                        }
-    //                        else if constexpr ( beta_flag == Generic )
-    //                        {
-    //                            z = y + beta * z;
-    //                        }
-    //                    }
-    //                    else if constexpr( alpha_flag == Generic )
-    //                    {
-    //                        if constexpr ( beta_flag == Zero )
-    //                        {
-    //                            z = alpha * y;
-    //                        }
-    //                        else if constexpr ( beta_flag == One )
-    //                        {
-    //                            z += alpha * y;
-    //                        }
-    //                        else if constexpr ( beta_flag == Generic )
-    //                        {
-    //                            z = alpha * y + beta * z;
-    //                        }
-    //                    }
-    //
-    //                    copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
-    //
                     }
                     else
                     {
@@ -610,11 +570,6 @@ private:
                         else if constexpr( beta_flag == F_T::Generic )
                         {
                             scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
-    //                        copy_buffer<NRHS>( &Y[ldY * i], reinterpret_cast<z_T *>(&z) );
-    //
-    //                        z *= beta;
-    //
-    //                        copy_buffer<NRHS>( reinterpret_cast<z_T *>(&z), &Y[ldY * i] );
                         }
                     }
                 }

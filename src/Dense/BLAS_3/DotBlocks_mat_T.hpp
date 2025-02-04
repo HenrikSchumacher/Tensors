@@ -22,17 +22,18 @@ void DotBlocks()
             {
                 for( Int N_blk = 0; N_blk < N_BlockCount(); ++N_blk )
                 {
-                    zerofy_buffer<m*n>( reinterpret_cast<C_T*>(&c) );
+                    zerofy_buffer<m*n>( get_ptr(c) );
                     
                     for( Int K_blk = 0; K_blk < K_BlockCount(); ++K_blk )
                     {
-                        a = *reinterpret_cast<const a_T*>( AP.data(M_blk,K_blk) );
-                        b = *reinterpret_cast<const b_T*>( BP.data(N_blk,K_blk) );
+                        copy_buffer<k*m>( AP.data(M_blk,K_blk), get_ptr(a) );
+                        copy_buffer<n*k>( BP.data(N_blk,K_blk), get_ptr(b) );
+                        
                         c += b * a;
                         
                     }
                     
-                    *reinterpret_cast<c_T*>( CP.data(M_blk,N_blk) ) = c;
+                    copy_buffer<n*m>( get_ptr(c), CP.data(M_blk,N_blk) );
                 }
             }
         },
