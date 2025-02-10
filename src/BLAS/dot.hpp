@@ -61,7 +61,7 @@ namespace Tensors
             }
             else
             {
-                eprint("dot not defined for scalar type " + TypeName<Scal> );
+                static_assert(Tools::DependentFalse<Scal>,"");
             }
             
         }

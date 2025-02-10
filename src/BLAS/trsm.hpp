@@ -51,7 +51,7 @@ namespace Tensors
             }
             else
             {
-                eprint("trsm not defined for scalar type " + TypeName<Scal> );
+                static_assert(Tools::DependentFalse<Scal>,"");
             }
         }
         
