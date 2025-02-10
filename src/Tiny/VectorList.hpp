@@ -24,8 +24,6 @@ namespace Tensors
             
             Int length = 0;
             
-//            std::array<Tensor_T,n> v;
-            
             Tensor_T v [n];
             
         public:

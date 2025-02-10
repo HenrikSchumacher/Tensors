@@ -29,8 +29,6 @@ namespace Tensors
             
         protected:
             
-//            alignas(Tools::Alignment) std::array<std::array<Scal,n>,m> A;
-            
             alignas(Tools::Alignment) Scal A[m][n];
             
             

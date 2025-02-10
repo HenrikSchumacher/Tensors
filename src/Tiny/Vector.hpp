@@ -55,8 +55,6 @@ namespace Tensors
                 A.Write( &buffer[0] );
                 A.Read ( &B.v[0] );
                 B.Read ( &buffer[0] );
-                
-//                std::swap_ranges( &A.v[0], &A.v[n], &B.v[0] );
             }
 
             // Copy assignment operator
@@ -693,7 +691,7 @@ namespace Tensors
         {
             // Computes  z = a * x + b * y.
             
-            combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
+            combine_buffers3<a_flag, b_flag, n, Sequential, opx, opy>(
                 scalar_cast<z_T>(a), x.data(), scalar_cast<z_T>(b), y.data(), z.data()
             );
         }

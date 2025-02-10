@@ -22,7 +22,6 @@ namespace Tensors
             
             Int length = 0;
             
-//            std::array<std::array<Tensor_T,n>,m> A;
             Tensor_T A [m][n];
             
         public:

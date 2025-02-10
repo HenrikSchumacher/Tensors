@@ -25,6 +25,9 @@ namespace Tensors
             
             std::array<std::array<Scal,n>,n> A;
 
+            // TODO: Needs swap routine.
+//            Scal A [n][n];
+            
         public:
             
             UpperTriangularMatrix() = default;
