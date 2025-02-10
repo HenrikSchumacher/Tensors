@@ -59,7 +59,7 @@ namespace Tensors
             }
             else
             {
-                eprint("gemv not defined for scalar type " + TypeName<Scal> );
+                static_assert(Tools::DependentFalse<Scal>,"");
             }
             
         }

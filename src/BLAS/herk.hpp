@@ -123,7 +123,7 @@ namespace Tensors
             }
             else
             {
-                eprint("herk not defined for scalar type " + TypeName<Scal> );
+                static_assert(Tools::DependentFalse<Scal>,"");
             }
             
         }

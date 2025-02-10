@@ -51,7 +51,7 @@ namespace Tensors
             }
             else
             {
-                eprint("her not defined for scalar type " + TypeName<Scal> );
+                static_assert(Tools::DependentFalse<Scal>,"");
             }
             
         }

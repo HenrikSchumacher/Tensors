@@ -76,7 +76,7 @@ namespace Tensors
                 }
                 else
                 {
-                    eprint("Get does not us to conjugate both input vectors.");
+                    static_assert(Tools::DependentFalse<Scal>,"ger does not allow us to conjugate both input vectors.");
                 }
     
             }
@@ -106,7 +106,7 @@ namespace Tensors
             }
             else
             {
-                eprint("ger not defined for scalar type " + TypeName<Scal> );
+                static_assert(Tools::DependentFalse<Scal>,"");
             }
             
         }
