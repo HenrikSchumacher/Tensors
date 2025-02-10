@@ -477,7 +477,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1610;
+				LastUpgradeCheck = 1620;
 				TargetAttributes = {
 					AF5D050A2B52F09000E946CA = {
 						CreatedOnToolsVersion = 15.2;
@@ -865,7 +865,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
-					/opt/homebrew/Cellar/libomp/18.1.2/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
@@ -884,7 +883,6 @@
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
-					/opt/homebrew/Cellar/libomp/18.1.2/include,
 				);
 				USER_HEADER_SEARCH_PATHS = "";
 			};
@@ -950,7 +948,6 @@
 				LIBRARY_SEARCH_PATHS = (
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
-					/opt/homebrew/Cellar/libomp/18.1.2/lib,
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
@@ -968,7 +965,6 @@
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
-					/opt/homebrew/Cellar/libomp/18.1.2/include,
 				);
 				USER_HEADER_SEARCH_PATHS = "";
 			};
