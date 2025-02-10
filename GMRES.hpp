@@ -843,44 +843,37 @@ namespace Tensors
         
         std::string Stats() const
         {
-            std:: stringstream s;
-            
-            s
-            << "\n==== " + ClassName() + " Stats ====" << "\n\n"
-            << " succeeded          = " << ( succeeded ? std::string("true") : std::string("false") ) << "\n"
-            << " n                  = " << n << "\n"
-            << " nrhs               = " << nrhs << "\n"
-            << " restarts           = " << restarts << "\n"
-            << " max_restarts       = " << max_restarts << "\n"
-            << " iter               = " << iter     << "\n"
-            << " max_iter           = " << max_iter << "\n"
-            << " total iter         = " << max_iter * restarts + iter << "\n"
-            << " relative_tolerance = " << relative_tolerance << "\n"
-            << " use_initial_guessQ = " << use_initial_guessQ << "\n"
-            << "\n==== " + ClassName() + " Stats ====\n" << std::endl;
+            return std::string()
+            + "\n==== " + ClassName() + " Stats ====" + "\n\n"
+            + " succeeded          = " + ( succeeded ? std::string("true") : std::string("false") ) + "\n"
+            + " n                  = " + n + "\n"
+            + " nrhs               = " + nrhs + "\n"
+            + " restarts           = " + restarts + "\n"
+            + " max_restarts       = " + max_restarts + "\n"
+            + " iter               = " + iter     + "\n"
+            + " max_iter           = " + max_iter + "\n"
+            + " total iter         = " + max_iter * restarts + iter + "\n"
+            + " relative_tolerance = " + relative_tolerance + "\n"
+            + " use_initial_guessQ = " + use_initial_guessQ + "\n"
+            + "\n==== " + ClassName() + " Stats ====\n" + std::endl;
             
             
-            s << " beta             = " << ArrayToString( beta.data(), {iter+1,nrhs} ) << "\n";
-            s << " TOL              = " << ToString(TOL) << "\n";
-            s << " b_norms          = " << ToString(b_norms) << "\n";
+            s + " beta             = " + ArrayToString( beta.data(), {iter+1,nrhs} ) + "\n";
+            s + " TOL              = " + ToString(TOL) + "\n";
+            s + " b_norms          = " + ToString(b_norms) + "\n";
             
-            s << " relative residuals = " << ArrayToString( RelativeResiduals().data(), {nrhs} ) << "\n";
-            
-            
-            return s.str();
+            s + " relative residuals = " + ArrayToString( RelativeResiduals().data(), {nrhs} ) + "\n";
         }
         
         std::string ClassName() const
         {
-            return std::string(
-                std::string("GMRES")
+            return std::string("GMRES")
                     + "<" + (NRHS <= VarSize ? std::string("VarSize") : ToString(NRHS) )
                     + "," + TypeName<Scal>
                     + "," + TypeName<Int>
                     + "," + (side==Side::Left ? "Left" : "Right")
                     +">(" + ToString(nrhs)
-                    + ")"
-            );
+                    + ")";
         }
     }; // class GMRES
         

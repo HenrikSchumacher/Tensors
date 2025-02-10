@@ -1799,20 +1799,16 @@ namespace Tensors
             
             std::string Stats() const
             {
-                std::stringstream s;
-                
-                s
-                << "\n==== "+ClassName()+" Stats ====" << "\n\n"
-                << " RowCount()      = " << RowCount() << "\n"
-                << " ColCount()      = " << ColCount() << "\n"
-                << " NonzeroCount()  = " << NonzeroCount() << "\n"
-                << " ThreadCount()   = " << ThreadCount() << "\n"
-                << " Outer().Size()  = " << Outer().Size() << "\n"
-                << " Inner().Size()  = " << Inner().Size() << "\n"
-                << " Value().Size()  = " << Value().Size() << "\n"
-                << "\n==== "+ClassName()+" Stats ====\n" << std::endl;
-                
-                return s.str();
+                return std::string() +
+                + "\n==== "+ClassName()+" Stats ====" + "\n\n"
+                + " RowCount()      = " + RowCount() + "\n"
+                + " ColCount()      = " + ColCount() + "\n"
+                + " NonzeroCount()  = " + NonzeroCount() + "\n"
+                + " ThreadCount()   = " + ThreadCount() + "\n"
+                + " Outer().Size()  = " + Outer().Size() + "\n"
+                + " Inner().Size()  = " + Inner().Size() + "\n"
+                + " Value().Size()  = " + Value().Size() + "\n"
+                + "\n==== "+ClassName()+" Stats ====\n\n";
             }
             
             static std::string ClassName()

@@ -835,30 +835,7 @@ namespace Tensors
             
             [[nodiscard]] std::string friend ToString( cref<SelfAdjointMatrix> M )
             {
-                std::stringstream sout;
-
-                sout << "{\n";
-                sout << "\t{ ";
-                
-                sout << ToString(M.A[0][0]);
-                for( Int j = 1; j < n; ++j )
-                {
-                    sout << ", " << ToString(M.A[0][j]);
-                }
-                
-                for( Int i = 1; i < n; ++i )
-                {
-                    sout << " },\n\t{ ";
-                    
-                    sout << ToString(M.A[i][0]);
-                    
-                    for( Int j = 1; j < n; ++j )
-                    {
-                        sout << ", " << ToString(M.A[i][j]);
-                    }
-                }
-                sout << " }\n}";
-                return sout.str();
+                return MatrixString<n,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " },", "\n", "\n}");
             }
             
             template<typename T = Scal>
@@ -908,7 +885,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::SelfAdjointMatrix") + "<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::SelfAdjointMatrix") + "<" + ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };

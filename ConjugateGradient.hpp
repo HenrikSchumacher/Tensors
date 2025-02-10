@@ -483,22 +483,18 @@ namespace Tensors
         
         std::string Stats() const
         {
-            std:: stringstream s;
+            return std::string() +
+            + "\n==== " + ClassName() + " Stats ====" + "\n\n"
+            + " time_elapsed       = " + time_elapsed + "\n"
+            + " n                  = " + n + "\n"
+            + " nrhs               = " + nrhs + "\n"
+            + " iter               = " + iter     + "\n"
+            + " max_iter           = " + max_iter + "\n"
+            + " relative_tolerance = " + relative_tolerance + "\n"
+            + " use_initial_guessQ = " + use_initial_guessQ + "\n"
+            + "\n==== " + ClassName() + " Stats ====\n" + std::endl;
             
-            s
-            << "\n==== " + ClassName() + " Stats ====" << "\n\n"
-            << " time_elapsed       = " << time_elapsed << "\n"
-            << " n                  = " << n << "\n"
-            << " nrhs               = " << nrhs << "\n"
-            << " iter               = " << iter     << "\n"
-            << " max_iter           = " << max_iter << "\n"
-            << " relative_tolerance = " << relative_tolerance << "\n"
-            << " use_initial_guessQ = " << use_initial_guessQ << "\n"
-            << "\n==== " + ClassName() + " Stats ====\n" << std::endl;
-            
-            s << " relative residuals = " << ArrayToString( RelativeResiduals().data(), {nrhs} ) << "\n";
-            
-            return s.str();
+            s + " relative residuals = " + ArrayToString( RelativeResiduals().data(), {nrhs} ) + "\n";
         }
         
         std::string ClassName() const

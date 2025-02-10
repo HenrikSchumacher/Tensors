@@ -290,32 +290,9 @@ namespace Tensors
             }
 
             
-            [[nodiscard]] friend std::string ToString( cref<UpperTriangularMatrix> M, const int p = 16)
+            [[nodiscard]] friend std::string ToString( cref<UpperTriangularMatrix> M )
             {
-                std::stringstream sout;
-
-                sout << "{\n";
-                sout << "\t{ ";
-                
-                sout << ToString(M.A[0][0],p);
-                for( Int j = 1; j < n; ++j )
-                {
-                    sout << ", " << ToString(M.A[0][j],p);
-                }
-                
-                for( Int i = 1; i < n; ++i )
-                {
-                    sout << " },\n\t{ ";
-                    
-                    sout << ToString(M.A[i][0],p);
-                    
-                    for( Int j = 1; j < n; ++j )
-                    {
-                        sout << ", " << ToString(M.A[i][j],p);
-                    }
-                }
-                sout << " }\n}";
-                return sout.str();
+                return MatrixString<n,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " },", "\n", "\n}");
             }
             
             template<typename T = Scal>
@@ -349,7 +326,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::UpperTriangularMatrix") + "<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::UpperTriangularMatrix") + "<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
             
         };

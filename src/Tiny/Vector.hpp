@@ -443,32 +443,9 @@ namespace Tensors
                 return AngleBetweenUnitVectors(u,w);
             }
 
-            
             [[nodiscard]] friend std::string ToString( cref<Vector> x )
             {
-                std::stringstream sout;
-                sout << "{ ";
-                sout << ToString(x.v[0]);
-                for( Int i = 1; i < n; ++i )
-                {
-                    sout << ", " << ToString(x.v[i]);
-                }
-                sout << " }";
-                return sout.str();
-            }
-            
-            template<class Stream_T>
-            Stream_T & ToStream( mref<Stream_T> s ) const
-            {
-                s << "{ ";
-                s << ToString(v[0]);
-                for( Int i = 1; i < n; ++i )
-                {
-                    s << ", " << ToString(v[i]);
-                }
-                s << " }";
-                
-                return s;
+                return VectorString<n>(&x.v[0],"{ ",", "," }");
             }
             
         public:
@@ -480,7 +457,7 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::Vector") + "<"+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::Vector") + "<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
             }
         };
                 

@@ -1152,11 +1152,11 @@ namespace Tensors
             {
                 if( (i < 0) || (i > m) )
                 {
-                    eprint(ClassName()+": Row index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(m) +" [.");
+                    eprint(ClassName()+": Row index " + ToString(i) + " is out of bounds [ 0, " + ToString(m) +" [.");
                 }
                 if( (j < 0) || (j > n) )
                 {
-                    eprint(ClassName()+": Column index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(n) +" [.");
+                    eprint(ClassName()+": Column index " + ToString(j) + " is out of bounds [ 0, " + ToString(n) +" [.");
                 }
             }
             
@@ -1388,19 +1388,15 @@ namespace Tensors
             
             std::string Stats() const
             {
-                std::stringstream s;
-                
-                s
-                << "\n==== "+ClassName()+" Stats ====" << "\n\n"
-                << " RowCount()      = " << RowCount() << "\n"
-                << " ColCount()      = " << ColCount() << "\n"
-                << " NonzeroCount()  = " << NonzeroCount() << "\n"
-                << " ThreadCount()   = " << ThreadCount() << "\n"
-                << " Outer().Size()  = " << Outer().Size() << "\n"
-                << " Inner().Size()  = " << Inner().Size() << "\n"
-                << "\n==== "+ClassName()+" Stats ====\n" << std::endl;
-                
-                return s.str();
+                return std::string()
+                + "\n==== "+ClassName()+" Stats ====" + "\n\n"
+                + " RowCount()      = " + RowCount() + "\n"
+                + " ColCount()      = " + ColCount() + "\n"
+                + " NonzeroCount()  = " + NonzeroCount() + "\n"
+                + " ThreadCount()   = " + ThreadCount() + "\n"
+                + " Outer().Size()  = " + Outer().Size() + "\n"
+                + " Inner().Size()  = " + Inner().Size() + "\n"
+                + "\n==== "+ClassName()+" Stats ====\n\n";
             }
             
             static std::string ClassName()

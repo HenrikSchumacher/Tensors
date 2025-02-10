@@ -480,23 +480,24 @@ public:
         }
     }
 
-    inline friend std::string to_string( cref<TENSOR_T> A, const int prec = 16 )
-    {
-        return ArrayToString( A.a, A.dims.data(), Rank(), prec );
-    }
+//    inline friend std::string to_string( cref<TENSOR_T> A )
+//    {
+//        return ArrayToString( A.a, A.dims.data(), Rank() );
+//    }
 
     inline friend std::string ToString( cref<TENSOR_T> A,
-        const int prec = 16,
         std::string line_prefix = std::string("")
     )
     {
-        return ArrayToString( A.a, A.dims.data(), Rank(), prec, line_prefix );
+        return ArrayToString( A.a, A.dims.data(), Rank(), line_prefix );
     }
 
 
     void WriteToFile( const std::filesystem::path & s ) const
     {
         std::ofstream file ( s );
+        
+        // TODO: Not ideal.
         
         file << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
         
@@ -522,14 +523,8 @@ public:
         file.close();
     }
 
-    template<class Stream_T>
-    Stream_T & ToStream( Stream_T & s ) const
-    {
-        return ArrayToStream( a, dims.data(), Rank(), s );
-    }
-
     inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
     {
-        tensor.ToStream(s);
+        s << ToString(tensor);
         return s;
     }

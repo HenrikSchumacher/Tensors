@@ -895,30 +895,7 @@ namespace Tensors
             
             [[nodiscard]] friend std::string ToString( cref<Matrix> M )
             {
-                std::stringstream sout;
-                sout << "{\n";
-                sout << "\t{ ";
-                if( (m > 0) && (n > 0) )
-                {
-                    sout << ToString(M.A[0][0]);
-                    for( Int j = 1; j < n; ++j )
-                    {
-                        sout << ", " << ToString(M.A[0][j]);
-                    }
-                    for( Int i = 1; i < m; ++i )
-                    {
-                        sout << " },\n\t{ ";
-                        
-                        sout << ToString(M.A[i][0]);
-                        
-                        for( Int j = 1; j < n; ++j )
-                        {
-                            sout << ", " << ToString(M.A[i][j]);
-                        }
-                    }
-                }
-                sout << " }\n}";
-                return sout.str();
+                return MatrixString<m,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " },", "\n", "\n}");
             }
         
             
@@ -1263,7 +1240,7 @@ namespace Tensors
             
             [[nodiscard]] static std::string ClassName()
             {
-                return std::string("Tiny::Matrix") + "<"+std::to_string(m)+","+std::to_string(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return std::string("Tiny::Matrix") + "<" + ToString(m) + "," + ToString(n) + "," + TypeName<Scal> + "," + TypeName<Int> + ">";
             }
             
         }; // Tiny::Matrix

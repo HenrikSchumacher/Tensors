@@ -276,7 +276,7 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
+                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
 #else
             (void)i;
@@ -288,12 +288,12 @@ namespace Tensors
 #ifdef TOOLS_DEBUG
             if( (i < 0) || (i > dims[0]) )
             {
-                eprint(ClassName()+": first index " + std::to_string(i) + " is out of bounds [ 0, " + std::to_string(dims[0]) +" [.");
+                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
             
             if( (j < 0) || (j > dims[1]) )
             {
-                eprint(ClassName()+": second index " + std::to_string(j) + " is out of bounds [ 0, " + std::to_string(dims[1]) +" [.");
+                eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
 #else
             (void)i;
