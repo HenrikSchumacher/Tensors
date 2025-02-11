@@ -846,23 +846,20 @@ namespace Tensors
             return std::string()
             + "\n==== " + ClassName() + " Stats ====" + "\n\n"
             + " succeeded          = " + ( succeeded ? std::string("true") : std::string("false") ) + "\n"
-            + " n                  = " + n + "\n"
-            + " nrhs               = " + nrhs + "\n"
-            + " restarts           = " + restarts + "\n"
-            + " max_restarts       = " + max_restarts + "\n"
-            + " iter               = " + iter     + "\n"
-            + " max_iter           = " + max_iter + "\n"
-            + " total iter         = " + max_iter * restarts + iter + "\n"
-            + " relative_tolerance = " + relative_tolerance + "\n"
-            + " use_initial_guessQ = " + use_initial_guessQ + "\n"
-            + "\n==== " + ClassName() + " Stats ====\n" + std::endl;
-            
-            
-            s + " beta             = " + ArrayToString( beta.data(), {iter+1,nrhs} ) + "\n";
-            s + " TOL              = " + ToString(TOL) + "\n";
-            s + " b_norms          = " + ToString(b_norms) + "\n";
-            
-            s + " relative residuals = " + ArrayToString( RelativeResiduals().data(), {nrhs} ) + "\n";
+            + " n                  = " + ToString(n) + "\n"
+            + " nrhs               = " + ToString(nrhs) + "\n"
+            + " restarts           = " + ToString(restarts) + "\n"
+            + " max_restarts       = " + ToString(max_restarts) + "\n"
+            + " iter               = " + ToString(iter)     + "\n"
+            + " max_iter           = " + ToString(max_iter) + "\n"
+            + " total iter         = " + ToString(max_iter * restarts + iter) + "\n"
+            + " relative_tolerance = " + ToString(relative_tolerance) + "\n"
+            + " use_initial_guessQ = " + ToString(use_initial_guessQ) + "\n"
+            + "\n==== " + ClassName() + " Stats ====\n\n"
+            + " beta               = " + ArrayToString( beta.data(), {iter+1,nrhs} ) + "\n";
+            + " TOL                = " + ToString(TOL) + "\n";
+            + " b_norms            = " + ToString(b_norms) + "\n";
+            + " relative residuals = " + ArrayToString( RelativeResiduals().data(), {nrhs} ) + "\n";
         }
         
         std::string ClassName() const

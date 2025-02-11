@@ -1389,13 +1389,13 @@ namespace Tensors
             std::string Stats() const
             {
                 return std::string()
-                + "\n==== "+ClassName()+" Stats ====" + "\n\n"
-                + " RowCount()      = " + RowCount() + "\n"
-                + " ColCount()      = " + ColCount() + "\n"
-                + " NonzeroCount()  = " + NonzeroCount() + "\n"
-                + " ThreadCount()   = " + ThreadCount() + "\n"
-                + " Outer().Size()  = " + Outer().Size() + "\n"
-                + " Inner().Size()  = " + Inner().Size() + "\n"
+                + "\n==== "+ClassName()+" Stats ====\n\n"
+                + " RowCount()      = " + ToString(RowCount()) + "\n"
+                + " ColCount()      = " + ToString(ColCount()) + "\n"
+                + " NonzeroCount()  = " + ToString(NonzeroCount()) + "\n"
+                + " ThreadCount()   = " + ToString(ThreadCount()) + "\n"
+                + " Outer().Size()  = " + ToString(Outer().Size()) + "\n"
+                + " Inner().Size()  = " + ToString(Inner().Size()) + "\n"
                 + "\n==== "+ClassName()+" Stats ====\n\n";
             }
             
