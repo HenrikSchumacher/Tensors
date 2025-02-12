@@ -442,7 +442,7 @@ private:
             + "<" + ToString(a_flag)
             + "," + ToString(alpha_flag)
             + "," + ToString(beta_flag)
-            + "," + ToString(NRHS <= 0 ? std::string("VarSize") : ToString(NRHS) )
+            + "," + (NRHS <= 0 ? std::string("VarSize") : ToString(NRHS))
             + "," + ToString(base)
             + "," + TypeName<alpha_T>
             + "," + TypeName<X_T>
