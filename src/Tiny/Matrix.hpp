@@ -29,8 +29,7 @@ namespace Tensors
             
         protected:
             
-            alignas(Tools::Alignment) Scal A[m][n];
-            
+            alignas(DefaultAlignment) Scal A[m][n];
             
         public:
             

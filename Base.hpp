@@ -10,9 +10,6 @@
 namespace Tensors
 {
     using namespace Tools;
-    
-    static constexpr Size_T DefaultAlignment = Tools::Alignment;
-    
 }
 
 #include "src/Tensor1.hpp"

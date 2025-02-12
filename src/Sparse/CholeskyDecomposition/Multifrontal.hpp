@@ -171,7 +171,7 @@ namespace Tensors
                 
 //                if( n_1 > 0 )
 //                {
-//                    safe_alloc( SN_updates[s], n_1 * n_1 );
+//                    AlignedAllocator<Int>::Alloc( SN_updates[s], n_1 * n_1 );
 //                    zerofy_buffer( SN_updates[s], n_1 * n_1 );
 //                }
 //                
@@ -223,7 +223,7 @@ namespace Tensors
 //                        SN_updates[t] = nullptr;
 //                    }
                     
-//                    safe_free(SN_updates[t]);
+//                    AlignedAllocator<Int>::Free(SN_updates[t]);
                 }
                 
 //                FetchFromChildren_time += Tools::Duration( FetchFromChildren_start, Clock::now() );

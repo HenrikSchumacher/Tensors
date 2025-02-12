@@ -132,9 +132,7 @@ namespace Tensors
             
         protected:
             
-//            alignas(Tools::Alignment) std::array<Scal,n> v;
-            
-            alignas(Tools::Alignment) Scal v [n];
+            alignas(DefaultAlignment) Scal v [n];
             
         public:
             
