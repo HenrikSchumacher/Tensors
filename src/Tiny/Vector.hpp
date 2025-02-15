@@ -278,7 +278,7 @@ namespace Tensors
                     v[i] += s[i];
                 }
                 // TODO: Compare to
-//                combine_buffers<F_Plus,F_Plus,n>(
+//                combine_buffers3<F_Plus,F_Plus,n>(
 //                     Scalar::One<Scal>, x, Scalar::One<Scal>, y, &v[0]
 //                );
                 
@@ -706,7 +706,7 @@ namespace Tensors
             // Returns z = a * x + b * y.
             Vector<n,Scal,Int> z;
             
-            combine_buffers<a_flag, b_flag, n, Sequential, opx, opy>(
+            combine_buffers3<a_flag, b_flag, n, Sequential, opx, opy>(
                 scalar_cast<Scal>(a), x, scalar_cast<Scal>(b), y, z.data()
             );
             
@@ -811,7 +811,7 @@ namespace Tensors
         Times( const a_T a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z )
         {
             // Returns z = a * x.
-            combine_buffers<F_Gen, F_Zero, n, Sequential>(
+            combine_buffers3<F_Gen, F_Zero, n, Sequential>(
                 scalar_cast<z_T>(a), x.data(), scalar_cast<z_T>(0), z.data()
             );
         }
