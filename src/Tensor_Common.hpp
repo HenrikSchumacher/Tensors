@@ -528,3 +528,13 @@ public:
         s << ToString(tensor);
         return s;
     }
+
+    Size_T AllocatedByteCount() const
+    {
+        return static_cast<Size_T>(n) * sizeof(Scal);
+    }
+
+    Size_T ByteCount() const
+    {
+        return sizeof(TENSOR_T) + AllocatedByteCount();
+    }

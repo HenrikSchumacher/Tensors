@@ -283,6 +283,26 @@ namespace Tensors
                 }
             }
             
+            Size_T AllocatedByteCount() const
+            {
+                Size_T b = 0;
+                
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        b += A[i][j].AllocatedByteCount();
+                    }
+                }
+                
+                return b;
+            }
+            
+            Size_T ByteCount() const
+            {
+                return sizeof(MatrixList) + AllocatedByteCount();
+            }
+            
             
             [[nodiscard]] static std::string ClassName()
             {

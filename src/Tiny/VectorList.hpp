@@ -288,6 +288,23 @@ namespace Tensors
                 }
             }
             
+            Size_T AllocatedByteCount() const
+            {
+                Size_T b = 0;
+                
+                for( Int i = 0; i < n; ++i )
+                {
+                    b += v[i].AllocatedByteCount();
+                }
+                
+                return b;
+            }
+            
+            Size_T ByteCount() const
+            {
+                return sizeof(VectorList) + AllocatedByteCount();
+            }
+            
             static std::string ClassName()
             {
                 return std::string("Tiny::VectorList")+"<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+","+ToString(Alignment)+">";
