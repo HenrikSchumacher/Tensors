@@ -183,13 +183,13 @@ namespace Tensors
         
         inline friend Scal Dot( cref<TENSOR_T> x, cref<TENSOR_T> y )
         {
-            if( x.n != y.m )
+            if( x.n != y.n )
             {
                 eprint(ClassName()+"::Dot: Sizes of vectors differ. Doing nothing.");
                 return 0;
             }
             
-            return dot( x.a, y.a, x.n );
+            return dot_buffers( x.a, y.a, x.n );
         }
         
         void iota( const Int thread_count = 1 )
