@@ -811,7 +811,7 @@ namespace Tensors
         Times( const a_T a, cref<Vector<n,x_T,Int>> x, mref<Vector<n,z_T,Int>> z )
         {
             // Returns z = a * x.
-            combine_buffers3<F_Gen, F_Zero, n, Sequential>(
+            combine_buffers<F_Gen, F_Zero, n, Sequential>(
                 scalar_cast<z_T>(a), x.data(), scalar_cast<z_T>(0), z.data()
             );
         }
