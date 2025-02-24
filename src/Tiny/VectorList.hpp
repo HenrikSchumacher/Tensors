@@ -101,8 +101,10 @@ namespace Tensors
                 {
                     if( (length != other.length) )
                     {
-                        // Use the copy constructor.
-                        swap( *this, VectorList(other.length) );
+                        for( Int i = 0; i < n; ++i )
+                        {
+                            v[i] = other.v[i];
+                        }
                     }
                     else
                     {

@@ -77,7 +77,7 @@ namespace Tensors {
             {
                 // each thread does the accumulation on its chunk independently
                 const Int j_begin = (step*(thread  ) + (corr*(thread  ))/thread_count) * per_line;
-                const Int j_end   = Min(m, (step*(thread+1) + (corr*(thread+1))/thread_count) * per_line);
+                const Int j_end   = Min(m, (step*(thread+Int(1)) + (corr*(thread+Int(1)))/thread_count) * per_line);
                 
                 if( j_end > j_begin )
                 {
