@@ -8,7 +8,7 @@ namespace Tensors
             Layout layout, UpLo uplo, 
             typename Scal, typename I0, typename I1, typename I2, typename I3
         >
-        force_inline Int potrs( I0 n_, I1 nrhs_, Scal * A_, I2 ldA_, Scal * B_, I3 ldB_ )
+        TOOLS_FORCE_INLINE Int potrs( I0 n_, I1 nrhs_, Scal * A_, I2 ldA_, Scal * B_, I3 ldB_ )
         {
             static_assert(IntQ<I0>,"");
             static_assert(IntQ<I1>,"");

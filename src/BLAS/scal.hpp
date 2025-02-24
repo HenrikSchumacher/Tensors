@@ -6,7 +6,7 @@ namespace Tensors
     namespace BLAS
     {
         template<typename Scal, typename I0, typename I1>
-        force_inline void scal(
+        TOOLS_FORCE_INLINE void scal(
             const I0 n_, cref<Scal> alpha, mptr<Scal> x_, const I1 inc_x_
         )
         {

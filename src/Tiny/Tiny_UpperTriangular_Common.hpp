@@ -6,7 +6,7 @@
     
 public:
 
-    force_inline void SetZero()
+    TOOLS_FORCE_INLINE void SetZero()
     {
         if constexpr ( n > 0 )
         {
@@ -14,7 +14,7 @@ public:
         }
     }
 
-    force_inline void ZerofyUpper()
+    TOOLS_FORCE_INLINE void ZerofyUpper()
     {
         if constexpr ( n > 0 )
         {
@@ -22,7 +22,7 @@ public:
         }
     }
 
-    force_inline void ZerofyLower()
+    TOOLS_FORCE_INLINE void ZerofyLower()
     {
         if constexpr ( n > 0 )
         {
@@ -30,13 +30,13 @@ public:
         }
     }
     
-    force_inline void Fill( cref<Scal> init )
+    TOOLS_FORCE_INLINE void Fill( cref<Scal> init )
     {
         FillUpper(init);
     }
     
 
-    force_inline void FillUpper( cref<Scal> init )
+    TOOLS_FORCE_INLINE void FillUpper( cref<Scal> init )
     {
         if constexpr ( n > 0 )
         {
@@ -44,7 +44,7 @@ public:
         }
     }
 
-    force_inline void FillLower( cref<Scal> init )
+    TOOLS_FORCE_INLINE void FillLower( cref<Scal> init )
     {
         if constexpr ( n > 0 )
         {
@@ -52,7 +52,7 @@ public:
         }
     }
     template<typename S>
-    force_inline void Read( cptr<S> B )
+    TOOLS_FORCE_INLINE void Read( cptr<S> B )
     {
         if constexpr ( n > 0 )
         {
@@ -61,7 +61,7 @@ public:
     }
 
     template<typename S>
-    force_inline void Read( cptr<S> B, const Int ldB )
+    TOOLS_FORCE_INLINE void Read( cptr<S> B, const Int ldB )
     {
         if constexpr ( n > 0 )
         {
@@ -70,7 +70,7 @@ public:
     }
     
     template<typename S>
-    force_inline void Write( mptr<S> B ) const
+    TOOLS_FORCE_INLINE void Write( mptr<S> B ) const
     {
         if constexpr ( n > 0 )
         {
@@ -79,7 +79,7 @@ public:
     }
 
     template<typename S>
-    force_inline void Write( mptr<S> B, const Int ldB ) const
+    TOOLS_FORCE_INLINE void Write( mptr<S> B, const Int ldB ) const
     {
         if constexpr ( n > 0 )
         {
@@ -92,7 +92,7 @@ protected:
     // Trying to use compile-time loops to unroll these operations.
     
     template<Int k>
-    force_inline void zerofyUpper()
+    TOOLS_FORCE_INLINE void zerofyUpper()
     {
         zerofy_buffer<n-k>( &A[k][k] );
         
@@ -103,7 +103,7 @@ protected:
     }
 
     template<Int k>
-    force_inline void zerofyLower()
+    TOOLS_FORCE_INLINE void zerofyLower()
     {
         zerofy_buffer<k>( &A[k][0] );
         
@@ -114,7 +114,7 @@ protected:
     }
     
     template<Int k>
-    force_inline void fillUpper( const Scal init )
+    TOOLS_FORCE_INLINE void fillUpper( const Scal init )
     {
         fill_buffer<n-k>( &A[k][k], init );
         
@@ -125,7 +125,7 @@ protected:
     }
 
     template<Int k>
-    force_inline void fillLower( const Scal init )
+    TOOLS_FORCE_INLINE void fillLower( const Scal init )
     {
         fill_buffer<k>( &A[k][0], init );
         
@@ -136,7 +136,7 @@ protected:
     }
     
     template<Int k, typename S>
-    force_inline void read( cptr<S> const B )
+    TOOLS_FORCE_INLINE void read( cptr<S> const B )
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
@@ -147,7 +147,7 @@ protected:
     }
 
     template<Int k, typename S>
-    force_inline void read( cptr<S> B, const Int ldB )
+    TOOLS_FORCE_INLINE void read( cptr<S> B, const Int ldB )
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
@@ -158,7 +158,7 @@ protected:
     }
     
     template<Int k, typename S>
-    force_inline void write( mptr<S> B ) const
+    TOOLS_FORCE_INLINE void write( mptr<S> B ) const
     {
         copy_buffer<n-k>( &A[k][k], B );
         
@@ -169,7 +169,7 @@ protected:
     }
 
     template<Int k, typename S>
-    force_inline void write( mptr<S> B, const Int ldB ) const
+    TOOLS_FORCE_INLINE void write( mptr<S> B, const Int ldB ) const
     {
         copy_buffer<n-k>( &A[k][k], B );
         
@@ -200,7 +200,7 @@ public:
         return z;
     }
     
-    force_inline void Conjugate( mref<Class_T> B ) const
+    TOOLS_FORCE_INLINE void Conjugate( mref<Class_T> B ) const
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -213,7 +213,7 @@ public:
     
     
     template<class T>
-    force_inline mref<Class_T> operator+=( cref<T> lambda )
+    TOOLS_FORCE_INLINE mref<Class_T> operator+=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -227,7 +227,7 @@ public:
     }
 
     template<class T>
-    force_inline mref<Class_T> operator-=( cref<T> lambda )
+    TOOLS_FORCE_INLINE mref<Class_T> operator-=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -241,7 +241,7 @@ public:
     }
     
     template<class T>
-    force_inline mref<Class_T> operator*=( cref<T> lambda )
+    TOOLS_FORCE_INLINE mref<Class_T> operator*=( cref<T> lambda )
     {
         for( Int i = 0; i < n; ++i )
         {
@@ -255,7 +255,7 @@ public:
     }
 
 
-    force_inline Real MaxNorm() const
+    TOOLS_FORCE_INLINE Real MaxNorm() const
     {
         Real max = 0;
         

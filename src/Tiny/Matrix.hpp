@@ -555,7 +555,7 @@ namespace Tensors
         public:
             
             template<class T>
-            force_inline mref<Matrix> operator+=( const T lambda_ )
+            TOOLS_FORCE_INLINE mref<Matrix> operator+=( const T lambda_ )
             {
                 const auto lambda = scalar_cast<Scal>(lambda_);
                 
@@ -571,7 +571,7 @@ namespace Tensors
             }
 
             template<class T>
-            force_inline mref<Matrix> operator-=( const T lambda_ )
+            TOOLS_FORCE_INLINE mref<Matrix> operator-=( const T lambda_ )
             {
                 const auto lambda = scalar_cast<Scal>(lambda_);
                 
@@ -587,7 +587,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<Matrix> operator*=( const T lambda_ )
+            TOOLS_FORCE_INLINE mref<Matrix> operator*=( const T lambda_ )
             {
                 const auto lambda = scalar_cast<Scal>(lambda_);
                 
@@ -603,7 +603,7 @@ namespace Tensors
             }
 
             template<class T>
-            force_inline mref<Matrix> operator/=( const T lambda )
+            TOOLS_FORCE_INLINE mref<Matrix> operator/=( const T lambda )
             {
                 return (*this) *= ( scalar_cast<Scal>(Inv<T>(lambda)) );
             }
@@ -614,7 +614,7 @@ namespace Tensors
 
             // TODO: Make this more type flexible.
             // TODO: Also, where is Minus?
-            force_inline friend void Plus( const Matrix & x, const Matrix & y, const Matrix & z )
+            TOOLS_FORCE_INLINE friend void Plus( const Matrix & x, const Matrix & y, const Matrix & z )
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -627,7 +627,7 @@ namespace Tensors
             
             // TODO: Make this more type flexible.
             // TODO: Also, where is operator-?
-            [[nodiscard]] force_inline friend const Matrix operator+( const Matrix & x, const Matrix & y )
+            [[nodiscard]] TOOLS_FORCE_INLINE friend const Matrix operator+( const Matrix & x, const Matrix & y )
             {
                 Matrix z;
                 
@@ -637,7 +637,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline
+            TOOLS_FORCE_INLINE
             mref<Matrix> operator+=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
@@ -652,7 +652,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline
+            TOOLS_FORCE_INLINE
             mref<Matrix> operator-=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
@@ -668,7 +668,7 @@ namespace Tensors
             
 //            // TODO: Not sure whether I want * to represent compontenwise multiplication.
 //            template<class T>
-//            force_inline
+//            TOOLS_FORCE_INLINE
 //            mref<Matrix> operator*=( cref<Tiny::Matrix<m,n,T,Int>> B )
 //            {
 //                for( Int i = 0; i < m; ++i )
@@ -684,7 +684,7 @@ namespace Tensors
 //            
 //            // TODO: Not sure whether I want / to represent compontenwise division.
 //            template<class T>
-//            force_inline
+//            TOOLS_FORCE_INLINE
 //            mref<Matrix> operator/=( cref<Tiny::Matrix<m,n,T,Int>> B )
 //            {
 //                for( Int i = 0; i < m; ++i )
@@ -716,7 +716,7 @@ namespace Tensors
         public:
 
             template<bool upper_triangle_only = false>
-            [[nodiscard]] force_inline std::conditional_t<
+            [[nodiscard]] TOOLS_FORCE_INLINE std::conditional_t<
                 upper_triangle_only,
                 SelfAdjointMatrix<n,Scal,Int>,
                 Matrix<n,n,Scal,Int>
@@ -766,7 +766,7 @@ namespace Tensors
             }
             
             template<bool upper_triangle_only = false>
-            [[nodiscard]] force_inline std::conditional_t<
+            [[nodiscard]] TOOLS_FORCE_INLINE std::conditional_t<
                 upper_triangle_only,
                 SelfAdjointMatrix<m,Scal,Int>,
                 Matrix<m,m,Scal,Int>
@@ -797,7 +797,7 @@ namespace Tensors
         public:
             
             
-            force_inline void Conjugate( Matrix & B ) const
+            TOOLS_FORCE_INLINE void Conjugate( Matrix & B ) const
             {
                 for( Int i = 0; i < m; ++i )
                 {
@@ -808,7 +808,7 @@ namespace Tensors
                 }
             }
 
-            [[nodiscard]] force_inline Matrix Conjugate() const
+            [[nodiscard]] TOOLS_FORCE_INLINE Matrix Conjugate() const
             {
                 Matrix B;
                 
@@ -819,7 +819,7 @@ namespace Tensors
             
         public:
             
-            force_inline void Transpose( mref<Matrix<n,m,Scal,Int>> B ) const
+            TOOLS_FORCE_INLINE void Transpose( mref<Matrix<n,m,Scal,Int>> B ) const
             {
                 for( Int j = 0; j < n; ++j )
                 {
@@ -833,7 +833,7 @@ namespace Tensors
 //                Write<Op::Trans,Op::Id>( &B[0][0] );
             }
             
-            [[nodiscard]] force_inline Matrix<n,m,Scal,Int> Transpose() const
+            [[nodiscard]] TOOLS_FORCE_INLINE Matrix<n,m,Scal,Int> Transpose() const
             {
                 Matrix<n,m,Scal,Int> B;
                 
@@ -842,7 +842,7 @@ namespace Tensors
                 return B;
             }
 
-            force_inline void ConjugateTranspose( mref<Matrix<n,m,Scal,Int>> B ) const
+            TOOLS_FORCE_INLINE void ConjugateTranspose( mref<Matrix<n,m,Scal,Int>> B ) const
             {
                 for( Int j = 0; j < n; ++j )
                 {
@@ -857,7 +857,7 @@ namespace Tensors
 //                Write<Op::ConjTrans,Op::Id>( &B[0][0] );
             }
 
-            [[nodiscard]] force_inline Matrix<n,m,Scal,Int> ConjugateTranspose() const
+            [[nodiscard]] TOOLS_FORCE_INLINE Matrix<n,m,Scal,Int> ConjugateTranspose() const
             {
                 Matrix<n,m,Scal,Int> B;
                 
@@ -868,12 +868,12 @@ namespace Tensors
             
             
             
-            [[nodiscard]] force_inline Real MaxNorm() const
+            [[nodiscard]] TOOLS_FORCE_INLINE Real MaxNorm() const
             {
                 return norm_max<m*n>( &A[0][0] );
             }
             
-            [[nodiscard]] force_inline Real FrobeniusNorm() const
+            [[nodiscard]] TOOLS_FORCE_INLINE Real FrobeniusNorm() const
             {
                 Real AA = 0;
                 
@@ -923,7 +923,7 @@ namespace Tensors
         public:
             
             template<class T>
-            force_inline void GivensLeft( const T c_, const T s_, const Int i, const Int j )
+            TOOLS_FORCE_INLINE void GivensLeft( const T c_, const T s_, const Int i, const Int j )
             {
                 if constexpr ( n >= 2 )
                 {
@@ -954,7 +954,7 @@ namespace Tensors
             }
 
             template<class T>
-            force_inline void GivensRight( const T c_, const T s_, const Int i, const Int j )
+            TOOLS_FORCE_INLINE void GivensRight( const T c_, const T s_, const Int i, const Int j )
             {
                 if constexpr ( n >= 2 )
                 {
@@ -989,7 +989,7 @@ namespace Tensors
             
         public:
            
-            constexpr force_inline void SetIdentity()
+            constexpr TOOLS_FORCE_INLINE void SetIdentity()
             {
                 static_assert(m==n, "SetIdentity is only defined for square matrices.");
                 
@@ -1002,7 +1002,7 @@ namespace Tensors
                 }
             }
             
-            force_inline void MakeDiagonal( const Tensors::Tiny::Vector<n,Scal,Int> & v )
+            TOOLS_FORCE_INLINE void MakeDiagonal( const Tensors::Tiny::Vector<n,Scal,Int> & v )
             {
                 static_assert(m==n, "MakeDiagonal is only defined for square matrices.");
                 
@@ -1015,7 +1015,7 @@ namespace Tensors
                 }
             }
             
-            force_inline void SetDiagonal( const Tensors::Tiny::Vector<n,Scal,Int> & v )
+            TOOLS_FORCE_INLINE void SetDiagonal( const Tensors::Tiny::Vector<n,Scal,Int> & v )
             {
                 static_assert(m==n, "SetDiagonal is only defined for square matrices.");
                 
@@ -1148,7 +1148,7 @@ namespace Tensors
             
         public:
             
-            force_inline void SetHouseHolderReflector( const Vector_T & u, const Int begin, const Int end )
+            TOOLS_FORCE_INLINE void SetHouseHolderReflector( const Vector_T & u, const Int begin, const Int end )
             {
                 static_assert(m==n, "SetHouseHolderReflector is only defined for square matrices.");
                 
@@ -1168,7 +1168,7 @@ namespace Tensors
             }
             
             
-            force_inline void SetGivensRotation( const Scal c, const Scal s, const Int i, const Int j )
+            TOOLS_FORCE_INLINE void SetGivensRotation( const Scal c, const Scal s, const Int i, const Int j )
             {
                 static_assert(m==n, "SetGivensRotation is only defined for square matrices.");
                 
@@ -1249,7 +1249,7 @@ namespace Tensors
         template<AddTo_T addto,
             int m, int k, int n, typename X_T, typename Y_T, typename Z_T, typename Int
         >
-        force_inline void
+        TOOLS_FORCE_INLINE void
         Dot(
             cref<Tiny::Matrix<m,k,X_T,Int>> X,
             cref<Tiny::Matrix<k,n,Y_T,Int>> Y,
@@ -1260,7 +1260,7 @@ namespace Tensors
         }
         
         template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
-        [[nodiscard]] force_inline 
+        [[nodiscard]] TOOLS_FORCE_INLINE 
         Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
         Dot(
             cref<Tiny::Matrix<m,K,X_T,Int>> X,
@@ -1275,7 +1275,7 @@ namespace Tensors
         }
         
         template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
         operator*(
             cref<Tiny::Matrix<m,K,X_T,Int>> X,
@@ -1287,7 +1287,7 @@ namespace Tensors
         
         template<AddTo_T addto, int m, int n, typename A_T, typename x_T, typename y_T, typename Int
         >
-        force_inline void
+        TOOLS_FORCE_INLINE void
         Dot(
             cref<Tiny::Matrix<m,n,A_T,Int>> A,
             cref<Tiny::Vector<n,  x_T,Int>> x,
@@ -1314,7 +1314,7 @@ namespace Tensors
         }
         
         template<int m, int n, typename A_T, typename x_T, typename Int>
-        force_inline Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
+        TOOLS_FORCE_INLINE Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
         Dot(
             cref<Tiny::Matrix<m,n,A_T,Int>> A,
             cref<Tiny::Vector<n,  x_T,Int>> x
@@ -1328,7 +1328,7 @@ namespace Tensors
         }
         
         template<int m, int n, typename A_T, typename x_T, typename Int>
-        force_inline Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
+        TOOLS_FORCE_INLINE Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
         operator*(
              cref<Tiny::Matrix<m,n,A_T,Int>> A,
              cref<Tiny::Vector<n,  x_T,Int>> x
@@ -1340,7 +1340,7 @@ namespace Tensors
         
         
         template<typename Scal, typename Int>
-        [[nodiscard]] force_inline Scal Det_Kahan( cref<Tiny::Matrix<2,2,Scal,Int>> A )
+        [[nodiscard]] TOOLS_FORCE_INLINE Scal Det_Kahan( cref<Tiny::Matrix<2,2,Scal,Int>> A )
         {
             return Det2D_Kahan( &A[0][0] );
         }

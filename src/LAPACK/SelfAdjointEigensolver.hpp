@@ -90,7 +90,7 @@ namespace Tensors
             
             
             template< typename S>
-            force_inline Int Prepare( char job, mptr<S> A_ )
+            TOOLS_FORCE_INLINE Int Prepare( char job, mptr<S> A_ )
             {
                 assert_positive(n);
                 assert_positive(ldA);
@@ -123,7 +123,7 @@ namespace Tensors
                 return info;
             }
             
-            force_inline Int heev( char job  )
+            TOOLS_FORCE_INLINE Int heev( char job  )
             {
                 Int info = 0;
                 

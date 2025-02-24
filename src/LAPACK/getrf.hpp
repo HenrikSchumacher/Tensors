@@ -5,7 +5,7 @@ namespace Tensors
     namespace LAPACK
     {
         template< Layout layout, typename Scal, typename I0, typename I1, typename I2 >
-        force_inline Int getrf(
+        TOOLS_FORCE_INLINE Int getrf(
             const I0 m_, const I1 n_, Scal * A_, const I2 ldA_, Int * perm
         )
         {

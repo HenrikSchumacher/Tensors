@@ -8,7 +8,7 @@ namespace Tensors
             Layout layout, Side side, UpLo uplo, Op opA, Diag diag, typename Scal,
             typename I0, typename I1, typename I2, typename I3
         >
-        force_inline void trsm(
+        TOOLS_FORCE_INLINE void trsm(
             const I0 n_, const I1 nrhs_,
             cref<Scal> alpha, cptr<Scal> A_, const I2 ldA_,
                               mptr<Scal> B_, const I3 ldB_

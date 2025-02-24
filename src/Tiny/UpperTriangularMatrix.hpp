@@ -77,7 +77,7 @@ namespace Tensors
         public:
             
             template<class T>
-            force_inline mref<UpperTriangularMatrix> operator+=( cref<UpperTriangularMatrix<n,T,Int>> B )
+            TOOLS_FORCE_INLINE mref<UpperTriangularMatrix> operator+=( cref<UpperTriangularMatrix<n,T,Int>> B )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -90,7 +90,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<UpperTriangularMatrix> operator-=( cref<UpperTriangularMatrix<n,T,Int>> B )
+            TOOLS_FORCE_INLINE mref<UpperTriangularMatrix> operator-=( cref<UpperTriangularMatrix<n,T,Int>> B )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -103,7 +103,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<UpperTriangularMatrix> operator*=( cref<UpperTriangularMatrix<n,T,Int>> B )
+            TOOLS_FORCE_INLINE mref<UpperTriangularMatrix> operator*=( cref<UpperTriangularMatrix<n,T,Int>> B )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -116,7 +116,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<UpperTriangularMatrix> operator/=( cref<UpperTriangularMatrix<n,T,Int>> B )
+            TOOLS_FORCE_INLINE mref<UpperTriangularMatrix> operator/=( cref<UpperTriangularMatrix<n,T,Int>> B )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -129,7 +129,7 @@ namespace Tensors
             }
             
             
-            force_inline Real FrobeniusNorm() const
+            TOOLS_FORCE_INLINE Real FrobeniusNorm() const
             {
                 Real AA = 0;
                 
@@ -143,7 +143,7 @@ namespace Tensors
                 return Sqrt(AA);
             }
             
-            force_inline friend void Dot( const UpperTriangularMatrix & M, const Vector_T & x, Vector_T & y )
+            TOOLS_FORCE_INLINE friend void Dot( const UpperTriangularMatrix & M, const Vector_T & x, Vector_T & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -159,7 +159,7 @@ namespace Tensors
             }
             
             
-            [[nodiscard]] force_inline Scal Det() const
+            [[nodiscard]] TOOLS_FORCE_INLINE Scal Det() const
             {
                 Scal det = A[0][0];
                 

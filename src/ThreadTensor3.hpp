@@ -236,56 +236,56 @@ namespace Tensors {
 #endif
         }
         
-        force_inline mptr<Scal> data( const Int i )
+        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i )
         {
             BoundCheck(i);
 
             return tensors[i].data();
         }
         
-        force_inline cptr<Scal> data( const Int i ) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const
         {
             BoundCheck(i);
             
             return tensors[i].data();
         }
 
-        force_inline mptr<Scal> data( const Int i, const Int j)
+        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j)
         {
             BoundCheck(i);
             
             return tensors[i].data(j);
         }
         
-        force_inline cptr<Scal> data( const Int i, const Int j) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j) const
         {
             BoundCheck(i);
             
             return tensors[i].data(j);
         }
         
-        force_inline mptr<Scal> data( const Int i, const Int j, const Int k)
+        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k)
         {
             BoundCheck(i);
             
             return tensors[i].data(j,k);
         }
         
-        force_inline cptr<Scal> data( const Int i, const Int j, const Int k) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j, const Int k) const
         {
             BoundCheck(i);
             
             return tensors[i].data(j,k);
         }
 
-        force_inline mref<Scal> operator()( const Int i, const Int j, const Int k)
+        TOOLS_FORCE_INLINE mref<Scal> operator()( const Int i, const Int j, const Int k)
         {
             BoundCheck(i);
             
             return tensors[i](j,k);
         }
     
-        force_inline cref<Scal> operator()( const Int i, const Int j, const Int k) const
+        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j, const Int k) const
         {
             BoundCheck(i);
             
@@ -357,12 +357,12 @@ namespace Tensors {
         
     public:
         
-        force_inline const Int * Dimensions() const
+        TOOLS_FORCE_INLINE const Int * Dimensions() const
         {
             return &dims[0];
         }
         
-        force_inline Int Dimension( const Int i ) const
+        TOOLS_FORCE_INLINE Int Dimension( const Int i ) const
         {
             return i < Rank() ? dims[i] : static_cast<Int>(0);
         }

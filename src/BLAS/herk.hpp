@@ -9,7 +9,7 @@ namespace Tensors
             Layout layout, UpLo uplo, Op op, typename Scal,
             typename I0, typename I1, typename I2, typename I3
         >
-        force_inline void herk(
+        TOOLS_FORCE_INLINE void herk(
             const I0 n_, const I1 k_,
             cref<Scalar::Real<Scal>> alpha, cptr<Scal> A_, const I2 ldA_,
             cref<Scalar::Real<Scal>> beta , mptr<Scal> C_, const I3 ldC_

@@ -106,7 +106,7 @@ namespace Tensors
             return BLOCK_NNZ;
         }
                 
-        force_inline void TransposeBlock( const LInt from, const LInt to ) const
+        TOOLS_FORCE_INLINE void TransposeBlock( const LInt from, const LInt to ) const
         {
             cptr<Scal> a_from = &A[ BLOCK_NNZ * from];
             mptr<Scal> a_to   = &A[ BLOCK_NNZ * to  ];
@@ -145,7 +145,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ReadA( const LInt k_global )
+        TOOLS_FORCE_INLINE void ReadA( const LInt k_global )
         {
             cptr<Scal> a_from = &A_const[BLOCK_NNZ * k_global];
             
@@ -159,7 +159,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ApplyBlock( const LInt k_global, const Int j_global )
+        TOOLS_FORCE_INLINE void ApplyBlock( const LInt k_global, const Int j_global )
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );

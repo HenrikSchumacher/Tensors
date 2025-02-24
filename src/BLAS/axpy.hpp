@@ -5,7 +5,7 @@ namespace Tensors
     namespace BLAS
     {
         template<typename Scal, typename I0, typename I1, typename I2>
-        force_inline void axpy(
+        TOOLS_FORCE_INLINE void axpy(
             const I0 n_, cref<Scal> alpha, cptr<Scal> x_, const I1 inc_x_,
                                            mptr<Scal> y_, const I2 inc_y_
         )

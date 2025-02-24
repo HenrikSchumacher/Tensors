@@ -29,7 +29,7 @@ namespace Tensors
             + "," + ToString(nrhs)
             + ")";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         using T = typename std::conditional_t<
             Scalar::ComplexQ<a_T> || Scalar::ComplexQ<X_T>,
@@ -69,7 +69,7 @@ namespace Tensors
                 );
             }
 
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             return;
         }
 
@@ -183,7 +183,7 @@ namespace Tensors
             job_ptr.ThreadCount()
         );
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
         
     }
     

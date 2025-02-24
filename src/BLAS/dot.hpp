@@ -5,7 +5,7 @@ namespace Tensors
     namespace BLAS
     {
         template<typename Scal, typename I0, typename I1, typename I2>
-        [[nodiscard]] force_inline Scal dot(
+        [[nodiscard]] TOOLS_FORCE_INLINE Scal dot(
             const I0 n_, cptr<Scal> x_, const I1 inc_x_,
                          cptr<Scal> y_, const I2 inc_y_
         )

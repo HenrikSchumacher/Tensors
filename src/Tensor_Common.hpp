@@ -198,7 +198,7 @@ public:
     {
         static_assert( Scalar::FloatQ<Scal>, "" );
         
-        ptic("Random");
+        TOOLS_PTIC("Random");
         // This uses std::mt19937_64.
         // Moreover, the pseudorandom number generators are initilized per call.
         // So this is not very efficient.
@@ -215,7 +215,7 @@ public:
         
         std::vector<MT_T> engines;
         
-        ptic("Random - Initialize");
+        TOOLS_PTIC("Random - Initialize");
         for( Int thread = 0; thread < thread_count; ++thread )
         {
             std::generate( seed_array.begin(), seed_array.end(), SD_T() );
@@ -224,7 +224,7 @@ public:
         
             engines.emplace_back( seed );
         }
-        ptoc("Random - Initialize");
+        TOOLS_PTOC("Random - Initialize");
         
         if constexpr (Scalar::RealQ<Scal> )
         {
@@ -267,34 +267,34 @@ public:
            );
         }
         
-        ptoc("Random");
+        TOOLS_PTOC("Random");
     }
 
 protected:
 
-    force_inline void allocate()
+    TOOLS_FORCE_INLINE void allocate()
     {
         safe_alloc( a, ToSize_T(n), Alignment );
     }
 
 public:
 
-    force_inline mptr<Scal> begin()
+    TOOLS_FORCE_INLINE mptr<Scal> begin()
     {
         return a;
     }
 
-    force_inline cptr<Scal> begin() const
+    TOOLS_FORCE_INLINE cptr<Scal> begin() const
     {
         return a;
     }
 
-    force_inline mptr<Scal> end()
+    TOOLS_FORCE_INLINE mptr<Scal> end()
     {
         return &a[n];
     }
 
-    force_inline cptr<Scal> end() const
+    TOOLS_FORCE_INLINE cptr<Scal> end() const
     {
         return &a[n];
     }
@@ -304,24 +304,24 @@ public:
     //    return &dims[0];
     //}
 
-    force_inline cptr<Int> Dimensions() const
+    TOOLS_FORCE_INLINE cptr<Int> Dimensions() const
     {
         return &dims[0];
     }
 
-    force_inline Int Dimension( const Int i ) const
+    TOOLS_FORCE_INLINE Int Dimension( const Int i ) const
     {
         return ( i < Rank() ) ? dims[ToSize_T(i)] : Scalar::Zero<Int>;
     }
 
 public:
 
-    force_inline mptr<Scal> data()
+    TOOLS_FORCE_INLINE mptr<Scal> data()
     {
         return a;
     }
 
-    force_inline cptr<Scal> data() const
+    TOOLS_FORCE_INLINE cptr<Scal> data() const
     {
         return a;
     }
@@ -407,7 +407,7 @@ public:
 
 
     template<typename T, typename I, Size_T align>
-    force_inline mref<TENSOR_T> operator+=( cref<TENSOR_T<T,I,align>> b )
+    TOOLS_FORCE_INLINE mref<TENSOR_T> operator+=( cref<TENSOR_T<T,I,align>> b )
     {
         const Size_T m = Tools::Min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
         
@@ -419,7 +419,7 @@ public:
     }
 
     template<typename T, typename I, Size_T align>
-    force_inline mref<TENSOR_T> operator-=( cref<TENSOR_T<T,I,align>> b )
+    TOOLS_FORCE_INLINE mref<TENSOR_T> operator-=( cref<TENSOR_T<T,I,align>> b )
     {
         const Size_T m = Tools::Min( int_cast<Size_T>(n), int_cast<Size_T>(b.Size()) );
         
@@ -431,7 +431,7 @@ public:
     }
 
     template<class T>
-    force_inline mref<TENSOR_T> operator*=( cref<T> alpha )
+    TOOLS_FORCE_INLINE mref<TENSOR_T> operator*=( cref<T> alpha )
     {
         scale_buffer( alpha, a, n );
         

@@ -139,7 +139,7 @@ namespace Tensors
             
             std::string tag = ClassName() + "::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
             
             relative_tolerance = relative_tolerance_;
             max_restarts       = max_restarts_;
@@ -150,7 +150,7 @@ namespace Tensors
                 wprint( tag + ": use_initial_guessQ == true and b != 0. Typically, this does not make sense." );
             }
             
-            ptic(ClassName()+": Compute norm of right hand side.");
+            TOOLS_PTIC(ClassName()+": Compute norm of right hand side.");
             
             // Compute norms of b.
             x.Read( B_in, ldX, thread_count );
@@ -171,7 +171,7 @@ namespace Tensors
             
             TOL *= relative_tolerance;
             
-            ptoc(ClassName()+": Compute norm of right hand side.");
+            TOOLS_PTOC(ClassName()+": Compute norm of right hand side.");
             
             iter = 0;
             restarts = 0;
@@ -185,7 +185,7 @@ namespace Tensors
                 
                 logprint( Stats() );
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 
                 return succeeded;
             }
@@ -212,7 +212,7 @@ namespace Tensors
                
                 succeeded = true;
                         
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 
                 return succeeded;
             }
@@ -245,7 +245,7 @@ namespace Tensors
             
             WriteSolution( a, b, X_inout, ldX );
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             
             return succeeded;
         }
@@ -264,7 +264,7 @@ namespace Tensors
         {
             std::string tag = ClassName() + "::Solve<" + TypeName<B_T> + ">";
             
-//            ptic(tag);
+//            TOOLS_PTIC(tag);
             
             h.SetZero();
             
@@ -377,7 +377,7 @@ namespace Tensors
                 succ = CheckResiduals();
             }
             
-            ptic(ClassName()+": Solve least squares system.");
+            TOOLS_PTIC(ClassName()+": Solve least squares system.");
             
             Tensor2<Scal,Int> H_mat    (iter,iter);
             Tensor1<Scal,Int> beta_vec (iter);
@@ -406,9 +406,9 @@ namespace Tensors
                 }
             }
             
-            ptoc(ClassName()+": Solve least squares system.");
+            TOOLS_PTOC(ClassName()+": Solve least squares system.");
             
-            ptic(ClassName()+": Synthesize solution.");
+            TOOLS_PTIC(ClassName()+": Synthesize solution.");
             // z = y * Q;
             z.SetZero();
             
@@ -474,9 +474,9 @@ namespace Tensors
 //                );
             }
             
-            ptoc(ClassName()+": Synthesize solution.");
+            TOOLS_PTOC(ClassName()+": Synthesize solution.");
             
-//            ptoc(tag);
+//            TOOLS_PTOC(tag);
             
             return succ;
         }
@@ -491,14 +491,14 @@ namespace Tensors
         {
             if constexpr ( A_verboseQ )
             {
-                ptic(ClassName()+ "::ApplyOperator");
+                TOOLS_PTIC(ClassName()+ "::ApplyOperator");
             }
             
             (void)A( X, Y );
             
             if constexpr ( A_verboseQ )
             {
-                ptoc(ClassName()+ "::ApplyOperator");
+                TOOLS_PTOC(ClassName()+ "::ApplyOperator");
             }
         }
         
@@ -509,21 +509,21 @@ namespace Tensors
         {
             if constexpr ( P_verboseQ )
             {
-                ptic(ClassName()+ "::ApplyPreconditioner");
+                TOOLS_PTIC(ClassName()+ "::ApplyPreconditioner");
             }
             
             (void)P( X, Y );
             
             if constexpr ( P_verboseQ )
             {
-                ptoc(ClassName()+ "::ApplyPreconditioner");
+                TOOLS_PTOC(ClassName()+ "::ApplyPreconditioner");
             }
         }
         
         template<typename Operator_T, typename Preconditioner_T>
         void ArnoldiStep( mref<Operator_T> A, mref<Preconditioner_T> P )
         {
-            ptic(ClassName()+"::ArnoldiStep");
+            TOOLS_PTIC(ClassName()+"::ArnoldiStep");
             
             // Pivot element
             mptr<Scal> q_p = Q.data(iter+1);
@@ -547,7 +547,7 @@ namespace Tensors
             // Several runs of Gram-Schmidt algorithm.
             // Rumor has it that Kahan's "twice is enough" statement states that gram_schmidt_counts does not need to be greater then 2.
             // But gram_schmidt_counts = 1 seems to produce good GMRES solutions, even if Q is not perfectly orthogonalized.
-            ptic(ClassName()+" Gram-Schmidt");
+            TOOLS_PTIC(ClassName()+" Gram-Schmidt");
             
             for( Int gs_iter = 0; gs_iter < gram_schmidt_counts; ++ gs_iter)
             {
@@ -580,7 +580,7 @@ namespace Tensors
                     );
                 }
             }
-            ptoc(ClassName()+" Gram-Schmidt");
+            TOOLS_PTOC(ClassName()+" Gram-Schmidt");
             
             // Residual norms
             ComputeNorms( q_p, q_norms );
@@ -594,12 +594,12 @@ namespace Tensors
             // q /= ||q||;
             InverseScale( q_p, q_norms );
             
-            ptoc(ClassName()+"::ArnoldiStep");
+            TOOLS_PTOC(ClassName()+"::ArnoldiStep");
         }
         
         void ApplyGivensRotations()
         {
-            ptic(ClassName()+"::ApplyGivensRotations");
+            TOOLS_PTIC(ClassName()+"::ApplyGivensRotations");
             
             for( Int i = 0; i < iter; ++ i )
             {
@@ -651,12 +651,12 @@ namespace Tensors
                 }
             }
             
-            ptoc(ClassName()+"::ApplyGivensRotations");
+            TOOLS_PTOC(ClassName()+"::ApplyGivensRotations");
         }
         
         void ComputeNorms( cptr<Scal> v, mref<RealVector_T> norms )
         {
-//            ptic(ClassName()+"::ComputeNorms");
+//            TOOLS_PTIC(ClassName()+"::ComputeNorms");
             
             ParallelDo(
                 [this,v]( const Int thread )
@@ -690,12 +690,12 @@ namespace Tensors
                 norms[k] = Sqrt( norms[k] );
             }
             
-//            ptoc(ClassName()+"::ComputeNorms");
+//            TOOLS_PTOC(ClassName()+"::ComputeNorms");
         }
         
         void ComputeScalarProducts( cptr<Scal> v, cptr<Scal> w, mref<Vector_T> dots )
         {
-//            ptic(ClassName()+"::ComputeScalarProducts");
+//            TOOLS_PTIC(ClassName()+"::ComputeScalarProducts");
             
             ParallelDo(
                 [this,v,w]( const Int thread )
@@ -722,12 +722,12 @@ namespace Tensors
             
             red_buf.AddReduce( dots.data(), false );
             
-//            ptoc(ClassName()+"::ComputeScalarProducts");
+//            TOOLS_PTOC(ClassName()+"::ComputeScalarProducts");
         }
         
         void InverseScale( mptr<Scal> q, const RealVector_T & factors )
         {
-//            ptic(ClassName()+"::InverseScale");
+//            TOOLS_PTIC(ClassName()+"::InverseScale");
             
             ParallelDo(
                 [this,q,&factors]( const Int thread )
@@ -753,7 +753,7 @@ namespace Tensors
                 thread_count
             );
             
-//            ptoc(ClassName()+"::InverseScale");
+//            TOOLS_PTOC(ClassName()+"::InverseScale");
         }
         
     public:

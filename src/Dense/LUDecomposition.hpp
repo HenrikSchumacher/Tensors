@@ -281,20 +281,20 @@ namespace Tensors
                 Scal Y[n][max_rhs] = {{}};
                 
                 // Step 1: Permute B and store it in Y.
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
                     copy_buffer( &B[p[i]*ldB], &Y[i][0], nrhs );
                 }
                 
                 // Step 2: Inplace solve L Y = B
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
-                    LOOP_UNROLL_FULL
+                    TOOLS_LOOP_UNROLL_FULL
                     for( Int j = 0; j < i; ++j )
                     {
-                        LOOP_UNROLL_FULL
+                        TOOLS_LOOP_UNROLL_FULL
                         for( Int k = 0; k < max_rhs; ++k )
                         {
                             Y[i][k] -= LU[i][j] * Y[j][k];
@@ -303,13 +303,13 @@ namespace Tensors
                 }
                 
                 // Step 3: Inplace solve U X = Y.
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = n; i --> 0; )
                 {
-                    LOOP_UNROLL_FULL
+                    TOOLS_LOOP_UNROLL_FULL
                     for( Int j = i+1; j < n; ++j )
                     {
-                        LOOP_UNROLL_FULL
+                        TOOLS_LOOP_UNROLL_FULL
                         for( Int k = 0; k < max_rhs; ++k )
                         {
                             Y[i][k] -= LU[i][j] * Y[j][k];
@@ -318,7 +318,7 @@ namespace Tensors
                     
                     const Scal U_ii_inv = Inv( LU[i][i] );
                     
-                    LOOP_UNROLL_FULL
+                    TOOLS_LOOP_UNROLL_FULL
                     for( Int k = 0; k < max_rhs; ++k )
                     {
                         Y[i][k] *= U_ii_inv;
@@ -326,7 +326,7 @@ namespace Tensors
                 }
                 
                 // Step 4: Write result.
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
                     copy_buffer( &Y[i][0],  &X[i*ldX], nrhs);
@@ -346,17 +346,17 @@ namespace Tensors
                 Tiny::VectorList<n,Scal,Int> Y (nrhs);
                 
                 // Step 1: Permute B and store it in Y.
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
                     copy_buffer( &B[p[i]*ldB], &Y[i][0], nrhs );
                 }
                 
                 // Step 2: Inplace solve L Y = B
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
-                    LOOP_UNROLL_FULL
+                    TOOLS_LOOP_UNROLL_FULL
                     for( Int j = 0; j < i; ++j )
                     {
                         for( Int k = 0; k < nrhs; ++k )
@@ -367,7 +367,7 @@ namespace Tensors
                 }
                 
                 // Step 3: Inplace solve U X = Y.
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = n; i --> 0; )
                 {
                     for( Int j = i+1; j < n; ++j )
@@ -387,7 +387,7 @@ namespace Tensors
                 }
                 
                 // Step 4: Write result.
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
                     copy_buffer( &Y[i][0], &X[i*ldX], nrhs );
@@ -399,26 +399,26 @@ namespace Tensors
             template<typename T>
             void Factorize( cptr<T> A_, const Int ldA )
             {
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
                     copy_buffer( &A_[ldA*i], &LU[i][0], n );
                 }
                 
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
                     p[i] = i;
                 }
                 
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int k = 0; k < n-1; ++k )
                 {
                     // Find pivot index r = argmax |A[i][k]|, i = k,...,n.
                     Int r = k;
                     
                     Scal a = Abs(LU[k][k]);
-                    LOOP_UNROLL_FULL
+                    TOOLS_LOOP_UNROLL_FULL
                     for( Int i = k+1; i < n; ++i )
                     {
                         const Scal b = Abs(LU[i][k]);
@@ -439,12 +439,12 @@ namespace Tensors
                     
                     const Scal LU_kk_inv = Inv( LU[k][k] );
                     
-                    LOOP_UNROLL_FULL
+                    TOOLS_LOOP_UNROLL_FULL
                     for( Int i = k+1; i < n; ++i )
                     {
                         LU[i][k] *= LU_kk_inv;
                         
-                        LOOP_UNROLL_FULL
+                        TOOLS_LOOP_UNROLL_FULL
                         for( Int j = k+1; j < n; ++j )
                         {
                             LU[i][j] -= LU[i][k] * LU[k][j];
@@ -456,7 +456,7 @@ namespace Tensors
             template<typename T>
             void WriteFactors( mptr<T> A_, const Int ldA ) const
             {
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
                     copy_buffer( &LU[i][0], &A_[ldA*i], n );
@@ -472,7 +472,7 @@ namespace Tensors
             template<typename T>
             void ReadFactors( cptr<T> A_, const Int ldA )
             {
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < n; ++i )
                 {
                     copy_buffer( &A_[ldA*i], &LU[i][0], n );

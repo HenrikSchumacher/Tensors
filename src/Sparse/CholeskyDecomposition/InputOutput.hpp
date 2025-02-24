@@ -14,7 +14,7 @@ public:
         
         const std::string tag = ClassName() + "::ReadRightHandSide<" + TypeName<B_T> + ">(" + ToString(nrhs)+ ")";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         LInt full_size = static_cast<LInt>(n) * static_cast<LInt>(nrhs);
         
@@ -34,7 +34,7 @@ public:
             Inverse::False, nrhs
         );
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
     template<typename X_T>
@@ -42,11 +42,11 @@ public:
     {
         const std::string tag = ClassName() + "::WriteSolution<" + TypeName<X_T> + "> (" + ToString(nrhs)+ ")";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True, nrhs );
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
     template<Size_T NRHS = VarSize, typename a_T, typename b_T, typename Y_T>
@@ -61,7 +61,7 @@ public:
             + "," + TypeName<Y_T>
             + ">(" + ToString(nrhs)+ ")";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         if ( nrhs == ione )
         {
@@ -80,7 +80,7 @@ public:
             );
         }
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
 

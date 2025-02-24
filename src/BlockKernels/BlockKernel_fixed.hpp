@@ -135,7 +135,7 @@ namespace Tensors
         
         
         
-        force_inline Int ColsSize() const
+        TOOLS_FORCE_INLINE Int ColsSize() const
         {
             if constexpr ( fixed )
             {
@@ -147,7 +147,7 @@ namespace Tensors
             }
         }
     
-        force_inline Int RowsSize() const
+        TOOLS_FORCE_INLINE Int RowsSize() const
         {
             if constexpr ( fixed )
             {
@@ -159,7 +159,7 @@ namespace Tensors
             }
         }
 
-        force_inline Int RhsCount() const
+        TOOLS_FORCE_INLINE Int RhsCount() const
         {
             if constexpr ( fixed )
             {
@@ -171,7 +171,7 @@ namespace Tensors
             }
         }
         
-        force_inline void FMA( cref<Scal> a, cref<Scal> b, mref<Scal> c ) const
+        TOOLS_FORCE_INLINE void FMA( cref<Scal> a, cref<Scal> b, mref<Scal> c ) const
         {
             if constexpr ( use_fma )
             {
@@ -183,7 +183,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ReadX( const Int j_global )
+        TOOLS_FORCE_INLINE void ReadX( const Int j_global )
         {
             if constexpr ( x_copy )
             {
@@ -199,10 +199,10 @@ namespace Tensors
                         }
                         else
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                LOOP_UNROLL_FULL
+                                TOOLS_LOOP_UNROLL_FULL
                                 for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                                 {
                                     x[j][k] = static_cast<Scal>( x_from[(fixed ? NRHS : nrhs)*j+k] );
@@ -212,10 +212,10 @@ namespace Tensors
                     }
                     else
                     {
-                        LOOP_UNROLL_FULL
+                        TOOLS_LOOP_UNROLL_FULL
                         for( Int j = 0; j < COLS; ++j )
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                             {
                                 x[k][j] = static_cast<Scal>( x_from[(fixed ? NRHS : nrhs)*j+k] );
@@ -227,10 +227,10 @@ namespace Tensors
                 {
                     if constexpr ( x_intRM )
                     {
-                        LOOP_UNROLL_FULL
+                        TOOLS_LOOP_UNROLL_FULL
                         for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
                                 x[j][k] = static_cast<Scal>( x_from[COLS*k+j] );
@@ -250,7 +250,7 @@ namespace Tensors
             }
         }
         
-        force_inline void Prefetch( const LInt k_global, const Int j_next )
+        TOOLS_FORCE_INLINE void Prefetch( const LInt k_global, const Int j_next )
         {
             (void)k_global;
             
@@ -273,7 +273,7 @@ namespace Tensors
             // The buffer A is accessed in-order; thus we can rely on the CPU's prefetcher.
         }
         
-        force_inline Scal_out get_cast_y( const Int i, const Int k ) const
+        TOOLS_FORCE_INLINE Scal_out get_cast_y( const Int i, const Int k ) const
         {
             if constexpr ( y_intRM )
             {
@@ -285,7 +285,7 @@ namespace Tensors
             }
         }
         
-        force_inline mref<Scal> get_y( const Int i, const Int k )
+        TOOLS_FORCE_INLINE mref<Scal> get_y( const Int i, const Int k )
         {
             if constexpr ( y_intRM )
             {
@@ -297,7 +297,7 @@ namespace Tensors
             }
         }
         
-//        force_inline Scal get_cast_x( const Int j, const Int k )
+//        TOOLS_FORCE_INLINE Scal get_cast_x( const Int j, const Int k )
 //        {
 //            if constexpr ( x_intRM )
 //            {
@@ -309,7 +309,7 @@ namespace Tensors
 //            }
 //        }
         
-        force_inline Scal get_x( const Int j, const Int k )
+        TOOLS_FORCE_INLINE Scal get_x( const Int j, const Int k )
         {
             if constexpr ( x_copy )
             {
@@ -336,14 +336,14 @@ namespace Tensors
         }
         
         
-        force_inline void CleanseY()
+        TOOLS_FORCE_INLINE void CleanseY()
         {
             // Clear the local vector chunk of the kernel.
 //            zerofy_buffer<ROWS_SIZE>( &y[0][0] );
             y.SetZero();
         }
         
-        force_inline void WriteY( const Int i_global ) const
+        TOOLS_FORCE_INLINE void WriteY( const Int i_global ) const
         {
             mptr<Scal_out> y_to = &Y[ RowsSize() * i_global];
             
@@ -560,7 +560,7 @@ namespace Tensors
             }
         }
         
-        force_inline void WriteYZero( const Int i_global ) const
+        TOOLS_FORCE_INLINE void WriteYZero( const Int i_global ) const
         {
             // CAUTION! We cannot use i_global here because BeginRow() has not been in an empty row!
             mptr<Scal_out> y_to = &Y[ RowsSize() * i_global ];

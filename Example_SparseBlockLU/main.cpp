@@ -53,8 +53,8 @@ int main(int argc, const char * argv[])
         path / (name + "_Matrix.txt"), thread_count
     );
 
-    dump(A.RowCount());
-    dump(A.NonzeroCount());
+    TOOLS_DUMP(A.RowCount());
+    TOOLS_DUMP(A.NonzeroCount());
 
     const Int n = A.RowCount();
 
@@ -104,14 +104,14 @@ int main(int argc, const char * argv[])
 //    
 //    S.WriteBlock(0,0,block.data());
 //    
-//    dump(block);
+//    TOOLS_DUMP(block);
     
     print("");
     
     
 //    S.WriteBlock(0,2,block.data());
     
-//    dump(block);
+//    TOOLS_DUMP(block);
     
     print("");
 

@@ -19,8 +19,8 @@ public:
         if( (NRHS > VarSize) && ( nrhs != NRHS ) )
         {
             eprint( ClassName() + "Multiply_DenseMatrix: nrhs != NRHS. Doing nothing." );
-            dump(NRHS);
-            dump(nrhs);
+            TOOLS_DUMP(NRHS);
+            TOOLS_DUMP(nrhs);
             
             return;
         }

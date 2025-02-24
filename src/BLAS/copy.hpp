@@ -5,7 +5,7 @@ namespace Tensors
     namespace BLAS
     {
         template<typename Scal, typename I0, typename I1, typename I2>
-        force_inline void copy(
+        TOOLS_FORCE_INLINE void copy(
             const I0 n_, cptr<Scal> x_, const I1 inc_x_,
                          mptr<Scal> y_, const I2 inc_y_
         )

@@ -112,17 +112,17 @@ namespace Tensors
             return BLOCK_NNZ;
         }
                 
-        force_inline void TransposeBlock( const LInt from, const LInt to ) const
+        TOOLS_FORCE_INLINE void TransposeBlock( const LInt from, const LInt to ) const
         {
             cptr<Scal> a_from_ = &A[ BLOCK_NNZ * from];
             mptr<Scal> a_to_   = &A[ BLOCK_NNZ * to  ];
             
             if constexpr ( a_RM )
             {
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int j = 0; j < COLS; ++j )
                 {
-                    LOOP_UNROLL_FULL
+                    TOOLS_LOOP_UNROLL_FULL
                     for( Int i = 0; i < ROWS; ++i )
                     {
                         a_to_[ROWS * j + i ] = a_from_[COLS * i + j ];
@@ -131,10 +131,10 @@ namespace Tensors
             }
             else
             {
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 0; i < ROWS; ++i )
                 {
-                    LOOP_UNROLL_FULL
+                    TOOLS_LOOP_UNROLL_FULL
                     for( Int j = 0; j < COLS; ++j )
                     {
                         a_to_[COLS * i + j] = a_from_[ROWS * j + i];
@@ -143,7 +143,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ReadA( const LInt k_global )
+        TOOLS_FORCE_INLINE void ReadA( const LInt k_global )
         {
             // Read matrix.
             if constexpr ( a_copy )
@@ -165,7 +165,7 @@ namespace Tensors
             }
         }
         
-        force_inline Scal get_a( const Int i, const Int j ) const
+        TOOLS_FORCE_INLINE Scal get_a( const Int i, const Int j ) const
         {
             if constexpr ( a_copy )
             {
@@ -191,7 +191,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ApplyBlock( const LInt k_global, const Int j_global )
+        TOOLS_FORCE_INLINE void ApplyBlock( const LInt k_global, const Int j_global )
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );
@@ -213,13 +213,13 @@ namespace Tensors
                     {
                         case 0:
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                LOOP_UNROLL_FULL
+                                TOOLS_LOOP_UNROLL_FULL
                                 for( Int j = 0; j < COLS; ++j )
                                 {
-                                    LOOP_UNROLL_FULL
+                                    TOOLS_LOOP_UNROLL_FULL
                                     for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -230,13 +230,13 @@ namespace Tensors
                         }
                         case 1:
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int i = 0; i < ROWS; ++i )
                             {
-                                LOOP_UNROLL_FULL
+                                TOOLS_LOOP_UNROLL_FULL
                                 for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                                 {
-                                    LOOP_UNROLL_FULL
+                                    TOOLS_LOOP_UNROLL_FULL
                                     for( Int j = 0; j < COLS; ++j )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -247,13 +247,13 @@ namespace Tensors
                         }
                         case 2:
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                LOOP_UNROLL_FULL
+                                TOOLS_LOOP_UNROLL_FULL
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
-                                    LOOP_UNROLL_FULL
+                                    TOOLS_LOOP_UNROLL_FULL
                                     for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -264,13 +264,13 @@ namespace Tensors
                         }
                         case 3:
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int j = 0; j < COLS; ++j )
                             {
-                                LOOP_UNROLL_FULL
+                                TOOLS_LOOP_UNROLL_FULL
                                 for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                                 {
-                                    LOOP_UNROLL_FULL
+                                    TOOLS_LOOP_UNROLL_FULL
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -281,13 +281,13 @@ namespace Tensors
                         }
                         case 4:
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                             {
-                                LOOP_UNROLL_FULL
+                                TOOLS_LOOP_UNROLL_FULL
                                 for( Int i = 0; i < ROWS; ++i )
                                 {
-                                    LOOP_UNROLL_FULL
+                                    TOOLS_LOOP_UNROLL_FULL
                                     for( Int j = 0; j < COLS; ++j )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);
@@ -298,13 +298,13 @@ namespace Tensors
                         }
                         case 5:
                         {
-                            LOOP_UNROLL_FULL
+                            TOOLS_LOOP_UNROLL_FULL
                             for( Int k = 0; k < (fixed ? NRHS : nrhs); ++k )
                             {
-                                LOOP_UNROLL_FULL
+                                TOOLS_LOOP_UNROLL_FULL
                                 for( Int j = 0; j < COLS; ++j )
                                 {
-                                    LOOP_UNROLL_FULL
+                                    TOOLS_LOOP_UNROLL_FULL
                                     for( Int i = 0; i < ROWS; ++i )
                                     {
                                         get_y(i,k) += get_a(i,j) * get_x(j,k);

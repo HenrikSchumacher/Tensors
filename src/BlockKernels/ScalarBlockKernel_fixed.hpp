@@ -89,21 +89,21 @@ namespace Tensors
             return BLOCK_NNZ;
         }
                 
-        force_inline void TransposeBlock( const LInt from, const LInt to ) const
+        TOOLS_FORCE_INLINE void TransposeBlock( const LInt from, const LInt to ) const
         {
             A[BLOCK_NNZ * to] = A[BLOCK_NNZ * from];
         }
         
-        force_inline void ApplyBlock( const LInt k_global, const Int j_global )
+        TOOLS_FORCE_INLINE void ApplyBlock( const LInt k_global, const Int j_global )
         {
             ReadX( j_global );
 
             const Scal a = A_const[BLOCK_NNZ * k_global];
             
-            LOOP_UNROLL_FULL
+            TOOLS_LOOP_UNROLL_FULL
             for( Int j = 0; j < COLS; ++j )
             {
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int k = 0; k < NRHS; ++k )
                 {
                     FMA( a, get_x(j,k), get_y(j,k) );

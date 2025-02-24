@@ -51,7 +51,7 @@ namespace Tensors
             {}
             
             
-            force_inline void SetZero()
+            TOOLS_FORCE_INLINE void SetZero()
             {
                 zerofy_buffer<n  >( &diag[0]  );
                 zerofy_buffer<n-1>( &upper[0] );
@@ -62,33 +62,33 @@ namespace Tensors
 ///######################################################
             
             
-            force_inline mref<Real> Diag( const Int i )
+            TOOLS_FORCE_INLINE mref<Real> Diag( const Int i )
             {
                 return diag[i];
             }
             
-            force_inline cref<Real> Diag( const Int i ) const
+            TOOLS_FORCE_INLINE cref<Real> Diag( const Int i ) const
             {
                 return diag[i];
             }
             
-            force_inline mref<Scal> Upper( const Int i )
+            TOOLS_FORCE_INLINE mref<Scal> Upper( const Int i )
             {
                 return upper[i];
             }
             
-            force_inline cref<Scal> Upper( const Int i ) const
+            TOOLS_FORCE_INLINE cref<Scal> Upper( const Int i ) const
             {
                 return upper[i];
             }
             
-            force_inline Scal Lower( const Int i )
+            TOOLS_FORCE_INLINE Scal Lower( const Int i )
             {
                 return Conj(upper[i]);
             }
             
             
-            force_inline friend SelfAdjointTridiagonalMatrix operator+( const SelfAdjointTridiagonalMatrix & x, const SelfAdjointTridiagonalMatrix & y )
+            TOOLS_FORCE_INLINE friend SelfAdjointTridiagonalMatrix operator+( const SelfAdjointTridiagonalMatrix & x, const SelfAdjointTridiagonalMatrix & y )
             {
                 SelfAdjointTridiagonalMatrix z;
                 for( Int i = 0; i < n; ++i )
@@ -103,13 +103,13 @@ namespace Tensors
                 return z;
             }
             
-            force_inline mref<SelfAdjointTridiagonalMatrix> operator+=( const SelfAdjointTridiagonalMatrix & B )
+            TOOLS_FORCE_INLINE mref<SelfAdjointTridiagonalMatrix> operator+=( const SelfAdjointTridiagonalMatrix & B )
             {
                 add_to_buffer<n>  ( &B.diag[0],  &diag[0]       );
                 add_to_buffer<n-1>( &B.upper[0], &diag.upper[0] );
             }
             
-            force_inline void Dot( const Vector_T & x, Vector_T & y ) const
+            TOOLS_FORCE_INLINE void Dot( const Vector_T & x, Vector_T & y ) const
             {
                 if constexpr ( n >= 1 )
                 {
@@ -171,7 +171,7 @@ namespace Tensors
         public:
             
             template<typename S>
-            force_inline std::enable_if_t<Scalar::RealQ<Scal>,void >
+            TOOLS_FORCE_INLINE std::enable_if_t<Scalar::RealQ<Scal>,void >
             QRAlgorithm(
                 mref<Matrix<n,n,S,Int>> & Q_result,
                 mref<Vector<n,  S,Int>> & eigs,
@@ -216,7 +216,7 @@ namespace Tensors
             }
             
             template<typename S>
-            force_inline std::enable_if_t<Scalar::RealQ<Scal>, void>
+            TOOLS_FORCE_INLINE std::enable_if_t<Scalar::RealQ<Scal>, void>
             QRAlgorithm(
                 mref<Vector<n,S,Int>> & eigs,
                 const Real tol = eps_sqrt,
@@ -252,7 +252,7 @@ namespace Tensors
         public:
             
             template<bool track_rotationsQ = true>
-            force_inline std::enable_if_t<Scalar::RealQ<Scal>, void >
+            TOOLS_FORCE_INLINE std::enable_if_t<Scalar::RealQ<Scal>, void >
             qr_find_blocks( 
                 const Int begin, const Int end, const Real tol, const Int max_iter,
                 const bool first_call
@@ -286,10 +286,10 @@ namespace Tensors
                     {
                         wprint( ClassName() +"::qr_find_blocks was not able to deflate the current block. Skipping this block. Expect errors in the eigensystem." );
 
-                        dump(diag);
-                        dump(upper);
-                        dump(a);
-                        dump(b);
+                        TOOLS_DUMP(diag);
+                        TOOLS_DUMP(upper);
+                        TOOLS_DUMP(a);
+                        TOOLS_DUMP(b);
                         
                         return;
                     }
@@ -309,7 +309,7 @@ namespace Tensors
             
             
             template<bool track_rotationsQ = true>
-            force_inline std::enable_if_t< Scalar::RealQ<Scal>, void >
+            TOOLS_FORCE_INLINE std::enable_if_t< Scalar::RealQ<Scal>, void >
             qr_iteration_2x2( const Int k )
             {
                 const Real a_0 = diag [k  ];
@@ -351,7 +351,7 @@ namespace Tensors
             }
             
             template<bool track_rotationsQ = true>
-            force_inline std::enable_if_t<Scalar::RealQ<Scal>, void >
+            TOOLS_FORCE_INLINE std::enable_if_t<Scalar::RealQ<Scal>, void >
             qr_iteration( 
                 const Int begin, const Int end, const Real tol, const Int iter, const Int max_iter
             )

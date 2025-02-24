@@ -105,7 +105,7 @@ namespace Tensors
         ,   X         ( other.X           )
         ,   beta      ( other.beta        )
         ,   Y         ( other.Y           )
-        ,   nrhs      ( other.nrhs_       )
+        ,   nrhs      ( other.nrhs        )
         ,   rows_size ( other.rows_size   )
         ,   cols_size ( other.cols_size   )
         {}
@@ -130,27 +130,27 @@ namespace Tensors
             return RhsCount();
         }
         
-        force_inline Int ColsSize() const
+        TOOLS_FORCE_INLINE Int ColsSize() const
         {
             return COLS_SIZE;
         }
     
-        force_inline Int RowsSize() const
+        TOOLS_FORCE_INLINE Int RowsSize() const
         {
             return ROWS_SIZE;
         }
 
-        force_inline Int RhsCount() const
+        TOOLS_FORCE_INLINE Int RhsCount() const
         {
             return NRHS;
         }
         
-        force_inline void ReadX( const Int j_global ) const
+        TOOLS_FORCE_INLINE void ReadX( const Int j_global ) const
         {
             x.template Read<opX>( &X[COLS_SIZE * j_global] );
         }
         
-        force_inline void Prefetch( const LInt k_global, const Int j_next ) const
+        TOOLS_FORCE_INLINE void Prefetch( const LInt k_global, const Int j_next ) const
         {
             (void)k_global;
             
@@ -167,13 +167,13 @@ namespace Tensors
         }
         
         
-        force_inline void CleanseY() const
+        TOOLS_FORCE_INLINE void CleanseY() const
         {
             // Clear the local m x NRHS chunk of y.
             y.SetZero();
         }
         
-        force_inline void WriteY( const Int i_global ) const
+        TOOLS_FORCE_INLINE void WriteY( const Int i_global ) const
         {
             // Write the local m x NRHS chunk y to destination in Y.
             y.template Write<alpha_flag,beta_flag,opY,Op::Id>(
@@ -181,7 +181,7 @@ namespace Tensors
             );
         }
         
-        force_inline void WriteYZero( const Int i_global ) const
+        TOOLS_FORCE_INLINE void WriteYZero( const Int i_global ) const
         {
             // We don't have to transpose, thus we use Op::Id instead of opY.
             y.template Write<Zero,beta_flag,Op::Id,Op::Id>(

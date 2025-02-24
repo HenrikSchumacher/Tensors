@@ -8,7 +8,7 @@ public:
 
         if( ! eTree_initialized )
         {
-            ptic(ClassName()+"::EliminationTree");
+            TOOLS_PTIC(ClassName()+"::EliminationTree");
 
             // See Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
             // See Scott, Tuma - Algorithms for Sparse Linear Systems, Algorithm 4.2
@@ -64,7 +64,7 @@ public:
 
             eTree_initialized = true;
 
-            ptoc(ClassName()+"::EliminationTree");
+            TOOLS_PTOC(ClassName()+"::EliminationTree");
         }
 
         return eTree;

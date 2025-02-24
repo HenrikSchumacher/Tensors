@@ -60,14 +60,14 @@ public:
         {
             eprint(ClassName()+"::PrintCheckList: There are are " + ToString(not_visited.size()) + " unvisited nodes.");
             
-            dump(not_visited);
+            TOOLS_DUMP(not_visited);
         }
         
         if( multiply_visited.size() > 0 )
         {
             eprint(ClassName()+"::PrintCheckList: There are are " + ToString(multiply_visited.size()) + " multiply visited nodes.");
             
-            dump(multiply_visited);
+            TOOLS_DUMP(multiply_visited);
         }
         
         return (not_visited.size() == Size_T(0)) && (multiply_visited.size() == Size_T(0));
@@ -85,7 +85,7 @@ public:
 
     bool Traverse_Postordered_Test() const
     {
-        ptic(ClassName()+"::Traverse_Postordered_Test");
+        TOOLS_PTIC(ClassName()+"::Traverse_Postordered_Test");
         AllocateCheckList();
 
         std::vector<std::unique_ptr<DebugWorker>> workers (thread_count );
@@ -112,7 +112,7 @@ public:
             eprint(ClassName()+"::Traverse_Postordered_Test failed.");
         }
         
-        ptoc(ClassName()+"::Traverse_Postordered_Test");
+        TOOLS_PTOC(ClassName()+"::Traverse_Postordered_Test");
         
         return succeededQ;
     }
@@ -121,7 +121,7 @@ public:
 
     bool Traverse_Preordered_Test() const
     {
-        ptic(ClassName()+"::Traverse_Preordered_Test");
+        TOOLS_PTIC(ClassName()+"::Traverse_Preordered_Test");
         AllocateCheckList();
 
         std::vector<std::unique_ptr<DebugWorker>> workers (thread_count );
@@ -148,7 +148,7 @@ public:
             eprint(ClassName()+"::Traverse_Preordered_Test failed.");
         }
         
-        ptoc(ClassName()+"::Traverse_Preordered_Test");
+        TOOLS_PTOC(ClassName()+"::Traverse_Preordered_Test");
         
         return succeededQ;
     }

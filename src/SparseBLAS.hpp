@@ -11,8 +11,8 @@ namespace Tensors
         
         explicit SparseBLAS()
         {
-//            ptic("SparseBLAS()");
-//            ptoc("SparseBLAS()");
+//            TOOLS_PTIC("SparseBLAS()");
+//            TOOLS_PTOC("SparseBLAS()");
         }
         
         ~SparseBLAS() = default;

@@ -31,7 +31,7 @@ template<typename a_T, typename X_T, typename b_T, typename Y_T, typename Scalar
         +TypeName<b_T>+","
         +TypeName<Y_T>+">";
         
-    ptic(tag);
+    TOOLS_PTIC(tag);
     const Y_T alpha_ = static_cast<Y_T>(alpha);
     const Y_T beta_  = static_cast<Y_T>(beta);
         
@@ -56,7 +56,7 @@ template<typename a_T, typename X_T, typename b_T, typename Y_T, typename Scalar
             }
         }
     }
-    ptoc(tag);
+    TOOLS_PTOC(tag);
 }
 
 template<
@@ -152,7 +152,7 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
     {
         ineff_count++;
         wprint("Performance issue in "+s+".");
-        dump(seq_speedup);
+        TOOLS_DUMP(seq_speedup);
     }
     
     logprint("");
@@ -167,10 +167,10 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
         + "," + TypeName<Int>
         + "," + TypeName<LInt>+
         + ">");
-    pdump(m);
-    pdump(n);
-    pdump(nnz);
-    pdump(cols);
+    TOOLS_PDUMP(m);
+    TOOLS_PDUMP(n);
+    TOOLS_PDUMP(nnz);
+    TOOLS_PDUMP(cols);
     
     Tensor1<Int ,LInt> idx (nnz);
     Tensor1<Int ,LInt> jdx (nnz);
@@ -240,12 +240,12 @@ int main( int argc, const char * argv[] )
         (static_cast<double>(m) * static_cast<double>(m)) * 0.0001
     );
 
-    dump(m);
-    dump(n);
-    dump(nnz);
+    TOOLS_DUMP(m);
+    TOOLS_DUMP(n);
+    TOOLS_DUMP(nnz);
 
     std::vector<Int> col_list {1,12};
-    ptic("Testing");
+    TOOLS_PTIC("Testing");
     for( Int cols : col_list )
     {
         logvalprint("cols",cols);
@@ -257,7 +257,7 @@ int main( int argc, const char * argv[] )
 
         logprint("");
     }
-    ptoc("Testing");
+    TOOLS_PTOC("Testing");
 
     logvalprint("Total error count", error_count);
     logvalprint("Total ineff count", ineff_count);

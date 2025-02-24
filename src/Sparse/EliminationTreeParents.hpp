@@ -25,7 +25,7 @@ namespace Tensors
                 + "," + TypeName<LInt>
                 + ">";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
 
             // I want to make it possible to use unsigned integer types for Int.
             // Hence using -1 as "no_element" is not an option.
@@ -63,7 +63,7 @@ namespace Tensors
                 }
             }
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
         }
         
         
@@ -86,7 +86,7 @@ namespace Tensors
                 + "," + ToString(checkQ)
                 + ">";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
 
             // I want to make it possible to use unsigned integer types for Int.
             // Hence using -1 as "no_element" is not an option.
@@ -110,14 +110,14 @@ namespace Tensors
                     if( p_k < 0 )
                     {
                         eprint( tag + ": perm[" + ToString(k) + "] < 0.");
-                        ptoc(tag);
+                        TOOLS_PTOC(tag);
                         return false;
                     }
                     
                     if( p_k > n )
                     {
                         eprint( tag + ": perm[" + ToString(k) + "] > " + ToString(n) + ".");
-                        ptoc(tag);
+                        TOOLS_PTOC(tag);
                         return false;
                     }
                 }
@@ -142,14 +142,14 @@ namespace Tensors
                         if( q_j < 0 )
                         {
                             eprint( tag + ": perm_inv[" + ToString(j) + "] < 0.");
-                            ptoc("Sparse::PermutedEliminationTreeParents");
+                            TOOLS_PTOC("Sparse::PermutedEliminationTreeParents");
                             return false;
                         }
                         
                         if( q_j > n )
                         {
                             eprint(tag  + ": perm_inv[" + ToString(j) + "] > " + ToString(n) + ".");
-                            ptoc(tag);
+                            TOOLS_PTOC(tag);
                             return false;
                         }
                     }
@@ -179,7 +179,7 @@ namespace Tensors
                 }
             }
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             
             return true;
         }
@@ -203,7 +203,7 @@ namespace Tensors
                 + "<" + TypeName<Int>
                 + ">";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
             
             fill_buffer( descendant_counts, Int(1), n+1 );
             
@@ -214,7 +214,7 @@ namespace Tensors
                 
                 if( i >= p_i )
                 {
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return false;
                 }
                 
@@ -231,12 +231,12 @@ namespace Tensors
                 
                 if( i + descendant_counts[p_i] < p_i + descendant_counts[i]  )
                 {
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return false;
                 }
             }
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             
             return true;
         }

@@ -25,7 +25,7 @@ namespace Tensors
             typename alpha_T, typename beta_T,
             typename A_T, typename B_T, typename C_T
         >
-        force_inline void gemm(
+        TOOLS_FORCE_INLINE void gemm(
             const Size_T m, const Size_T n, const Size_T k,
             cref<alpha_T> alpha, cptr<A_T> A, const Size_T ldA,
                                  cptr<B_T> B, const Size_T ldB,

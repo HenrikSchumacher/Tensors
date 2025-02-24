@@ -49,8 +49,8 @@ int main(int argc, const char * argv[])
     
     Profiler::Clear();
     
-    dump( A.RowCount() );
-    dump( A.ColCount() );
+    TOOLS_DUMP( A.RowCount() );
+    TOOLS_DUMP( A.ColCount() );
     
     Sparse::MatrixCSR<Real,Int,Size_T> Re_A(
         A.RowCount(), A.ColCount(), A.NonzeroCount(), thread_count
@@ -72,13 +72,13 @@ int main(int argc, const char * argv[])
         Im_A.Value(i) = Im( A.Value(i) );
     }
     
-    dump( Re_A.Value(0) );
-    dump( Re_A.Value(1) );
-    dump( Re_A.Value(2) );
+    TOOLS_DUMP( Re_A.Value(0) );
+    TOOLS_DUMP( Re_A.Value(1) );
+    TOOLS_DUMP( Re_A.Value(2) );
     
-    dump( Im_A.Value(0) );
-    dump( Im_A.Value(1) );
-    dump( Im_A.Value(2) );
+    TOOLS_DUMP( Im_A.Value(0) );
+    TOOLS_DUMP( Im_A.Value(1) );
+    TOOLS_DUMP( Im_A.Value(2) );
     
     
     print("");
@@ -115,29 +115,29 @@ int main(int argc, const char * argv[])
         }
     }
     
-    dump( Re_X[0][0] );
-    dump( Re_X[0][1] );
-    dump( Re_X[0][2] );
+    TOOLS_DUMP( Re_X[0][0] );
+    TOOLS_DUMP( Re_X[0][1] );
+    TOOLS_DUMP( Re_X[0][2] );
     
-    dump( Im_X[0][0] );
-    dump( Im_X[0][1] );
-    dump( Im_X[0][2] );
+    TOOLS_DUMP( Im_X[0][0] );
+    TOOLS_DUMP( Im_X[0][1] );
+    TOOLS_DUMP( Im_X[0][2] );
     
     
     tic("Complex interleaved dot");
-    ptic("Complex interleaved dot");
+    TOOLS_PTIC("Complex interleaved dot");
     A.Dot<NRHS>(
         Scalar::One <Complex>, X.data(), NRHS,
         Scalar::Zero<Complex>, Y.data(), NRHS,
         NRHS
     );
-    ptoc("Complex interleaved dot");
+    TOOLS_PTOC("Complex interleaved dot");
     toc("Complex interleaved dot");
     
     
     
     tic("Complex vectorized dot");
-    ptic("Complex vectorized dot");
+    TOOLS_PTIC("Complex vectorized dot");
     Re_A.Dot<NRHS>(
         Scalar::One <Real>, Re_X.data(), NRHS,
         Scalar::Zero<Real>, Re_Y.data(), NRHS,
@@ -149,13 +149,13 @@ int main(int argc, const char * argv[])
         NRHS
     );
 //    
-//    dump( Re_Y[0][0] );
-//    dump( Re_Y[0][1] );
-//    dump( Re_Y[0][2] );
+//    TOOLS_DUMP( Re_Y[0][0] );
+//    TOOLS_DUMP( Re_Y[0][1] );
+//    TOOLS_DUMP( Re_Y[0][2] );
 //    
-//    dump( Im_Y[0][0] );
-//    dump( Im_Y[0][1] );
-//    dump( Im_Y[0][2] );
+//    TOOLS_DUMP( Im_Y[0][0] );
+//    TOOLS_DUMP( Im_Y[0][1] );
+//    TOOLS_DUMP( Im_Y[0][2] );
 //    
     Im_A.Dot<NRHS>(
         -Scalar::One<Real>, Im_X.data(), NRHS,
@@ -167,17 +167,17 @@ int main(int argc, const char * argv[])
         Scalar::One<Real>, Im_Y.data(), NRHS,
         NRHS
     );
-    ptoc("Complex vectorized dot");
+    TOOLS_PTOC("Complex vectorized dot");
     toc("Complex vectorized dot");
 
     
-    dump( Y[0][0] );
-    dump( Y[0][1] );
-    dump( Y[0][2] );
+    TOOLS_DUMP( Y[0][0] );
+    TOOLS_DUMP( Y[0][1] );
+    TOOLS_DUMP( Y[0][2] );
     
-    dump( Complex( Re_Y[0][0], Im_Y[0][0] ) );
-    dump( Complex( Re_Y[0][1], Im_Y[0][1] ) );
-    dump( Complex( Re_Y[0][2], Im_Y[0][2] ) );
+    TOOLS_DUMP( Complex( Re_Y[0][0], Im_Y[0][0] ) );
+    TOOLS_DUMP( Complex( Re_Y[0][1], Im_Y[0][1] ) );
+    TOOLS_DUMP( Complex( Re_Y[0][2], Im_Y[0][2] ) );
     
 }
 

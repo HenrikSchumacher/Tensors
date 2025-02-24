@@ -76,9 +76,9 @@ namespace Tensors
             }
             
             
-            ptic("METIS_NodeND");
+            TOOLS_PTIC("METIS_NodeND");
             METIS_NodeND(&n, rp_ptr, ci_ptr, &num_flag, &opts[0], perm_ptr, iperm_ptr );
-            ptic("METIS_NodeND");
+            TOOLS_PTIC("METIS_NodeND");
             
             if constexpr ( !SameQ<idx_t,Int> )
             {

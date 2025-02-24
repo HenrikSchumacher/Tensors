@@ -29,9 +29,9 @@ int main(int argc, const char * argv[])
 //    const Int reps = 1000000;
     const Int reps = 1;
     
-    dump(n);
-    dump(reps);
-    dump(TypeName<Scal>);
+    TOOLS_DUMP(n);
+    TOOLS_DUMP(reps);
+    TOOLS_DUMP(TypeName<Scal>);
     //    constexpr Int p = 4;
     
     //    constexpr Scal zero = static_cast<Scal>(0);
@@ -180,7 +180,7 @@ int main(int argc, const char * argv[])
     toc("Eigen::SelfAdjointEigenSolver");
     
     A.Read( A_list.data(0) );
-    //    dump(A);
+    //    TOOLS_DUMP(A);
     A.HessenbergDecomposition(U,T);
     
     A.ToMatrix(A_mat);
@@ -198,7 +198,7 @@ int main(int argc, const char * argv[])
     
     W -= A_mat;
     
-    dump(W.FrobeniusNorm());
+    TOOLS_DUMP(W.FrobeniusNorm());
     
     
 //    {
@@ -228,7 +228,7 @@ int main(int argc, const char * argv[])
 //        }
 //        toc("Check  HessenbergDecomposition");
 //
-//        dump(error);
+//        TOOLS_DUMP(error);
 //    }
     
     {
@@ -278,9 +278,9 @@ int main(int argc, const char * argv[])
         }
         toc("Check Eigensystem");
         
-        dump(error_0);
-        dump(error_1);
-        dump(error_2);
+        TOOLS_DUMP(error_0);
+        TOOLS_DUMP(error_1);
+        TOOLS_DUMP(error_2);
         
         
         A.SetZero();
@@ -296,32 +296,32 @@ int main(int argc, const char * argv[])
         A[1][2] = -0.00000001;
         
 //        A.Fill(1);
-        dump(A);
+        TOOLS_DUMP(A);
         
         auto A_mat = A.ToMatrix();
         
         A.Eigensystem(U,eigs,0.0000000000000001);
-        dump(eigs);
+        TOOLS_DUMP(eigs);
         
         U.ConjugateTranspose(UH);
         D.SetDiagonal(eigs);
 
-        dump(U);
+        TOOLS_DUMP(U);
         
         Dot<Overwrite>(U,D,B);
         Dot<Overwrite>(B,UH,C);
         
         C -= A_mat;
-        dump(C.MaxNorm());
+        TOOLS_DUMP(C.MaxNorm());
         
         Dot<Overwrite>(UH,A_mat,B);
         Dot<Overwrite>(B,U,C);
         C -= D;
-        dump(C.MaxNorm());
+        TOOLS_DUMP(C.MaxNorm());
         
         auto v = C.Diagonal();
 //        v /= eigs;
-        dump(v);
+        TOOLS_DUMP(v);
         
         
         D.SetIdentity();

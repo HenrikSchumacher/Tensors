@@ -36,7 +36,7 @@ namespace Tensors
             
                 // TODO: Do a symmetrization if needed?
                 
-                ptic(ClassName()+": Preprocessing");
+                TOOLS_PTIC(ClassName()+": Preprocessing");
 
                 Int n = static_cast<Int>(n_);
                 
@@ -70,13 +70,13 @@ namespace Tensors
                     
                     rp[i+1] = nnz_counter;
                 }
-                ptoc(ClassName()+": Preprocessing");
+                TOOLS_PTOC(ClassName()+": Preprocessing");
                 
-                ptic(ClassName()+": METIS_NodeND");
+                TOOLS_PTIC(ClassName()+": METIS_NodeND");
                 (void)METIS_NodeND(
                     &n, rp.data(), ci.data(), nullptr, nullptr, perm.data(), iperm.data()
                 );
-                ptoc(ClassName()+": METIS_NodeND");
+                TOOLS_PTOC(ClassName()+": METIS_NodeND");
                 
                 return Permutation<I_0>( perm.data(), n, Inverse::False, I_0(final_thread_count) );
             }

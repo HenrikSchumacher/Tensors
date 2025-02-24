@@ -159,7 +159,7 @@ namespace Tensors
             return desc_counts;
         }
         
-        force_inline Int DescendantCount( const Int i ) const
+        TOOLS_FORCE_INLINE Int DescendantCount( const Int i ) const
         {
             return desc_counts[i];
         }
@@ -169,7 +169,7 @@ namespace Tensors
             return A.Outer();
         }
         
-        force_inline Int ChildPointer( const Int i ) const
+        TOOLS_FORCE_INLINE Int ChildPointer( const Int i ) const
         {
             return A.Outer(i);
         }
@@ -189,7 +189,7 @@ namespace Tensors
             return levels.Outer();
         }
         
-        force_inline Int LevelPointer( const Int i ) const
+        TOOLS_FORCE_INLINE Int LevelPointer( const Int i ) const
         {
             return levels.Outer(i);
         }
@@ -204,19 +204,19 @@ namespace Tensors
             return levels.Inner(k);
         }
         
-        force_inline Int VertexCount() const
+        TOOLS_FORCE_INLINE Int VertexCount() const
         {
             return n;
         }
         
-        force_inline Int ChildCount( const Int i ) const
+        TOOLS_FORCE_INLINE Int ChildCount( const Int i ) const
         {
             // Returns number of children of child i.
             return ChildPointer(i+1)-ChildPointer(i);
         }
         
         
-        force_inline Int Child( const Int i, const Int k ) const
+        TOOLS_FORCE_INLINE Int Child( const Int i, const Int k ) const
         {
             // Returns k-th child of node i.
             return A.ChildIndex(ChildPointer(i)+k);
@@ -298,7 +298,7 @@ namespace Tensors
 //
 //                Int row_size = levels.Outer(level+1) - levels.Outer(level);
 //
-//                dump(row_size);
+//                TOOLS_DUMP(row_size);
 //
 //                print( ArrayToString( levels.Inner().data(levels.Outer(level)), &row_size, 1) );
 //            }

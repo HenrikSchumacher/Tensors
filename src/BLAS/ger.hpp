@@ -8,7 +8,7 @@ namespace Tensors
             Layout layout, Op opx, Op opy, typename Scal,
             typename I0, typename I1, typename I2, typename I3, typename I4
         >
-        force_inline void ger(
+        TOOLS_FORCE_INLINE void ger(
             const I0 m_, const I1 n_,
             cref<Scal> alpha, cptr<Scal> x_, const I2 inc_x_,
                               cptr<Scal> y_, const I3 inc_y_,

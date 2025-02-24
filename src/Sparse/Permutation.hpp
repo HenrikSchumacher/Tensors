@@ -290,7 +290,7 @@ namespace Tensors
         
         void Invert( const Inverse inverseQ )
         {
-//            ptic(ClassName()+"::Invert");
+//            TOOLS_PTIC(ClassName()+"::Invert");
             if( inverseQ == Inverse::True )
             {
                 using std::swap;
@@ -298,7 +298,7 @@ namespace Tensors
                 swap( p, p_inv );
                 swap( p_computed, p_inv_computed );
             }
-//            ptoc(ClassName()+"::Invert");
+//            TOOLS_PTOC(ClassName()+"::Invert");
         }
         
         void RequirePermutation()
@@ -343,7 +343,7 @@ namespace Tensors
         
         void Compose( const Permutation & q, const Compose prepost )
         {
-            ptic(ClassName()+"::Compose");
+            TOOLS_PTIC(ClassName()+"::Compose");
             
             if( is_trivial )
             {
@@ -428,7 +428,7 @@ namespace Tensors
                     swap(p_inv,scratch);
                 }
             }
-            ptoc(ClassName()+"::Compose");
+            TOOLS_PTOC(ClassName()+"::Compose");
         }
 
         template<
@@ -465,13 +465,13 @@ namespace Tensors
                 + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
                 + ToString(cols) + ")";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
             
             if( cols == Size_T(0) )
             {
                 wprint( tag + ": cols == 0. Doing nothing." );
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
 
             // TODO: Special case ldX = 1 and ldY = 1
@@ -609,7 +609,7 @@ namespace Tensors
             
             Invert( inverseQ );
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
         }
         
         template<
@@ -627,7 +627,7 @@ namespace Tensors
             
             std::string tag = ClassName()+"::Permute<" + TypeName<X_T> + "," + TypeName<Y_T> + ">(" + (inverseQ == Inverse::True ? "inv," : "id," ) + ToString(cols) + ")";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
             
             if( !is_trivial )
             {
@@ -690,7 +690,7 @@ namespace Tensors
                 }
             }
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
         }
         
         template<
@@ -806,10 +806,10 @@ namespace Tensors
         {
             std::string tag = ClassName() + "::PermutationQ";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
             if( (n == zero) || (n == one ) )
             {
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 return true;
             }
             
@@ -822,7 +822,7 @@ namespace Tensors
                 if( (p_i < zero) || (p_i >= n) )
                 {
                     wprint(tag + ": Input list p has value p["+ToString(i)+"] = "+ToString(p_i)+" out of range [0,"+ToString(n)+"[!");
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return false;
                 }
                 else
@@ -843,7 +843,7 @@ namespace Tensors
                 eprint(tag + ": Input has duplicates!");
             }
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             
             return ( m_0 == one ) && ( m_1 );
         }
@@ -891,7 +891,7 @@ namespace Tensors
     {
         std::string tag = std::string("PermutePatternCSR<") + TypeName<LInt> + "," + TypeName<Int> + ">";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         const Int m = P.Size();
 
@@ -907,7 +907,7 @@ namespace Tensors
 
         if constexpr ( P_TrivialQ && Q_TrivialQ )
         {
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             perm.iota();
             return perm;
         }
@@ -984,7 +984,7 @@ namespace Tensors
         swap( outer, new_outer );
         swap( inner, new_inner );
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
 
         return perm;
     }

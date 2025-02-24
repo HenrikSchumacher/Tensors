@@ -83,7 +83,7 @@ namespace Tensors
         template<Size_T chunk_size, typename T, typename C = std::less<T>>
         void SortChunks( mptr<T> a, mptr<T> b, C comp = C() )
         {
-//            ptic(ClassName()+"::SortChunks");
+//            TOOLS_PTIC(ClassName()+"::SortChunks");
             for( Size_T chunk = 0; chunk < reg_chunk_count; ++chunk )
             {
                 BitonicSort<chunk_size,vector_size,reverseQ>( &a[chunk_size * chunk], comp );
@@ -187,26 +187,26 @@ namespace Tensors
                 }
             }
             
-            ptic(ClassName()+"::Copy");
+            TOOLS_PTIC(ClassName()+"::Copy");
             
             // TODO: This copy can be avoided by sorting the chunks directly into a, b, depending on the parity of the the depth of their leave node.
             
             copy_buffer( a, b, n );
             
-            ptoc(ClassName()+"::Copy");
+            TOOLS_PTOC(ClassName()+"::Copy");
             
-            ptoc(ClassName()+"::SortChunks");
+            TOOLS_PTOC(ClassName()+"::SortChunks");
         }
         
         
         template<typename T, typename C = std::less<T>>
         void Merge_DFS( mptr<T> a, mptr<T> b, C comp = C() )
         {
-            ptic(ClassName()+"::Merge_DFS");
+            TOOLS_PTIC(ClassName()+"::Merge_DFS");
             
             merge_DFS( 0, b, a, comp );
             
-            ptoc(ClassName()+"::Merge_DFS");
+            TOOLS_PTOC(ClassName()+"::Merge_DFS");
         }
         
         template<typename T, typename C = std::less<T>>
@@ -232,7 +232,7 @@ namespace Tensors
         
         void PrepareBinaryTree( const Size_T chunk_size )
         {
-            ptic(ClassName()+"::PrepareBinaryTree");
+            TOOLS_PTIC(ClassName()+"::PrepareBinaryTree");
             
             node_count          = ( 2 * chunk_count - 1 );
             interior_node_count = node_count - chunk_count;
@@ -271,7 +271,7 @@ namespace Tensors
                 node_end  [N] = node_end  [R];
             }
             
-            ptoc(ClassName()+"::PrepareBinaryTree");
+            TOOLS_PTOC(ClassName()+"::PrepareBinaryTree");
         }
         
         

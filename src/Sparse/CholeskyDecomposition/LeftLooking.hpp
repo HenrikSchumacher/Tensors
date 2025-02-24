@@ -122,16 +122,16 @@ namespace Tensors
             
             ~CholeskyFactorizer_LeftLooking()
             {
-//                dump(fetch_from_decendants_time);
-//                dump(intersection_time);
-//                dump(empty_intersection_time);
-//                dump(sup_sup_time);
-//                dump(scatter_time);
+//                TOOLS_DUMP(fetch_from_decendants_time);
+//                TOOLS_DUMP(intersection_time);
+//                TOOLS_DUMP(empty_intersection_time);
+//                TOOLS_DUMP(sup_sup_time);
+//                TOOLS_DUMP(scatter_time);
 //                
-//                dump(col_sup_time);
+//                TOOLS_DUMP(col_sup_time);
 //
-//                dump(fetch_from_A_time);
-//                dump(factorize_supernode_time);
+//                TOOLS_DUMP(fetch_from_A_time);
+//                TOOLS_DUMP(factorize_supernode_time);
             }
             
             CholeskyFactorizer_LeftLooking( CholeskyDecomposition<Scal,Int,LInt> & chol )
@@ -183,10 +183,10 @@ namespace Tensors
 //                    2 * (chol.max_n_0 * chol.max_n_0 + chol.max_n_0 * chol.max_n_1)
 //                );
                 
-//                dump( C.AssemblyTree().PostOrderedQ() );
+//                TOOLS_DUMP( C.AssemblyTree().PostOrderedQ() );
 //                
-//                dump( ToString(C.AssemblyTree().PostOrdering().GetPermutation()) );
-//                dump( ToString(C.AssemblyTree().Parents()) );
+//                TOOLS_DUMP( ToString(C.AssemblyTree().PostOrdering().GetPermutation()) );
+//                TOOLS_DUMP( ToString(C.AssemblyTree().Parents()) );
             }
             
         protected:
@@ -211,9 +211,9 @@ namespace Tensors
                 if( n_0 <= izero )
                 {
                     eprint(ClassName()+"::operator(): n_0<=0");
-                    dump(s);
-                    dump(SN_rp[s  ]);
-                    dump(SN_rp[s+1]);
+                    TOOLS_DUMP(s);
+                    TOOLS_DUMP(SN_rp[s  ]);
+                    TOOLS_DUMP(SN_rp[s+1]);
                 }
                 
                 // U_0 is interpreted as an upper triangular matrix of size n_0 x n_0.
@@ -639,7 +639,7 @@ namespace Tensors
             
         protected:
             
-            force_inline void scatter_read( cptr<Scal> x, mptr<Scal> y, cptr<Int> idx, Int N )
+            TOOLS_FORCE_INLINE void scatter_read( cptr<Scal> x, mptr<Scal> y, cptr<Int> idx, Int N )
             {
 //                Time start_time = Clock::now();
                 
@@ -648,7 +648,7 @@ namespace Tensors
 //                scatter_time += Tools::Duration( start_time, Clock::now() );
             }
             
-            force_inline void scatter_add( cptr<Scal> x, mptr<Scal> y, cptr<Int> idx, Int N )
+            TOOLS_FORCE_INLINE void scatter_add( cptr<Scal> x, mptr<Scal> y, cptr<Int> idx, Int N )
             {
                 for( ; N --> izero; ) { y[idx[N]] += x[N]; }
             }
@@ -840,8 +840,8 @@ namespace Tensors
             {
                 print("");
                 
-                dump(s);
-                dump(t);
+                TOOLS_DUMP(s);
+                TOOLS_DUMP(t);
 
                 //I = [SN_rp[s],SN_rp[s]+1,...,SN_rp[s+1][
                 
@@ -872,15 +872,15 @@ namespace Tensors
                     I_cap_L_1[idx] = L[ JL_pos[idx] ];
                 }
                 
-                dump(I);
-                dump(J);
-                dump(K);
-                dump(L);
+                TOOLS_DUMP(I);
+                TOOLS_DUMP(J);
+                TOOLS_DUMP(K);
+                TOOLS_DUMP(L);
                 
-                dump(I_cap_L_0);
-                dump(I_cap_L_1);
-                dump(J_cap_L_0);
-                dump(J_cap_L_1);
+                TOOLS_DUMP(I_cap_L_0);
+                TOOLS_DUMP(I_cap_L_1);
+                TOOLS_DUMP(J_cap_L_0);
+                TOOLS_DUMP(J_cap_L_1);
                 
                 print("");
             }
@@ -915,8 +915,8 @@ namespace Tensors
                 {
                     eprint("bug in II_pos + IL_pos");
                     
-                    dump(n_0);
-                    dump(m_1);
+                    TOOLS_DUMP(n_0);
+                    TOOLS_DUMP(m_1);
                     
                     Tensor1<Int,Int> a (n_0);
                     for( Int i = i_begin; i < i_end; ++i )
@@ -940,8 +940,8 @@ namespace Tensors
                 {
                     eprint("bug in JJ_pos + JL_pos");
                     
-                    dump(n_1);
-                    dump(m_1);
+                    TOOLS_DUMP(n_1);
+                    TOOLS_DUMP(m_1);
                 }
             }
             

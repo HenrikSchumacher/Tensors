@@ -5,7 +5,7 @@ namespace Tensors
     namespace LAPACK
     {
         template<Layout layout, UpLo uplo, typename Scal, typename I0, typename I1>
-        force_inline Int potrf( const I0 n_, Scal * A_, const I1 ldA_ )
+        TOOLS_FORCE_INLINE Int potrf( const I0 n_, Scal * A_, const I1 ldA_ )
         {
             static_assert(IntQ<I0>,"");
             static_assert(IntQ<I1>,"");

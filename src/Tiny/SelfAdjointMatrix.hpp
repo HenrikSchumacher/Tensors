@@ -78,7 +78,7 @@ namespace Tensors
         public:
             
             template<class T>
-            force_inline mref<SelfAdjointMatrix> operator+=( cref<SelfAdjointMatrix<n,T,Int>> B )
+            TOOLS_FORCE_INLINE mref<SelfAdjointMatrix> operator+=( cref<SelfAdjointMatrix<n,T,Int>> B )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -91,7 +91,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<SelfAdjointMatrix> operator-=( cref<SelfAdjointMatrix<n,T,Int>> B )
+            TOOLS_FORCE_INLINE mref<SelfAdjointMatrix> operator-=( cref<SelfAdjointMatrix<n,T,Int>> B )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -104,7 +104,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<SelfAdjointMatrix> operator*=( cref<SelfAdjointMatrix<n,T,Int>> B )
+            TOOLS_FORCE_INLINE mref<SelfAdjointMatrix> operator*=( cref<SelfAdjointMatrix<n,T,Int>> B )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -117,7 +117,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<SelfAdjointMatrix> operator/=( cref<SelfAdjointMatrix<n,T,Int>> B )
+            TOOLS_FORCE_INLINE mref<SelfAdjointMatrix> operator/=( cref<SelfAdjointMatrix<n,T,Int>> B )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -134,7 +134,7 @@ namespace Tensors
             {}
 
             template< AddTo_T addto >
-            force_inline friend void Dot( const SelfAdjointMatrix & M, const Vector_T & x, Vector_T & y )
+            TOOLS_FORCE_INLINE friend void Dot( const SelfAdjointMatrix & M, const Vector_T & x, Vector_T & y )
             {
                 for( Int i = 0; i < n; ++i )
                 {
@@ -153,7 +153,7 @@ namespace Tensors
                 }
             }
             
-            force_inline friend Scal InnerProduct( const SelfAdjointMatrix & G, const Vector_T & x, const Vector_T & y )
+            TOOLS_FORCE_INLINE friend Scal InnerProduct( const SelfAdjointMatrix & G, const Vector_T & x, const Vector_T & y )
             {
                 Scal result (0);
                 
@@ -817,7 +817,7 @@ namespace Tensors
                 Dot<Overwrite>(V,Q,U);
             }
             
-            force_inline Real FrobeniusNorm() const
+            TOOLS_FORCE_INLINE Real FrobeniusNorm() const
             {
                 Real AA = 0;
                 
@@ -892,14 +892,14 @@ namespace Tensors
         
         
         template<int m_, int n_, typename Scal, typename Int >
-        [[nodiscard]] force_inline const
+        [[nodiscard]] TOOLS_FORCE_INLINE const
         SelfAdjointMatrix<n_,Scal,Int> SelfAdjointAHA( const Matrix<m_,n_,Scal,Int> & A )
         {
             return A.template AHA<true>();
         }
         
         template<int m_, int n_, typename Scal, typename Int >
-        [[nodiscard]] force_inline const
+        [[nodiscard]] TOOLS_FORCE_INLINE const
         SelfAdjointMatrix<m_,Scal,Int> SelfAdjointAAH( const Matrix<m_,n_,Scal,Int> & A )
         {
             return A.template AAH<true>();

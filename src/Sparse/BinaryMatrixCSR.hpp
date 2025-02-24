@@ -243,7 +243,7 @@ namespace Tensors
             
             BinaryMatrixCSR Transpose() const
             {
-                ptic(ClassName()+"::Transpose");
+                TOOLS_PTIC(ClassName()+"::Transpose");
                 
                 Tensor2<LInt,Int> counters = CreateTransposeCounters();
                 
@@ -283,7 +283,7 @@ namespace Tensors
                 // We only have to care about the correct ordering of inner indices and values.
                 B.SortInner();
                 
-                ptoc(ClassName()+"::Transpose");
+                TOOLS_PTOC(ClassName()+"::Transpose");
                 
                 return B;
             }
@@ -300,7 +300,7 @@ namespace Tensors
                 const Permutation<Int> & q      // column permutation
             )
             {
-                ptic(ClassName()+"::Permute");
+                TOOLS_PTIC(ClassName()+"::Permute");
                 // Modifies inner and outer  accordingly; returns the permutation to be applied to the nonzero values.
                 
                 
@@ -312,7 +312,7 @@ namespace Tensors
                 
                 Tensor1<LInt,LInt> perm = PermutePatternCSR( outer, inner, p, q, inner.Size(), true );
                 
-                ptoc(ClassName()+"::Permute");
+                TOOLS_PTOC(ClassName()+"::Permute");
                 
                 return perm;
             }

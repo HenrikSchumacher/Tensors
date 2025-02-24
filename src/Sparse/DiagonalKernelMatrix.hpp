@@ -86,20 +86,20 @@ namespace Tensors
         }
         
         
-        force_flattening void Dot(
+        TOOLS_FORCE_FLATTENING void Dot(
             cptr<Scal> A,
             cref<Scal_out> alpha, cptr<Scal_in>  X,
             cref<Scal_out> beta,  mptr<Scal_out> Y,
             const Int nrhs
         ) const
         {
-            ptic(ClassName()+"::Dot" );
+            TOOLS_PTIC(ClassName()+"::Dot" );
             
             if( (alpha == static_cast<Scal_out>(0)) || (NonzeroCount() <= 0) )
             {
                 Scale( Y, beta, nrhs );
                 
-                ptoc(ClassName()+"::Dot" );
+                TOOLS_PTOC(ClassName()+"::Dot" );
                 
                 return;
             }
@@ -125,7 +125,7 @@ namespace Tensors
                 thread_count
             );
             
-            ptoc(ClassName()+"::Dot" );
+            TOOLS_PTOC(ClassName()+"::Dot" );
         }
         
     public:

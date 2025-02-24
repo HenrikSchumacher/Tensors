@@ -17,7 +17,7 @@ public:
     {
         std::string tag = ClassName()+"::NumericFactorization_Multifrontal<" + TypeName<ExtScal> + ">";
     
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         SymbolicFactorization();
         
@@ -25,7 +25,7 @@ public:
 
         ClearFactors();
         
-        ptic(tag + ": Initialize update buffers.");
+        TOOLS_PTIC(tag + ": Initialize update buffers.");
         
         // TODO: We might want to use memory stacks or pools
         // TODO: if we don't want to rely on the sytem's way to handle the memory.
@@ -44,10 +44,10 @@ public:
         
     //        SN_updates = std::vector<Update_T> ( SN_count, nullptr );
         
-        ptoc(tag + ": Initialize update buffers.");
+        TOOLS_PTOC(tag + ": Initialize update buffers.");
         
         
-        ptic(tag + ": Initialize factorizers");
+        TOOLS_PTIC(tag + ": Initialize factorizers");
         
         std::vector<std::unique_ptr<Factorizer_MF_T>> SN_list (thread_count);
         
@@ -61,7 +61,7 @@ public:
         
         Factorizer_MF_T worker(*this);
         
-        ptoc(tag + ": Initialize factorizers");
+        TOOLS_PTOC(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
         if( thread_count > 1 )
@@ -75,13 +75,13 @@ public:
         
         SN_factorized = true;
         
-        ptic(tag + ": Release update buffers.");
+        TOOLS_PTIC(tag + ": Release update buffers.");
         
         SN_updates = std::vector<Update_T>();
         
-        ptoc(tag + ": Release update buffers.");
+        TOOLS_PTOC(tag + ": Release update buffers.");
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
 
@@ -93,7 +93,7 @@ public:
     {
         std::string tag = ClassName()+"::NumericFactorization_LeftLooking<" + TypeName<ExtScal> + ">";
        
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         SymbolicFactorization();
 
@@ -101,7 +101,7 @@ public:
         
         ClearFactors();
         
-        ptic(tag + ": Initialize factorizers");
+        TOOLS_PTIC(tag + ": Initialize factorizers");
         
         std::vector<std::unique_ptr<Factorizer_LL_T>> SN_list (thread_count);
         
@@ -113,7 +113,7 @@ public:
             thread_count
         );
         
-        ptoc(tag + ": Initialize factorizers");
+        TOOLS_PTOC(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
         if( thread_count > 1 )
@@ -127,7 +127,7 @@ public:
         
         SN_factorized = true;
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
         
     }
 
@@ -138,7 +138,7 @@ public:
     {
         std::string tag = ClassName()+"::ReadNonzeroValues<" + TypeName<ExtScal> + ">";
        
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         ParallelDo(
             [&]( const LInt i )
@@ -152,17 +152,17 @@ public:
         
         this->ClearCache();
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
     void ClearFactors()
     {
-        ptic(ClassName()+"::ClearFactors");
+        TOOLS_PTIC(ClassName()+"::ClearFactors");
         
         SN_tri_val.SetZero( thread_count );
         SN_rec_val.SetZero( thread_count );
         
-        ptoc(ClassName()+"::ClearFactors");
+        TOOLS_PTOC(ClassName()+"::ClearFactors");
     }
 
 

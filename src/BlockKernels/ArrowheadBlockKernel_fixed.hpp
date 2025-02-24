@@ -103,14 +103,14 @@ namespace Tensors
             return BLOCK_NNZ;
         }
                 
-        force_inline void TransposeBlock( const LInt from, const LInt to ) const
+        TOOLS_FORCE_INLINE void TransposeBlock( const LInt from, const LInt to ) const
         {
             cptr<Scal> a_from_ = &A[BLOCK_NNZ * from];
             mptr<Scal> a_to_   = &A[BLOCK_NNZ * to  ];
             
             a_to_[0] = a_from_[0];
             
-            LOOP_UNROLL_FULL
+            TOOLS_LOOP_UNROLL_FULL
             for( Int i = 1; i < ROWS; ++i )
             {
                 a_to_[       i] = a_from_[ROWS-1+i];
@@ -118,7 +118,7 @@ namespace Tensors
             }
         }
         
-        force_inline void ReadA( const LInt k_global )
+        TOOLS_FORCE_INLINE void ReadA( const LInt k_global )
         {
             // Read matrix.
             if constexpr ( a_copy )
@@ -131,7 +131,7 @@ namespace Tensors
             }
         }
         
-        force_inline Scal get_a( const Int l )
+        TOOLS_FORCE_INLINE Scal get_a( const Int l )
         {
             if constexpr ( a_copy )
             {
@@ -144,7 +144,7 @@ namespace Tensors
         }
         
         
-        force_inline void ApplyBlock( const LInt k_global, const Int j_global )
+        TOOLS_FORCE_INLINE void ApplyBlock( const LInt k_global, const Int j_global )
         {
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );
@@ -165,18 +165,18 @@ namespace Tensors
             //    \                                                                  /
             */
             
-            LOOP_UNROLL_FULL
+            TOOLS_LOOP_UNROLL_FULL
             for( Int k = 0; k < NRHS; ++k )
             {
                 FMA( get_a(0), get_x(0,k), get_y(0,k) );
 
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int j = 1; j < COLS; ++j )
                 {
                     FMA( get_a(j), get_x(j,k), get_y(0,k) );
                 }
 
-                LOOP_UNROLL_FULL
+                TOOLS_LOOP_UNROLL_FULL
                 for( Int i = 1; i < ROWS; ++i )
                 {
                     FMA( get_a(COLS-1+i), get_x(0,k), get_y(i,k) );

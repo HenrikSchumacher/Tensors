@@ -10,7 +10,7 @@ namespace Tensors
             typename I0, typename I2, typename I3
         >
         
-        force_inline void her(
+        TOOLS_FORCE_INLINE void her(
             const I0 n_,
             cref<Scalar::Real<Scal>> alpha, cptr<Scal> x_, const I2 incx_,
                                             mptr<Scal> A_, const I3 ldA_

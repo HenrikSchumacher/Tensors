@@ -8,7 +8,7 @@ namespace Tensors
             Layout layout, Op op_A,
             typename Scal, typename I0, typename I1, typename I2, typename I3
         >
-        force_inline Int getrs(
+        TOOLS_FORCE_INLINE Int getrs(
             const I0 n_, const I1 nrhs_,
             Scal * A_, const I2 ldA_,
             Int * perm,

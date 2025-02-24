@@ -1,6 +1,6 @@
 void DotBlocks()
 {
-    ptic(ClassName()+"::DotBlocks");
+    TOOLS_PTIC(ClassName()+"::DotBlocks");
     
     ParallelDo(
         [=,this]( const Int thread )
@@ -49,5 +49,5 @@ void DotBlocks()
         thread_count
     );
     
-    ptoc(ClassName()+"::DotBlocks");
+    TOOLS_PTOC(ClassName()+"::DotBlocks");
 }

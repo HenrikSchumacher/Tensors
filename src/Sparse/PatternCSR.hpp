@@ -372,7 +372,7 @@ namespace Tensors
                 const int  symmetrize = 0
             )
             {
-                ptic(ClassName()+"::FromPairs");
+                TOOLS_PTIC(ClassName()+"::FromPairs");
                 
                 Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
                     idx, jdx, entry_counts, list_count, m, symmetrize
@@ -472,20 +472,20 @@ namespace Tensors
                     SetThreadCount( final_thread_count );
                 }
                 
-                ptoc(ClassName()+"::FromPairs");
+                TOOLS_PTOC(ClassName()+"::FromPairs");
             }
             
             void RequireJobPtr() const
             {
                 if( !job_ptr_initialized )
                 {
-                    ptic(ClassName()+"::RequireJobPtr");
+                    TOOLS_PTIC(ClassName()+"::RequireJobPtr");
                     
                     job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
                     
                     job_ptr_initialized = true;
                     
-                    ptoc(ClassName()+"::RequireJobPtr");
+                    TOOLS_PTOC(ClassName()+"::RequireJobPtr");
                 }
             }
             
@@ -501,7 +501,7 @@ namespace Tensors
             {
                 if( !diag_ptr_initialized )
                 {
-                    ptic(ClassName()+"::RequireDiag");
+                    TOOLS_PTIC(ClassName()+"::RequireDiag");
                     
                     SortInner();
                     
@@ -535,7 +535,7 @@ namespace Tensors
                     
                     diag_ptr_initialized = true;
                     
-                    ptoc(ClassName()+"::RequireDiag");
+                    TOOLS_PTOC(ClassName()+"::RequireDiag");
                 }
             }
             
@@ -543,7 +543,7 @@ namespace Tensors
             {
                 if( (m > 0) && !upper_triangular_job_ptr_initialized )
                 {
-                    ptic(ClassName()+"::RequireUpperTriangularJobPtr");
+                    TOOLS_PTIC(ClassName()+"::RequireUpperTriangularJobPtr");
                     
                     RequireDiag();
                     
@@ -564,7 +564,7 @@ namespace Tensors
                     
                     upper_triangular_job_ptr_initialized = true;
                     
-                    ptoc(ClassName()+"::RequireUpperTriangularJobPtr");
+                    TOOLS_PTOC(ClassName()+"::RequireUpperTriangularJobPtr");
                 }
             }
             
@@ -572,7 +572,7 @@ namespace Tensors
             {
                 if( (m > 0) && !lower_triangular_job_ptr_initialized )
                 {
-                    ptic(ClassName()+"::RequireLowerTriangularJobPtr");
+                    TOOLS_PTIC(ClassName()+"::RequireLowerTriangularJobPtr");
                     
                     RequireDiag();
                     
@@ -593,7 +593,7 @@ namespace Tensors
                     
                     lower_triangular_job_ptr_initialized = true;
                     
-                    ptoc(ClassName()+"::RequireLowerTriangularJobPtr");
+                    TOOLS_PTOC(ClassName()+"::RequireLowerTriangularJobPtr");
                 }
             }
             
@@ -733,7 +733,7 @@ namespace Tensors
             
             [[nodiscard]] Tensor2<LInt,Int> CreateTransposeCounters() const
             {
-                ptic(ClassName()+"::CreateTransposeCounters");
+                TOOLS_PTIC(ClassName()+"::CreateTransposeCounters");
                 
                 RequireJobPtr();
                 
@@ -770,7 +770,7 @@ namespace Tensors
                     AccumulateAssemblyCounters_Parallel<LInt,Int>( counters );
                 }
                 
-                ptoc(ClassName()+"::CreateTransposeCounters");
+                TOOLS_PTOC(ClassName()+"::CreateTransposeCounters");
                 
                 return counters;
             }
@@ -783,7 +783,7 @@ namespace Tensors
                 
                 if( !inner_sorted )
                 {
-                    ptic(ClassName()+"::SortInner");
+                    TOOLS_PTIC(ClassName()+"::SortInner");
                     
                     if( WellFormedQ() )
                     {
@@ -798,7 +798,7 @@ namespace Tensors
                         inner_sorted = true;
                     }
                     
-                    ptoc(ClassName()+"::SortInner");
+                    TOOLS_PTOC(ClassName()+"::SortInner");
                     
                 }
             }
@@ -810,7 +810,7 @@ namespace Tensors
             {
                 if( !duplicate_free )
                 {
-                    ptic(ClassName()+"::Compress");
+                    TOOLS_PTIC(ClassName()+"::Compress");
                     
                     if( WellFormedQ() )
                     {
@@ -921,7 +921,7 @@ namespace Tensors
                         duplicate_free = true;
                     }
                     
-                    ptoc(ClassName()+"::Compress");
+                    TOOLS_PTOC(ClassName()+"::Compress");
                 }
             }
             
@@ -933,7 +933,7 @@ namespace Tensors
             
             PatternCSR DotBinary_( cref<PatternCSR> B ) const
             {
-                ptic(ClassName()+"::DotBinary_");
+                TOOLS_PTIC(ClassName()+"::DotBinary_");
                 
                 if( WellFormedQ() && B.WellFormedQ() )
                 {
@@ -1036,7 +1036,7 @@ namespace Tensors
                     // Finally we rwo-sort inner and remove duplicates in inner and values.
                     C.Compress();
                     
-                    ptoc(ClassName()+"::DotBinary_");
+                    TOOLS_PTOC(ClassName()+"::DotBinary_");
                     
                     return C;
                 }
@@ -1263,7 +1263,7 @@ namespace Tensors
             template<typename S, typename T, typename J>
             void FillLowerTriangleFromUpperTriangle( mref<std::map<S,Tensor1<T,J>>> values )
             {
-                ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
+                TOOLS_PTIC(ClassName()+"::FillLowerTriangleFromUpperTriangle");
                 
                 if( WellFormedQ() )
                 {
@@ -1316,7 +1316,7 @@ namespace Tensors
                     
                 }
                 
-                ptoc(ClassName()+"::FillLowerTriangleFromUpperTriangle");
+                TOOLS_PTOC(ClassName()+"::FillLowerTriangleFromUpperTriangle");
             }
             
             bool WellFormedQ() const
@@ -1327,15 +1327,15 @@ namespace Tensors
                 {
                     wprint(ClassName()+"::WellFormedQ: Matrix is not well formed.");
                     
-                    dump(m);
-                    dump(n);
-                    dump(outer.Size());
-                    dump(inner.Size());
+                    TOOLS_DUMP(m);
+                    TOOLS_DUMP(n);
+                    TOOLS_DUMP(outer.Size());
+                    TOOLS_DUMP(inner.Size());
                     
                     if( outer.Size() > 0 )
                     {
-                        dump(outer.First());
-                        dump(outer.Last());
+                        TOOLS_DUMP(outer.First());
+                        TOOLS_DUMP(outer.Last());
                     }
                 }
                 
@@ -1373,7 +1373,7 @@ namespace Tensors
                 
                 if( !symmetricQ )
                 {
-                    dump(unmatched_count);
+                    TOOLS_DUMP(unmatched_count);
                 }
                 
                 return symmetricQ;

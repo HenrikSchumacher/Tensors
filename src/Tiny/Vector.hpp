@@ -257,7 +257,7 @@ namespace Tensors
                 typename a_T, typename x_T, typename b_T, typename y_T,
                 Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
             >
-            force_inline mref<Vector> LinearCombine(
+            TOOLS_FORCE_INLINE mref<Vector> LinearCombine(
                 const a_T a, cptr<x_T> x, const b_T b, cptr<y_T> y
             )
             {
@@ -271,7 +271,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<Vector> operator+=( cref<Tiny::Vector<n,T,Int>> s )
+            TOOLS_FORCE_INLINE mref<Vector> operator+=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -286,7 +286,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<Vector> operator-=( cref<Tiny::Vector<n,T,Int>> s )
+            TOOLS_FORCE_INLINE mref<Vector> operator-=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -305,7 +305,7 @@ namespace Tensors
             // TODO: Vectorize all these.
             
             template<class T>
-            force_inline mref<Vector> operator*=( cref<Tiny::Vector<n,T,Int>> s )
+            TOOLS_FORCE_INLINE mref<Vector> operator*=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -315,7 +315,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<Vector> operator/=( cref<Tiny::Vector<n,T,Int>> s )
+            TOOLS_FORCE_INLINE mref<Vector> operator/=( cref<Tiny::Vector<n,T,Int>> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -325,7 +325,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<Vector> operator+=( cref<T> s )
+            TOOLS_FORCE_INLINE mref<Vector> operator+=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -335,7 +335,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<Vector> operator-=( cref<T> s )
+            TOOLS_FORCE_INLINE mref<Vector> operator-=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -345,7 +345,7 @@ namespace Tensors
             }
             
             template<class T>
-            force_inline mref<Vector> operator*=( cref<T> s )
+            TOOLS_FORCE_INLINE mref<Vector> operator*=( cref<T> s )
             {
                 for(Int i = 0; i < n; ++i )
                 {
@@ -354,75 +354,75 @@ namespace Tensors
                 return *this;
             }
             
-            force_inline Real Total() const
+            TOOLS_FORCE_INLINE Real Total() const
             {
                 return total_buffer<n>( &v[0] );
             }
 
-            force_inline Real NormSquared() const
+            TOOLS_FORCE_INLINE Real NormSquared() const
             {
                 return norm_2_squared<n>( &v[0] );
             }
             
-            force_inline Real SquaredNorm() const
+            TOOLS_FORCE_INLINE Real SquaredNorm() const
             {
                 return NormSquared();
             }
             
-            force_inline Real Norm() const
+            TOOLS_FORCE_INLINE Real Norm() const
             {
                 return norm_2<n>( &v[0] );
             }
             
-            force_inline friend Real Norm( cref<Vector> u )
+            TOOLS_FORCE_INLINE friend Real Norm( cref<Vector> u )
             {
                 return u.Norm();
             }
             
-            force_inline Vector Normalize()
+            TOOLS_FORCE_INLINE Vector Normalize()
             {
                 return (*this *= Inv(Norm()));
             }
             
             
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<SameQ<Real,Dummy>,std::pair<Real,Real>> MinMax() const
+            TOOLS_FORCE_INLINE std::enable_if_t<SameQ<Real,Dummy>,std::pair<Real,Real>> MinMax() const
             {
                 return minmax_buffer<n>(&v[0]);
             }
             
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> Min() const
+            TOOLS_FORCE_INLINE std::enable_if_t<SameQ<Real,Dummy>,Real> Min() const
             {
                 return min_buffer<n>(&v[0]);
             }
             
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<SameQ<Real,Dummy>,Int> MinPos() const
+            TOOLS_FORCE_INLINE std::enable_if_t<SameQ<Real,Dummy>,Int> MinPos() const
             {
                 return min_pos_buffer<n>(&v[0]);
             }
 
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> Max() const
+            TOOLS_FORCE_INLINE std::enable_if_t<SameQ<Real,Dummy>,Real> Max() const
             {
                 return max_buffer<n>(&v[0]);
             }
             
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<SameQ<Real,Dummy>,Int> MaxPos() const
+            TOOLS_FORCE_INLINE std::enable_if_t<SameQ<Real,Dummy>,Int> MaxPos() const
             {
                 return max_pos_buffer<n>(&v[0]);
             }
             
             template <typename Dummy = Scal>
-            force_inline std::enable_if_t<SameQ<Real,Dummy>,Real> MaxNorm() const
+            TOOLS_FORCE_INLINE std::enable_if_t<SameQ<Real,Dummy>,Real> MaxNorm() const
             {
                 return norm_max<n>( &v[0] );
             }
             
   
-            [[nodiscard]] force_inline friend Real AngleBetweenUnitVectors( cref<Vector> u, cref<Vector> w )
+            [[nodiscard]] TOOLS_FORCE_INLINE friend Real AngleBetweenUnitVectors( cref<Vector> u, cref<Vector> w )
             {
                 const Real a = (u-w).NormSquared();
                 const Real b = (u+w).NormSquared();
@@ -430,7 +430,7 @@ namespace Tensors
                 return Scalar::Two<Real> * atan( Sqrt(a/b) );
             }
             
-            [[nodiscard]] force_inline friend Real Angle( cref<Vector> x, cref<Vector> y )
+            [[nodiscard]] TOOLS_FORCE_INLINE friend Real Angle( cref<Vector> x, cref<Vector> y )
             {
                 Vector u = x;
                 Vector w = y;
@@ -460,7 +460,7 @@ namespace Tensors
         };
                 
         template<typename Scal, typename Int>
-        force_inline
+        TOOLS_FORCE_INLINE
         void Cross(
             cref<Vector<3,Scal,Int>> u,
             cref<Vector<3,Scal,Int>> v,
@@ -473,7 +473,7 @@ namespace Tensors
         }
         
         template<typename Real, typename Int>
-        force_inline
+        TOOLS_FORCE_INLINE
         void Cross_Kahan(
             cref<Vector<3,Real,Int>> u,
             cref<Vector<3,Real,Int>> v,
@@ -486,7 +486,7 @@ namespace Tensors
         }
         
         template<typename Scal, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         
         Vector<3,Scal,Int> Cross(
             cref<Vector<3,Scal,Int>> u,
@@ -499,7 +499,7 @@ namespace Tensors
         }
         
         template<typename Real, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Vector<3,Real,Int> Cross_Kahan(
             cref<Vector<3,Real,Int>> u,
             cref<Vector<3,Real,Int>> v
@@ -511,7 +511,7 @@ namespace Tensors
         }
         
         template<typename Scal, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Scal Det(
             cref<Vector<3,Scal,Int>> u,
             cref<Vector<3,Scal,Int>> v,
@@ -527,7 +527,7 @@ namespace Tensors
         
         
         template<typename Scal, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Scal Det(
             cref<Vector<2,Scal,Int>> u,
             cref<Vector<2,Scal,Int>> v )
@@ -536,7 +536,7 @@ namespace Tensors
         }
         
         template<typename Real, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Real Det_Kahan(
             cref<Vector<2,Real,Int>> x,
             cref<Vector<2,Real,Int>> y
@@ -546,7 +546,7 @@ namespace Tensors
         }
         
         template<typename Real, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         std::pair<Real,Real> Det_Kahan_DiffPair(
             cref<Vector<2,Real,Int>> x,
             cref<Vector<2,Real,Int>> y
@@ -556,7 +556,7 @@ namespace Tensors
         }
         
         template<typename Out_T = Int8, typename Real, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Out_T DetSign_Kahan(
             cref<Vector<2,Real,Int>> x,
             cref<Vector<2,Real,Int>> y
@@ -569,7 +569,7 @@ namespace Tensors
         
 
         template<typename Real, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Real Dot_Kahan(
             cref<Vector<2,Real,Int>> x,
             cref<Vector<2,Real,Int>> y
@@ -579,7 +579,7 @@ namespace Tensors
         }
         
         template<typename Real, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         std::pair<Real,Real> Dot_Kahan_DiffPair(
             cref<Vector<2,Real,Int>> x,
             cref<Vector<2,Real,Int>> y
@@ -589,7 +589,7 @@ namespace Tensors
         }
         
         template<typename Out_T = Int8, typename Real, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Out_T DotSign_Kahan(
             cref<Vector<2,Real,Int>> x,
             cref<Vector<2,Real,Int>> y
@@ -601,7 +601,7 @@ namespace Tensors
         
         
         template<int n, typename Scal, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Scalar::Real<Scal> DistanceSquared(
             cref<Vector<n,Scal,Int>> u,
             cref<Vector<n,Scal,Int>> v
@@ -611,7 +611,7 @@ namespace Tensors
         }
         
         template<int n, typename Scal, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Scalar::Real<Scal> SquaredDistance(
             cref<Vector<n,Scal,Int>> u,
             cref<Vector<n,Scal,Int>> v
@@ -621,7 +621,7 @@ namespace Tensors
         }
         
         template<int n, typename Scal, typename Int>
-        [[nodiscard]] force_inline
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Scalar::Real<Scal> Distance(
             cref<Vector<n,Scal,Int>> u,
             cref<Vector<n,Scal,Int>> v
@@ -639,7 +639,7 @@ namespace Tensors
             typename b_T, typename y_T, typename y_Int,
             Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
         >
-        force_inline void LinearCombineInto(
+        TOOLS_FORCE_INLINE void LinearCombineInto(
             const a_T a, cref<Vector<n,x_T,x_Int>> x,
             const b_T b, mref<Vector<n,y_T,y_Int>> y
         )
@@ -658,7 +658,7 @@ namespace Tensors
                           typename z_T, typename z_Int,
             Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id
         >
-        force_inline void LinearCombine(
+        TOOLS_FORCE_INLINE void LinearCombine(
             const a_T a, cref<Vector<n,x_T,x_Int>> x,
             const b_T b, cref<Vector<n,y_T,y_Int>> y,
                          mref<Vector<n,z_T,z_Int>> z
@@ -678,7 +678,7 @@ namespace Tensors
             typename a_T, typename x_T, typename x_Int,
             typename b_T, typename y_T, typename y_Int
         >
-        [[nodiscard]] force_inline const Vector<n,Scal,Int> MakeVector(
+        [[nodiscard]] TOOLS_FORCE_INLINE const Vector<n,Scal,Int> MakeVector(
             const a_T a, cref<Vector<n,x_T,x_Int>> x,
             const b_T b, cref<Vector<n,y_T,y_Int>> y
         )
@@ -698,7 +698,7 @@ namespace Tensors
             Flag a_flag = F_Gen, Flag b_flag = F_Gen, Op opx = O_Id, Op opy = O_Id,
             typename a_T, typename x_T, typename b_T, typename y_T
         >
-        [[nodiscard]] force_inline const Vector<n,Scal,Int> MakeVector(
+        [[nodiscard]] TOOLS_FORCE_INLINE const Vector<n,Scal,Int> MakeVector(
             const a_T a, cptr<x_T> x,
             const b_T b, cptr<y_T> y
         )
@@ -717,7 +717,7 @@ namespace Tensors
          
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
-        [[nodiscard]] force_inline const 
+        [[nodiscard]] TOOLS_FORCE_INLINE const 
         Vector<n,decltype(x_T(0)+y_T(0)),decltype(x_Int(0)+y_Int(0))> 
         operator+( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
@@ -732,7 +732,7 @@ namespace Tensors
         }
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
-        [[nodiscard]] force_inline const
+        [[nodiscard]] TOOLS_FORCE_INLINE const
         Vector<n,decltype(x_T(0)+y_T(0)),decltype(x_Int(0)+y_Int(0))> 
         operator-( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
@@ -747,7 +747,7 @@ namespace Tensors
         }
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
-        [[nodiscard]] force_inline const
+        [[nodiscard]] TOOLS_FORCE_INLINE const
         Vector<n,decltype(x_T(1)*y_T(1)),decltype(x_Int(0)+y_Int(0))>
         operator*( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
@@ -769,7 +769,7 @@ namespace Tensors
         
 
         template<int n, typename a_T, typename x_T, typename Int>
-        [[nodiscard]] force_inline const 
+        [[nodiscard]] TOOLS_FORCE_INLINE const 
         Vector<n,decltype( x_T(1) * a_T(1) ),Int>
         operator*( const a_T a, cref<Vector<n,x_T,Int>> x )
         {
@@ -782,7 +782,7 @@ namespace Tensors
         }
         
         template<int n, typename x_T, typename Int, typename a_T>
-        [[nodiscard]] force_inline const 
+        [[nodiscard]] TOOLS_FORCE_INLINE const 
         Vector<n,decltype( x_T(1) * a_T(1) ),Int>
         operator*( cref<Vector<n,x_T,Int>> x, const a_T a )
         {
@@ -796,7 +796,7 @@ namespace Tensors
         }
         
         template<int n, typename x_T, typename Int, typename a_T>
-        [[nodiscard]] force_inline const
+        [[nodiscard]] TOOLS_FORCE_INLINE const
         Vector<n,decltype( x_T(1) * a_T(1) ),Int>
         operator/( cref<Vector<n,x_T,Int>> x, const a_T a )
         {
@@ -818,14 +818,14 @@ namespace Tensors
         
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
-        [[nodiscard]] force_inline decltype( x_T(1) * y_T(1) )
+        [[nodiscard]] TOOLS_FORCE_INLINE decltype( x_T(1) * y_T(1) )
         Dot( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
             return dot_buffers<n,Sequential,O_Id,O_Id>( x.data(), y.data() );
         }
         
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
-        [[nodiscard]] force_inline const decltype( x_T(1) * y_T(1) ) 
+        [[nodiscard]] TOOLS_FORCE_INLINE const decltype( x_T(1) * y_T(1) ) 
         InnerProduct( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
             return dot_buffers<n,Sequential,O_Conj,O_Id>( x.data(), y.data() );

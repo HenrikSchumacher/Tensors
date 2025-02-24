@@ -35,7 +35,7 @@ namespace Tensors
             template<typename LInt>
             int operator()( cptr<LInt> rp_, cptr<Int> ci, const Int n, mptr<Int> perm )
             {
-                ptic(ClassName()+"::operator()");
+                TOOLS_PTIC(ClassName()+"::operator()");
                 Tensor1<Int,Int> rp_buffer;
                 
                 const Int * rp_ptr;
@@ -65,7 +65,7 @@ namespace Tensors
                 
                 //            PrintInfo();
                 
-                ptoc(ClassName()+"::operator()");
+                TOOLS_PTOC(ClassName()+"::operator()");
                 
                 return status;
             }
@@ -88,7 +88,7 @@ namespace Tensors
             
             void PrintInfo()
             {
-                //            dump(info);
+                //            TOOLS_DUMP(info);
                 valprint("AMD status                      ", info[AMD_STATUS]);
                 valprint("Size of input matrix            ", info[AMD_N]);
                 valprint("Degree of symmetry              ", info[AMD_SYMMETRY]);

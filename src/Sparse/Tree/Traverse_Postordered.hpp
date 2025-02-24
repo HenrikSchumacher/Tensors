@@ -36,7 +36,7 @@ public:
             return;
         }
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
 //        std::string tag_1 = "Apply worker " + workers[0]->ClassName() + " to level";
 //        
@@ -50,7 +50,7 @@ public:
             
             const Int use_threads = (parQ == Parallel) ? Min( thread_count, k_end - k_begin ) : 1;
             
-//            ptic(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
+//            TOOLS_PTIC(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
             
             ParallelDo_Dynamic(
                 [=,this,&workers]( const Int thread, const Int k )
@@ -74,7 +74,7 @@ public:
                 k_begin, k_end, Scalar::One<Int>, use_threads
             );
             
-//            ptoc(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
+//            TOOLS_PTOC(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
         }
         
 
@@ -85,7 +85,7 @@ public:
 
             const Int use_threads = parQ == Parallel ? Min( thread_count, k_end - k_begin ) : one;
 
-//            ptic(tag_1 + " = " + ToString(d) + "; using " + ToString(use_threads) + " threads.");
+//            TOOLS_PTIC(tag_1 + " = " + ToString(d) + "; using " + ToString(use_threads) + " threads.");
             
             ParallelDo_Dynamic(
                 [=,this,&workers]( const Int thread, const Int k )
@@ -109,9 +109,9 @@ public:
                 k_begin, k_end, Scalar::One<Int>, use_threads
             );
 
-//            ptoc(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
+//            TOOLS_PTOC(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
 
         } // for( Int d = target_split_level; d --> Scalar::One<Int> ; )
 
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }

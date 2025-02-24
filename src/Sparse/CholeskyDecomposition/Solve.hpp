@@ -35,7 +35,7 @@ public:
             Scalar::RealQ<Scal> || op != Op::Trans,
             "Solve with Op::Trans not implemented for scalar of complex type."
         );
-        ptic(tag);
+        TOOLS_PTIC(tag);
         // No problem if X_out and B overlap, since we load B into X anyways.
         
         if constexpr ( NRHS > VarSize )
@@ -43,7 +43,7 @@ public:
             if( nrhs_ != NRHS )
             {
                 eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 return;
             }
         }
@@ -75,7 +75,7 @@ public:
 
         WriteSolution<NRHS>( alpha, beta, X_out, ldX );
 
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
     // Evaluate X = op(A)^{-1} . B
@@ -192,7 +192,7 @@ public:
             Scalar::RealQ<Scal> || op != Op::Trans,
             "UpperSolve with Op::Trans not implemented for scalar of complex type."
         );
-        ptic(tag);
+        TOOLS_PTIC(tag);
         // No problem if X_out and B overlap, since we load B into X anyways.
         
         if constexpr ( NRHS > VarSize )
@@ -200,7 +200,7 @@ public:
             if( nrhs_ != NRHS )
             {
                 eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 return;
             }
         }
@@ -232,7 +232,7 @@ public:
 
         WriteSolution<NRHS>( alpha, beta, X_out, ldX );
 
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
 //####################################################################################
@@ -262,7 +262,7 @@ public:
             Scalar::RealQ<Scal> || op != Op::Trans,
             "LowerSolve with Op::Trans not implemented for scalar of complex type."
         );
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         // No problem if X_out and B overlap, since we load B into X anyways.
         
@@ -271,7 +271,7 @@ public:
             if( nrhs_ != NRHS )
             {
                 eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 return;
             }
         }
@@ -303,7 +303,7 @@ public:
 
         WriteSolution<NRHS>( alpha, beta, X_out, ldX );
 
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
 //####################################################################################
@@ -340,13 +340,13 @@ protected:
         
         const std::string tag = ClassName() + "::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         if( !NumericallyFactorizedQ() )
         {
             eprint(tag+": Nonzero values of matrix have not been passed, yet. Aborting.");
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             return;
         }
         
@@ -365,7 +365,7 @@ protected:
         // Parallel traversal in preorder
         aTree.template Traverse_Preordered<parQ>( F_list );
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 
     template<bool mult_rhsQ, Parallel_T parQ = Sequential>
@@ -379,13 +379,13 @@ protected:
         
         const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         if( !NumericallyFactorizedQ() )
         {
             eprint(tag+": Nonzero values of matrix have not been passed, yet. Aborting.");
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             return;
         }
         
@@ -406,5 +406,5 @@ protected:
         // Parallel traversal in postorder
         aTree.template Traverse_Postordered<parQ>( F_list );
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }

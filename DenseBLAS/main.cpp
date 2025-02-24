@@ -165,12 +165,12 @@ int main(int argc, const char * argv[])
     
     Profiler::Clear( home_path +"/C" );
     
-    ptic("Initialize");
+    TOOLS_PTIC("Initialize");
 //    Dense::BLAS_3<M,N,K,m,n,k,opA,opB,opC,A_T,B_T,C_T,Int> blas3 ( M, N, K, thread_count );
     Dense::BLAS_3<VarSize,VarSize,VarSize,m,n,k,opA,opB,opC,A_T,B_T,C_T,Int> blas3 ( M, N, K, thread_count );
     
-    dump(blas3.ClassName());
-    ptoc("Initialize");
+    TOOLS_DUMP(blas3.ClassName());
+    TOOLS_PTOC("Initialize");
    
     print("");
     
@@ -226,23 +226,23 @@ int main(int argc, const char * argv[])
     
     print("");
     
-//    dump(E);
+//    TOOLS_DUMP(E);
     
     E -= C;
     
     
-    dump(E.MaxNorm());
-    dump(E.FrobeniusNorm());
+    TOOLS_DUMP(E.MaxNorm());
+    TOOLS_DUMP(E.FrobeniusNorm());
 //
-//    dump(A);
-//    dump(blas3.AP);
+//    TOOLS_DUMP(A);
+//    TOOLS_DUMP(blas3.AP);
 //    
-//    dump(B);
-//    dump(blas3.BP);
+//    TOOLS_DUMP(B);
+//    TOOLS_DUMP(blas3.BP);
 //    
 //    
-//    dump(C);
-//    dump(blas3.CP);
+//    TOOLS_DUMP(C);
+//    TOOLS_DUMP(blas3.CP);
     
     print("");
     

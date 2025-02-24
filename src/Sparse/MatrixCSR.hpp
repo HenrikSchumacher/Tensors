@@ -340,7 +340,7 @@ namespace Tensors
                 // k-th j-list goes from jdx[k] to &jdx[k][entry_counts[k]] (last one excluded)
                 // and k goes from 0 to list_count (last one excluded)
                 
-                ptic(ClassName()+"::FromTriples");
+                TOOLS_PTIC(ClassName()+"::FromTriples");
                 
                 if( symmetrize )
                 {
@@ -443,7 +443,7 @@ namespace Tensors
                     SetThreadCount( final_thread_count );
                 }
                 
-                ptoc(ClassName()+"::FromTriples");
+                TOOLS_PTOC(ClassName()+"::FromTriples");
             }
             
         public:
@@ -518,11 +518,11 @@ namespace Tensors
                     + "," + TypeName<Return_T>
                     + ">";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 if( !this->WellFormedQ() )
                 {
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return MatrixCSR<Return_T,Int,LInt> ( m, n, 0, 1 );
                 }
                 
@@ -532,19 +532,19 @@ namespace Tensors
                     (Scalar::RealQ<Scal> && ( (op == Op::Conj) || (op == Op::Re) ) )
                 )
                 {
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return MatrixCSR<Return_T,Int,LInt>( *this );
                 }
                 else if constexpr ( Scalar::RealQ<Scal> && (op == Op::Im) )
                 {
                     if constexpr ( NotTransposedQ(op) )
                     {
-                        ptoc(tag);
+                        TOOLS_PTOC(tag);
                         return MatrixCSR<Return_T,Int,LInt> ( m, n, 0, 1 );
                     }
                     else
                     {
-                        ptoc(tag);
+                        TOOLS_PTOC(tag);
                         return MatrixCSR<Return_T,Int,LInt> ( n, m, 0, 1 );
                     }
                 }
@@ -565,7 +565,7 @@ namespace Tensors
                         outer[m], thread_count
                     );
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return B;
                 }
                 else // if constexpr ( TransposedQ(op) )
@@ -614,7 +614,7 @@ namespace Tensors
                     // We only have to care about the correct ordering of inner indices and values.
                     B.SortInner();
 
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return B;
                 }
                     
@@ -651,7 +651,7 @@ namespace Tensors
             {   
                 if( !inner_sorted )
                 {
-                    ptic(ClassName()+"::SortInner");
+                    TOOLS_PTIC(ClassName()+"::SortInner");
 
                     if( this->WellFormedQ() )
                     {
@@ -678,7 +678,7 @@ namespace Tensors
                         inner_sorted = true;
                     }
                     
-                    ptoc(ClassName()+"::SortInner");
+                    TOOLS_PTOC(ClassName()+"::SortInner");
                 }
             }
             
@@ -689,7 +689,7 @@ namespace Tensors
                 
                 if( !duplicate_free )
                 {
-                    ptic(ClassName()+"::Compress");
+                    TOOLS_PTIC(ClassName()+"::Compress");
                     
                     if( this->WellFormedQ() )
                     {
@@ -811,7 +811,7 @@ namespace Tensors
                         duplicate_free = true;
                     }
                     
-                    ptoc(ClassName()+"::Compress");
+                    TOOLS_PTOC(ClassName()+"::Compress");
                 }
             }
             
@@ -1076,7 +1076,7 @@ namespace Tensors
             
             MatrixCSR Dot( const MatrixCSR & B ) const
             {
-                ptic(ClassName()+"::Dot");
+                TOOLS_PTIC(ClassName()+"::Dot");
                 
                 if( this->WellFormedQ() )
                 {
@@ -1178,7 +1178,7 @@ namespace Tensors
                     // Finally we row-sort inner and compressQ duplicates in inner and values.
                     C.Compress();
                     
-                    ptoc(ClassName()+"::Dot");
+                    TOOLS_PTOC(ClassName()+"::Dot");
                     
                     return C;
                 }
@@ -1186,7 +1186,7 @@ namespace Tensors
                 {
                     eprint(ClassName()+"::Dot: Matrix is not well-formed.");
                     
-                    ptoc(ClassName()+"::Dot");
+                    TOOLS_PTOC(ClassName()+"::Dot");
                     
                     return MatrixCSR ();
                 }
@@ -1354,7 +1354,7 @@ namespace Tensors
             {
                 std::string tag = ClassName() + "::LoadFromMatrixMarket";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 std::ifstream  s ( file );
         
@@ -1362,7 +1362,7 @@ namespace Tensors
                 {
                     eprint(tag + ": File " + file.string() + " not found. Aborting.");
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     
                     return;
                 }
@@ -1402,7 +1402,7 @@ namespace Tensors
             {
                 std::string tag = ClassName() + "::LoadFromMatrixMarket";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 std::ifstream  s ( file );
         
@@ -1410,7 +1410,7 @@ namespace Tensors
                 {
                     eprint(tag + ": File " + file.string() + " not found. Aborting.");
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     
                     return;
                 }
@@ -1425,9 +1425,9 @@ namespace Tensors
                 if( token != "%%matrixmarket")
                 {
                     eprint( tag + ": Not a MatrixMarket file. Doing nothing.");
-                    dump( token );
-                    logdump( token );
-                    ptoc(tag);
+                    TOOLS_DUMP( token );
+                    TOOLS_LOGDUMP( token );
+                    TOOLS_PTOC(tag);
                     return;
                 }
                 
@@ -1437,8 +1437,8 @@ namespace Tensors
                 if( token != "matrix")
                 {
                     eprint( tag + ": Second word in file is not \"matrix\". Doing nothing.");
-                    dump( token );
-                    ptoc(tag);
+                    TOOLS_DUMP( token );
+                    TOOLS_PTOC(tag);
                     return;
                 }
                 
@@ -1447,8 +1447,8 @@ namespace Tensors
                 if( token != "coordinate")
                 {
                     eprint( tag + ": Third word in file is not \"coordinate\". Stored matrix is a dense matrix and shall better not be loaded. Doing nothing.");
-                    dump( token );
-                    ptoc(tag);
+                    TOOLS_DUMP( token );
+                    TOOLS_PTOC(tag);
                     return;
                 }
                 
@@ -1460,7 +1460,7 @@ namespace Tensors
                     if( scalar_type == "complex")
                     {
                         eprint( tag + ": Scalar type requested is " + TypeName<Scal> + ", but type in file is \"complex\". Doing nothing.");
-                        ptoc(tag);
+                        TOOLS_PTOC(tag);
                         return;
                     }
                 }
@@ -1470,7 +1470,7 @@ namespace Tensors
                     if( (scalar_type != "integer") && (scalar_type != "pattern") )
                     {
                         eprint( tag + ": Scalar type requested is " + TypeName<Scal> + ", but type in file is \"" + scalar_type + "\". Doing nothin.");
-                        ptoc(tag);
+                        TOOLS_PTOC(tag);
                         return;
                     }
                 }
@@ -1484,13 +1484,13 @@ namespace Tensors
                 if( symmetry == "skew-symmetric")
                 {
                     eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". The current implementation cannot handle this. Doing nothing.");
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return;
                 }
                 else if ( symmetry == "hermitian")
                 {
                     eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". The current implementation cannot handle this. Doing nothing.");
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     return;
                 }
                 else if ( symmetry == "symmetric")
@@ -1504,8 +1504,8 @@ namespace Tensors
                 else
                 {
                     eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". This is invalid for the MatrixMarket format. Doing nothing.");
-                    dump( token );
-                    ptoc(tag);
+                    TOOLS_DUMP( token );
+                    TOOLS_PTOC(tag);
                     return;
                 }
                     
@@ -1519,21 +1519,21 @@ namespace Tensors
                 
                 Int row_count = 0;
                 line >> row_count;
-                logdump(row_count);
+                TOOLS_LOGDUMP(row_count);
                 
                 Int col_count = 0;
                 line >> col_count;
-                logdump(col_count);
+                TOOLS_LOGDUMP(col_count);
                 
                 LInt nonzero_count = 0;
                 line >> nonzero_count;
-                logdump(nonzero_count);
+                TOOLS_LOGDUMP(nonzero_count);
 
                 if(row_count < 0)
                 {
                     eprint( tag + ": Invalid row_count." );
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     
                     return;
                 }
@@ -1542,7 +1542,7 @@ namespace Tensors
                 {
                     eprint( tag + ": Invalid col_count." );
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     
                     return;
                 }
@@ -1551,7 +1551,7 @@ namespace Tensors
                 {
                     eprint( tag + ": Invalid nonzero_count." );
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     
                     return;
                 }
@@ -1619,7 +1619,7 @@ namespace Tensors
                 
                 swap( *this, A );
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
             
             
@@ -1627,13 +1627,13 @@ namespace Tensors
             {
                 std::string tag = ClassName() + "::WriteToMatrixMarket";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 if( !WellFormedQ() )
                 {
                     eprint( tag + ": Matrix is not well-formed. Doing nothing." );
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     
                     return;
                 }
@@ -1753,7 +1753,7 @@ namespace Tensors
 //                    }
 //                }
    
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
             
             
@@ -1791,7 +1791,7 @@ namespace Tensors
                 
                 if( !symmetricQ )
                 {
-                    dump(unmatched_count);
+                    TOOLS_DUMP(unmatched_count);
                 }
                 
                 return symmetricQ;

@@ -8,7 +8,7 @@ namespace Tensors
             Layout layout, UpLo uplo,
             typename Scal, typename I1, typename I2, typename I3
         >
-        force_inline Int hetrf_rk(
+        TOOLS_FORCE_INLINE Int hetrf_rk(
             const I1 n_, Scal * A_, const I2 ldA_,
             Scal * e_, Scal * work_, const I3 lwork_,
             Int * perm

@@ -156,7 +156,7 @@ private:
             + "," + TypeName<y_T>
             + ">";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         // TODO: Add better check for pointer overlap.
         
@@ -166,7 +166,7 @@ private:
             {
                 eprint( tag + ": Input and output pointer coincide. This is not safe. Aborting.");
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 
                 return;
             }
@@ -289,6 +289,6 @@ private:
             job_ptr.ThreadCount()
         );
 
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 

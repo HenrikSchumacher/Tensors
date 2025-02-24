@@ -81,7 +81,7 @@ namespace Tensors
             CholeskyDecomposition( cptr<LInt1> rp_, cptr<Int1> ci_, const Int2 n_ )
             : rp {static_cast<Int>(n_+1)}
             {
-                ptic(ClassName()+"()");
+                TOOLS_PTIC(ClassName()+"()");
                        
                 int ver [3];
                 
@@ -106,9 +106,9 @@ namespace Tensors
                     + ToString(ver[1]) + "."
                     + ToString(ver[2]) + ".");
                 
-                dump(itype == CHOLMOD_LONG);
-                dump(xtype == CHOLMOD_REAL);
-                dump(dtype == CHOLMOD_DOUBLE);
+                TOOLS_DUMP(itype == CHOLMOD_LONG);
+                TOOLS_DUMP(xtype == CHOLMOD_REAL);
+                TOOLS_DUMP(dtype == CHOLMOD_DOUBLE);
 
                 
                 c.print = 5 ; // set level of verbosity.
@@ -116,8 +116,8 @@ namespace Tensors
 //                c.method[0].ordering = CHOLMOD_AMD;
                 c.postorder = true;
                 
-                dump(c.nmethods);
-                dump(c.postorder);
+                TOOLS_DUMP(c.nmethods);
+                TOOLS_DUMP(c.postorder);
                 
                 // TODO: Make this more flexible.
                 // Input matrix is expected to be symmetric and pos-def,
@@ -156,9 +156,9 @@ namespace Tensors
                         if( i != j )
                         {
                             eprint( ClassName() + ": Input matrix is missing a diagonal element in row " + ToString(i) +".");
-                            dump(k);
-                            dump(k_end);
-                            dump(j);
+                            TOOLS_DUMP(k);
+                            TOOLS_DUMP(k_end);
+                            TOOLS_DUMP(j);
                         }
                         
                         const LInt row_nz = k_end - k;
@@ -171,17 +171,17 @@ namespace Tensors
                     }
                 }
                 
-                dump(rp.Size());
-                dump(rp.data()[n-1]);
-                dump(rp.data()[n]);
+                TOOLS_DUMP(rp.Size());
+                TOOLS_DUMP(rp.data()[n-1]);
+                TOOLS_DUMP(rp.data()[n]);
                 
-                dump(rp.Last());
+                TOOLS_DUMP(rp.Last());
                 
                 const Size_T nnz = static_cast<Size_T>(rp.Last());
                 
 
                 
-                ptic(ClassName()+": Allocating A");
+                TOOLS_PTIC(ClassName()+": Allocating A");
                 if constexpr( long_version  )
                 {
                     A = cholmod_l_allocate_sparse(
@@ -210,9 +210,9 @@ namespace Tensors
                     eprint(ClassName()+": failed to allocate A.");
                     return;
                 }
-                ptoc(ClassName()+": Allocating A");
+                TOOLS_PTOC(ClassName()+": Allocating A");
                 
-                ptic(ClassName()+": Copying pattern of A");
+                TOOLS_PTIC(ClassName()+": Copying pattern of A");
                 
                 mptr<LInt> A_p = reinterpret_cast<LInt*>(A->p);
                 mptr< Int> A_i = reinterpret_cast< Int*>(A->i);
@@ -229,14 +229,14 @@ namespace Tensors
                     copy_buffer( &ci_[rp[i+1]-k_count], &A_i[A_p[i]], k_count );
                 }
                                 
-                ptoc(ClassName()+": Copying pattern of A");
+                TOOLS_PTOC(ClassName()+": Copying pattern of A");
                 
-                ptoc(ClassName()+"()");
+                TOOLS_PTOC(ClassName()+"()");
             }
             
             ~CholeskyDecomposition()
             {
-                ptic(std::string("~")+ClassName()+"()");
+                TOOLS_PTIC(std::string("~")+ClassName()+"()");
                      
                 if constexpr ( long_version )
                 {
@@ -270,7 +270,7 @@ namespace Tensors
                     
                     cholmod_finish(&c);
                 }
-                ptoc(std::string("~")+ClassName()+"()");
+                TOOLS_PTOC(std::string("~")+ClassName()+"()");
             }
             
         public:
@@ -279,7 +279,7 @@ namespace Tensors
             {
                 std::string tag = ClassName()+"::SymbolicFactorization";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 if constexpr ( long_version )
                 {
@@ -305,19 +305,19 @@ namespace Tensors
                 // DEBUGGING
                 CheckFactor();
                 
-                dump(c.supernodal       );
-                dump(c.fl               );
-                dump(c.current          );
-                dump(c.lnz              );
-                dump(c.memory_usage     );
+                TOOLS_DUMP(c.supernodal       );
+                TOOLS_DUMP(c.fl               );
+                TOOLS_DUMP(c.current          );
+                TOOLS_DUMP(c.lnz              );
+                TOOLS_DUMP(c.memory_usage     );
                 
-                dump(L->minor);
+                TOOLS_DUMP(L->minor);
                 
                 print( ArrayToString( static_cast<LInt*>(A->p), {A->nrow+1} ) );
                       
                 print( ArrayToString( static_cast<Int*>(A->i), {static_cast<LInt*>(A->p)[A->nrow]}) );
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
             
             template<typename ExtScal>
@@ -325,9 +325,9 @@ namespace Tensors
             {
                 std::string tag = ClassName()+"::NumericFactorization";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
 
-                ptic(tag+": copy_buffer (matrix entries)");
+                TOOLS_PTIC(tag+": copy_buffer (matrix entries)");
                 cptr<LInt> A_p = reinterpret_cast<LInt*>(A->p);
                 mptr<Scal> A_x = reinterpret_cast<Scal*>(A->x);
                 
@@ -342,7 +342,7 @@ namespace Tensors
                     copy_buffer( &A_val[rp[i+1]-k_count], &A_x[A_p[i]], k_count );
                 }
                 
-                ptoc(tag+": copy_buffer (matrix entries)");
+                TOOLS_PTOC(tag+": copy_buffer (matrix entries)");
                 
                 // DEBUGGING
                 CheckSparseMatrix();
@@ -350,21 +350,21 @@ namespace Tensors
                 
                 if constexpr ( long_version )
                 {
-                    ptic(tag+": cholmod_l_factorize");
+                    TOOLS_PTIC(tag+": cholmod_l_factorize");
                     cholmod_l_factorize(A,L,&c);
-                    ptoc(tag+": cholmod_l_factorize");
+                    TOOLS_PTOC(tag+": cholmod_l_factorize");
                 }
                 else
                 {
-                    ptic(tag+": cholmod_factorize");
+                    TOOLS_PTIC(tag+": cholmod_factorize");
                     cholmod_factorize(A,L,&c);
-                    ptoc(tag+": cholmod_factorize");
+                    TOOLS_PTOC(tag+": cholmod_factorize");
                 }
                 
                 // DEBUGGING
                 CheckFactor();
                 
-                dump(L->minor);
+                TOOLS_DUMP(L->minor);
                 
                 print( ArrayToString( static_cast<LInt*>(A->p), {A->nrow+1} ) );
                       
@@ -374,7 +374,7 @@ namespace Tensors
                 
                 
                 cholmod_print_factor(L, "L", &c);
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
             
             template<typename ExtScal>
@@ -382,23 +382,23 @@ namespace Tensors
             {
                 std::string tag = ClassName()+"::Solve";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 if constexpr ( long_version )
                 {
-                    ptic(tag+": cholmod_l_allocate_dense");
+                    TOOLS_PTIC(tag+": cholmod_l_allocate_dense");
                     cholmod_dense * b_ = cholmod_l_allocate_dense(
                         A->nrow, Int(1), A->nrow, xdtype, &c
                     );
-                    ptoc(tag+": cholmod_l_allocate_dense");
+                    TOOLS_PTOC(tag+": cholmod_l_allocate_dense");
                     
-                    ptic(tag+": copy_buffer (input)");
+                    TOOLS_PTIC(tag+": copy_buffer (input)");
                     copy_buffer( b, reinterpret_cast<Scal*>(b_->x), b_->nrow );
-                    ptoc(tag+": copy_buffer (input)");
+                    TOOLS_PTOC(tag+": copy_buffer (input)");
                     
-                    ptic(tag+": cholmod_l_solve");
+                    TOOLS_PTIC(tag+": cholmod_l_solve");
                     cholmod_dense * x_ = cholmod_l_solve(CHOLMOD_A,L,b_,&c);
-                    ptoc(tag+": cholmod_l_solve");
+                    TOOLS_PTOC(tag+": cholmod_l_solve");
                     
                     if( x_ == nullptr )
                     {
@@ -406,32 +406,32 @@ namespace Tensors
                     }
                     else
                     {
-                        ptic(tag+": copy_buffer (output)");
+                        TOOLS_PTIC(tag+": copy_buffer (output)");
                         copy_buffer( reinterpret_cast<Scal*>(x_->x), x, x_->nrow );
-                        ptoc(tag+": copy_buffer (output)");
+                        TOOLS_PTOC(tag+": copy_buffer (output)");
                     }
                     
-                    ptic(tag+": cholmod_l_free_dense");
+                    TOOLS_PTIC(tag+": cholmod_l_free_dense");
                     cholmod_l_free_dense(&b_,&c);
                     cholmod_l_free_dense(&x_,&c);
-                    ptoc(tag+": cholmod_l_free_dense");
+                    TOOLS_PTOC(tag+": cholmod_l_free_dense");
                 }
                 else
                 {
                     
-                    ptic(tag+": cholmod_allocate_dense");
+                    TOOLS_PTIC(tag+": cholmod_allocate_dense");
                     cholmod_dense * b_ = cholmod_allocate_dense(
                         A->nrow, Int(1), A->nrow, xdtype, &c
                     );
-                    ptoc(tag+": cholmod_allocate_dense");
+                    TOOLS_PTOC(tag+": cholmod_allocate_dense");
                     
-                    ptic(tag+": copy_buffer (input)");
+                    TOOLS_PTIC(tag+": copy_buffer (input)");
                     copy_buffer( b, reinterpret_cast<Scal*>(b_->x), A->nrow );
-                    ptoc(tag+": copy_buffer (input)");
+                    TOOLS_PTOC(tag+": copy_buffer (input)");
                     
-                    ptic(tag+": cholmod_solve");
+                    TOOLS_PTIC(tag+": cholmod_solve");
                     cholmod_dense * x_ = cholmod_solve(CHOLMOD_A,L,b_,&c);
-                    ptoc(tag+": cholmod_solve");
+                    TOOLS_PTOC(tag+": cholmod_solve");
                     
                     
                     if( x_ == nullptr )
@@ -440,18 +440,18 @@ namespace Tensors
                     }
                     else
                     {
-                        ptic(tag+": copy_buffer (output)");
+                        TOOLS_PTIC(tag+": copy_buffer (output)");
                         copy_buffer( reinterpret_cast<Scal*>(x_->x), x, x_->nrow );
-                        ptoc(tag+": copy_buffer (output)");
+                        TOOLS_PTOC(tag+": copy_buffer (output)");
                     }
                     
-                    ptic(tag+": cholmod_free_dense");
+                    TOOLS_PTIC(tag+": cholmod_free_dense");
                     cholmod_free_dense(&b_,&c);
                     cholmod_free_dense(&x_,&c);
-                    ptoc(tag+": cholmod_free_dense");
+                    TOOLS_PTOC(tag+": cholmod_free_dense");
                 }
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
             
 //            template<typename ExtScal>
@@ -465,21 +465,21 @@ namespace Tensors
             {
                 std::string tag = ClassName()+"::Solve ( " + ToString(nrhs) +" )";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 if constexpr ( long_version )
                 {
-                    ptic(tag+": cholmod_l_allocate_dense");
+                    TOOLS_PTIC(tag+": cholmod_l_allocate_dense");
                     cholmod_dense * b_ = cholmod_l_allocate_dense(
                         A->nrow, nrhs, A->nrow, xdtype,&c
                     );
-                    ptoc(tag+": cholmod_l_allocate_dense");
+                    TOOLS_PTOC(tag+": cholmod_l_allocate_dense");
                     
                     const Size_T n = A->nrow;
                     
                     mptr<Scal> b_ptr = reinterpret_cast<Scal *>(b_->x);
 
-                    ptic(tag+": transpose input");
+                    TOOLS_PTIC(tag+": transpose input");
                     // We have to transpose the inputs.
                     for( Size_T j = 0; j < nrhs; ++j )
                     {
@@ -488,11 +488,11 @@ namespace Tensors
                             b_ptr[n * j + i ] = static_cast<Scal>( b[ nrhs * i + j ] );
                         }
                     }
-                    ptoc(tag+": transpose input");
+                    TOOLS_PTOC(tag+": transpose input");
                     
-                    ptic(tag+": cholmod_l_solve");
+                    TOOLS_PTIC(tag+": cholmod_l_solve");
                     cholmod_dense * x_ = cholmod_l_solve(CHOLMOD_A, L, b_,&c);
-                    ptoc(tag+": cholmod_l_solve");
+                    TOOLS_PTOC(tag+": cholmod_l_solve");
                     
                     if( x_ == nullptr )
                     {
@@ -502,7 +502,7 @@ namespace Tensors
                     {
                         // And have to transpose the outputs.
                         
-                        ptic(tag+": transpose output");
+                        TOOLS_PTIC(tag+": transpose output");
                         cptr<Scal> x_ptr = reinterpret_cast<Scal *>(x_->x);
                         
                         for( Size_T i = 0; i < n; ++i )
@@ -512,26 +512,26 @@ namespace Tensors
                                 x[nrhs * i + j ] = static_cast<ExtScal>( x_ptr[ n * j + i ] );
                             }
                         }
-                        ptoc(tag+": transpose output");
+                        TOOLS_PTOC(tag+": transpose output");
                     }
-                    ptic(tag+": cholmod_l_free_dense");
+                    TOOLS_PTIC(tag+": cholmod_l_free_dense");
                     cholmod_l_free_dense(&b_,&c);
                     cholmod_l_free_dense(&x_,&c);
-                    ptoc(tag+": cholmod_l_free_dense");
+                    TOOLS_PTOC(tag+": cholmod_l_free_dense");
                 }
                 else
                 {
-                    ptic(tag+": cholmod_allocate_dense");
+                    TOOLS_PTIC(tag+": cholmod_allocate_dense");
                     cholmod_dense * b_ = cholmod_allocate_dense(
                         A->nrow, nrhs, A->nrow, xdtype,&c
                     );
-                    ptoc(tag+": cholmod_allocate_dense");
+                    TOOLS_PTOC(tag+": cholmod_allocate_dense");
                     
                     const Size_T n = A->nrow;
                     
                     mptr<Scal> b_ptr = reinterpret_cast<Scal *>(b_->x);
 
-                    ptic(tag+": transpose input");
+                    TOOLS_PTIC(tag+": transpose input");
                     // We have to transpose the inputs.
                     for( Size_T j = 0; j < nrhs; ++j )
                     {
@@ -540,11 +540,11 @@ namespace Tensors
                             b_ptr[n * j + i ] = static_cast<Scal>( b[ nrhs * i + j ] );
                         }
                     }
-                    ptoc(tag+": transpose input");
+                    TOOLS_PTOC(tag+": transpose input");
                     
-                    ptic(tag+": cholmod_solve");
+                    TOOLS_PTIC(tag+": cholmod_solve");
                     cholmod_dense * x_ = cholmod_solve(CHOLMOD_A, L, b_,&c);
-                    ptoc(tag+": cholmod_solve");
+                    TOOLS_PTOC(tag+": cholmod_solve");
                     
                     if( x_ == nullptr )
                     {
@@ -554,7 +554,7 @@ namespace Tensors
                     {
                         // And have to transpose the outputs.
                         
-                        ptic(tag+": transpose output");
+                        TOOLS_PTIC(tag+": transpose output");
                         cptr<Scal> x_ptr = reinterpret_cast<Scal *>(x_->x);
                         
                         for( Size_T i = 0; i < n; ++i )
@@ -564,15 +564,15 @@ namespace Tensors
                                 x[nrhs * i + j ] = static_cast<ExtScal>( x_ptr[ n * j + i ] );
                             }
                         }
-                        ptoc(tag+": transpose output");
+                        TOOLS_PTOC(tag+": transpose output");
                     }
-                    ptic(tag+": cholmod_free_dense");
+                    TOOLS_PTIC(tag+": cholmod_free_dense");
                     cholmod_free_dense(&b_,&c);
                     cholmod_free_dense(&x_,&c);
-                    ptoc(tag+": cholmod_free_dense");
+                    TOOLS_PTOC(tag+": cholmod_free_dense");
                 }
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
             
             
@@ -625,10 +625,10 @@ namespace Tensors
 //                    
 //                    valprint( "matrix symmetry", stat );
 //                    
-//                    dump(xmatched);
-//                    dump(pmatched);
-//                    dump(nzoffdiag);
-//                    dump(nzdiag);
+//                    TOOLS_DUMP(xmatched);
+//                    TOOLS_DUMP(pmatched);
+//                    TOOLS_DUMP(nzoffdiag);
+//                    TOOLS_DUMP(nzdiag);
 //                }
 //                else
 //                {                    
@@ -641,10 +641,10 @@ namespace Tensors
 //                    
 //                    valprint( "matrix symmetry", stat );
 //                    
-//                    dump(xmatched);
-//                    dump(pmatched);
-//                    dump(nzoffdiag);
-//                    dump(nzdiag);
+//                    TOOLS_DUMP(xmatched);
+//                    TOOLS_DUMP(pmatched);
+//                    TOOLS_DUMP(nzoffdiag);
+//                    TOOLS_DUMP(nzdiag);
 //                }
                         
             }

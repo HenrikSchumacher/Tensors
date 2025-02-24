@@ -82,10 +82,10 @@ namespace Tensors
             
             ~CholeskyFactorizer_Multifrontal()
             {
-//                dump(FetchFromA_time);
-//                dump(FetchFromChildren_time);
-//                dump(Factorize_time);
-//                dump(ComputeUpdateMatrix_time);
+//                TOOLS_DUMP(FetchFromA_time);
+//                TOOLS_DUMP(FetchFromChildren_time);
+//                TOOLS_DUMP(Factorize_time);
+//                TOOLS_DUMP(ComputeUpdateMatrix_time);
             }
             
             CholeskyFactorizer_Multifrontal( Chol_T & chol )
@@ -132,9 +132,9 @@ namespace Tensors
                 if( n_0 <= izero )
                 {
                     eprint(ClassName()+"::operator(): n_0<=0");
-                    dump(s);
-                    dump(SN_rp[s  ]);
-                    dump(SN_rp[s+1]);
+                    TOOLS_DUMP(s);
+                    TOOLS_DUMP(SN_rp[s  ]);
+                    TOOLS_DUMP(SN_rp[s+1]);
                 }
                 
                 // The layout of the frontal matrix is this:

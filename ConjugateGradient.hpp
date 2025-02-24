@@ -118,7 +118,7 @@ namespace Tensors
             
             std::string tag = ClassName() + "::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
             
             Time start_time = Clock::now();
             
@@ -146,7 +146,7 @@ namespace Tensors
                 logvalprint( tag + " iter"      , iter      );
                 logvalprint( tag + " succeeded" , succeeded );
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 
                 return succeeded;
             }
@@ -154,7 +154,7 @@ namespace Tensors
             // r = b
             r.Read( B_in, ldX, thread_count );
             
-            ptic(ClassName()+": Compute norm of right hand side.");
+            TOOLS_PTIC(ClassName()+": Compute norm of right hand side.");
             
             // z = P.b
             ApplyPreconditioner(P,r,z);
@@ -169,7 +169,7 @@ namespace Tensors
                 TOL[k] = b_squared_norms[k] * factor;
             }
             
-            ptoc(ClassName()+": Compute norm of right hand side.");
+            TOOLS_PTOC(ClassName()+": Compute norm of right hand side.");
             
             if( b_squared_norms.CountNaNs() > 0 )
             {
@@ -180,7 +180,7 @@ namespace Tensors
                 logvalprint( tag + " iter"      , iter      );
                 logvalprint( tag + " succeeded" , succeeded );
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 
                 return succeeded;
             }
@@ -189,7 +189,7 @@ namespace Tensors
             {
                 wprint(tag + ": Right-hand side is 0. Returning b * X_inout.");
 
-                dump( b_squared_norms );
+                TOOLS_DUMP( b_squared_norms );
                 
                 scale_matrix<VarSize,NRHS,Parallel>(
                     b, X_inout, ldX, n, nrhs, thread_count
@@ -200,7 +200,7 @@ namespace Tensors
                 logvalprint( tag + " iter"      , iter      );
                 logvalprint( tag + " succeeded" , succeeded );
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 
                 return succeeded;
             }
@@ -345,7 +345,7 @@ namespace Tensors
             
             logprint( Stats() );
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             
             
             
@@ -362,14 +362,14 @@ namespace Tensors
         {
             if constexpr ( A_verboseQ )
             {
-                ptic(ClassName()+ "::ApplyOperator");
+                TOOLS_PTIC(ClassName()+ "::ApplyOperator");
             }
             
             (void)A( X.data(), Y.data() );
             
             if constexpr ( A_verboseQ )
             {
-                ptoc(ClassName()+ "::ApplyOperator");
+                TOOLS_PTOC(ClassName()+ "::ApplyOperator");
             }
         }
         
@@ -380,7 +380,7 @@ namespace Tensors
         {
             if constexpr ( P_verboseQ )
             {
-                ptic(ClassName()+ "::ApplyPreconditioner");
+                TOOLS_PTIC(ClassName()+ "::ApplyPreconditioner");
             }
             
             (void)P( v.data(), w.data() );
@@ -388,7 +388,7 @@ namespace Tensors
             
             if constexpr ( P_verboseQ )
             {
-                ptoc(ClassName()+ "::ApplyPreconditioner");
+                TOOLS_PTOC(ClassName()+ "::ApplyPreconditioner");
             }
         }
         
@@ -398,7 +398,7 @@ namespace Tensors
             mref<RealVector_T> dots
         )
         {
-//            ptic(ClassName()+ "::ComputeScalarProducts");
+//            TOOLS_PTIC(ClassName()+ "::ComputeScalarProducts");
             
             ParallelDo(
                 [this,&v,&w]( const Int thread )
@@ -436,7 +436,7 @@ namespace Tensors
             
             reduction_buffer.AddReduce( dots.data(), false );
             
-//            ptoc(ClassName()+ "::ComputeScalarProducts");
+//            TOOLS_PTOC(ClassName()+ "::ComputeScalarProducts");
         }
         
     public:

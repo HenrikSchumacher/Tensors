@@ -3,7 +3,7 @@ void Read_N( cptr<A_T> A, const Int ldA )
 {
     //TODO: Handle boundary cases.
     
-    ptic(ClassName()+"::Read_N<" + TypeName<A_T> + ">");
+    TOOLS_PTIC(ClassName()+"::Read_N<" + TypeName<A_T> + ">");
 
     ParallelDo(
         [=,this]( const Int thread )
@@ -33,7 +33,7 @@ void Read_N( cptr<A_T> A, const Int ldA )
         thread_count
     );
     
-    ptoc(ClassName()+"::Read_N<" + TypeName<A_T> + ">");
+    TOOLS_PTOC(ClassName()+"::Read_N<" + TypeName<A_T> + ">");
 }
     
 template<typename A_T>
@@ -41,7 +41,7 @@ void Read_T( cptr<A_T> A, const Int ldA )
 {
     //TODO: Handle boundary cases.
 
-    ptic(ClassName()+"::Read_T<" + TypeName<A_T> + ">");
+    TOOLS_PTIC(ClassName()+"::Read_T<" + TypeName<A_T> + ">");
     
     ParallelDo(
         [A,ldA,this]( const Int thread )
@@ -69,5 +69,5 @@ void Read_T( cptr<A_T> A, const Int ldA )
         thread_count
     );
     
-    ptoc(ClassName()+"::Read_T<" + TypeName<A_T> + ">");
+    TOOLS_PTOC(ClassName()+"::Read_T<" + TypeName<A_T> + ">");
 }

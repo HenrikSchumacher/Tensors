@@ -241,7 +241,7 @@ namespace Tensors
             {
                 std::string tag = ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*,  Permutation<" + TypeName<Int>+ "> )";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 perm = Permutation_T( std::move( perm_) );
                 
@@ -282,7 +282,7 @@ namespace Tensors
                 
                 Init();
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
             
             // This is the constructor that will most likely to be used in practice.
@@ -314,7 +314,7 @@ namespace Tensors
             {
                 std::string tag = ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*, " + TypeName<Int>+ ", " + TypeName<Int>+ " )";
                 
-                ptic(tag);
+                TOOLS_PTIC(tag);
                 
                 A = BinaryMatrix_T( A_outer, A_inner, n, n, thread_count );
                 
@@ -358,7 +358,7 @@ namespace Tensors
                 
                 Init();
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
             }
 
             
@@ -455,7 +455,7 @@ namespace Tensors
             
             void Init()
             {
-                ptic(ClassName()+"::Init");
+                TOOLS_PTIC(ClassName()+"::Init");
                 if( n <= izero )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
@@ -467,7 +467,7 @@ namespace Tensors
                 
                 row_mutexes = std::vector<std::mutex> ( n );
                 
-                ptoc(ClassName()+"::Init");
+                TOOLS_PTOC(ClassName()+"::Init");
             }
             
             
@@ -475,7 +475,7 @@ namespace Tensors
             
             void CheckDiagonal() const
             {
-                ptic(ClassName()+"CheckDiagonal()");
+                TOOLS_PTIC(ClassName()+"CheckDiagonal()");
                 
                 A.RequireDiag();
                 
@@ -489,11 +489,11 @@ namespace Tensors
                 if( !okay )
                 {
                     eprint(ClassName()+"::PostOrdering: Diagonal of input matrix is not marked as nonzero.");
-                    dump( A.Diag() );
+                    TOOLS_DUMP( A.Diag() );
                     
                 }
                 
-                ptoc(ClassName()+"CheckDiagonal()");
+                TOOLS_PTOC(ClassName()+"CheckDiagonal()");
             }
             
         protected:
@@ -504,7 +504,7 @@ namespace Tensors
                 
                 if( !EliminationTree().PostOrderedQ() )
                 {
-                    ptic(ClassName()+"::PostOrdering");
+                    TOOLS_PTIC(ClassName()+"::PostOrdering");
                     
                     perm.Compose( post, Compose::Post );
                     
@@ -544,7 +544,7 @@ namespace Tensors
                     // TODO:  e.g., by permuting the old tree?
                     (void)EliminationTree();
                     
-                    ptoc(ClassName()+"::PostOrdering");
+                    TOOLS_PTOC(ClassName()+"::PostOrdering");
                 }
                 
                 return EliminationTree().PostOrdering().GetPermutation();

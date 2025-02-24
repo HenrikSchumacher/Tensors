@@ -34,7 +34,7 @@ namespace Tensors
             template<typename Int1, typename Int2, typename Int3, typename Int4>
             Int64 operator()( cptr<Int1> rp, cptr<Int2> ci, const Int3 n_, mptr<Int4> perm )
             {
-                ptic(ClassName()+"::operator()");
+                TOOLS_PTIC(ClassName()+"::operator()");
                 
                 const Int n = int_cast<Int>(n_);
                 
@@ -46,7 +46,7 @@ namespace Tensors
                 
                 cholmod_sparse * A = nullptr;
                 
-                ptic(ClassName()+": Allocating A");
+                TOOLS_PTIC(ClassName()+": Allocating A");
                 A = cholmod_allocate_sparse(
                     static_cast<Size_T>(n_),
                     static_cast<Size_T>(n_),
@@ -63,7 +63,7 @@ namespace Tensors
                     eprint(ClassName()+" failed to allocate A.");
                     return -1;
                 }
-                ptoc(ClassName()+": Allocating A");
+                TOOLS_PTOC(ClassName()+": Allocating A");
                 
                 Tensor1<Int,Int> perm_buffer;
                 Int * perm_ptr = nullptr;
@@ -79,10 +79,10 @@ namespace Tensors
                 }
                 
                 
-                ptic(ClassName()+": Copying pattern of A");
+                TOOLS_PTIC(ClassName()+": Copying pattern of A");
                 copy_buffer( rp, reinterpret_cast<Int*>(A->p), int_cast<Size_T>(A->nrow + 1) );
                 copy_buffer( ci, reinterpret_cast<Int*>(A->i), int_cast<Size_T>(A->nzmax   ) );
-                ptoc(ClassName()+": Copying pattern of A");
+                TOOLS_PTOC(ClassName()+": Copying pattern of A");
 
                 
                 Tensor1<Int,Int> fset = iota<Int>( n );
@@ -107,7 +107,7 @@ namespace Tensors
                     perm_buffer.Write(perm);
                 }
                 
-                ptoc(ClassName()+"::operator()");
+                TOOLS_PTOC(ClassName()+"::operator()");
                 
                 
                 return status;
@@ -131,7 +131,7 @@ namespace Tensors
             
 //            void PrintInfo()
 //            {
-//                //            dump(info);
+//                //            TOOLS_DUMP(info);
 //                valprint("AMD status                      ", info[AMD_STATUS]);
 //                valprint("Size of input matrix            ", info[AMD_N]);
 //                valprint("Degree of symmetry              ", info[AMD_SYMMETRY]);

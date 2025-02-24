@@ -8,7 +8,7 @@ namespace Tensors
             Layout layout, Op opA, Op opB,
             typename Scal, typename I0, typename I1, typename I2, typename I3, typename I4, typename I5
         >
-        force_inline void gemm(
+        TOOLS_FORCE_INLINE void gemm(
             const I0 m_, const I1 n_, const I2 k_,
             cref<Scal> alpha, cptr<Scal> A_, const I3 ldA_,
                               cptr<Scal> B_, const I4 ldB_,

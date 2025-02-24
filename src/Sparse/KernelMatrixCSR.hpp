@@ -67,7 +67,7 @@ namespace Tensors
             
             void FillLowerTriangleFromUpperTriangle( mptr<Scal> values ) const
             {
-                ptic(ClassName()+"::FillLowerTriangleFromUpperTriangle");
+                TOOLS_PTIC(ClassName()+"::FillLowerTriangleFromUpperTriangle");
                 
                 if( pattern.WellFormedQ() && (pattern.RowCount()>= pattern.ColCount()) )
                 {
@@ -125,7 +125,7 @@ namespace Tensors
                     
                 }
                 
-                ptoc(ClassName()+"::FillLowerTriangleFromUpperTriangle");
+                TOOLS_PTOC(ClassName()+"::FillLowerTriangleFromUpperTriangle");
             }
             
             
@@ -147,20 +147,20 @@ namespace Tensors
                 }
             }
             
-            force_flattening void Dot(
+            TOOLS_FORCE_FLATTENING void Dot(
                 cptr<Scal> A,
                 cref<Scal_out> alpha, cptr<Scal_in>  X,
                 cref<Scal_out> beta,  mptr<Scal_out> Y,
                 const Int nrhs
             ) const
             {
-                ptic(ClassName()+"::Dot" );
+                TOOLS_PTIC(ClassName()+"::Dot" );
                 
                 if( (alpha == static_cast<Scal_out>(0)) || (NonzeroCount() <= 0) )
                 {
                     Scale( Y, beta, nrhs );
                     
-                    ptoc(ClassName()+"::Dot" );
+                    TOOLS_PTOC(ClassName()+"::Dot" );
                     
                     return;
                 }
@@ -226,7 +226,7 @@ namespace Tensors
                     thread_count
                 );
                 
-                ptoc(ClassName()+"::Dot" );
+                TOOLS_PTOC(ClassName()+"::Dot" );
             }
             
 //#####################################################################################
@@ -235,45 +235,47 @@ namespace Tensors
             
         public:
             
-            [[nodiscard]] Permutation<LInt> Permute(
-                const Permutation<Int> & p,  // row    permutation
-                const Permutation<Int> & q  // column permutation
-            )
-            {
-                // Modifies inner, outer, and values accordingly; returns the permutation to be applied to the nonzero values.
-                
-                const LInt nnz = this->inner.Size();
-                
-                Permutation<LInt> perm;
-                
-                std::tie( this->outer, this->inner, perm ) = SparseMatrixPermutation(
-                    this->outer.data(), this->inner.data(), p, q, nnz, true
-                );
+//  This is outdated as of now. Will have to be fixed some day if need.
+//
+//            [[nodiscard]] Permutation<LInt> Permute(
+//                const Permutation<Int> & p,  // row    permutation
+//                const Permutation<Int> & q  // column permutation
+//            )
+//            {
+//                // Modifies inner, outer, and values accordingly; returns the permutation to be applied to the nonzero values.
+//                
+//                const LInt nnz = this->inner.Size();
+//                
+//                Permutation<LInt> perm;
+//                
+//                std::tie( this->outer, this->inner, perm ) = SparseMatrixPermutation(
+//                    this->outer.data(), this->inner.data(), p, q, nnz, true
+//                );
+//
+//                if( !p.TrivialQ() || !q.TrivialQ() )
+//                {
+//                    cptr<Scal> u = this->new_values.data();
+//                    mptr<Scal> v = this->values.data();
+//                    Tensor1<Scal,LInt> new_values ( nnz );
+//                    
+//                    ParallelDo(
+//                        [&]( const Int i ) { v[i] = u[perm[i]]; },
+//                        nnz, this->ThreadCount()
+//                    );
+//                    
+//                    swap( this->values, new_values);
+//                }
+//                
+//                this->inner_sorted = true;
+//                
+//                this->diag_ptr_initialized = false;
+//                this->job_ptr_initialized  = false;
+//                this->upper_triangular_job_ptr_initialized = false;
+//                this->lower_triangular_job_ptr_initialized = false;
+//                
+//                return perm;
+//            }
 
-                if( !p.TrivialQ() || !q.TrivialQ() )
-                {
-                    cptr<Scal> u = this->new_values.data();
-                    mptr<Scal> v = this->values.data();
-                    Tensor1<Scal,LInt> new_values ( nnz );
-                    
-                    ParallelDo(
-                        [&]( const Int i ) { v[i] = u[perm[i]]; },
-                        nnz, this->ThreadCount()
-                    );
-                    
-                    swap( this->values, new_values);
-                }
-                
-                this->inner_sorted = true;
-                
-                this->diag_ptr_initialized = false;
-                this->job_ptr_initialized  = false;
-                this->upper_triangular_job_ptr_initialized = false;
-                this->lower_triangular_job_ptr_initialized = false;
-                
-                return perm;
-            }
-            
         public:
             
             [[nodiscard]] std::string ClassName() const

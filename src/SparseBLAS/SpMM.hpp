@@ -181,7 +181,7 @@ private:
                 + "," + ToString(nrhs)
                 + ")";
             
-            ptic(tag);
+            TOOLS_PTIC(tag);
             
             // TODO: Add better check for pointer overlap.
             
@@ -191,7 +191,7 @@ private:
                 {
                     eprint( tag + ": Input and output pointer coincide. This is not safe. Aborting.");
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     
                     return;
                 }
@@ -218,7 +218,7 @@ private:
                 {
                     eprint( tag + ": a_flag == F_T::Generic, but the pointer a is a nullptr. Aborting.");
                     
-                    ptoc(tag);
+                    TOOLS_PTOC(tag);
                     
                     return;
                 }
@@ -416,7 +416,7 @@ private:
                 job_ptr.ThreadCount()
             );
             
-            ptoc(tag);
+            TOOLS_PTOC(tag);
             
         }
     }
@@ -452,7 +452,7 @@ private:
             + "," + ToString(ldY)
             + ")";
         
-        ptic(tag);
+        TOOLS_PTIC(tag);
         
         static_assert(NRHS!=0, "SpMM_vec only implements static size behavior.");
         
@@ -488,7 +488,7 @@ private:
             {
                 eprint( tag + ": a_flag == F_T::Generic, but the pointer a is a nullptr. Aborting.");
                 
-                ptoc(tag);
+                TOOLS_PTOC(tag);
                 
                 return;
             }
@@ -577,6 +577,6 @@ private:
             job_ptr.ThreadCount()
         );
         
-        ptoc(tag);
+        TOOLS_PTOC(tag);
     }
 #endif

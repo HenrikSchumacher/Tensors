@@ -192,7 +192,7 @@ void Test_combine_buffers( Size_T n )
     
     toc(std::string("Test_combine_buffers<")+TypeName<R_0>+","+TypeName<S_0>+","+TypeName<R_1>+","+TypeName<S_1>+">");
     
-    dump(error_count);
+    TOOLS_DUMP(error_count);
     
     if( error_count > 0 )
     {

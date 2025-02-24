@@ -60,42 +60,42 @@ namespace Tensors
         }
         
 
-        force_inline mptr<Scal> data( const Int i )
+        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i )
         {
             BoundCheck(i);
             
             return &a[i];
         }
         
-        force_inline cptr<Scal> data( const Int i ) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const
         {
             BoundCheck(i);
             
             return &a[i];
         }
         
-        force_inline mref<Scal> operator()(const Int i)
+        TOOLS_FORCE_INLINE mref<Scal> operator()(const Int i)
         {
             BoundCheck(i);
             
             return a[i];
         }
         
-        force_inline cref<Scal> operator()(const Int i) const
+        TOOLS_FORCE_INLINE cref<Scal> operator()(const Int i) const
         {
             BoundCheck(i);
             
             return a[i];
         }
         
-        force_inline mref<Scal> operator[](const Int i)
+        TOOLS_FORCE_INLINE mref<Scal> operator[](const Int i)
         {
             BoundCheck(i);
             
             return a[i];
         }
         
-        force_inline cref<Scal> operator[](const Int i) const
+        TOOLS_FORCE_INLINE cref<Scal> operator[](const Int i) const
         {
             BoundCheck(i);
             
@@ -104,22 +104,22 @@ namespace Tensors
         
 
         
-        force_inline mref<Scal> First()
+        TOOLS_FORCE_INLINE mref<Scal> First()
         {
             return a[0];
         }
         
-        force_inline cref<Scal> First() const
+        TOOLS_FORCE_INLINE cref<Scal> First() const
         {
             return a[0];
         }
 
-        force_inline mref<Scal> Last()
+        TOOLS_FORCE_INLINE mref<Scal> Last()
         {
             return a[n-1];
         }
         
-        force_inline cref<Scal> Last() const
+        TOOLS_FORCE_INLINE cref<Scal> Last() const
         {
             return a[n-1];
         }

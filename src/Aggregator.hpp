@@ -89,7 +89,7 @@ namespace Tensors
             return current_size;
         }
 
-        force_inline void Push( const T_0 a )
+        TOOLS_FORCE_INLINE void Push( const T_0 a )
         {
             if( current_size >= capacity )
             {
@@ -99,7 +99,7 @@ namespace Tensors
             container_0[current_size++] = a;
         }
         
-        force_inline void Push( cptr<T_0> a, const LInt n )
+        TOOLS_FORCE_INLINE void Push( cptr<T_0> a, const LInt n )
         {
             if( current_size + n >= capacity )
             {
@@ -110,7 +110,7 @@ namespace Tensors
             current_size += n;
         }
         
-        force_inline void Pop( const LInt n )
+        TOOLS_FORCE_INLINE void Pop( const LInt n )
         {
             if( current_size >= n )
             {
@@ -147,7 +147,7 @@ namespace Tensors
         
         void RequireCapacity( const LInt new_capacity )
         {
-            ptic(ClassName()+"::RequireCapacity");
+            TOOLS_PTIC(ClassName()+"::RequireCapacity");
             if( new_capacity > capacity)
             {
                 Container_0_T new_container_0 (new_capacity);
@@ -161,22 +161,22 @@ namespace Tensors
                 
                 capacity = new_capacity;
             }
-            ptoc(ClassName()+"::RequireCapacity");
+            TOOLS_PTOC(ClassName()+"::RequireCapacity");
         }
         
-        force_inline T_0 & operator[]( const LInt i )
+        TOOLS_FORCE_INLINE T_0 & operator[]( const LInt i )
         {
             return container_0[i];
         }
         
-        force_inline const T_0 & operator[]( const LInt i ) const
+        TOOLS_FORCE_INLINE const T_0 & operator[]( const LInt i ) const
         {
             return container_0[i];
         }
         
         void ShrinkToFit()
         {
-            ptic(ClassName()+"::ShrinkToFit");
+            TOOLS_PTIC(ClassName()+"::ShrinkToFit");
             
             if( current_size != capacity )
             {
@@ -188,7 +188,7 @@ namespace Tensors
                 swap( container_0, new_container_0 );
             }
             
-            ptoc(ClassName()+"::ShrinkToFit");
+            TOOLS_PTOC(ClassName()+"::ShrinkToFit");
         }
         
     protected:

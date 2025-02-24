@@ -152,7 +152,7 @@ int main()
     toc("Cholesky sequential vector solve -- Tensor1 arguments");
     y = b;
     A.Dot( -alpha_inv, x, Scal(1), y);
-    dump(y.MaxNorm());
+    TOOLS_DUMP(y.MaxNorm());
     
     print("");
     
@@ -162,7 +162,7 @@ int main()
     toc("Cholesky sequential vector solve -- pointer arguments");
     y = b;
     A.Dot<1>( -alpha_inv, x.data(), 1, Scal(1), y.data(), 1);
-    dump(y.MaxNorm());
+    TOOLS_DUMP(y.MaxNorm());
 
     print("");
 
@@ -172,7 +172,7 @@ int main()
     toc("Cholesky sequential matrix solve -- Tensor2 arguments");
     Y = B;
     A.Dot<VarSize>( -alpha_inv, X, Scal(1), Y );
-    dump(Y.MaxNorm());
+    TOOLS_DUMP(Y.MaxNorm());
     
     print("");
     
@@ -182,7 +182,7 @@ int main()
     toc("Cholesky matrix solve -- pointer arguments");
     Y = B;
     A.Dot<NRHS>( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
-    dump(Y.MaxNorm());
+    TOOLS_DUMP(Y.MaxNorm());
 
     print("");
     print("Parallel solves");
@@ -194,7 +194,7 @@ int main()
     toc("Cholesky parallel vector solve -- Tensor1 arguments");
     y = b;
     A.Dot( -alpha_inv, x, Scal(1), y);
-    dump(y.MaxNorm());
+    TOOLS_DUMP(y.MaxNorm());
     
     print("");
 
@@ -204,7 +204,7 @@ int main()
     toc("Cholesky parallel vector solve -- pointer arguments");
     y = b;
     A.Dot( -alpha_inv, x, Scal(1), y);
-    dump(y.MaxNorm());
+    TOOLS_DUMP(y.MaxNorm());
 
     print("");
     
@@ -214,7 +214,7 @@ int main()
     toc("Cholesky parallel matrix solve -- Tensor2 arguments");
     Y = B;
     A.Dot( -alpha_inv, X, Scal(1), Y );
-    dump(Y.MaxNorm());
+    TOOLS_DUMP(Y.MaxNorm());
     
     print("");
     
@@ -224,7 +224,7 @@ int main()
     toc("Cholesky parallel matrix solve -- pointer arguments");
     Y = B;
     A.Dot<NRHS>( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
-    dump(Y.MaxNorm());
+    TOOLS_DUMP(Y.MaxNorm());
 
 
     print("");
@@ -284,7 +284,7 @@ int main()
         toc("Accelerate Cholesky vector solve");
         y = b;
         A.Dot(Scal(-1), x, Scal(1), y);
-        dump(y.MaxNorm());
+        TOOLS_DUMP(y.MaxNorm());
 
         print("");
 
@@ -298,15 +298,15 @@ int main()
         toc("Accelerate Cholesky matrix solve");
         Y = B;
         A.Dot(Scal(-1), X, Scal(1), Y);
-        dump(Y.MaxNorm());
+        TOOLS_DUMP(Y.MaxNorm());
     }
     
     
     
-//    dump(x[0]);
-//    dump(x[1]);
-//    dump(x[2]);
-//    dump(x[3]);
+//    TOOLS_DUMP(x[0]);
+//    TOOLS_DUMP(x[1]);
+//    TOOLS_DUMP(x[2]);
+//    TOOLS_DUMP(x[3]);
 //    
 //    print("");
 //    print("");
@@ -332,29 +332,29 @@ int main()
 //    print("");
 //    print("");
 //
-//    dump(b[0]);
-//    dump(b[1]);
-//    dump(b[2]);
-//    dump(b[3]);
+//    TOOLS_DUMP(b[0]);
+//    TOOLS_DUMP(b[1]);
+//    TOOLS_DUMP(b[2]);
+//    TOOLS_DUMP(b[3]);
 //    x.SetZero();
 //    
 //    tic("CHOLMOD Cholesky vector solve");
 //    cholmod.Solve( b.data(), x.data() );
 //    toc("CHOLMOD Cholesky vector solve");
 //    
-//    dump(b[0]);
-//    dump(b[1]);
-//    dump(b[2]);
-//    dump(b[3]);
+//    TOOLS_DUMP(b[0]);
+//    TOOLS_DUMP(b[1]);
+//    TOOLS_DUMP(b[2]);
+//    TOOLS_DUMP(b[3]);
 //    
-//    dump(x[0]);
-//    dump(x[1]);
-//    dump(x[2]);
-//    dump(x[3]);
+//    TOOLS_DUMP(x[0]);
+//    TOOLS_DUMP(x[1]);
+//    TOOLS_DUMP(x[2]);
+//    TOOLS_DUMP(x[3]);
 //    
 //    y = b;
 //    A.Dot(Scal(-1), x, Scal(1), y);
-//    dump(y.MaxNorm());
+//    TOOLS_DUMP(y.MaxNorm());
 //
 //    print("");
     

@@ -11,7 +11,7 @@ protected:
 
     void CreateAssemblyTree()
     {
-        ptic(ClassName()+"::CreateAssemblyTree");
+        TOOLS_PTIC(ClassName()+"::CreateAssemblyTree");
 
         cref<Tensor1<Int,Int>> parents = EliminationTree().Parents();
 
@@ -60,5 +60,5 @@ protected:
         aTree = Tree<Int> ( std::move(SN_parents), std::move(SN_costs), thread_count );
 //                aTree = Tree<Int> ( SN_parents, thread_count );
 
-        ptoc(ClassName()+"::CreateAssemblyTree");
+        TOOLS_PTOC(ClassName()+"::CreateAssemblyTree");
     }

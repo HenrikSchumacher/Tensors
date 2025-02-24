@@ -9,7 +9,7 @@ public:
             const Int tree_top_depth = std::numeric_limits<Int>::max()
         )
         {
-            ptic(ClassName()+"::Traverse_Postordered_Sequential");
+            TOOLS_PTIC(ClassName()+"::Traverse_Postordered_Sequential");
             
             Tensor1<Int, Int> stack   ( n );
             Tensor1<Int, Int> depth   ( n );
@@ -68,5 +68,5 @@ public:
                 }
             }
             
-            ptoc(ClassName()+"::Traverse_Postordered_Sequential");
+            TOOLS_PTOC(ClassName()+"::Traverse_Postordered_Sequential");
         }
