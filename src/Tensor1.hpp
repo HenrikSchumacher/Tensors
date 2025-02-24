@@ -164,16 +164,9 @@ namespace Tensors
             parallel_accumulate(a, n, thread_count );
         }
         
-        Scal Total() const
+        Scal Total(const Int thread_count = 1) const
         {
-            Scal sum = static_cast<Scal>(0);
-            
-            for( Int i = 0; i < n; ++ i )
-            {
-                sum += a[i];
-            }
-
-            return sum;
+            return total_buffer<VarSize,Parallel>(a,n,thread_count);
         }
         
         inline friend Scal Total( cref<TENSOR_T> x )
@@ -181,7 +174,7 @@ namespace Tensors
             return x.Total();
         }
         
-        inline friend Scal Dot( cref<TENSOR_T> x, cref<TENSOR_T> y )
+        inline friend Scal Dot( cref<TENSOR_T> x, cref<TENSOR_T> y, const Int thread_count = 1 )
         {
             if( x.n != y.n )
             {
@@ -189,7 +182,7 @@ namespace Tensors
                 return 0;
             }
             
-            return dot_buffers( x.a, y.a, x.n );
+            return dot_buffers<VarSize,Parallel>(x.a,y.a,x.n,thread_count);
         }
         
         void iota( const Int thread_count = 1 )

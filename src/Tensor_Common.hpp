@@ -130,14 +130,14 @@ public:
     template<typename S>
     void Read( cptr<S> a_ )
     {
-        copy_buffer( a_, a, static_cast<Size_T>(n) );
+        copy_buffer( a_, a, n );
     }
 
     //// Parallelized version.
     template<typename S>
     void ReadParallel( cptr<S> a_, const Int thread_count )
     {
-        copy_buffer<VarSize,Parallel>( a_, a, ToSize_T(n), ToSize_T(thread_count) );
+        copy_buffer<VarSize,Parallel>( a_, a, n, thread_count );
     }
 
     template<typename R>
@@ -160,7 +160,7 @@ public:
     template<typename S>
     void WriteParallel( mptr<S> a_, const Int thread_count ) const
     {
-        copy_buffer<VarSize,Parallel>( a, a_, ToSize_T(n), ToSize_T(thread_count) );
+        copy_buffer<VarSize,Parallel>( a, a_, n, thread_count );
     }
 
     template<typename R>
@@ -181,17 +181,17 @@ public:
 
     void Fill( cref<Scal> init, const Size_T thread_count )
     {
-        fill_buffer<VarSize,Parallel>( a, init, int_cast<Size_T>(n), thread_count );
+        fill_buffer<VarSize,Parallel>( a, init, n, thread_count );
     }
 
     void SetZero()
     {
-        zerofy_buffer( a, int_cast<Size_T>(n) );
+        zerofy_buffer( a, n );
     }
 
-    void SetZero( const Size_T thread_count )
+    void SetZero( const Int thread_count )
     {
-        zerofy_buffer<VarSize,Parallel>( a, int_cast<Size_T>(n), thread_count );
+        zerofy_buffer<VarSize,Parallel>( a, n, thread_count );
     }
 
     void Random( const Int thread_count = 1 )
@@ -234,7 +234,7 @@ public:
                     const Int i_begin = JobPointer( n, thread_count, thread     );
                     const Int i_end   = JobPointer( n, thread_count, thread + 1 );
                     
-                    MT_T & engine = engines[thread];
+                    MT_T & engine = engines[static_cast<Size_T>(thread)];
                     
                     std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
                    
@@ -274,7 +274,7 @@ protected:
 
     force_inline void allocate()
     {
-        safe_alloc( a, static_cast<Size_T>(Tools::Ramp(n)), Alignment );
+        safe_alloc( a, ToSize_T(n), Alignment );
     }
 
 public:
@@ -311,7 +311,7 @@ public:
 
     force_inline Int Dimension( const Int i ) const
     {
-        return ( i < Rank() ) ? dims[static_cast<Size_T>(i)] : static_cast<Int>(0);
+        return ( i < Rank() ) ? dims[ToSize_T(i)] : Scalar::Zero<Int>;
     }
 
 public:
