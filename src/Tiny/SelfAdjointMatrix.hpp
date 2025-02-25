@@ -863,26 +863,6 @@ namespace Tensors
                 return B;
             }
             
-            static constexpr Int AmbientDimension()
-            {
-                return n;
-            }
-            
-            static constexpr Int Dimension()
-            {
-                return n;
-            }
-            
-            static constexpr Int RowCount()
-            {
-                return n;
-            }
-            
-            static constexpr Int ColCount()
-            {
-                return n;
-            }
-            
             static std::string ClassName()
             {
                 return std::string("Tiny::SelfAdjointMatrix") + "<" + ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";

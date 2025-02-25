@@ -6,6 +6,34 @@
     
 public:
 
+    static constexpr Int AmbientDimension()
+    {
+        return n;
+    }
+
+    static constexpr Int Dimension( const Int i )
+    {
+        if( i == 0 )
+        {
+            return n;
+        }
+        if( i == 1 )
+        {
+            return n;
+        }
+        return static_cast<Int>(0);
+    }
+
+    static constexpr Int RowCount()
+    {
+        return n;
+    }
+
+    static constexpr Int ColCount()
+    {
+        return n;
+    }
+
     TOOLS_FORCE_INLINE void SetZero()
     {
         if constexpr ( n > 0 )

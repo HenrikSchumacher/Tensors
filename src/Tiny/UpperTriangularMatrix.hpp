@@ -319,11 +319,6 @@ namespace Tensors
                 return B;
             }
             
-            static constexpr Int AmbientDimension()
-            {
-                return n;
-            }
-            
             static std::string ClassName()
             {
                 return std::string("Tiny::UpperTriangularMatrix") + "<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
