@@ -1239,7 +1239,12 @@ namespace Tensors
             
             [[nodiscard]] static std::string ClassName()
             {
-                return std::string("Tiny::Matrix") + "<" + ToString(m) + "," + ToString(n) + "," + TypeName<Scal> + "," + TypeName<Int> + ">";
+                return ct_string("Tiny::Matrix")
+                    + "<" + to_ct_string(m)
+                    + "," + to_ct_string(n)
+                    + "," + TypeName<Scal>
+                    + "," + TypeName<Int>
+                    + ">";
             }
             
         }; // Tiny::Matrix

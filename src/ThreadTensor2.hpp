@@ -379,7 +379,11 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return std::string("ThreadTensor2")+"<"+TypeName<Scal>+","+TypeName<Int>+","+ToString(Alignment)+">";
+            return ct_string("ThreadTensor2")
+                + "<" + TypeName<Scal>
+                + "," + TypeName<Int>
+                + "," + to_ct_string(Alignment)
+                + ">";
         }
         
     }; // ThreadTensor2

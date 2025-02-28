@@ -388,10 +388,10 @@ namespace Tensors
         
         static std::string ClassName()
         {
-            return std::string("Tensor2")
+            return ct_string("Tensor2")
                 + "<" + TypeName<Scal>
                 + "," + TypeName<Int>
-                + "," + ToString(alignment)
+                + "," + to_ct_string(alignment)
                 + ">";
         }
         

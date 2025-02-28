@@ -865,7 +865,11 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::SelfAdjointMatrix") + "<" + ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return ct_string("Tiny::SelfAdjointMatrix")
+                    + "<" + to_ct_string(n)
+                    + "," + TypeName<Scal>
+                    + "," + TypeName<Int>
+                    + ">";
             }
             
         };

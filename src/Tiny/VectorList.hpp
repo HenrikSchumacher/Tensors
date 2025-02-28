@@ -309,7 +309,12 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::VectorList")+"<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+","+ToString(Alignment)+">";
+                return ct_string("Tiny::VectorList")
+                    + "<" + to_ct_string(n)
+                    + "," + TypeName<Scal>
+                    + "," + TypeName<Int>
+                    + "," + to_ct_string(Alignment)
+                    + ">";
             }
         };
         

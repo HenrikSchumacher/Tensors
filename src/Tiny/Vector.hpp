@@ -228,6 +228,26 @@ namespace Tensors
                 return &v[0];
             }
             
+            mptr<Scal> begin()
+            {
+                return &v[0];
+            }
+            
+            cptr<Scal> begin() const
+            {
+                return &v[0];
+            }
+            
+            mptr<Scal> end()
+            {
+                return &v[n];
+            }
+            
+            cptr<Scal> end() const
+            {
+                return &v[n];
+            }
+            
             mref<Scal> operator[]( const Int i )
             {
                 return v[i];
@@ -455,7 +475,11 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Tiny::Vector") + "<"+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+">";
+                return ct_string("Tiny::Vector")
+                    + "<" + to_ct_string(n)
+                    + "," + TypeName<Scal>
+                    + "," + TypeName<Int>
+                    + ">";
             }
         };
                 

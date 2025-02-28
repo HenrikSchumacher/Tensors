@@ -306,7 +306,13 @@ namespace Tensors
             
             [[nodiscard]] static std::string ClassName()
             {
-                return "Tiny::MatrixList<"+ToString(m)+","+ToString(n)+","+TypeName<Scal>+","+TypeName<Int>+","+ToString(Alignment)+">";
+                return ct_string("Tiny::MatrixList")
+                + "<" + to_ct_string(m)
+                + "," + to_ct_string(n)
+                + "," + TypeName<Scal>
+                + "," + TypeName<Int>
+                + "," + to_ct_string(Alignment)
+                + ">";
             }
         };
         
