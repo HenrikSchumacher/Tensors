@@ -64,69 +64,69 @@ namespace Tensors
                 Read(a);
             }
             
-            // Copy constructor
-            VectorList( cref<VectorList> other )
-            :   VectorList( other.length )
-            {
-                for( Int i = 0; i < n; ++i )
-                {
-                    v[i].Read( other.v[i].data());
-                }
-            }
-            
-            friend void swap( VectorList & A, VectorList & B)
-            {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                swap( A.length, B.length );
-                
-                for( Int i = 0; i < n; ++i )
-                {
-                    swap( A.v[i], B.v[i] );
-                }
-            }
-            
-            // Move constructor
-            VectorList( VectorList && other ) noexcept
-            :   VectorList()
-            {
-                swap(*this, other);
-            }
-            
-            /* Copy assignment operator */
-            VectorList & operator=( const VectorList & other )
-            {
-                if( this != &other )
-                {
-                    if( (length != other.length) )
-                    {
-                        for( Int i = 0; i < n; ++i )
-                        {
-                            v[i] = other.v[i];
-                        }
-                    }
-                    else
-                    {
-                        for( Int i = 0; i < n; ++i )
-                        {
-                            v[i].Read( other.v[i].data());
-                        }
-                    }
-                }
-                return *this;
-            }
-            
-            /* Move assignment operator */
-            VectorList & operator=( VectorList && other ) noexcept
-            {
-                if( this == &other )
-                {
-                    wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
-                }
-                swap( *this, other );
-                return *this;
-            }
+//            // Copy constructor
+//            VectorList( cref<VectorList> other )
+//            :   VectorList( other.length )
+//            {
+//                for( Int i = 0; i < n; ++i )
+//                {
+//                    v[i].Read( other.v[i].data());
+//                }
+//            }
+//            
+//            friend void swap( VectorList & A, VectorList & B)
+//            {
+//                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+//                using std::swap;
+//                
+//                swap( A.length, B.length );
+//                
+//                for( Int i = 0; i < n; ++i )
+//                {
+//                    swap( A.v[i], B.v[i] );
+//                }
+//            }
+//            
+//            // Move constructor
+//            VectorList( VectorList && other ) noexcept
+//            :   VectorList()
+//            {
+//                swap(*this, other);
+//            }
+//            
+//            /* Copy assignment operator */
+//            VectorList & operator=( const VectorList & other )
+//            {
+//                if( this != &other )
+//                {
+//                    if( (length != other.length) )
+//                    {
+//                        for( Int i = 0; i < n; ++i )
+//                        {
+//                            v[i] = other.v[i];
+//                        }
+//                    }
+//                    else
+//                    {
+//                        for( Int i = 0; i < n; ++i )
+//                        {
+//                            v[i].Read( other.v[i].data());
+//                        }
+//                    }
+//                }
+//                return *this;
+//            }
+//            
+//            /* Move assignment operator */
+//            VectorList & operator=( VectorList && other ) noexcept
+//            {
+//                if( this == &other )
+//                {
+//                    wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
+//                }
+//                swap( *this, other );
+//                return *this;
+//            }
             
         private:
             
