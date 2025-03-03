@@ -548,6 +548,18 @@ namespace Tensors
             }
         }
     }
+    
+    
+    template<typename Scal, typename Int>
+    std::string ToStringTSV( cref<Tensor2<Scal,Int>> X )
+    {
+        return MatrixStringTSV(
+            ToSize_T(X.Dimension(0)),
+            ToSize_T(X.Dimension(1)),
+            X.data(),
+            ToSize_T(X.Dimension(1))
+        );
+    }
 
 
     
