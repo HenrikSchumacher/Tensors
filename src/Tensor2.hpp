@@ -549,6 +549,48 @@ namespace Tensors
         }
     }
     
+    template<
+        typename A_T, typename B_T, typename Int,
+        typename C_T = decltype( A_T(1) * B_T(1))
+    >
+    Tensor2<C_T,Int> KroneckerProduct(
+        cref<Tensor2<A_T,Int>> A, cref<Tensor2<B_T,Int>> B, const Int thread_count
+    )
+    {
+        const Int mA = A.Dimension(0);
+        const Int nA = A.Dimension(1);
+        const Int mB = B.Dimension(0);
+        const Int nB = B.Dimension(1);
+
+        const Int mC = mA * mB;
+        const Int nC = nA * nB;
+
+        Tensor2<C_T,Int> C ( mC, nC );
+
+        cptr<A_T> a = A.data();
+        cptr<B_T> b = B.data();
+        mptr<C_T> c = C.data();
+
+        ParallelDo(
+            [=](const Int i )
+            {
+                const Int mAi = mA * i;
+                const Int mBi = mB * i;
+
+                for( Int k = 0; k < mB; ++k )
+                {
+                    const Int nBk = nB * k;
+                    const Int mCI = mC * (mBi + k);
+                    
+                    outerprod_buffers( &a[mAi], &b[nBk], &c[mB * i + k] );
+               }
+           },
+           mA, thread_count
+        );
+               
+        return C;
+    }
+    
     
     template<typename Scal, typename Int>
     std::string ToStringTSV( cref<Tensor2<Scal,Int>> X )
