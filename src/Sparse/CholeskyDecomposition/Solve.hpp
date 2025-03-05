@@ -318,16 +318,21 @@ protected:
     template<bool mult_rhsQ, Parallel_T parQ = Sequential, Op op = Op::Id>
     void SN_Solve()
     {
+        static_assert( op == Op::Id, "This feature is currently under developmen" );
+        
+        // TODO: The only other meaningful (and doable) value for op would be Op::Trans and that only if we use complex numbers. Altogether, this feature seems to be a bit pointless.
+        
         if constexpr ( op == Op::Id )
         {
             SN_LowerSolve<mult_rhsQ,parQ>();
             SN_UpperSolve<mult_rhsQ,parQ>();
         }
-        else if constexpr ( op == Op::ConjTrans )
-        {
-            SN_UpperSolve<mult_rhsQ,parQ>();
-            SN_LowerSolve<mult_rhsQ,parQ>();
-        }
+        // This does not make sense.
+//        else if constexpr ( op == Op::ConjTrans )
+//        {
+//            SN_UpperSolve<mult_rhsQ,parQ>();
+//            SN_LowerSolve<mult_rhsQ,parQ>();
+//        }
     }
 
     template<bool mult_rhsQ, Parallel_T parQ = Sequential>

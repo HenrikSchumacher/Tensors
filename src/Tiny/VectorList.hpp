@@ -271,7 +271,7 @@ namespace Tensors
                 return 2;
             }
             
-            Int Dimension( const Int k ) const
+            Int Dim( const Int k ) const
             {
                 switch( k )
                 {
@@ -288,6 +288,11 @@ namespace Tensors
                         return 0;
                     }
                 }
+            }
+            
+            Int Dimension( const Int k ) const
+            {
+                return Dim(k);
             }
             
             Size_T AllocatedByteCount() const

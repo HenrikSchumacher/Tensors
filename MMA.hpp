@@ -344,14 +344,27 @@ namespace mma
             return MTensorWrapper( C );
         }
 
-        const Int * Dimensions() const 
+        
+        
+        
+        const Int * Dims() const
         {
             return libData->MTensor_getDimensions(tensor);
         }
         
-        Int Dimension( const Int i ) const
+        const Int * Dimensions() const
+        {
+            return Dims();
+        }
+        
+        Int Dim( const Int i ) const
         {
             return libData->MTensor_getDimensions(tensor)[i];
+        }
+        
+        Int Dimension( const Int i ) const
+        {
+            return Dim(i);
         }
 
         Scal * data()

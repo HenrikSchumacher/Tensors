@@ -357,14 +357,24 @@ namespace Tensors {
         
     public:
         
-        TOOLS_FORCE_INLINE const Int * Dimensions() const
+        TOOLS_FORCE_INLINE const Int * Dims() const
         {
             return &dims[0];
         }
         
-        TOOLS_FORCE_INLINE Int Dimension( const Int i ) const
+        TOOLS_FORCE_INLINE const Int * Dimensions() const
+        {
+            return Dims();
+        }
+        
+        TOOLS_FORCE_INLINE Int Dim( const Int i ) const
         {
             return i < Rank() ? dims[i] : static_cast<Int>(0);
+        }
+        
+        TOOLS_FORCE_INLINE Int Dimension( const Int i ) const
+        {
+            return Dim(i);
         }
  
         Int Size() const

@@ -1386,6 +1386,11 @@ namespace Tensors
                 return dim ? n : m;
             }
             
+            virtual Int Dim( const bool dim )
+            {
+                return dim ? n : m;
+            }
+            
             std::string Stats() const
             {
                 return std::string()

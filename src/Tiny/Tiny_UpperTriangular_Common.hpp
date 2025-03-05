@@ -13,6 +13,11 @@ public:
 
     static constexpr Int Dimension( const Int i )
     {
+        return Dim(i);
+    }
+
+    static constexpr Int Dim( const Int i )
+    {
         if( i == 0 )
         {
             return n;
