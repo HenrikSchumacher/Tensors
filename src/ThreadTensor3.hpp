@@ -465,7 +465,7 @@ namespace Tensors {
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
-        dims_.Read(A.Dimensions());
+        dims_.Read(A.Dims());
         
         auto B = mma::makeTensor<mreal>( r, dims_.data() );
         
@@ -486,7 +486,7 @@ namespace Tensors {
     {
         const mint r = A.Rank();
         Tensor1<mint,mint> dims_ (r);
-        dims_.Read(A.Dimensions());
+        dims_.Read(A.Dims());
         
         auto B = mma::makeTensor<mint>( r, dims_.data() );
         
