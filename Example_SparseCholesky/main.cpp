@@ -239,8 +239,8 @@ int main()
 
         SparseMatrix_Double AA = { pat, A.Values().data() };
 
-        Tensor2<Scal,Int> BT ( B.Dimension(1), B.Dimension(0));
-//        Tensor2<Scal,Int> XT ( X.Dimension(1), X.Dimension(0));
+        Tensor2<Scal,Int> BT ( B.Dim(1), B.Dim(0));
+//        Tensor2<Scal,Int> XT ( X.Dim(1), X.Dim(0));
 
         BT.ReadTransposed(B.data());
 
@@ -278,8 +278,8 @@ int main()
 
         tic("Accelerate Cholesky vector solve");
         SparseSolve( L,
-            DenseVector_Double{ b.Dimension(0), b.data() },
-            DenseVector_Double{ x.Dimension(0), x.data() }
+            DenseVector_Double{ b.Dim(0), b.data() },
+            DenseVector_Double{ x.Dim(0), x.data() }
         );
         toc("Accelerate Cholesky vector solve");
         y = b;
@@ -291,7 +291,7 @@ int main()
         tic("Accelerate Cholesky matrix solve");
         SparseSolve( L,
             DenseMatrix_Double{
-                B.Dimension(0), B.Dimension(1), B.Dimension(0), SparseAttributes_t(), BT.data()
+                B.Dim(0), B.Dim(1), B.Dim(0), SparseAttributes_t(), BT.data()
             }
         );
         BT.WriteTransposed(X.data());

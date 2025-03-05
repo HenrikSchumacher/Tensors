@@ -195,7 +195,7 @@ namespace Tensors
             template<typename S>
             void Read( const S * const * const * const a )
             {
-                //Assuming that a is a list of m x n pointers pointing to memory of at least size Dimension(1).
+                //Assuming that a is a list of m x n pointers pointing to memory of at least size Dim(1).
                 for( Int i = 0; i < m; ++i )
                 {
                     for( Int j = 0; j < n; ++j )
@@ -208,7 +208,7 @@ namespace Tensors
             template<typename S>
             void Write( S * const * const * const a ) const
             {
-                //Assuming that a is a list of m pointers pointing to memory of at least size Dimension(1).
+                //Assuming that a is a list of m pointers pointing to memory of at least size Dim(1).
                 for( Int i = 0; i < m; ++i )
                 {
                     for( Int j = 0; j < n; ++j )
@@ -222,7 +222,7 @@ namespace Tensors
             template<typename S>
             void Read( const S * const a_ )
             {
-                //Assuming that a is a list of size Dimension(1) x m of vectors in interleaved form.
+                //Assuming that a is a list of size Dim(1) x m of vectors in interleaved form.
                 
                 for( Int k = 0; k < length; ++ k)
                 {
@@ -239,7 +239,7 @@ namespace Tensors
             template<typename S>
             void Write( S * const a ) const
             {
-                //Assuming that a is a list of size Dimension(1) x m of vectors in interleaved form.
+                //Assuming that a is a list of size Dim(1) x m of vectors in interleaved form.
                 
                 for( Int k = 0; k < length; ++k )
                 {
@@ -274,7 +274,7 @@ namespace Tensors
                     }
                     case 2:
                     {
-                        return A[0][0].Dimension(0);
+                        return A[0][0].Dim(0);
                     }
                     default:
                     {
@@ -330,7 +330,7 @@ namespace Tensors
         >
         inline mma::TensorRef<mreal> to_MTensorRef( cref<Tiny::MatrixList<m,n,T,I>> A )
         {
-            const mint N = A.Dimension(2);
+            const mint N = A.Dim(2);
             
             const T * restrict p [m][n];
             
@@ -365,7 +365,7 @@ namespace Tensors
         >
         inline mma::TensorRef<mint> to_MTensorRef( cref<Tiny::MatrixList<m,n,J,I>> A )
         {
-            const mint N = A.Dimension(2);
+            const mint N = A.Dim(2);
             
             const J * restrict p [m][n];
             

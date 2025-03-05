@@ -11,11 +11,6 @@ public:
         return n;
     }
 
-    static constexpr Int Dimension( const Int i )
-    {
-        return Dim(i);
-    }
-
     static constexpr Int Dim( const Int i )
     {
         if( i == 0 )
@@ -27,6 +22,11 @@ public:
             return n;
         }
         return static_cast<Int>(0);
+    }
+
+    static constexpr Int Dimension( const Int i )
+    {
+        return Dim(i);
     }
 
     static constexpr Int RowCount()

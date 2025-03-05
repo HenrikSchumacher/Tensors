@@ -10,9 +10,9 @@ namespace Tensors {
             + "," + TypeName<Int>
             + ">" );
 
-        const Int thread_count = counters.Dimension(0);
+        const Int thread_count = counters.Dim(0);
 
-        const Int m = counters.Dimension(1);
+        const Int m = counters.Dim(1);
         
         if( (m <= 0) || (thread_count <= 0) )
         {
@@ -51,9 +51,9 @@ namespace Tensors {
         
         TOOLS_PTIC( tag );
         
-        const Int thread_count = counters.Dimension(0);
+        const Int thread_count = counters.Dim(0);
         
-        const Int            m = counters.Dimension(1);
+        const Int            m = counters.Dim(1);
         
         if( (m <= 0) || (thread_count <= 0) )
         {

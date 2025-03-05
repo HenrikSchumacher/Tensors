@@ -106,26 +106,26 @@ public:
     )
     {
         
-        if ( B.Dimension(0) < RowCount() )
+        if ( B.Dim(0) < RowCount() )
         {
-            eprint( ClassName() + "::Solve: B.Dimension(0) < RowCount(). Aborting");
+            eprint( ClassName() + "::Solve: B.Dim(0) < RowCount(). Aborting");
             return;
         }
         
-        if ( X_out.Dimension(0) < RowCount() )
+        if ( X_out.Dim(0) < RowCount() )
         {
-            eprint( ClassName() + "::Solve: X.Dimension(0) < RowCount(). Aborting");
+            eprint( ClassName() + "::Solve: X.Dim(0) < RowCount(). Aborting");
             return;
         }
         
-        if ( B.Dimension(1) != X_out.Dimension(1) )
+        if ( B.Dim(1) != X_out.Dim(1) )
         {
-            eprint( ClassName() + "::Solve: B.Dimension(1) != B.Dimension(1).");
+            eprint( ClassName() + "::Solve: B.Dim(1) != B.Dim(1).");
             return;
         }
         
-        const Int ldB = int_cast<Int>(B.Dimension(1));
-        const Int ldX = int_cast<Int>(X_out.Dimension(1));
+        const Int ldB = int_cast<Int>(B.Dim(1));
+        const Int ldX = int_cast<Int>(X_out.Dim(1));
         
         Solve<NRHS,parQ,op>(
             alpha, B.data(),     ldB,
@@ -144,15 +144,15 @@ public:
     )
     {
         
-        if ( B.Dimension(0) < RowCount() )
+        if ( B.Dim(0) < RowCount() )
         {
-            eprint( ClassName() + "::Solve: B.Dimension(0) < RowCount(). Aborting");
+            eprint( ClassName() + "::Solve: B.Dim(0) < RowCount(). Aborting");
             return;
         }
         
-        if ( X_out.Dimension(0) < RowCount() )
+        if ( X_out.Dim(0) < RowCount() )
         {
-            eprint( ClassName() + "::Solve: X.Dimension(0) < RowCount(). Aborting");
+            eprint( ClassName() + "::Solve: X.Dim(0) < RowCount(). Aborting");
             return;
         }
         

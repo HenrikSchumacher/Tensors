@@ -740,13 +740,13 @@ namespace Tensors
                 return;
             }
             
-            if( X.Dimension(1) != Y.Dimension(1) )
+            if( X.Dim(1) != Y.Dim(1) )
             {
                 eprint(ClassName()+"::Permute: Number of columns of input arrays do not coincide. Doing nothing.");
                 return;
             }
             
-            Permute<VarSize,parQ>( X.data(), Y.data(), inverseQ, X.Dimension(1) );
+            Permute<VarSize,parQ>( X.data(), Y.data(), inverseQ, X.Dim(1) );
         }
         
         

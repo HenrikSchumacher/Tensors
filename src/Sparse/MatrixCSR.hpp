@@ -828,13 +828,13 @@ namespace Tensors
                 bool sortQ = true
             )
             {
-                if( p.Dimension(0) != m )
+                if( p.Dim(0) != m )
                 {
                     eprint(ClassName()+"::Permute: Length of first argument does not coincide with RowCount().");
                     return MatrixCSR();
                 }
                 
-                if( q.Dimension(0) != n )
+                if( q.Dim(0) != n )
                 {
                     eprint(ClassName()+"::Permute: Length of second argument does not coincide with ColCount().");
                     return MatrixCSR();
@@ -1239,7 +1239,7 @@ namespace Tensors
                 const b_T beta,  mref<Tensor1<Y_T,Int>> Y
             ) const
             {
-                if( X.Dimension(0) == n && Y.Dimension(0) == m )
+                if( X.Dim(0) == n && Y.Dim(0) == m )
                 {
                     const Int nrhs = 1;
                     
@@ -1258,9 +1258,9 @@ namespace Tensors
                  const b_T beta,  mref<Tensor2<Y_T,Int>> Y
              ) const
             {
-                if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
+                if( X.Dim(0) == n && Y.Dim(0) == m && (X.Dim(1) == Y.Dim(1)) )
                 {
-                    const Int nrhs = X.Dimension(1);
+                    const Int nrhs = X.Dim(1);
                     
                     this->template Dot_<NRHS>( values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
                 }
@@ -1303,7 +1303,7 @@ namespace Tensors
                 const b_T beta,  mref<Tensor1<Y_T,Int>> Y
             ) const
             {
-                if( X.Dimension(0) == n && Y.Dimension(0) == m )
+                if( X.Dim(0) == n && Y.Dim(0) == m )
                 {
                     const Int nrhs = 1;
                     
@@ -1322,9 +1322,9 @@ namespace Tensors
                  const b_T beta,  mref<Tensor2<Y_T,Int>> Y
          ) const
             {
-                if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
+                if( X.Dim(0) == n && Y.Dim(0) == m && (X.Dim(1) == Y.Dim(1)) )
                 {
-                    const Int nrhs = X.Dimension(1);
+                    const Int nrhs = X.Dim(1);
                     
                     this->template Dot_<NRHS>( ext_values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
                 }

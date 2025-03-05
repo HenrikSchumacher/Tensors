@@ -112,12 +112,12 @@ namespace Tensors {
 //        // Copy constructor
 //        ThreadTensor3( const ThreadTensor3 & other )
 //        :
-//            tensors( std::vector<Tensor_T> (other.Dimension(0)) ),
+//            tensors( std::vector<Tensor_T> (other.Dim(0)) ),
 //            n(other.Size())
 //        {
-//            dims[0] = other.Dimension(0);
-//            dims[1] = other.Dimension(1);
-//            dims[2] = other.Dimension(2);
+//            dims[0] = other.Dim(0);
+//            dims[1] = other.Dim(1);
+//            dims[2] = other.Dim(2);
 //
 //            print(ClassName()+" copy constructor");
 //
@@ -469,9 +469,9 @@ namespace Tensors {
         
         auto B = mma::makeTensor<mreal>( r, dims_.data() );
         
-        const Int size_ = A.Dimension(1) * A.Dimension(2);
+        const Int size_ = A.Dim(1) * A.Dim(2);
         
-        for( Int thread = 0; thread < A.Dimension(0); ++thread )
+        for( Int thread = 0; thread < A.Dim(0); ++thread )
         {
             A[thread].Write( &B.data()[size_ * thread] );
         }
@@ -490,9 +490,9 @@ namespace Tensors {
         
         auto B = mma::makeTensor<mint>( r, dims_.data() );
         
-        const Int size_ = A.Dimension(1) * A.Dimension(2);
+        const Int size_ = A.Dim(1) * A.Dim(2);
         
-        for( Int thread = 0; thread < A.Dimension(0); ++thread )
+        for( Int thread = 0; thread < A.Dim(0); ++thread )
         {
             A[thread].Write( &B.data()[size_ * thread] );
         }

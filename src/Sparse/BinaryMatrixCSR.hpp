@@ -378,7 +378,7 @@ namespace Tensors
                 const b_T beta,  mref<Tensor1<Y_T,Int>> Y
             ) const
             {
-                if( X.Dimension(0) == n && Y.Dimension(0) == m )
+                if( X.Dim(0) == n && Y.Dim(0) == m )
                 {
                     this->template Dot_<1>(
                         alpha, X.data(), static_cast<Int>(1),
@@ -398,9 +398,9 @@ namespace Tensors
                 const b_T beta,  mref<Tensor2<Y_T,Int>> Y
             ) const
             {
-                if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
+                if( X.Dim(0) == n && Y.Dim(0) == m && (X.Dim(1) == Y.Dim(1)) )
                 {
-                    const Int nrhs = X.Dimension(1);
+                    const Int nrhs = X.Dim(1);
                     
                     this->template Dot_<NRHS>( alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
                 }
@@ -431,7 +431,7 @@ namespace Tensors
                 const b_T beta,  mref<Tensor1<Y_T,Int>> Y
             ) const
             {
-                if( X.Dimension(0) == n && Y.Dimension(0) == m )
+                if( X.Dim(0) == n && Y.Dim(0) == m )
                 {
                     this->template Dot_<1>( ext_values.data(),
                         alpha, X.data(), static_cast<Int>(1),
@@ -452,9 +452,9 @@ namespace Tensors
                      const b_T beta,  mref<Tensor2<Y_T,Int>> Y
                      ) const
             {
-                if( X.Dimension(0) == n && Y.Dimension(0) == m && (X.Dimension(1) == Y.Dimension(1)) )
+                if( X.Dim(0) == n && Y.Dim(0) == m && (X.Dim(1) == Y.Dim(1)) )
                 {
-                    const Int nrhs = X.Dimension(1);
+                    const Int nrhs = X.Dim(1);
                     this->template Dot_<NRHS>( ext_values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
                 }
                 else

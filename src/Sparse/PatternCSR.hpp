@@ -1381,14 +1381,15 @@ namespace Tensors
             
         public:
             
-            virtual Int Dimension( const bool dim )
+            virtual Int Dim( const bool dim )
             {
                 return dim ? n : m;
             }
             
-            virtual Int Dim( const bool dim )
+            
+            virtual Int Dimension( const bool dim )
             {
-                return dim ? n : m;
+                return Dim(dim);
             }
             
             std::string Stats() const

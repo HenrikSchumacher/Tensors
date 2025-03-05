@@ -306,14 +306,14 @@ namespace Tensors
             return &dims[0];
         }
         
-        TOOLS_FORCE_INLINE Int Dim( const Int i ) const
-        {
-            return i < Rank() ? dims[i] : static_cast<Int>(0);
-        }
-        
         TOOLS_FORCE_INLINE const Int * Dimensions() const
         {
             return Dims();
+        }
+        
+        TOOLS_FORCE_INLINE Int Dim( const Int i ) const
+        {
+            return i < Rank() ? dims[i] : static_cast<Int>(0);
         }
         
         TOOLS_FORCE_INLINE Int Dimension( const Int i ) const
@@ -413,9 +413,9 @@ namespace Tensors
         
         auto B = mma::makeTensor<mreal>( r, dims_.data() );
         
-        const Int size_ = A.Dimension(1);
+        const Int size_ = A.Dim(1);
         
-        for( Int thread = 0; thread < A.Dimension(0); ++thread )
+        for( Int thread = 0; thread < A.Dim(0); ++thread )
         {
             A[thread].Write( &B.data()[size_ * thread] );
         }
@@ -434,9 +434,9 @@ namespace Tensors
         
         auto B = mma::makeTensor<mint>( r, dims_.data() );
         
-        const Int size_ = A.Dimension(1);
+        const Int size_ = A.Dim(1);
         
-        for( Int thread = 0; thread < A.Dimension(0); ++thread )
+        for( Int thread = 0; thread < A.Dim(0); ++thread )
         {
             A[thread].Write( &B.data()[size_ * thread] );
         }

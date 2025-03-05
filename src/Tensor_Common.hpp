@@ -306,14 +306,14 @@ public:
         return &dims[0];
     }
 
-    TOOLS_FORCE_INLINE Int Dim( const Int i ) const
-    {
-        return ( i < Rank() ) ? dims[ToSize_T(i)] : Scalar::Zero<Int>;
-    }
-
     TOOLS_FORCE_INLINE cptr<Int> Dimensions() const
     {
         return Dims();
+    }
+
+    TOOLS_FORCE_INLINE Int Dim( const Int i ) const
+    {
+        return ( i < Rank() ) ? dims[ToSize_T(i)] : Scalar::Zero<Int>;
     }
 
     TOOLS_FORCE_INLINE Int Dimension( const Int i ) const

@@ -358,14 +358,14 @@ namespace Tensors
             
             if constexpr ( copyQ )
             {
-                const Int row_count = Tools::Min( b.Dimension(0), dims[0] );
-                const Int col_count = Tools::Min( b.Dimension(1), dims[1] );
+                const Int row_count = Tools::Min( b.Dim(0), dims[0] );
+                const Int col_count = Tools::Min( b.Dim(1), dims[1] );
                 
                 const cptr<Scal> X = this->data();
                 const mptr<Scal> Y = b.data();
                 
-                const Int ldX = Dimension(1);
-                const Int ldY = b.Dimension(1);
+                const Int ldX = Dim(1);
+                const Int ldY = b.Dim(1);
                 
                 copy_matrix<VarSize,VarSize,Parallel>(
                     X, ldX, Y, ldY, row_count, col_count, thread_count
@@ -435,8 +435,8 @@ namespace Tensors
     >
     mma::MatrixRef<mreal> to_transposed_MTensorRef( cref<Tensor2<Scal,Int>> B )
     {
-        Int rows = B.Dimension(0);
-        Int cols = B.Dimension(1);
+        Int rows = B.Dim(0);
+        Int cols = B.Dim(1);
         auto A = mma::makeMatrix<mreal>( cols, rows );
 
         cptr<double> a_out = A.data();
@@ -457,8 +457,8 @@ namespace Tensors
     {
         static_assert(IntQ<J>,"");
         
-        Int rows = B.Dimension(0);
-        Int cols = B.Dimension(1);
+        Int rows = B.Dim(0);
+        Int cols = B.Dim(1);
         auto A = mma::makeMatrix<mint>( cols, rows );
 
         cptr<double> a_out = A.data();
@@ -487,10 +487,10 @@ namespace Tensors
     {
         // TODO: Use BLAS if available.
         
-        I3 m = A.Dimension(0);
-        I3 n = Min(A.Dimension(1),x.Dimension(0));
+        I3 m = A.Dim(0);
+        I3 n = Min(A.Dim(1),x.Dim(0));
 
-        if( y.Dimension(0) != m )
+        if( y.Dim(0) != m )
         {
             y = Tensor1<Scal,I3> ( m);
         }
@@ -522,10 +522,10 @@ namespace Tensors
         static_assert(IntQ<I2>,"");
         static_assert(IntQ<I3>,"");
         
-        I3 m = Min(A.Dimension(0),x.Dimension(0));
-        I3 n = A.Dimension(1);
+        I3 m = Min(A.Dim(0),x.Dim(0));
+        I3 n = A.Dim(1);
         
-        if( y.Dimension(0) != n )
+        if( y.Dim(0) != n )
         {
             y = Tensor1<Scal,I3> (n);
         }
@@ -557,10 +557,10 @@ namespace Tensors
         cref<Tensor2<A_T,Int>> A, cref<Tensor2<B_T,Int>> B, const Int thread_count
     )
     {
-        const Int mA = A.Dimension(0);
-        const Int nA = A.Dimension(1);
-        const Int mB = B.Dimension(0);
-        const Int nB = B.Dimension(1);
+        const Int mA = A.Dim(0);
+        const Int nA = A.Dim(1);
+        const Int mB = B.Dim(0);
+        const Int nB = B.Dim(1);
 
         const Int mC = mA * mB;
         const Int nC = nA * nB;
@@ -596,10 +596,10 @@ namespace Tensors
     std::string ToStringTSV( cref<Tensor2<Scal,Int>> X )
     {
         return MatrixStringTSV(
-            ToSize_T(X.Dimension(0)),
-            ToSize_T(X.Dimension(1)),
+            ToSize_T(X.Dim(0)),
+            ToSize_T(X.Dim(1)),
             X.data(),
-            ToSize_T(X.Dimension(1))
+            ToSize_T(X.Dim(1))
         );
     }
 
