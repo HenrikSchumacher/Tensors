@@ -212,7 +212,7 @@ namespace Tensors
                 {
                     const Int t = child_idx[child];
                     
-                    FetchFromChild( s, t, n_0, n_1, i_end, U_0, U_1, V );
+                    FetchFromChild( t, n_0, n_1, i_end, U_0, U_1, V );
                     
                     // Deallocate child's update buffer.
                     SN_updates[t] = Update_T();
@@ -321,7 +321,6 @@ namespace Tensors
             
             
             void FetchFromChild(
-                const Int s, // the supernode into which to fetch (parent)
                 const Int t, // the supernode from which to fetch (child)
                 const Int n_0, const Int n_1, 
                 const Int i_end,

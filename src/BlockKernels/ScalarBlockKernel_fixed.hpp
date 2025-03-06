@@ -96,6 +96,8 @@ namespace Tensors
         
         TOOLS_FORCE_INLINE void ApplyBlock( const LInt k_global, const Int j_global )
         {
+            TOOLS_MAKE_FP_FAST()
+            
             ReadX( j_global );
 
             const Scal a = A_const[BLOCK_NNZ * k_global];

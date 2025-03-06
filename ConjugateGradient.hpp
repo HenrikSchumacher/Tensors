@@ -152,7 +152,7 @@ namespace Tensors
             }
             
             // r = b
-            r.Read( B_in, ldX, thread_count );
+            r.Read( B_in, ldB, thread_count );
             
             TOOLS_PTIC(ClassName()+": Compute norm of right hand side.");
             

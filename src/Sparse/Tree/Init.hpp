@@ -136,7 +136,10 @@ protected:
                 desc_costs [node]  = cost;
             }
             ,
-            []( const Int node ) {}
+            []( const Int node )
+            {
+                (void)node;
+            }
         );
         
         // Build the levels matrix (is this needed at all?)

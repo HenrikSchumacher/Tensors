@@ -146,6 +146,8 @@ namespace Tensors
         
         TOOLS_FORCE_INLINE void ApplyBlock( const LInt k_global, const Int j_global )
         {
+            TOOLS_MAKE_FP_FAST()
+            
             // Since we need the casted vector ROWS times, it might be a good idea to do the conversion only once.
             ReadX( j_global );
             // It's a bit mysterious to me why copying to a local array makes this run a couple of percents faster.

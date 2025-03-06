@@ -3,13 +3,13 @@
 #include "Base.hpp"
 
 
-#ifndef
+#ifndef MKL_Complex8
 
     #define MKL_Complex8 std::complex<float>
 
 #endif
 
-#ifndef
+#ifndef MKL_Complex16
 
     #define MKL_Complex16 std::complex<double>
 

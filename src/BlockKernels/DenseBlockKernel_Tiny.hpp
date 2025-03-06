@@ -108,6 +108,8 @@ namespace Tensors
                 
         TOOLS_FORCE_INLINE void TransposeBlock( const LInt from, const LInt to ) const
         {
+            TOOLS_MAKE_FP_FAST()
+            
             cptr<Scal> a_from = &A[ BLOCK_NNZ * from];
             mptr<Scal> a_to   = &A[ BLOCK_NNZ * to  ];
             

@@ -153,7 +153,7 @@ namespace Tensors
             TOOLS_PTIC(ClassName()+": Compute norm of right hand side.");
             
             // Compute norms of b.
-            x.Read( B_in, ldX, thread_count );
+            x.Read( B_in, ldB, thread_count );
             
             if constexpr ( side == Side::Left )
             {

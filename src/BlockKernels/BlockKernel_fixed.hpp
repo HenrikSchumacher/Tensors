@@ -345,6 +345,8 @@ namespace Tensors
         
         TOOLS_FORCE_INLINE void WriteY( const Int i_global ) const
         {
+            TOOLS_MAKE_FP_FAST()
+            
             mptr<Scal_out> y_to = &Y[ RowsSize() * i_global];
             
             if constexpr ( alpha_flag == Scalar::Flag::Plus )
