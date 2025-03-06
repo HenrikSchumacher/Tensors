@@ -175,7 +175,7 @@ namespace Tensors
         
         std::string ClassName() const  
         {
-            return TO_STD_STRING(CLASS)+"<"
+            return TOOLS_TO_STD_STRING(CLASS)+"<"
                 +ToString(ROWS)
             +","+ToString(COLS)
             +","+ToString(NRHS)

@@ -7,7 +7,7 @@ public:
 //        
 //        swap( X.A, Y.A );
         
-        Scal buffer [X.RowCount()][X.ColCount()];
+        Scal buffer [Class_T::RowCount()][Class_T::ColCount()];
         
         X.Write( &buffer[0][0] );
         X.Read ( &Y[0][0]      );
