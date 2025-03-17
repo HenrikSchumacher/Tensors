@@ -28,9 +28,16 @@ namespace Tensors
 
             Vector(std::nullptr_t) = delete;
 
-            explicit Vector( const Scal * a )
+            template<typename S>
+            Vector( cptr<S> vector )
             {
-                Read(a);
+                Read( vector );
+            }
+
+            template<typename S>
+            Vector( cptr<S> matrix, const Int k )
+            {
+                Read( &matrix[n * k] );
             }
             
             explicit Vector( const Scal init )
@@ -84,19 +91,6 @@ namespace Tensors
             Vector( cref<Tensor2<S,Int>> matrix, const Int k )
             {
                 Read(matrix.data(k));
-            }
-            
-            template<typename S>
-            Vector( cptr<S> matrix, const Int k )
-            {
-                Read( &matrix[n * k] );
-            }
-            
-            
-            template<typename S>
-            explicit Vector( cptr<S> vector )
-            {
-                Read( vector );
             }
             
             template<typename S>
