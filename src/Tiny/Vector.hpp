@@ -429,6 +429,17 @@ namespace Tensors
                 return max_pos_buffer<n>(&v[0]);
             }
             
+            TOOLS_FORCE_INLINE Int IAMax() const
+            {
+                return iamax_buffer<n>(&v[0]);
+            }
+            
+            TOOLS_FORCE_INLINE Int IAMin() const
+            {
+                return iamin_buffer<n>(&v[0],n);
+            }
+            
+            
             template <typename Dummy = Scal>
             TOOLS_FORCE_INLINE std::enable_if_t<SameQ<Real,Dummy>,Real> MaxNorm() const
             {
@@ -764,13 +775,12 @@ namespace Tensors
             );
         }
         
+        // Hadamard product. I deem this dangerous.
         template<int n, typename x_T, typename x_Int, typename y_T, typename y_Int>
         [[nodiscard]] TOOLS_FORCE_INLINE const
         Vector<n,decltype(x_T(1)*y_T(1)),decltype(x_Int(0)+y_Int(0))>
-        operator*( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
+        HadamardProduct( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
-            // Returns z = x + y.
-            
             using T = decltype(x_T  (1) * y_T  (1));
             using I = decltype(x_Int(0) + y_Int(0));
             
@@ -783,7 +793,6 @@ namespace Tensors
             
             return z;
         }
-        
         
 
         template<int n, typename a_T, typename x_T, typename Int>
@@ -804,13 +813,7 @@ namespace Tensors
         Vector<n,decltype( x_T(1) * a_T(1) ),Int>
         operator*( cref<Vector<n,x_T,Int>> x, const a_T a )
         {
-            // Returns a * x.
-            
-            using T = decltype(x_T(1) * a_T(1));
-            
-            return MakeVector<n,T,Int,F_Gen,F_Zero>(
-                scalar_cast<T>(a),x.data(),Scalar::Zero<T>,x.data()
-            );
+            return a * x;
         }
         
         template<int n, typename x_T, typename Int, typename a_T>
@@ -820,7 +823,7 @@ namespace Tensors
         {
             // Returns x/a.
             
-            return x * Inv<a_T>(a);
+            return Inv<a_T>(a) * x;
         }
         
         
@@ -846,7 +849,7 @@ namespace Tensors
         [[nodiscard]] TOOLS_FORCE_INLINE const decltype( x_T(1) * y_T(1) ) 
         InnerProduct( cref<Vector<n,x_T,x_Int>> x, cref<Vector<n,y_T,y_Int>> y )
         {
-            return dot_buffers<n,Sequential,O_Conj,O_Id>( x.data(), y.data() );
+            return innerprod<n,Sequential>( x.data(), y.data() );
         }
         
     } // namespace Tiny

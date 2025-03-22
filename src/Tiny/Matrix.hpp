@@ -894,7 +894,7 @@ namespace Tensors
             
             [[nodiscard]] friend std::string ToString( cref<Matrix> M )
             {
-                return MatrixString<m,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " },", "\n", "\n}");
+                return MatrixString<m,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " }", ",\n", "\n}");
             }
         
             
@@ -1148,11 +1148,15 @@ namespace Tensors
             
         public:
             
-            TOOLS_FORCE_INLINE void SetHouseHolderReflector( const Vector_T & u, const Int begin, const Int end )
+            TOOLS_FORCE_INLINE void SetHouseholderReflector(
+                const Vector_T & u,
+                const Int begin,
+                const Int end
+            )
             {
-                static_assert(m==n, "SetHouseHolderReflector is only defined for square matrices.");
+                static_assert(m==n, "SetHouseholderReflector is only defined for square matrices.");
                 
-                // Write the HouseHolder reflection of u into the matrix; assumes that u is zero outside [begin,...,end[.
+                // Write the Householder reflection of u into the matrix; assumes that u is zero outside [begin,...,end[.
                 
                 // Mostly meant for debugging purposes, thus not extremely optimized.
                 
@@ -1355,6 +1359,57 @@ namespace Tensors
             return Det2D_Kahan( &A[0][0] );
         }
         
+        
+        template<int m, int n, typename Scal, typename Int>
+        void OrthogonalizeRows( mref<Tiny::Matrix<m,n,Scal,Int>> A )
+        {
+            static_assert(m <= n, "");
+            
+            if( m <= 0 )
+            {
+                return;
+            }
+            
+            normalize<n>( &A[0][0] );
+            
+            for( Int i = 1; i < m; ++i )
+            {
+                mptr<Scal> v_i = &A[i][0];
+                for( Int j = 0; j < i; ++j )
+                {
+                    cptr<Scal> v_j = &A[j][0];
+
+                    // v_i = v_i - v_j * innerprod( v_j, v_i );
+                    
+                    combine_buffers<Scalar::Flag::Generic,Scalar::Flag::Plus,n>(
+                        -innerprod<n>(v_j,v_i), v_j, Scal(1), v_i
+                    );
+                }
+                normalize<n>(v_i);
+            }
+        }
+        
+        template<int n, typename Scal, typename Int>
+        [[nodiscard]] TOOLS_FORCE_INLINE
+        Tiny::Matrix<n,n,Scal,Int> HouseholderReflector( cref<Vector<n,Scal,Int>> u )
+        {
+            Tiny::Matrix<n,n,Scal,Int> R;
+            
+            Scal uu = u.SquaredNorm();
+            
+            Scal factor = Frac<Scal>(Scal(2),uu);
+            
+            for( Int i = 0; i < n; ++i )
+            {
+                for( Int j = 0; j < n; ++j )
+                {
+                    R[i][j] = KroneckerDelta<Scalar::Real<Scal>>(i,j) - factor * u[i] * Conj(u[j]);
+                }
+            }
+            
+            return R;
+        }
+                
     } // namespace Tiny
     
     

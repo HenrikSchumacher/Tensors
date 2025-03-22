@@ -30,6 +30,17 @@ public:
     {
         return &A[0][0];
     }
+
+
+    mptr<Scal> data( const Int i )
+    {
+        return &A[i][0];
+    }
+
+    cptr<Scal> data( const Int i ) const
+    {
+        return &A[i][0];
+    }
     
     mref<Scal> operator()( const Int i, const Int j )
     {
@@ -50,3 +61,4 @@ public:
     {
         return &A[i][0];
     }
+
