@@ -65,9 +65,44 @@ namespace Tensors
         }
         
         
+        Int Capacity() const
+        {
+            return a.Size()-Int(1);
+        }
+        
         Int Size() const
         {
-            return a.Size()-1;
+            return ptr;
+        }
+        
+        mptr<Entry_T> begin()
+        {
+            return &a[Int(1)];
+        }
+        
+        cptr<Entry_T> begin() const
+        {
+            return &a[Int(1)];
+        }
+        
+        mptr<Entry_T> end()
+        {
+            return &a[Max(ptr,Int(1))];
+        }
+        
+        cptr<Entry_T> end() const
+        {
+            return &a[Max(ptr,Int(1))];
+        }
+        
+        mref<Entry_T> operator[]( const Int i )
+        {
+            return a[i+1];
+        }
+        
+        cref<Entry_T> operator[]( const Int i ) const
+        {
+            return a[i+1];
         }
         
         void Reset()
@@ -89,6 +124,11 @@ namespace Tensors
         void Push( Entry_T && value )
         {
             a[++ptr] = std::move(value);
+        }
+        
+        mref<Entry_T> Top()
+        {
+            return a[ptr];
         }
         
         cref<Entry_T> Top() const
