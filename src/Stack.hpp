@@ -87,22 +87,22 @@ namespace Tensors
         
         mptr<Entry_T> end()
         {
-            return &a[Max(ptr,Int(1))];
+            return &a[ptr+Int(1)];
         }
         
         cptr<Entry_T> end() const
         {
-            return &a[Max(ptr,Int(1))];
+            return &a[ptr+Int(1)];
         }
         
         mref<Entry_T> operator[]( const Int i )
         {
-            return a[i+1];
+            return a[i+Int(1)];
         }
         
         cref<Entry_T> operator[]( const Int i ) const
         {
-            return a[i+1];
+            return a[i+Int(1)];
         }
         
         void Reset()
@@ -157,7 +157,7 @@ namespace Tensors
         
         bool HasRoom( const Int element_count ) const
         {
-            return ( (ptr + element_count) < Size() );
+            return ( (ptr + element_count) < Capacity() );
         }
         
         std::string String() const
