@@ -28,14 +28,14 @@ namespace Tensors {
         ThreadTensor3( const Int d0, const Int d1, const Int d2 )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
-        ,   tensors( std::vector<Tensor_T> ( d0 ) )
+        ,   tensors( std::vector<Tensor_T> ( ToSize_T(d0) ) )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
                 [=,this]( const Int thread )
                 {
-                    tensors[thread] = Tensor_T( dims[1], dims[2] );
+                    tensors[ToSize_T(thread)] = Tensor_T( dims[1], dims[2] );
                 },
                 thread_count
             );
@@ -44,14 +44,14 @@ namespace Tensors {
         ThreadTensor3( const Int d0, const Int d1, const Int d2, cref<Scal> init )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
-        ,   tensors( std::vector<Tensor_T> ( d0 ) )
+        ,   tensors( std::vector<Tensor_T> ( ToSize_T(d0) ) )
         {
             const Int thread_count = dims[0];
             
             ParallelDo(
                 [=,this]( const Int thread )
                 {
-                    tensors[thread] = Tensor_T( dims[1], dims[2], init );
+                    tensors[ToSize_T(thread)] = Tensor_T( dims[1], dims[2], init );
                 },
                 thread_count
             );
@@ -66,7 +66,7 @@ namespace Tensors {
             ParallelDo(
                 [=,this]( const Int thread )
                 {
-                    tensors[thread].Read( a_ + thread * dims[1] * dims[2]);
+                    tensors[ToSize_T(thread)].Read( a_ + thread * dims[1] * dims[2]);
                 },
                 thread_count
             );
@@ -83,7 +83,7 @@ namespace Tensors {
             ParallelDo(
                 [=,this]( const Int thread )
                 {
-                    tensors[thread].Read( other[thread].data() );
+                    tensors[ToSize_T(thread)].Read( other[ToSize_T(thread)].data() );
                 },
                 thread_count
             );
@@ -103,7 +103,7 @@ namespace Tensors {
             ParallelDo(
                 [=,this]( const Int thread )
                 {
-                    tensors[thread].Read( other[thread].data() );
+                    tensors[ToSize_T(thread)].Read( other[ToSize_T(thread)].data() );
                 },
                 thread_count
             );
@@ -240,56 +240,56 @@ namespace Tensors {
         {
             BoundCheck(i);
 
-            return tensors[i].data();
+            return tensors[ToSize_T(i)].data();
         }
         
         TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const
         {
             BoundCheck(i);
             
-            return tensors[i].data();
+            return tensors[ToSize_T(i)].data();
         }
 
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j)
         {
             BoundCheck(i);
             
-            return tensors[i].data(j);
+            return tensors[ToSize_T(i)].data(j);
         }
         
         TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j) const
         {
             BoundCheck(i);
             
-            return tensors[i].data(j);
+            return tensors[ToSize_T(i)].data(j);
         }
         
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k)
         {
             BoundCheck(i);
             
-            return tensors[i].data(j,k);
+            return tensors[ToSize_T(i)].data(j,k);
         }
         
         TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j, const Int k) const
         {
             BoundCheck(i);
             
-            return tensors[i].data(j,k);
+            return tensors[ToSize_T(i)].data(j,k);
         }
 
         TOOLS_FORCE_INLINE mref<Scal> operator()( const Int i, const Int j, const Int k)
         {
             BoundCheck(i);
             
-            return tensors[i](j,k);
+            return tensors[ToSize_T(i)](j,k);
         }
     
         TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j, const Int k) const
         {
             BoundCheck(i);
             
-            return tensors[i](j,k);
+            return tensors[ToSize_T(i)](j,k);
         }
         
         void Fill( cref<Scal> init )
@@ -299,7 +299,7 @@ namespace Tensors {
             ParallelDo(
                 [this,&init]( const Int thread )
                 {
-                    tensors[thread].fill( init );
+                    tensors[ToSize_T(thread)].fill( init );
                 },
                 thread_count
             );
@@ -312,7 +312,7 @@ namespace Tensors {
             ParallelDo(
                 [=,this]( const Int thread )
                 {
-                    tensors[thread].SetZero();
+                    tensors[ToSize_T(thread)].SetZero();
                 },
                 thread_count
             );
@@ -325,7 +325,7 @@ namespace Tensors {
             ParallelDo(
                 [=,this]( const Int thread )
                 {
-                    tensors[thread].Write( b + dims[1] * dims[2] * thread );
+                    tensors[ToSize_T(thread)].Write( b + dims[1] * dims[2] * thread );
                 },
                 thread_count
             );
@@ -334,25 +334,25 @@ namespace Tensors {
         template<typename S>
         void Write( const Int i, mptr<S> b ) const
         {
-            tensors[i].Write( b );
+            tensors[ToSize_T(i)].Write( b );
         }
         
         template<typename S>
         void Write( const Int i, const Int j, mptr<S> b ) const
         {
-            tensors[i].Write( j, b );
+            tensors[ToSize_T(i)].Write( j, b );
         }
         
         template<typename S>
         void Read( const Int i, cptr<S> b )
         {
-            tensors[i].Read( b );
+            tensors[ToSize_T(i)].Read( b );
         }
         
         template<typename S>
         void Read( const Int i, const Int j, cptr<S> b )
         {
-            tensors[i].Read( j, b );
+            tensors[ToSize_T(i)].Read( j, b );
         }
         
     public:
@@ -405,7 +405,7 @@ namespace Tensors {
             {
                 for( Int i = 0; i < dims[0]; ++ i )
                 {
-                    tensors[i].AddTo( B );
+                    tensors[ToSize_T(i)].AddTo( B );
                 }
             }
             else
@@ -413,9 +413,9 @@ namespace Tensors {
                 // Write first slice.
                 tensors[0].Write(B);
                 
-                for( Int i = 1; i < dims[0]; ++ i )
+                for( Int i = 1; i < dims[0]; ++i )
                 {
-                    tensors[i].AddTo( B );
+                    tensors[ToSize_T(i)].AddTo( B );
                 }
             }
         }
@@ -423,22 +423,22 @@ namespace Tensors {
         Int CountNaNs() const
         {
             Int counter = 0;
-            for( Int thread = 0 ; thread < dims[0]; ++thread )
+            for( Int i = 0 ; i < dims[0]; ++i )
             {
-                counter += tensors[thread].CountNaNs();
+                counter += tensors[ToSize_T(i)].CountNaNs();
             }
             return counter;
         }
         
         
-        mref<Tensor_T> operator[]( const Int thread )
+        mref<Tensor_T> operator[]( const Int i )
         {
-            return tensors[thread];
+            return tensors[ToSize_T(i)];
         }
         
-        cref<Tensor_T> operator[]( const Int thread ) const
+        cref<Tensor_T> operator[]( const Int i ) const
         {
-            return tensors[thread];
+            return tensors[ToSize_T(i)];
         }
         
     public:
@@ -473,7 +473,7 @@ namespace Tensors {
         
         for( Int thread = 0; thread < A.Dim(0); ++thread )
         {
-            A[thread].Write( &B.data()[size_ * thread] );
+            A[ToSize_T(thread)].Write( &B.data()[size_ * thread] );
         }
         
         return B;
@@ -494,7 +494,7 @@ namespace Tensors {
         
         for( Int thread = 0; thread < A.Dim(0); ++thread )
         {
-            A[thread].Write( &B.data()[size_ * thread] );
+            A[ToSize_T(thread)].Write( &B.data()[size_ * thread] );
         }
         
         return B;
