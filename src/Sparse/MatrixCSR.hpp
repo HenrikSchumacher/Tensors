@@ -1131,14 +1131,14 @@ namespace Tensors
                     ParallelDo(
                         [&,this]( const Int thread )
                         {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
+                            const Int i_begin   = job_ptr[thread  ];
+                            const Int i_end     = job_ptr[thread+1];
                             
                             mptr<LInt> c        = counters.data(thread);
                             
                             cptr<LInt> A_outer  = Outer().data();
                             cptr< Int> A_inner  = Inner().data();
-                            cptr<Scal> A_value = Value().data();
+                            cptr<Scal> A_value  = Value().data();
                             
                             cptr<LInt> B_outer  = B.Outer().data();
                             cptr< Int> B_inner  = B.Inner().data();
