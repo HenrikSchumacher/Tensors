@@ -51,7 +51,7 @@ int main()
     std::string name = "Spot_4";
 //    std::string name = "Spot_0";
     
-    constexpr Int NRHS = 32;
+    constexpr Int NRHS = 4;
     const     Int nrhs = NRHS;
     
     Sparse::MatrixCSR<Scal,Int,LInt> A;

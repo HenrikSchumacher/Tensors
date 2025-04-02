@@ -58,17 +58,21 @@ int main(int argc, const char * argv[])
     std::uniform_real_distribution<Real> unif(-1,1);
     
     tic("Randomize");
+
     for( Int k = 0; k < reps; ++k )
     {
         for( Int i = 0; i < n; ++i )
         {
             for( Int j = i; j < n; ++j )
             {
-                A_list(k,i,j) = (
-                     Scalar::ComplexQ<Scal> ?
-                     std::complex<Real> ( unif(engine), unif(engine) ) :
-                     unif(engine);
-                 );
+                if constexpr ( Scalar::ComplexQ<Scal> )
+                {
+                    A_list(k,i,j) = Scal( unif(engine), unif(engine) );
+                }
+                else
+                {
+                    A_list(k,i,j) = unif(engine);
+                }
             }
             A_list(k,i,i) = Re(A_list(k,i,i));
         }
