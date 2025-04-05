@@ -2,6 +2,8 @@
 
 #include "src/BLAS_Wrappers.hpp"
 
+// TODO: Find out why GMRES is so much slower in parallel mode.
+
 namespace Tensors
 {
     // NRHS_ = number of right hand sides.
@@ -11,8 +13,8 @@ namespace Tensors
     
     // Scal_ is the floating point type that is used internally.
     
-    template<Size_T NRHS_,typename Scal_,typename Int_, Side side,
-        bool A_verboseQ = true, bool P_verboseQ = true
+    template<Size_T NRHS_,typename Scal_,typename Int_,
+        Side side = Side::Left, bool A_verboseQ = true, bool P_verboseQ = true
     >
     class GMRES
     {
