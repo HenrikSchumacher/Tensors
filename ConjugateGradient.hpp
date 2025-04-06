@@ -68,7 +68,8 @@ namespace Tensors
             const Size_T thread_count_ = 1
         )
         :   n               ( n_                                    )
-        ,   max_iter        ( Min(max_iter_,n)                      )
+//        ,   max_iter        ( Min(max_iter_,n)                      )
+        ,   max_iter        ( Max(Int(0),max_iter_)                 )
         ,   nrhs            ( ( NRHS > VarSize ? NRHS : static_cast<Int>(eq_count_ ) )  )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   r               ( n, nrhs                               )
@@ -334,8 +335,7 @@ namespace Tensors
             }
             
             
-            combine_matrices_auto<VarSize,NRHS,Parallel>
-            (
+            combine_matrices_auto<VarSize,NRHS,Parallel>(
                 scalar_cast<X_T>(a), x.data(), nrhs,
                 scalar_cast<X_T>(b), X_inout,  ldX,
                 n, nrhs, thread_count
@@ -346,8 +346,6 @@ namespace Tensors
             logprint( Stats() );
             
             TOOLS_PTOC(tag);
-            
-            
             
             return succeeded;
         }
