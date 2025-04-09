@@ -465,7 +465,7 @@ namespace Tensors
                 
                 CheckDiagonal();
                 
-                row_mutexes = std::vector<std::mutex> ( n );
+                row_mutexes = std::vector<std::mutex> ( static_cast<Size_T>(n) );
                 
                 TOOLS_PTOC(ClassName()+"::Init");
             }

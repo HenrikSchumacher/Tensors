@@ -279,10 +279,10 @@ protected:
         // Holds the current number of supernodes.
         SN_count    = 0;
         // Pointers from supernodes to their starting rows.
-        SN_rp       = Tensor1< Int,Int> (n+2);
+        SN_rp       = Tensor1< Int,Int> (n + Int(2));
         
         // Pointers from supernodes to their starting position in SN_inner.
-        SN_outer    = Tensor1<LInt,Int> (n+2);
+        SN_outer    = Tensor1<LInt,Int> (n + Int(2));
         SN_outer[0] = 0;
         
         // To be filled with the column indices of super nodes.
@@ -459,7 +459,7 @@ protected:
         Int prev_n_1 = 0; // Holds the number of column indices in previous supernode.
         
         // TODO: Fix this to work with unsinged integers.
-        Tensor1<Int,Int> prev_col_nz(n,-1);
+        Tensor1<Int,Int> prev_col_nz(n,Int(-1));
 
         // i-th row of U belongs to supernode row_to_SN[i].
         row_to_SN   = Tensor1< Int,Int> (n);
@@ -467,15 +467,15 @@ protected:
         // Holds the current number of supernodes.
         SN_count    = 0;
         // Pointers from supernodes to their starting rows.
-        SN_rp       = Tensor1< Int,Int> (n+2);
+        SN_rp       = Tensor1< Int,Int> (n + Int(2));
         
         // Pointers from supernodes to their starting position in SN_inner.
-        SN_outer    = Tensor1<LInt,Int> (n+2);
+        SN_outer    = Tensor1<LInt,Int> (n + Int(2));
         SN_outer[0] = 0;
         
         // To be filled with the column indices of super nodes.
         // Will later be moved to SN_inner.
-        Aggregator<Int,LInt> SN_inner_agg ( 2 * A.NonzeroCount(), thread_count );
+        Aggregator<Int,LInt> SN_inner_agg ( LInt(2) * A.NonzeroCount(), thread_count );
         
         // Start first supernode.
         SN_rp[0]     = 0;

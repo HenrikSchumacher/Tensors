@@ -437,10 +437,10 @@ namespace Tensors
             typename a_T, typename X_T, typename b_T, typename Y_T
         >
         void PermuteCombine(
-            const a_T alpha, cptr<X_T> X, const Size_T ldX,
-            const b_T beta,  mptr<Y_T> Y, const Size_T ldY,
+            const a_T alpha, cptr<X_T> X, const Int ldX,
+            const b_T beta,  mptr<Y_T> Y, const Int ldY,
             const Inverse inverseQ,
-            Size_T cols = COLS
+            Int cols = COLS
         )
         {
             // Computes
@@ -467,7 +467,7 @@ namespace Tensors
             
             TOOLS_PTIC(tag);
             
-            if( cols == Size_T(0) )
+            if( cols == Int(0) )
             {
                 wprint( tag + ": cols == 0. Doing nothing." );
                 
@@ -617,10 +617,10 @@ namespace Tensors
             typename X_T, typename Y_T
         >
         void Permute(
-            cptr<X_T> X, const Size_T ldX,
-            mptr<Y_T> Y, const Size_T ldY,
+            cptr<X_T> X, const Int ldX,
+            mptr<Y_T> Y, const Int ldY,
             const Inverse inverseQ,
-            Size_T cols = ( (COLS>VarSize) ? COLS : Scalar::One<Size_T> )
+            Int cols = ( (COLS>VarSize) ? int_cast<Int>(COLS) : Scalar::One<Int> )
         )
         {
             // Permute X chunkwise into Y, i.e., Y[ldY*i+k] <- X[ldX*p[i]+k];
@@ -635,12 +635,12 @@ namespace Tensors
                 
                 cptr<Int> r = GetPermutation().data();
 
-                if( cols == Scalar::One<Size_T> )
+                if( cols == Scalar::One<Int> )
                 {
                     // TODO: Is there any merit in this specialization?
                     // TODO: Shouldn't copy_buffer handle that appropriately?
                     
-                    if( (ldX == Scalar::One<Size_T>) && (ldY == Scalar::One<Size_T>) )
+                    if( (ldX == Scalar::One<Int>) && (ldY == Scalar::One<Int>) )
                     {
                         ParallelDo(
                             [=,this]( const Int i )
@@ -701,7 +701,7 @@ namespace Tensors
             cptr<X_T> X,
             mptr<Y_T> Y,
             const Inverse inverseQ,
-            Size_T cols = Scalar::One<Size_T>
+            Int cols = Scalar::One<Int>
         )
         {
             Permute<COLS,parQ>( X, cols, Y, cols, inverseQ, cols );

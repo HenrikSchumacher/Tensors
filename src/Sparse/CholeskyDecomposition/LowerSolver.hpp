@@ -167,7 +167,7 @@ namespace Tensors
                         
                         if constexpr( lockedQ )
                         {
-                            const std::lock_guard<std::mutex> lock ( row_mutexes[row] );
+                            const std::lock_guard<std::mutex> lock ( row_mutexes[static_cast<Size_T>(row)] );
                             
                             add_to_buffer( &X_1[nrhs * j], &X[nrhs * row], nrhs );
                         }
@@ -202,7 +202,7 @@ namespace Tensors
                                 
                                 if constexpr( lockedQ )
                                 {
-                                    const std::lock_guard<std::mutex> lock ( row_mutexes[row] );
+                                    const std::lock_guard<std::mutex> lock ( row_mutexes[static_cast<Size_T>(row)] );
                                     
                                     X[row] -= Conj(U_1[j]) * x_0[0];
                                 }
@@ -237,7 +237,7 @@ namespace Tensors
                                 
                                 if constexpr( lockedQ )
                                 {
-                                    const std::lock_guard<std::mutex> lock ( row_mutexes[row] );
+                                    const std::lock_guard<std::mutex> lock ( row_mutexes[static_cast<Size_T>(row)] );
                                     
                                     X[row] += x_1[j];
                                 }

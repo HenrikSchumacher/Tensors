@@ -355,12 +355,12 @@ protected:
             return;
         }
         
-        const Int use_threads = ( parQ == Parallel) ? thread_count : 1;
+        const Size_T use_threads = ( parQ == Parallel) ? static_cast<Size_T>(thread_count) : Size_T(1);
         
         std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
         
         Do<VarSize,parQ>(
-            [&F_list,this]( const Int thread )
+            [&F_list,this]( const Size_T thread )
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );
             },
@@ -394,14 +394,12 @@ protected:
             return;
         }
         
-        const Int use_threads = ( parQ == Parallel) ? thread_count : 1;
+        const Size_T use_threads = ( parQ == Parallel) ? static_cast<Size_T>(thread_count) : Size_T(1);
         
-        std::vector<std::unique_ptr<Solver_T>> F_list ( 
-            int_cast<Size_T>(use_threads)
-        );
+        std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
         
         Do<VarSize,parQ>(
-            [&F_list,this]( const Int thread )
+            [&F_list,this]( const Size_T thread )
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );
             },

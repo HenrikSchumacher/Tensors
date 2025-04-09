@@ -37,10 +37,10 @@ namespace Tensors
         :   current_size ( Scalar::Zero<LInt>       )
         ,   capacity     ( Max(Scalar::One<LInt>,n) )
         ,   container_0  ( Max(Scalar::One<LInt>,n) )
-        ,   thread_count ( 1                        )
+        ,   thread_count ( LInt(1)                  )
         {}
         
-        explicit Aggregator( const LInt n, const Size_T thread_count_ )
+        explicit Aggregator( const LInt n, const LInt thread_count_ )
         :   current_size ( Scalar::Zero<LInt>       )
         ,   capacity     ( Max(Scalar::One<LInt>,n) )
         ,   container_0  ( Max(Scalar::One<LInt>,n) )

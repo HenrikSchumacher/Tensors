@@ -88,14 +88,14 @@ public:
         TOOLS_PTIC(ClassName()+"::Traverse_Postordered_Test");
         AllocateCheckList();
 
-        std::vector<std::unique_ptr<DebugWorker>> workers (thread_count );
+        std::vector<std::unique_ptr<DebugWorker>> workers ( static_cast<Size_T>(thread_count) );
         
         ParallelDo(
-            [this,&workers]( const Int thread )
+            [this,&workers]( const Size_T thread )
             {
                 workers[thread] = std::make_unique<DebugWorker>( *this );
             },
-            thread_count
+            static_cast<Size_T>(thread_count)
         );
         
         Traverse_Postordered( workers );
@@ -124,14 +124,14 @@ public:
         TOOLS_PTIC(ClassName()+"::Traverse_Preordered_Test");
         AllocateCheckList();
 
-        std::vector<std::unique_ptr<DebugWorker>> workers (thread_count );
+        std::vector<std::unique_ptr<DebugWorker>> workers ( static_cast<Size_T>(thread_count) );
         
         ParallelDo(
-            [this,&workers]( const Int thread )
+            [this,&workers]( const Size_T thread )
             {
                 workers[thread] = std::make_unique<DebugWorker>( *this );
             },
-            thread_count
+            static_cast<Size_T>(thread_count)
         );
         
         Traverse_Preordered( workers );
