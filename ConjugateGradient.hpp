@@ -417,13 +417,12 @@ namespace Tensors
                         
                         for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )
                         {
-                            // TODO: Is this really a reasonable assumption?
                             // We know that all scalar products that we compute have to be real-valued.
-//                            sums[k] += Re(Conj(v_i[k]) * w_i[k]);
+//                            sums[k] += Re(Conj(v[i][k]) * w[i][k]);
                             
                             if constexpr ( Scalar::ComplexQ<Scal> )
                             {
-                                sums[k] += Re(v_i[k]) * Re(w_i[k]) + Im(v_i[k]) * Im(w_i[k]);
+                                sums[k] += Re(v_i[k]) * Re(w_i[k]) + Im(v_i[k]) * Im(w_i[k]) ;
                             }
                             else
                             {
