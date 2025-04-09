@@ -175,7 +175,7 @@ namespace Tensors
                     
                     const Int m = A.RowCount();
                     
-                    Tensor2<LInt,Int> counters ( thread_count, m, static_cast<LInt>(0) );
+                    Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort

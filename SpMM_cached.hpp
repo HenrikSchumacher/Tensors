@@ -141,7 +141,7 @@ namespace Tensors
                         }
                         
                         // Add remaining entries.
-                        for( LInt l = l_begin + static_cast<LInt>(1); l < l_end; ++l )
+                        for( LInt l = l_begin + LInt(1); l < l_end; ++l )
                         {
                             const Int j = ci[l] - base;
 

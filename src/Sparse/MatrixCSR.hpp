@@ -67,7 +67,7 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   Base_T( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            :   Base_T( int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -81,8 +81,8 @@ namespace Tensors
                 const I_2 nnz_,
                 const I_3 thread_count_
             )
-            :   Base_T   ( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) )
-            ,   values ( static_cast<LInt>(nnz_) )
+            :   Base_T   ( int_cast<Int>(m_), int_cast<Int>(n_), int_cast<LInt>(nnz_), int_cast<Int>(thread_count_) )
+            ,   values ( int_cast<LInt>(nnz_) )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -99,8 +99,8 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   Base_T  ( outer_,  inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
-            ,   values  ( values_, outer_[static_cast<Int>(m_)] )
+            :   Base_T  ( outer_,  inner_, int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
+            ,   values  ( values_, outer_[int_cast<Int>(m_)] )
             {
                 static_assert(ArithmeticQ<S>,"");
                 static_assert(IntQ<I_0>,"");
@@ -117,8 +117,8 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   Base_T  ( outer_,  inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
-            ,   values  ( outer_[static_cast<Int>(m_)] )
+            :   Base_T  ( outer_,  inner_, int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
+            ,   values  ( outer_[int_cast<Int>(m_)] )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -134,7 +134,7 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   Base_T ( std::move(outer_), std::move(inner_), static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            :   Base_T ( std::move(outer_), std::move(inner_), int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
             ,   values ( std::move(values_) )
             {
                 static_assert(IntQ<I_0>,"");
@@ -241,9 +241,9 @@ namespace Tensors
                   const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
-            :   Base_T ( m_, n_, static_cast<Int>(idx.size()) )
+            :   Base_T ( m_, n_, int_cast<Int>(idx.size()) )
             {
-                Int list_count = static_cast<Int>(idx.size());
+                Int list_count = int_cast<Int>(idx.size());
                 Tensor1<const ExtInt  *,Int> i      (list_count);
                 Tensor1<const ExtInt  *,Int> j      (list_count);
                 Tensor1<const ExtScal *,Int> a      (list_count);
@@ -254,11 +254,14 @@ namespace Tensors
                     i[thread] = idx[thread].data();
                     j[thread] = jdx[thread].data();
                     a[thread] = val[thread].data();
-                    entry_counts[thread] = static_cast<LInt>(idx[thread].size());
+                    entry_counts[thread] = int_cast<LInt>(idx[thread].size());
                 }
                 
-                FromTriples( i.data(), j.data(), a.data(), entry_counts.data(),
-                            list_count, final_thread_count, compressQ, symmetrize );
+                FromTriples(
+                    i.data(), j.data(), a.data(),
+                    entry_counts.data(), list_count,
+                    final_thread_count, compressQ, symmetrize
+                );
             }
             
             template<typename ExtInt, typename ExtScal>
@@ -270,9 +273,9 @@ namespace Tensors
                   const bool compressQ   = true,
                   const int  symmetrize = 0
                   )
-            :   Base_T ( m_, n_, static_cast<Int>(triples.size()) )
+            :   Base_T ( m_, n_, int_cast<Int>(triples.size()) )
             {
-                Int list_count = static_cast<Int>(triples.size());
+                Int list_count = int_cast<Int>(triples.size());
                 
                 Tensor1<const ExtInt  *,Int> i (list_count);
                 Tensor1<const ExtInt  *,Int> j (list_count);
@@ -284,7 +287,7 @@ namespace Tensors
                     i[thread] = triples[thread].Get_0().data();
                     j[thread] = triples[thread].Get_1().data();
                     a[thread] = triples[thread].Get_2().data();
-                    entry_counts[thread] = static_cast<LInt>(triples[thread].Size());
+                    entry_counts[thread] = int_cast<LInt>(triples[thread].Size());
                 }
                 
                 FromTriples(
@@ -302,9 +305,9 @@ namespace Tensors
                   const bool compressQ  = true,
                   const int  symmetrize = 0
             )
-            :   Base_T ( m_, n_, static_cast<Int>(1) )
+            :   Base_T ( m_, n_, Int(1) )
             {
-                LInt entry_counts = static_cast<LInt>(triples.Size());
+                LInt entry_counts = int_cast<LInt>(triples.Size());
                 
                 const ExtInt  * const i = triples.Get_0().data();
                 const ExtInt  * const j = triples.Get_1().data();
@@ -366,7 +369,7 @@ namespace Tensors
                 
                 const LInt nnz = counters[list_count-1][m-1];
                 
-                if( nnz > 0 )
+                if( nnz > LInt(0) )
                 {
                     inner  = Tensor1<Int ,LInt>( nnz );
                     values = Tensor1<Scal,LInt>( nnz );
@@ -396,7 +399,7 @@ namespace Tensors
                             
                             mptr<LInt> c = counters.data(thread);
                             
-                            for( LInt k = entry_count; k --> 0; )
+                            for( LInt k = entry_count; k --> LInt(0); )
                             {
                                 const Int  i = static_cast<Int>(thread_idx[k]);
                                 const Int  j = static_cast<Int>(thread_jdx[k]);
@@ -471,7 +474,7 @@ namespace Tensors
             mref<Scal> Value( const LInt k )
             {
 #ifdef TOOLS_DEBUG
-                if( k < 0 || k >= values.Size() )
+                if( k < LInt(0) || k >= values.Size() )
                 {
                     eprint(this->ClassName()+"::Value(" + ToString(k) + "): Access out of bounds.");
                 }
@@ -482,7 +485,7 @@ namespace Tensors
             cref<Scal> Value( const LInt k ) const
             {
 #ifdef TOOLS_DEBUG
-                if( k < 0 || k >= values.Size() )
+                if( k < LInt(0) || k >= values.Size() )
                 {
                     eprint(this->ClassName()+"::Value(" + ToString(k) + "): Access out of bounds.");
                 }
@@ -1082,7 +1085,7 @@ namespace Tensors
                 {
                     RequireJobPtr();
                     
-                    Tensor2<LInt,Int> counters ( thread_count, m, static_cast<LInt>(0) );
+                    Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
                     
                     // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                     // https://en.wikipedia.org/wiki/Counting_sort
@@ -1215,7 +1218,7 @@ namespace Tensors
             void Dot(
                 const a_T alpha, cptr<X_T> X, const Int ldX,
                 const b_T beta,  mptr<Y_T> Y, const Int ldY,
-                const Int nrhs = static_cast<Int>(1)
+                const Int nrhs = Int(1)
             ) const
             {
                 this->template Dot_<NRHS>( values.data(), alpha, X, ldX, beta, Y, ldY, nrhs );
@@ -1226,7 +1229,7 @@ namespace Tensors
             void Dot(
                 const a_T alpha, cptr<X_T> X,
                 const b_T beta,  mptr<Y_T> Y,
-                const Int nrhs = static_cast<Int>(1)
+                const Int nrhs = Int(1)
             ) const
             {
                 this->template Dot_<NRHS>( values.data(), alpha, X, nrhs, beta, Y, nrhs, nrhs );
@@ -1278,7 +1281,7 @@ namespace Tensors
                 cptr<T_ext> ext_values,
                 const a_T alpha, cptr<T_ext> X, const Int ldX,
                 const b_T beta,  mptr<T_ext> Y, const Int ldY,
-                const Int nrhs = static_cast<Int>(1)
+                const Int nrhs = Int(1)
             ) const
             {
                 this->template Dot_<NRHS>( ext_values, alpha, X, ldX, beta, Y, ldY, nrhs );
@@ -1290,7 +1293,7 @@ namespace Tensors
                 cptr<T_ext> ext_values,
                 const a_T alpha, cptr<T_ext> X,
                 const b_T beta,  mptr<T_ext> Y,
-                const Int nrhs = static_cast<Int>(1)
+                const Int nrhs = Int(1)
             ) const
             {
                 this->template Dot_<NRHS>( ext_values, alpha, X, nrhs, beta, Y, nrhs, nrhs );
@@ -1529,7 +1532,7 @@ namespace Tensors
                 line >> nonzero_count;
                 TOOLS_LOGDUMP(nonzero_count);
 
-                if(row_count < 0)
+                if(row_count < Int(0))
                 {
                     eprint( tag + ": Invalid row_count." );
                     
@@ -1538,7 +1541,7 @@ namespace Tensors
                     return;
                 }
                 
-                if(col_count < 0)
+                if(col_count < Int(0))
                 {
                     eprint( tag + ": Invalid col_count." );
                     
@@ -1547,7 +1550,7 @@ namespace Tensors
                     return;
                 }
                 
-                if(nonzero_count < 0)
+                if(nonzero_count < LInt(0))
                 {
                     eprint( tag + ": Invalid nonzero_count." );
                     

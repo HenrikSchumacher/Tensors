@@ -67,7 +67,7 @@ namespace Tensors
         template<Size_T chunk_size, typename T, typename C>
         void FindChunkSize( mptr<T> a, mptr<T> b, const Size_T n_, C comp  )
         {
-            if( n_ < 2 * chunk_size )
+            if( n_ < Size_T(2) * chunk_size )
             {
                 return MergeSort<chunk_size>( a, b, n_, comp );
             }
@@ -98,11 +98,11 @@ namespace Tensors
                 Size_T n_ = n - reg_n;
                 
                 
-                if constexpr( chunk_size > 16 )
+                if constexpr( chunk_size > Size_T(16) )
                 {
                     MergeSorter<vector_size,reverseQ> S ;
                     
-                    S.MergeSort<chunk_size/2>( a_, b_, n_, comp );
+                    S.MergeSort<chunk_size/Size_T(2)>( a_, b_, n_, comp );
                 }
                 else
                 {
@@ -262,10 +262,10 @@ namespace Tensors
             }
             
             // Compute range of interior nodes.
-            for( Size_T N = interior_node_count; N --> 0; )
+            for( Size_T N = interior_node_count; N --> Size_T(0); )
             {
                 const Size_T L = LeftChild (N);
-                const Size_T R = L + 1;
+                const Size_T R = L + Size_T(1);
                 
                 node_begin[N] = node_begin[L];
                 node_end  [N] = node_end  [R];
@@ -279,17 +279,18 @@ namespace Tensors
         
         static constexpr Size_T LeftChild( const Size_T node )
         {
-            retreturn 2 * node + 1;
+            return Size_T(2) * node + Size_T(1);
         }
         
         static constexpr Size_T RightChild( const Size_T node )
         {
-            return 2 * node + 2;
+            return Size_T(2) * node + Size_T(2);
         }
         
         static constexpr Size_T Parent( const Size_T node )
         {
-            return node > 0 ? (node - 1) / 2 : -1;
+            // TODO: -1 as return value is not meaningful for unsigned type Size_T!
+            return node > Size_T(0) ? (node - Size_T(1)) / Size_T(2) : -1;
         }
         
         static constexpr Size_T Depth( const Size_T node )

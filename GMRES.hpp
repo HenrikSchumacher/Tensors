@@ -179,7 +179,7 @@ namespace Tensors
             restarts = 0;
             succeeded = false;
             
-            if( b_norms.CountNaNs() > 0 )
+            if( b_norms.CountNaNs() > Int(0) )
             {
                 eprint(tag + ": Right-hand side contains NaNs. Doing nothing.");
                 
@@ -192,7 +192,7 @@ namespace Tensors
                 return succeeded;
             }
             
-            if( b_norms.Max() <= 0 )
+            if( b_norms.Max() <= Real(0) )
             {
                 wprint(tag + ": Right-hand side is 0. Returning scaled X_inout.");
                 

@@ -18,7 +18,7 @@ public:
         
 //        StaticParameterCheck<alpha_T,X_T,beta_T,Y_T>();
         
-        const alpha_T alpha = ( rp[m] > 0 ) ? scalar_cast<Y_T>(alpha_) : scalar_cast<a_T>(0);
+        const alpha_T alpha = ( rp[m] > LInt(0) ) ? scalar_cast<Y_T>(alpha_) : scalar_cast<a_T>(0);
         const beta_T  beta  = scalar_cast<Y_T>(beta_);
         
         

@@ -13,10 +13,10 @@ namespace Tensors
         using Container_1_T = Tensor1<T_1,LInt>;
         using Container_2_T = Tensor1<T_2,LInt>;
 
-        mutable LInt current_size = static_cast<LInt>(0);
-        mutable LInt capacity     = static_cast<LInt>(1);
+        mutable LInt current_size = LInt(0);
+        mutable LInt capacity     = LInt(1);
 
-        mutable LInt current_buffer_size = static_cast<LInt>(0);
+        mutable LInt current_buffer_size = LInt(0);
         mutable std::array<T_0,BUFFER_CAP> buffer_0;
         mutable std::array<T_0,BUFFER_CAP> buffer_1;
         mutable std::array<T_2,BUFFER_CAP> buffer_2;
@@ -32,7 +32,7 @@ namespace Tensors
         ~TripleAggregator() = default;
 
         explicit TripleAggregator( const LInt n )
-        :   current_size ( static_cast<LInt>(0)             )
+        :   current_size ( LInt(0)             )
         ,   capacity     ( Max(static_cast<LInt>(BUFFER_CAP),n) )
         ,   container_0  ( capacity )
         ,   container_1  ( capacity )
@@ -169,7 +169,7 @@ namespace Tensors
         
         void Finalize() const
         {
-            if( current_buffer_size > 0 )
+            if( current_buffer_size > LInt(0) )
             {
                 RequireCapacity( current_size + current_buffer_size );
                 
@@ -201,7 +201,7 @@ namespace Tensors
         
         void Expand()
         {
-            RequireCapacity( static_cast<LInt>(2) * capacity );
+            RequireCapacity( LInt(2) * capacity );
         }
     };
 

@@ -140,14 +140,14 @@ namespace Tensors
         {
             Entry_T r ( std::move(a[ptr--]) );
             
-//            ptr = (ptr > 0) ? (ptr - 1) : 0;
+//            ptr = (ptr > Int(0)) ? (ptr - Int(1)) : Int(0);
             
             return r;
         }
         
         bool EmptyQ() const
         {
-            return ptr <= 0;
+            return ptr <= Int(0);
         }
         
         Int ElementCount() const

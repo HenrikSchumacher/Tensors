@@ -38,18 +38,23 @@ namespace Tensors
                 
                 TOOLS_PTIC(ClassName()+": Preprocessing");
 
-                Int n = static_cast<Int>(n_);
+                Int n = int_cast<Int>(n_);
                 
-                Tensor1<Int,Int> rp    ( static_cast<Int>( n + 1  ) );
-                Tensor1<Int,Int> ci    ( static_cast<Int>( rp_[n] ) );
-                Tensor1<Int,Int> perm  ( static_cast<Int>( n      ) );
-                Tensor1<Int,Int> iperm ( static_cast<Int>( n      ) );
+                Tensor1<Int,Int> rp    ( int_cast<Int>( n + 1  ) );
+                Tensor1<Int,Int> ci    ( int_cast<Int>( rp_[n] ) );
+                Tensor1<Int,Int> perm  ( int_cast<Int>( n      ) );
+                Tensor1<Int,Int> iperm ( int_cast<Int>( n      ) );
                 
                 Int nnz_counter = 0;
                 
                 rp[0] = 0;
                 
                 // TODO: This could be parallelized, but I don't think that there is a need to do this.
+                
+                if( !std::in_range<Int>(rp_[n]) )
+                {
+                    eprint(ClassName() + "::operator(): row pointers do not fit into type " + TypeName<Int> + " .");
+                }
                 
                 // We need to discard the diagonal entries.
                 for( Int i = 0; i < n; ++i )

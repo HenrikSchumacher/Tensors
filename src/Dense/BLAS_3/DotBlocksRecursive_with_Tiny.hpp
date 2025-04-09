@@ -14,7 +14,7 @@ void dotBlocksRecursive(
     const Int N_blk_count = N_blk_end - N_blk_begin;
     const Int K_blk_count = K_blk_end - K_blk_begin;
     
-    if( (M_blk_count > 2) && (N_blk_count > 2) && (K_blk_count > 32) )
+    if( (M_blk_count > Int(2)) && (N_blk_count > Int(2)) && (K_blk_count > Int(32)) )
     {
         const Int M_blk_mid = M_blk_begin + (M_blk_count/2);
         const Int N_blk_mid = N_blk_begin + (N_blk_count/2);

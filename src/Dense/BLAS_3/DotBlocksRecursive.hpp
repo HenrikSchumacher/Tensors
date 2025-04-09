@@ -42,7 +42,7 @@ void dotBlocksRecursive(
         dotBlocksRecursive( M_blk_begin, M_blk_end, N_blk_begin, N_blk_end, K_blk_begin, K_blk_mid );
         dotBlocksRecursive( M_blk_begin, M_blk_end, N_blk_begin, N_blk_end, K_blk_mid,   K_blk_end );
     }
-//    else if( (M_blk_count > 1) && (N_blk_count > 1) && (K_blk_count > 1) )
+//    else if( (M_blk_count > Int(1)) && (N_blk_count > Int(1)) && (K_blk_count > Int(1)) )
 //    {
 //        const Int M_blk_mid = M_blk_begin + (M_blk_count/2);
 //        const Int N_blk_mid = N_blk_begin + (N_blk_count/2);

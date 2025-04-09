@@ -52,7 +52,7 @@ public:
         
         if( nrhs == ione )
         {
-            if( thread_count > 1 )
+            if( thread_count > Int(1) )
             {
                 SN_Solve<false,parQ,op>();
             }
@@ -63,7 +63,7 @@ public:
         }
         else
         {
-            if( thread_count > 1 )
+            if( thread_count > Int(1) )
             {
                 SN_Solve<true,parQ,op>();
             }
@@ -209,7 +209,7 @@ public:
         
         if( nrhs == ione )
         {
-            if( thread_count > 1 )
+            if( thread_count > Int(1) )
             {
                 SN_UpperSolve<false,parQ>();
             }
@@ -220,7 +220,7 @@ public:
         }
         else
         {
-            if( thread_count > 1 )
+            if( thread_count > Int(1) )
             {
                 SN_UpperSolve<true,parQ>();
             }
@@ -280,7 +280,7 @@ public:
         
         if( nrhs == ione )
         {
-            if( thread_count > 1 )
+            if( thread_count > Int(1) )
             {
                 SN_UpperSolve<false,parQ>();
             }
@@ -291,7 +291,7 @@ public:
         }
         else
         {
-            if( thread_count > 1 )
+            if( thread_count > Int(1) )
             {
                 SN_UpperSolve<true,parQ>();
             }

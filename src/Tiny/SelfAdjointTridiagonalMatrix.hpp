@@ -111,25 +111,25 @@ namespace Tensors
             
             TOOLS_FORCE_INLINE void Dot( const Vector_T & x, Vector_T & y ) const
             {
-                if constexpr ( n >= 1 )
+                if constexpr ( n >= Int(1) )
                 {
                     y[0] = diag[0] * x[0];
                 }
-                else if constexpr ( n > 1 )
+                else if constexpr ( n > Int(1) )
                 {
                     y[0] = diag[0] * x[0] + upper[0] * x[1];
                 }
                 
-                for( Int i = 1; i < n-2; ++ i )
+                for( Int i = 1; i < n-Int(2); ++ i )
                 {
                     y[i] = upper[i-1] * x[i-1] + diag[i] * x[i] + upper[i] * x[i+1];
                 }
                 
-                if constexpr ( n >= 2 )
+                if constexpr ( n >= Int(2) )
                 {
                     y[n-1] = diag[n-1] * x[n-1];
                 }
-                else if constexpr  ( n > 2 )
+                else if constexpr  ( n > Int(2) )
                 {
                     y[n-1] = upper[n-2] * x[n-2] + diag[n-1] * x[n-1];
                 }

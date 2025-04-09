@@ -59,7 +59,7 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   Base_T( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            :   Base_T( int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -73,7 +73,7 @@ namespace Tensors
                 const I_2 nnz_,
                 const I_3 thread_count_
             )
-            :   Base_T( static_cast<Int>(m_), static_cast<Int>(n_), static_cast<LInt>(nnz_), static_cast<Int>(thread_count_) )
+            :   Base_T( int_cast<Int>(m_), int_cast<Int>(n_), int_cast<LInt>(nnz_), int_cast<Int>(thread_count_) )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -89,8 +89,8 @@ namespace Tensors
                   const I_0 m_,
                   const I_1 n_,
                   const I_3 thread_count_
-                  )
-            :   Base_T( outer_, inner_, static_cast<Int>(m_), static_cast<Int>(n_), static_cast<Int>(thread_count_) )
+            )
+            :   Base_T( outer_, inner_, int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
             {
                 static_assert(IntQ<J_0>,"");
                 static_assert(IntQ<J_1>,"");
@@ -106,13 +106,13 @@ namespace Tensors
                   const I_0 m_,
                   const I_1 n_,
                   const I_3 thread_count_
-                  )
+            )
             :   Base_T( 
                     outer_,
                     inner_,
-                    static_cast<Int>(m_),
-                    static_cast<Int>(n_),
-                    static_cast<Int>(thread_count_)
+                    int_cast<Int>(m_),
+                    int_cast<Int>(n_),
+                    int_cast<Int>(thread_count_)
                 )
             {
                 static_assert(IntQ<I_0>,"");
@@ -127,13 +127,13 @@ namespace Tensors
                   const I_0 m_,
                   const I_1 n_,
                   const I_3 thread_count_
-                  )
+            )
             :   Base_T( 
                     std::move(outer_), 
                     std::move(inner_),
-                    static_cast<Int>(m_),
-                    static_cast<Int>(n_), 
-                    static_cast<Int>(thread_count_)
+                    int_cast<Int>(m_),
+                    int_cast<Int>(n_),
+                    int_cast<Int>(thread_count_)
                 )
             {
                 static_assert(IntQ<I_0>,"");
@@ -381,9 +381,9 @@ namespace Tensors
                 if( X.Dim(0) == n && Y.Dim(0) == m )
                 {
                     this->template Dot_<1>(
-                        alpha, X.data(), static_cast<Int>(1),
-                        beta,  Y.data(), static_cast<Int>(1),
-                        static_cast<Int>(1)
+                        alpha, X.data(), Int(1),
+                        beta,  Y.data(), Int(1),
+                        Int(1)
                     );
                 }
                 else
@@ -434,9 +434,9 @@ namespace Tensors
                 if( X.Dim(0) == n && Y.Dim(0) == m )
                 {
                     this->template Dot_<1>( ext_values.data(),
-                        alpha, X.data(), static_cast<Int>(1),
-                        beta,  Y.data(), static_cast<Int>(1),
-                        static_cast<Int>(1)
+                        alpha, X.data(), Int(1),
+                        beta,  Y.data(), Int(1),
+                        Int(1)
                     );
                 }
                 else

@@ -20,7 +20,7 @@ namespace Tensors
         
         // See https://www.geeksforgeeks.org/next-permutation/#
             
-        if( m < 2 )
+        if( m < Int(2) )
         {
             return true;
         }
@@ -30,16 +30,16 @@ namespace Tensors
         {
             std::swap( p[i], p[j] );
             
-            std::swap_ranges( &A[n*i], &A[n*(i+1)], &A[n*j] );
+            std::swap_ranges( &A[n*i], &A[n*(i+Int(1))], &A[n*j] );
         };
         
         // Find pivot, i.e., the first position such that p[pivot+1],...,p[m] is descending.
-        Int pivot = m-2;
+        Int pivot = m - Int(2);
         
-        Int a = p[pivot    ];
-        Int b = p[pivot + 1];
+        Int a = p[pivot         ];
+        Int b = p[pivot + Int(1)];
         
-        while( (pivot > 0) && (a > b) )
+        while( (pivot > Int(0)) && (a > b) )
         {
             --pivot;
             b = a;
@@ -55,7 +55,7 @@ namespace Tensors
 
             Int successor;
             
-            Int R = m-1;
+            Int R = m - Int(1);
             Int p_R = p[R];
 
             
@@ -65,14 +65,14 @@ namespace Tensors
             }
             else
             {
-                Int L   = pivot + 1;
+                Int L   = pivot + Int(1);
                 Int p_L = p[L];
                 
                 // We know that p[R] < p[pivot] < p[L].
                 
-                while( L + 1 < R )
+                while( L + Int(1) < R )
                 {
-                    Int C   = L + (R-L) / 2;
+                    Int C   = L + (R-L) / Int(2);
                     Int p_C = p[C];
 
                     if( p_C  > a )
@@ -98,7 +98,7 @@ namespace Tensors
         // Reverse everything after pivot.
         {
             Int L = pivot + pivot_foundQ;
-            Int R = m - 1;
+            Int R = m - Int(1);
             
             while( L < R )
             {

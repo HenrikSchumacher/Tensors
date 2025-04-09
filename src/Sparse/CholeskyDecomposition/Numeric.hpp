@@ -64,7 +64,7 @@ public:
         TOOLS_PTOC(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
-        if( thread_count > 1 )
+        if( thread_count > Int(1) )
         {
             aTree.template Traverse_Postordered<Parallel>( SN_list );
         }
@@ -116,7 +116,7 @@ public:
         TOOLS_PTOC(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
-        if( thread_count > 1 )
+        if( thread_count > Int(1) )
         {
             aTree.template Traverse_Postordered<Parallel>( SN_list );
         }

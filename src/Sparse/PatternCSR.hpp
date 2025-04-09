@@ -70,10 +70,10 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer       ( static_cast<Int>(m_+1),static_cast<LInt>(0) )
-            ,   m           ( static_cast<Int>(m_)                        )
-            ,   n           ( static_cast<Int>(n_)                        )
-            ,   thread_count( static_cast<Int>(thread_count_)             )
+            :   outer       ( int_cast<Int>(m_+1),LInt(0) )
+            ,   m           ( int_cast<Int>(m_)                        )
+            ,   n           ( int_cast<Int>(n_)                        )
+            ,   thread_count( int_cast<Int>(thread_count_)             )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -88,11 +88,11 @@ namespace Tensors
                 const I_2 nnz_,
                 const I_3 thread_count_
             )
-            :   outer       ( static_cast<Int>(m_+1), static_cast<LInt>(0) )
-            ,   inner       ( static_cast<LInt>(nnz_)                      )
-            ,   m           ( static_cast<Int>(m_)                         )
-            ,   n           ( static_cast<Int>(n_)                         )
-            ,   thread_count( static_cast<Int>(thread_count_)              )
+            :   outer       ( int_cast<Int>(m_+1), LInt(0) )
+            ,   inner       ( int_cast<LInt>(nnz_)         )
+            ,   m           ( int_cast<Int>(m_)            )
+            ,   n           ( int_cast<Int>(n_)            )
+            ,   thread_count( int_cast<Int>(thread_count_) )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -133,11 +133,11 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer       ( outer_                          )
-            ,   inner       ( inner_                          )
-            ,   m           ( static_cast<Int>(m_)            )
-            ,   n           ( static_cast<Int>(n_)            )
-            ,   thread_count( static_cast<Int>(thread_count_) )
+            :   outer       ( outer_                       )
+            ,   inner       ( inner_                       )
+            ,   m           ( int_cast<Int>(m_)            )
+            ,   n           ( int_cast<Int>(n_)            )
+            ,   thread_count( int_cast<Int>(thread_count_) )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -152,11 +152,11 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer       ( std::move(outer_)               )
-            ,   inner       ( std::move(inner_)               )
-            ,   m           ( static_cast<Int>(m_)            )
-            ,   n           ( static_cast<Int>(n_)            )
-            ,   thread_count( static_cast<Int>(thread_count_) )
+            :   outer       ( std::move(outer_)            )
+            ,   inner       ( std::move(inner_)            )
+            ,   m           ( int_cast<Int>(m_)            )
+            ,   n           ( int_cast<Int>(n_)            )
+            ,   thread_count( int_cast<Int>(thread_count_) )
             {
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
@@ -174,7 +174,7 @@ namespace Tensors
             ,   duplicate_free  ( other.duplicate_free  )
             ,   symmetric       ( other.symmetric       )
             {
-                logprint("Copy of "+ClassName()+" of size {"+ToString(other.m)+", "+ToString(other.n)+"}, nn z = "+ToString(other.NonzeroCount()));
+                logprint("Copy of " + ClassName() + " of size {" + ToString(other.m) + ", " + ToString(other.n) + "}, nn z = " + ToString(other.NonzeroCount()));
             }
             
             friend void swap (PatternCSR &A, PatternCSR &B ) noexcept
@@ -268,12 +268,12 @@ namespace Tensors
                 const bool compressQ   = true,
                 const int  symmetrize = 0
             )
-            :   PatternCSR ( m_, n_, static_cast<Int>(1) )
+            :   PatternCSR ( m_, n_, Int(1) )
             {
                 const ExtInt * i = idx.data();
                 const ExtInt * j = jdx.data();
                 
-                Tensor1<LInt,Int> entry_counts (1, static_cast<LInt>(idx.size()));
+                Tensor1<LInt,Int> entry_counts (1, int_cast<LInt>(idx.size()));
                 
                 FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compressQ, symmetrize );
             }
@@ -288,9 +288,9 @@ namespace Tensors
                 const bool compressQ   = true,
                 const int  symmetrize = 0
             )
-            :   PatternCSR ( m_, n_, static_cast<Int>(idx.size()) )
+            :   PatternCSR ( m_, n_, int_cast<Int>(idx.size()) )
             {
-                Int list_count = static_cast<Int>(idx.size());
+                Int list_count = int_cast<Int>(idx.size());
                 Tensor1<const ExtInt *,Int> i (list_count);
                 Tensor1<const ExtInt *,Int> j (list_count);
                 
@@ -358,7 +358,7 @@ namespace Tensors
             
             void Init()
             {
-                outer[0] = static_cast<LInt>(0);
+                outer[0] = LInt(0);
             }
             
             template<typename ExtInt>
@@ -374,13 +374,15 @@ namespace Tensors
             {
                 TOOLS_PTIC(ClassName()+"::FromPairs");
                 
+                // TODO: If ExtInt is wider than Int, we need to check that all entries of idx and jdx fit into an Int.
+                
                 Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
                     idx, jdx, entry_counts, list_count, m, symmetrize
                 );
                 
                 const LInt nnz = counters(list_count-1,m-1);
                 
-                if( nnz > 0 )
+                if( nnz > LInt(0) )
                 {
                     inner = Tensor1<Int,LInt>( nnz );
                     
@@ -405,7 +407,7 @@ namespace Tensors
                                 
                                 mptr<LInt> c = counters.data(thread);
                                 
-                                for( LInt k = entry_count; k --> 0; )
+                                for( LInt k = entry_count; k --> LInt(0); )
                                 {
                                     const Int i = static_cast<Int>(thread_idx[k]);
                                     const Int j = static_cast<Int>(thread_jdx[k]);
@@ -414,7 +416,7 @@ namespace Tensors
                                         A_inner[pos] = j;
                                     }
                                     
-                                    c[j] -= static_cast<LInt>(i != j);
+                                    c[j] -= KroneckerDelta<LInt>(i,j);
                                     
                                     const LInt pos  = c[j];
                                     
@@ -436,7 +438,7 @@ namespace Tensors
                                 
                                 mptr<LInt> c = counters.data(thread);
                                 
-                                for( LInt k = entry_count; k --> 0; )
+                                for( LInt k = entry_count; k --> LInt(0); )
                                 {
                                     const Int i = thread_idx[k];
                                     const Int j = thread_jdx[k];
@@ -541,19 +543,19 @@ namespace Tensors
             
             void RequireUpperTriangularJobPtr() const
             {
-                if( (m > 0) && !upper_triangular_job_ptr_initialized )
+                if( (m > Int(0)) && !upper_triangular_job_ptr_initialized )
                 {
                     TOOLS_PTIC(ClassName()+"::RequireUpperTriangularJobPtr");
                     
                     RequireDiag();
                     
-                    Tensor1<LInt,Int> costs (m + 1);
-                    costs[0]=0;
+                    Tensor1<LInt,Int> costs (m + Int(1));
+                    costs[0] = 0;
                     
                     ParallelDo(
                         [this,&costs]( const Int i )
                         {
-                            costs[i+1] = outer[i+1] - diag_ptr[i];
+                            costs[i+Int(1)] = outer[i+Int(1)] - diag_ptr[i];
                         },
                         job_ptr
                     );
@@ -570,19 +572,19 @@ namespace Tensors
             
             void RequireLowerTriangularJobPtr() const
             {
-                if( (m > 0) && !lower_triangular_job_ptr_initialized )
+                if( (m > Int(0)) && !lower_triangular_job_ptr_initialized )
                 {
                     TOOLS_PTIC(ClassName()+"::RequireLowerTriangularJobPtr");
                     
                     RequireDiag();
                     
-                    Tensor1<LInt,Int> costs (m + 1);
-                    costs[0]=0;
+                    Tensor1<LInt,Int> costs (m + Int(1));
+                    costs[0] = 0;
                     
                     ParallelDo(
                         [this,&costs]( const Int i )
                         {
-                            costs[i+1] = diag_ptr[i] - outer[i];
+                            costs[i + Int(1)] = diag_ptr[i] - outer[i];
                         },
                         job_ptr
                     );
@@ -616,7 +618,7 @@ namespace Tensors
             
             LInt NonzeroCount( const Int i ) const
             {
-                return outer(i+1) - outer(i);
+                return outer(i+Int(1)) - outer(i);
             }
             
             mref<Tensor1<LInt,Int>> Outer()
@@ -633,7 +635,7 @@ namespace Tensors
             mref<LInt> Outer( const Int i )
             {
 #ifndef TOOLS_DEBUG
-                if( i < 0 || i >= outer.Size() )
+                if( i < Int(0) || i >= outer.Size() )
                 {
                     eprint(this->ClassName()+"::Outer(" + ToString(i) + "): Access out of bounds.");
                 }
@@ -644,7 +646,7 @@ namespace Tensors
             cref<LInt> Outer( const Int i ) const
             {
 #ifdef TOOLS_DEBUG
-                if( i < 0 || i >= outer.Size() )
+                if( i < Int(0) || i >= outer.Size() )
                 {
                     eprint(this->ClassName()+"::Outer(" + ToString(i) + "): Access out of bounds.");
                 }
@@ -666,7 +668,7 @@ namespace Tensors
             mref<Int> Inner( const LInt k )
             {
 #ifdef TOOLS_DEBUG
-                if( k < 0 || k >= inner.Size() )
+                if( k < LInt(0) || k >= inner.Size() )
                 {
                     eprint(this->ClassName()+"::Inner(" + ToString(k) + "): Access out of bounds.");
                 }
@@ -677,7 +679,7 @@ namespace Tensors
             cref<Int> Inner( const LInt k ) const
             {
 #ifdef TOOLS_DEBUG
-                if( k < 0 || k >= inner.Size() )
+                if( k < LInt(0) || k >= inner.Size() )
                 {
                     eprint(this->ClassName()+"::Inner(" + ToString(k) + "): Access out of bounds.");
                 }
@@ -696,7 +698,7 @@ namespace Tensors
             cref<LInt> Diag( const Int i ) const
             {
 #ifdef TOOLS_DEBUG
-                if( i < 0 || i >= diag_ptr.Size() )
+                if( i < Int(0) || i >= diag_ptr.Size() )
                 {
                     eprint(this->ClassName()+"::Diag(" + ToString(i) + "): Access out of bounds.");
                 }
@@ -737,7 +739,7 @@ namespace Tensors
                 
                 RequireJobPtr();
                 
-                Tensor2<LInt,Int> counters ( thread_count, n, static_cast<LInt>(0) );
+                Tensor2<LInt,Int> counters ( thread_count, n, LInt(0) );
                 
                 if( WellFormedQ() )
                 {
@@ -1052,7 +1054,7 @@ namespace Tensors
             void Dot_(
                 const alpha_T alpha, cptr<X_T> X, const Int ldX,
                 const beta_T  beta,  mptr<Y_T> Y, const Int ldY,
-                const Int nrhs = static_cast<Int>(1)
+                const Int nrhs = Int(1)
             ) const
             {
                 if( WellFormedQ() )
@@ -1079,7 +1081,7 @@ namespace Tensors
                       cptr<a_T> values,
                       const alpha_T alpha, cptr<X_T> X, const Int ldX,
                       const beta_T  beta,  mptr<Y_T> Y, const Int ldY,
-                      const Int   nrhs = static_cast<Int>(1)
+                      const Int   nrhs = Int(1)
             ) const
             {
                 if( WellFormedQ() )
@@ -1149,11 +1151,11 @@ namespace Tensors
             
             void BoundCheck( const Int i, const Int j ) const
             {
-                if( (i < 0) || (i > m) )
+                if( (i < Int(0)) || (i > m) )
                 {
                     eprint(ClassName()+": Row index " + ToString(i) + " is out of bounds [ 0, " + ToString(m) +" [.");
                 }
-                if( (j < 0) || (j > n) )
+                if( (j < Int(0)) || (j > n) )
                 {
                     eprint(ClassName()+": Column index " + ToString(j) + " is out of bounds [ 0, " + ToString(n) +" [.");
                 }
@@ -1191,7 +1193,7 @@ namespace Tensors
                 
                 constexpr LInt threshold = 6;
                 
-                if( (0 <= i) && (i < m) )
+                if( (Int(0) <= i) && (i < m) )
                 {
                     cptr<Int> A_inner = inner.data();
                     
@@ -1224,7 +1226,7 @@ namespace Tensors
                         
                         while( L < R )
                         {
-                            const LInt k = R - (R-L)/static_cast<Int>(2);
+                            const LInt k = R - (R-L)/Int(2);
                             const Int col = A_inner[k];
                             
                             if( col > j )
@@ -1290,7 +1292,7 @@ namespace Tensors
                                 
                                 while( L < R )
                                 {
-                                    const LInt M   = R - (R-L)/static_cast<Int>(2);
+                                    const LInt M   = R - (R-L)/Int(2);
                                     const  Int col = A_inner[M];
                                     
                                     if( col > i )
@@ -1320,7 +1322,7 @@ namespace Tensors
             
             bool WellFormedQ() const
             {
-                bool wellformed = ( ( outer.Size() > 1 ) && ( outer.Last() > 0 ) );
+                bool wellformed = ( ( outer.Size() > Int(1) ) && ( outer.Last() > LInt(0) ) );
                 
                 if( !wellformed )
                 {
@@ -1331,7 +1333,7 @@ namespace Tensors
                     TOOLS_DUMP(outer.Size());
                     TOOLS_DUMP(inner.Size());
                     
-                    if( outer.Size() > 0 )
+                    if( outer.Size() > Int(0) )
                     {
                         TOOLS_DUMP(outer.First());
                         TOOLS_DUMP(outer.Last());

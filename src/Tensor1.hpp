@@ -43,7 +43,11 @@ namespace Tensors
         void BoundCheck( const Int i ) const
         {
 #ifdef TOOLS_DEBUG
-            if( (i < 0) || (i > dims[0]) )
+            if( a == nullptr )
+            {
+                eprint(ClassName()+": pointer is nullptr.");
+            }
+            if( (i < Int(0)) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
@@ -56,7 +60,7 @@ namespace Tensors
         
         static constexpr Int Rank()
         {
-            return static_cast<Int>(1);
+            return Int(1);
         }
         
 
@@ -91,7 +95,7 @@ namespace Tensors
         TOOLS_FORCE_INLINE mref<Scal> operator[](const Int i)
         {
             BoundCheck(i);
-            
+
             return a[i];
         }
         

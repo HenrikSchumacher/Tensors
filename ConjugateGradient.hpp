@@ -172,7 +172,7 @@ namespace Tensors
             
             TOOLS_PTOC(ClassName()+": Compute norm of right hand side.");
             
-            if( b_squared_norms.CountNaNs() > 0 )
+            if( b_squared_norms.CountNaNs() > Int(0) )
             {
                 eprint(tag + ": Right-hand side contains NaNs. Doing nothing.");
                 

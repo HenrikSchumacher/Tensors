@@ -507,7 +507,7 @@ public:
         
         file << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
         
-        if( n > 0 )
+        if( n > Int(0) )
         {
             file << a[0];
         }

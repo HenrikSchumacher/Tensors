@@ -41,7 +41,7 @@ namespace Tensors
         
         static constexpr Int Rank()
         {
-            return static_cast<Int>(2);
+            return Int(2);
         }
         
         
@@ -274,7 +274,11 @@ namespace Tensors
         void BoundCheck( const Int i ) const
         {
 #ifdef TOOLS_DEBUG
-            if( (i < 0) || (i > dims[0]) )
+            if( a == nullptr )
+            {
+                eprint(ClassName() + ": pointer is nullptr.");
+            }
+            if( (i < Int(0)) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
@@ -286,12 +290,16 @@ namespace Tensors
         void BoundCheck( const Int i, const Int j ) const
         {
 #ifdef TOOLS_DEBUG
-            if( (i < 0) || (i > dims[0]) )
+            if( a == nullptr )
+            {
+                eprint(ClassName() + ": pointer is nullptr.");
+            }
+            if( (i < Int(0)) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
             
-            if( (j < 0) || (j > dims[1]) )
+            if( (j < Int(0)) || (j > dims[1]) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }

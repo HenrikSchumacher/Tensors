@@ -43,27 +43,27 @@ public:
     {
         std::vector<Int> not_visited;
         std::vector<Int> multiply_visited;
-        for( Int node = 0; node < check_list.Size()-1; ++node )
+        for( Int node = 0; node < check_list.Size() - Int(1); ++node )
         {
-            if( check_list[node] < 1 )
+            if( check_list[node] < Int(1) )
             {
                 not_visited.push_back(node);
             }
             
-            if( check_list[node] > 1 )
+            if( check_list[node] > Int(1) )
             {
                 multiply_visited.push_back(node);
             }
         }
         
-        if( not_visited.size() > 0 )
+        if( not_visited.size() > Size_T(0) )
         {
             eprint(ClassName()+"::PrintCheckList: There are are " + ToString(not_visited.size()) + " unvisited nodes.");
             
             TOOLS_DUMP(not_visited);
         }
         
-        if( multiply_visited.size() > 0 )
+        if( multiply_visited.size() > Size_T(0) )
         {
             eprint(ClassName()+"::PrintCheckList: There are are " + ToString(multiply_visited.size()) + " multiply visited nodes.");
             

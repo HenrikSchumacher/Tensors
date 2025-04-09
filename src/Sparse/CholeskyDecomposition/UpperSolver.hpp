@@ -178,7 +178,7 @@ namespace Tensors
                         // Since U_0 is a 1 x 1 matrix, it suffices to just scale X_0.
                         x_0[0] = (x_0[0] - U_1x_1) / U_0[0];
                     }
-                    else // n_0 > 1; using BLAS2 routines.
+                    else // n_0 > one; using BLAS2 routines.
                     {
                         if( n_1 > izero )
                         {

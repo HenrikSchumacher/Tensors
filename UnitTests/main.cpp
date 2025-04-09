@@ -133,7 +133,7 @@ void test_combine_buffers(
         error = Max(error, std::abs(z[i] - z_true[i]));
     }
     
-    if( max > 0 )
+    if( max > Real(0) )
     {
         error /= max;
     }
@@ -194,7 +194,7 @@ void Test_combine_buffers( Size_T n )
     
     TOOLS_DUMP(error_count);
     
-    if( error_count > 0 )
+    if( error_count > int(0) )
     {
         eprint(
             std::string("Test_combine_buffers<")

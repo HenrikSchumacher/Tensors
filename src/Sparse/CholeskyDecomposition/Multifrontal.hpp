@@ -164,12 +164,12 @@ namespace Tensors
                 SN_updates[s] = Update_T( n_1, n_1, Scal(0) );
                 mptr<Scal> V = SN_updates[s].data();
                 
-//                if( n_1 > 0 )
+//                if( n_1 > Int(0) )
 //                {
 //                    SN_updates[s] = (Scal*)calloc( n_1 * n_1, sizeof(Scal) );
 //                }
                 
-//                if( n_1 > 0 )
+//                if( n_1 > Int(0) )
 //                {
 //                    AlignedAllocator<Int>::Alloc( SN_updates[s], n_1 * n_1 );
 //                    zerofy_buffer( SN_updates[s], n_1 * n_1 );
@@ -474,7 +474,7 @@ namespace Tensors
                 const Int n_0, const Int n_1, mptr<Scal> U_1, mptr<Scal> V
             )
             {
-                if( (n_0 > 0) && (n_1 > 0) )
+                if( (n_0 > Int(0)) && (n_1 > Int(0)) )
                 {
                     if( n_0 > ione )
                     {
