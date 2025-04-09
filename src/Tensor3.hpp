@@ -39,7 +39,7 @@ namespace Tensors
         
         static constexpr Int Rank()
         {
-            return static_cast<Int>(3);
+            return Int(3);
         }
         
     protected:
@@ -47,9 +47,13 @@ namespace Tensors
         void BoundCheck( const Int i ) const
         {
 #ifdef TOOLS_DEBUG
-            if( (i < 0) || (i > dims[0]) )
+            if( a == nullptr )
             {
-                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
+                eprint(ClassName() + ": pointer is nullptr.");
+            }
+            if( (i < Int(0)) || (i > dims[0]) )
+            {
+                eprint(ClassName() + ": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
 #else
             (void)i;
@@ -59,11 +63,15 @@ namespace Tensors
         void BoundCheck( const Int i, const Int j ) const
         {
 #ifdef TOOLS_DEBUG
-            if( (i < 0) || (i > dims[0]) )
+            if( a == nullptr )
+            {
+                eprint(ClassName() + ": pointer is nullptr.");
+            }
+            if( (i < Int(0)) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-            if( (j < 0) || (j > dims[1]) )
+            if( (j < Int(0)) || (j > dims[1]) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
@@ -76,15 +84,19 @@ namespace Tensors
         void BoundCheck( const Int i, const Int j, const Int k ) const
         {
 #ifdef TOOLS_DEBUG
-            if( (i < 0) || (i > dims[0]) )
+            if( a == nullptr )
+            {
+                eprint(ClassName() + ": pointer is nullptr.");
+            }
+            if( (i < Int(0)) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-            if( (j < 0) || (j > dims[1]) )
+            if( (j < Int(0)) || (j > dims[1]) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
-            if( (k < 0) || (k > dims[2]) )
+            if( (k < Int(0)) || (k > dims[2]) )
             {
                 eprint(ClassName()+": third index " + ToString(k) + " is out of bounds [ 0, " + ToString(dims[2]) +" [.");
             }

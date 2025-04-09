@@ -179,9 +179,9 @@ namespace Tensors
                 if constexpr ( op == Op::Id )
                 {
                     // Upper triangular back substitution
-                    for( int i = n; i --> 0; )
+                    for( int i = n; i --> Int(0); )
                     {
-                        for( int j = i+1; j < n; ++j )
+                        for( int j = i + Int(1); j < n; ++j )
                         {
                             b[i] -= A[i][j] * b[j];
                         }
@@ -234,9 +234,9 @@ namespace Tensors
                 if constexpr ( op == Op::Id )
                 {
                     // Upper triangular back substitution from the left
-                    for( int i = n; i --> 0; )
+                    for( int i = n; i --> Int(0); )
                     {
-                        for( int j = i+1; j < n; ++j )
+                        for( int j = i + Int(1); j < n; ++j )
                         {
                             for( int k = 0; k < nrhs; ++k )
                             {

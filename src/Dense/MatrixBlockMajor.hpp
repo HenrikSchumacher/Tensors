@@ -331,7 +331,7 @@ namespace Tensors
         template<typename A_T, typename A_I>
         void Read_naive( cptr<A_T> A, const A_I ldA_ )
         {
-            const Int ldA  = static_cast<Int>(ldA_);
+            const Int ldA  = static_cast<Int(ldA_);
             
             ParallelDo(
                 [=,this]( const Int thread )

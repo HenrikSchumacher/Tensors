@@ -126,7 +126,7 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
         }
     }
     
-    if( max > 0 )
+    if( max > Real(0) )
     {
         error /= max;
     }
@@ -184,8 +184,8 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
 
             std::random_device r;
             std::default_random_engine engine ( r() );
-            std::uniform_int_distribution<Int> unif_m(static_cast<Int>(0),static_cast<Int>(m-1));
-            std::uniform_int_distribution<Int> unif_n(static_cast<Int>(0),static_cast<Int>(n-1));
+            std::uniform_int_distribution<Int> unif_m(Int(0),static_cast<Int>(m-1));
+            std::uniform_int_distribution<Int> unif_n(Int(0),static_cast<Int>(n-1));
             
             for( LInt i = i_begin; i < i_end; ++i )
             {
@@ -236,7 +236,7 @@ int main( int argc, const char * argv[] )
     
     const Int  m            = 600000;
     const Int  n            = 600000;
-    const LInt nnz          = static_cast<LInt>(
+    const LInt nnz          = int_cast<LInt>(
         (static_cast<double>(m) * static_cast<double>(m)) * 0.0001
     );
 

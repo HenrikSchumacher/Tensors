@@ -21,7 +21,7 @@ public:
         {
             return n;
         }
-        return static_cast<Int>(0);
+        return Int(0);
     }
 
     static constexpr Int Dimension( const Int i )
@@ -41,7 +41,7 @@ public:
 
     TOOLS_FORCE_INLINE void SetZero()
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             zerofyUpper<0>();
         }
@@ -49,7 +49,7 @@ public:
 
     TOOLS_FORCE_INLINE void ZerofyUpper()
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             zerofyUpper<0>();
         }
@@ -57,7 +57,7 @@ public:
 
     TOOLS_FORCE_INLINE void ZerofyLower()
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             zerofyLower<0>();
         }
@@ -71,7 +71,7 @@ public:
 
     TOOLS_FORCE_INLINE void FillUpper( cref<Scal> init )
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             fillUpper<0>(init);
         }
@@ -79,7 +79,7 @@ public:
 
     TOOLS_FORCE_INLINE void FillLower( cref<Scal> init )
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             fillLower<0>(init);
         }
@@ -87,7 +87,7 @@ public:
     template<typename S>
     TOOLS_FORCE_INLINE void Read( cptr<S> B )
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             read<0>(B);
         }
@@ -96,7 +96,7 @@ public:
     template<typename S>
     TOOLS_FORCE_INLINE void Read( cptr<S> B, const Int ldB )
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             read<0>(B,ldB);
         }
@@ -105,7 +105,7 @@ public:
     template<typename S>
     TOOLS_FORCE_INLINE void Write( mptr<S> B ) const
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             write<0>(B);
         }
@@ -114,7 +114,7 @@ public:
     template<typename S>
     TOOLS_FORCE_INLINE void Write( mptr<S> B, const Int ldB ) const
     {
-        if constexpr ( n > 0 )
+        if constexpr ( n > Int(0) )
         {
             write<0>(B,ldB);
         }
@@ -129,7 +129,7 @@ protected:
     {
         zerofy_buffer<n-k>( &A[k][k] );
         
-        if constexpr ( k+1 < n )
+        if constexpr ( k + Int(1) < n )
         {
             zerofyUpper<k+1>();
         }
@@ -140,7 +140,7 @@ protected:
     {
         zerofy_buffer<k>( &A[k][0] );
         
-        if constexpr ( k+1 < n )
+        if constexpr ( k + Int(1) < n )
         {
             zerofyLower<k+1>();
         }
@@ -151,7 +151,7 @@ protected:
     {
         fill_buffer<n-k>( &A[k][k], init );
         
-        if constexpr ( k+1 < n )
+        if constexpr ( k + Int(1) < n )
         {
             fillUpper<k+1>(init);
         }
@@ -162,7 +162,7 @@ protected:
     {
         fill_buffer<k>( &A[k][0], init );
         
-        if constexpr ( k+1 < n )
+        if constexpr ( k + Int(1) < n )
         {
             fillLower<k+1>(init);
         }
@@ -173,7 +173,7 @@ protected:
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
-        if constexpr ( n > k+1 )
+        if constexpr ( n > k + Int(1) )
         {
             read<k+1>( &B[n+1] );
         }
@@ -184,7 +184,7 @@ protected:
     {
         copy_buffer<n-k>( B, &A[k][k] );
         
-        if constexpr ( n > k+1 )
+        if constexpr ( n > k + Int(1) )
         {
             read<k+1>( &B[ldB+1], ldB );
         }
@@ -195,7 +195,7 @@ protected:
     {
         copy_buffer<n-k>( &A[k][k], B );
         
-        if constexpr ( n > k+1 )
+        if constexpr ( n > k + Int(1) )
         {
             write<k+1>( &B[n+1] );
         }
@@ -206,7 +206,7 @@ protected:
     {
         copy_buffer<n-k>( &A[k][k], B );
         
-        if constexpr ( n > k+1 )
+        if constexpr ( n > k + Int(1) )
         {
             write<k+1>( &B[ldB+1], ldB );
         }

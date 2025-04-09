@@ -123,15 +123,13 @@ namespace Tensors
                 // Input matrix is expected to be symmetric and pos-def,
                 // but we expect that both upper and lower triangle are populated.
 
-                const Size_T n   = static_cast<Size_T>(n_);
+                const Size_T n = static_cast<Size_T>(n_);
 
 
                 rp[0] = 0;
                 
                 for( Int i = 0; i < n_; ++i )
                 {
-
-                    
                     const LInt k_begin = static_cast<LInt>(rp_[i  ]);
                     const LInt k_end   = static_cast<LInt>(rp_[i+1]);
 

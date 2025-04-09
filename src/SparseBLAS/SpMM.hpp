@@ -149,7 +149,7 @@ private:
         using namespace Scalar;
         
         if constexpr( 
-            (NRHS > 0) && ( a_flag == F_T::Zero )
+            (NRHS > VarSize) && ( a_flag == F_T::Zero )
             &&
             VectorizableQ<Y_T>
             &&
@@ -355,7 +355,7 @@ private:
                             }
                             
                             // Add remaining entries.
-                            for( LInt l = l_begin + static_cast<LInt>(1); l < l_end; ++l )
+                            for( LInt l = l_begin + LInt(1); l < l_end; ++l )
                             {
                                 const Int j = ci[l] - base;
 

@@ -255,9 +255,9 @@ namespace Tensors
                 }
                 
                 // Upper triangular back substitution
-                for( Int i = n; i --> 0; )
+                for( Int i = n; i --> Int(0); )
                 {
-                    for( Int j = i+1; j < n; ++j )
+                    for( Int j = i + Int(1); j < n; ++j )
                     {
                         x[i] -= A[i][j] * x[j];
                     }
@@ -292,9 +292,9 @@ namespace Tensors
                 }
                 
                 // Upper triangular back substitution
-                for( Int i = n; i --> 0; )
+                for( Int i = n; i --> Int(0); )
                 {
-                    for( Int j = i+1; j < n; ++j )
+                    for( Int j = i + Int(1); j < n; ++j )
                     {
                         const Scal A_ij = A[i][j];
                         
@@ -379,7 +379,7 @@ namespace Tensors
                     return lambda_min;
                 }
                 
-                if constexpr ( n > 3 )
+                if constexpr ( n > Int(3) )
                 {
                     Vector<n,Real,Int> v;
     
@@ -415,7 +415,7 @@ namespace Tensors
                     U[1][1] = (T.Upper(0) == zero) ? one : Conj(A[0][1]) / T.Upper(0);
                 }
                 
-                if constexpr ( n > 2 )
+                if constexpr ( n > Int(2) )
                 {
                     Matrix<n,n, Scal, Int> B ;
                     Write( &B[0][0] );
@@ -423,10 +423,10 @@ namespace Tensors
 //                    Scal u [n-2][n]; // vectors of the Householder reflections.
 //                    Scal v [n];      // some scratch space
                     
-                    Vector_T u [n-2]; // vectors of the Householder reflections.
+                    Vector_T u [n - Int(2)]; // vectors of the Householder reflections.
                     Vector_T v      ; // some scratch space
                     
-                    for( Int k = 0; k < n-2; ++k )
+                    for( Int k = 0; k < n - Int(2); ++k )
                     {
                         // Compute k-th Householder reflection vector.
                         
@@ -578,23 +578,23 @@ namespace Tensors
                     }
                         
                     // Apply Householder transformations from the left (reverse order to safe some flops).
-                    for( Int k = n-2; k --> 0 ; )
+                    for( Int k = n-2; k --> Int(0) ; )
                     {
                         // Compute v = Conj(u[k]) * U;
-                        for( Int j = k+1; j < n; ++j )
+                        for( Int j = k + Int(1); j < n; ++j )
                         {
                             Scal ubarU_j = 0;
-                            for( Int i = k+1; i < n; ++i )
+                            for( Int i = k + Int(1); i < n; ++i )
                             {
                                 ubarU_j += Conj(u[k][i]) * U[i][j];
                             }
                             v[j] = ubarU_j;
                         }
                         
-                        for( Int i = k+1; i < n; ++i )
+                        for( Int i = k + Int(1); i < n; ++i )
                         {
                             const Scal a = two * u[k][i];
-                            for( Int j = k+1; j < n; ++j )
+                            for( Int j = k + Int(1); j < n; ++j )
                             {
                                 U[i][j] -= a * v[j];
                             }
@@ -621,7 +621,7 @@ namespace Tensors
                     T.Upper(0) = Abs(A[0][1]);
                 }
                 
-                if constexpr ( n > 2 )
+                if constexpr ( n > Int(2) )
                 {
                     Matrix<n,n, Scal, Int> B ;
                     Write( &B[0][0] );
@@ -629,10 +629,10 @@ namespace Tensors
 //                    Scal u [n-2][n]; // vectors of the Householder reflections.
 //                    Scal v [n];      // some scratch space
                     
-                    Vector_T u [n-2]; // vectors of the Householder reflections.
+                    Vector_T u [n - Int(2)]; // vectors of the Householder reflections.
                     Vector_T v      ; // some scratch space
                     
-                    for( Int k = 0; k < n-2; ++k )
+                    for( Int k = 0; k < n - Int(2); ++k )
                     {
                         // Compute k-th Householder reflection vector.
                         

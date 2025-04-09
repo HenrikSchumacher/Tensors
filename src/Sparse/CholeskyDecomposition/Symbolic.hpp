@@ -82,7 +82,7 @@ protected:
 
         
         // TODO: Fix this to work with unsinged integers.
-        Tensor1<Int,Int> prev_col_nz(n,-1);
+        Tensor1<Int,Int> prev_col_nz(n,Int(-1));
 
         // i-th row of U belongs to supernode row_to_SN[i].
         row_to_SN   = Tensor1< Int,Int> (n);
@@ -90,10 +90,10 @@ protected:
         // Holds the current number of supernodes.
         SN_count    = 0;
         // Pointers from supernodes to their starting rows.
-        SN_rp       = Tensor1< Int,Int> (n+2);
+        SN_rp       = Tensor1< Int,Int> (n+Int(2));
         
         // Pointers from supernodes to their starting position in SN_inner.
-        SN_outer    = Tensor1<LInt,Int> (n+2);
+        SN_outer    = Tensor1<LInt,Int> (n+Int(2));
         SN_outer[0] = 0;
         
         // To be filled with the column indices of super nodes.
@@ -109,7 +109,7 @@ protected:
         // TODO: Even better: Build aTree first (we need only to know the fundamental rows for that). Then collect SN_inner by traversing aTree in parellel.
         // TODO: --> Can we precompute somehow the size of SN_inner_agg? That would greatly help to reduce copy ops and to schedule its generation.
         
-        for( Int i = 1; i < n+1; ++i ) // Traverse rows.
+        for( Int i = 1; i < n + Int(1); ++i ) // Traverse rows.
         {
             if( FundamentalQ( i, prev_col_nz ) )
             {
@@ -176,15 +176,15 @@ protected:
                 }
 
                 // TODO: Do some meaningful check here.
-                bool amalgamateQ = (SN_count > 0) && (curr_n_0 + prev_n_0 <= amalgamation_threshold);
+                bool amalgamateQ = (SN_count > Int(0)) && (curr_n_0 + prev_n_0 <= amalgamation_threshold);
                 
                 if( amalgamateQ )
                 {
                     // We need to merge previous and current column indices.
                     
                     // Discard previous supernode's column indices that are < i.
-                          LInt a = SN_outer[SN_count-1];
-                    const LInt b = SN_outer[SN_count  ];
+                          LInt a = SN_outer[SN_count-Int(1)];
+                    const LInt b = SN_outer[SN_count       ];
 
                     while( (SN_inner_agg[a] < i) && (a < b) ) { ++a; }
                     
@@ -279,10 +279,10 @@ protected:
         // Holds the current number of supernodes.
         SN_count    = 0;
         // Pointers from supernodes to their starting rows.
-        SN_rp       = Tensor1< Int,Int> (n+2);
+        SN_rp       = Tensor1< Int,Int> (n + Int(2));
         
         // Pointers from supernodes to their starting position in SN_inner.
-        SN_outer    = Tensor1<LInt,Int> (n+2);
+        SN_outer    = Tensor1<LInt,Int> (n + Int(2));
         SN_outer[0] = 0;
         
         // To be filled with the column indices of super nodes.
@@ -347,8 +347,8 @@ protected:
                     
                     // Notice that because of j < i, we only have to consider the reactangular part of this supernode.
                     
-                          LInt a = SN_outer[k  ];
-                    const LInt b = SN_outer[k+1];
+                          LInt a = SN_outer[k       ];
+                    const LInt b = SN_outer[k+Int(1)];
                     
                     // Only consider column indices of j-th row of U that are greater than last row i-1 in current supernode.
                     while( (SN_inner_agg[a] < i) && (a < b) ) { ++a; }
@@ -364,7 +364,7 @@ protected:
                     }
                 }
 
-                if( SN_count > 0 )
+                if( SN_count > Int(0) )
                 {
                     // Check whether previous row has same pattern.
                     
@@ -372,12 +372,12 @@ protected:
 
                     // TODO: Use prev_n_0 for this.
                     // Discard previous supernode's column indices that are < i.
-                          LInt a = SN_outer[SN_count-1];
-                    const LInt b = SN_outer[SN_count  ];
+                          LInt a = SN_outer[SN_count - Int(1)];
+                    const LInt b = SN_outer[SN_count         ];
                     
                     while( (SN_inner_agg[a] < i) && (a < b) ) { ++a; }
 
-                    if( (curr_n_1 > 0) && (b - a  == static_cast<LInt>(curr_n_1)) )
+                    if( (curr_n_1 > Int(0)) && (b - a  == static_cast<LInt>(curr_n_1)) )
                     {
                         bool mergeQ = true;
                         
@@ -459,7 +459,7 @@ protected:
         Int prev_n_1 = 0; // Holds the number of column indices in previous supernode.
         
         // TODO: Fix this to work with unsinged integers.
-        Tensor1<Int,Int> prev_col_nz(n,-1);
+        Tensor1<Int,Int> prev_col_nz(n,Int(-1));
 
         // i-th row of U belongs to supernode row_to_SN[i].
         row_to_SN   = Tensor1< Int,Int> (n);
@@ -467,15 +467,15 @@ protected:
         // Holds the current number of supernodes.
         SN_count    = 0;
         // Pointers from supernodes to their starting rows.
-        SN_rp       = Tensor1< Int,Int> (n+2);
+        SN_rp       = Tensor1< Int,Int> (n + Int(2));
         
         // Pointers from supernodes to their starting position in SN_inner.
-        SN_outer    = Tensor1<LInt,Int> (n+2);
+        SN_outer    = Tensor1<LInt,Int> (n + Int(2));
         SN_outer[0] = 0;
         
         // To be filled with the column indices of super nodes.
         // Will later be moved to SN_inner.
-        Aggregator<Int,LInt> SN_inner_agg ( 2 * A.NonzeroCount(), thread_count );
+        Aggregator<Int,LInt> SN_inner_agg ( LInt(2) * A.NonzeroCount(), thread_count );
         
         // Start first supernode.
         SN_rp[0]     = 0;
@@ -634,7 +634,7 @@ protected:
         
         bool is_fundamental = ( i == n ); // We make virtual root vertex fundamental, so that the main loop finishes off the last nonvirtual supernode correctly.
         
-        is_fundamental = is_fundamental || ( eTree.ChildCount(i) > 1);
+        is_fundamental = is_fundamental || ( eTree.ChildCount(i) > Int(1));
         
         if( !is_fundamental )
         {

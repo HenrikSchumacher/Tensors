@@ -161,15 +161,15 @@ namespace Tensors
                 mptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
                 
                 // TODO: Can we somehow avoid zeroing out explicitly?
-                SN_updates[s] = Update_T( n_1, n_1, Scal(0) );
-                mptr<Scal> V = SN_updates[s].data();
+                SN_updates[static_cast<Size_T>(s)] = Update_T( n_1, n_1, Scal(0) );
+                mptr<Scal> V = SN_updates[static_cast<Size_T>(s)].data();
                 
-//                if( n_1 > 0 )
+//                if( n_1 > Int(0) )
 //                {
 //                    SN_updates[s] = (Scal*)calloc( n_1 * n_1, sizeof(Scal) );
 //                }
                 
-//                if( n_1 > 0 )
+//                if( n_1 > Int(0) )
 //                {
 //                    AlignedAllocator<Int>::Alloc( SN_updates[s], n_1 * n_1 );
 //                    zerofy_buffer( SN_updates[s], n_1 * n_1 );
@@ -215,7 +215,7 @@ namespace Tensors
                     FetchFromChild( t, n_0, n_1, i_end, U_0, U_1, V );
                     
                     // Deallocate child's update buffer.
-                    SN_updates[t] = Update_T();
+                    SN_updates[static_cast<Size_T>(t)] = Update_T();
                     
 //                    if( SN_updates[t]!= nullptr )
 //                    {
@@ -336,7 +336,7 @@ namespace Tensors
                 
                 
                 // Update matrix of child node.
-                cptr<Scal> W = SN_updates[t].data();
+                cptr<Scal> W = SN_updates[static_cast<Size_T>(t)].data();
 //                cptr<Scal> W = SN_updates[t];
                 
                 // We have to scatter-add W into the frontal matrix of s:
@@ -474,7 +474,7 @@ namespace Tensors
                 const Int n_0, const Int n_1, mptr<Scal> U_1, mptr<Scal> V
             )
             {
-                if( (n_0 > 0) && (n_1 > 0) )
+                if( (n_0 > Int(0)) && (n_1 > Int(0)) )
                 {
                     if( n_0 > ione )
                     {

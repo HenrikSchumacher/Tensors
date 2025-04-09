@@ -16,7 +16,7 @@ namespace Tensors
         
         void operator()( mptr<S> a, mptr<T> b, const I n, const bool reverse = false )
         {
-            if( n <= 1 )
+            if( n <= I(1) )
             {
                 return;
             }            
@@ -26,9 +26,9 @@ namespace Tensors
             
             // Recursion-free implementation from https://www.geeksforgeeks.org/iterative-quick-sort/
             // The handling of duplicates is taken from https://cs.stackexchange.com/a/104825
-            if( 2 * n + 2 > stack.Size() )
+            if( I(2) * n + I(2) > stack.Size() )
             {
-                stack = Tensor1<I,I>( 2 * n + 2 );
+                stack = Tensor1<I,I>( I(2) * n + I(2) );
             }
             
             stackptr = 0;
@@ -38,7 +38,7 @@ namespace Tensors
             
             if( reverse )
             {
-                while( stackptr > 1 )
+                while( stackptr > I(1) )
                 {
                     const I hi = stack[stackptr--];
                     const I lo = stack[stackptr--];
@@ -78,7 +78,7 @@ namespace Tensors
                         }
                     }
                     
-                    if( l > lo + 1 )
+                    if( l > lo + I(1) )
                     {
                         stack[++stackptr] = lo;
                         stack[++stackptr] = l-1;
@@ -93,7 +93,7 @@ namespace Tensors
             }
             else
             {
-                while( stackptr > 1 )
+                while( stackptr > I(1) )
                 {
                     const I hi = stack[stackptr--];
                     const I lo = stack[stackptr--];

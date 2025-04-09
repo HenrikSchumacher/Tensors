@@ -925,7 +925,7 @@ namespace Tensors
             template<class T>
             TOOLS_FORCE_INLINE void GivensLeft( const T c_, const T s_, const Int i, const Int j )
             {
-                if constexpr ( n >= 2 )
+                if constexpr ( n >= Int(2) )
                 {
                     const Scal c = scalar_cast<Scal>(c_);
                     const Scal s = scalar_cast<Scal>(s_);
@@ -956,7 +956,7 @@ namespace Tensors
             template<class T>
             TOOLS_FORCE_INLINE void GivensRight( const T c_, const T s_, const Int i, const Int j )
             {
-                if constexpr ( n >= 2 )
+                if constexpr ( n >= Int(2) )
                 {
                     const Scal c = scalar_cast<Scal>(c_);
                     const Scal s = scalar_cast<Scal>(s_);
@@ -1062,7 +1062,7 @@ namespace Tensors
                 
                 // Bareiss algorithm copied and adapted from https://cs.stackexchange.com/q/124759/146040
                 
-                if constexpr ( n > 3 )
+                if constexpr ( n > Int(3) )
                 {
                     Scal M [n][n];
                     
@@ -1070,7 +1070,7 @@ namespace Tensors
                     
                     Scal sign (one);
                     
-                    for(Int k = 0; k < n - 1; ++k )
+                    for(Int k = 0; k < n - Int(1); ++k )
                     {
                         //Pivot column swap.
                         
@@ -1238,7 +1238,7 @@ namespace Tensors
                 {
                     return n;
                 }
-                return static_cast<Int>(0);
+                return Int(0);
             }
             
             static constexpr Int Dimension( const Int i )

@@ -127,7 +127,7 @@ protected:
                         {
                             tree_top_levels.emplace_back();
                         }
-                        tree_top_levels[child_level].push_back(child);
+                        tree_top_levels[static_cast<Size_T>(child_level)].push_back(child);
                         
                     }
                         

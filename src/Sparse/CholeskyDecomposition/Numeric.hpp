@@ -40,7 +40,7 @@ public:
         // TODO: on which the block was allocated.
         // TODO: Both might be fused into a simple struct.
         
-        SN_updates = std::vector<Update_T> ( SN_count );
+        SN_updates = std::vector<Update_T> ( ToSize_T(SN_count) );
         
     //        SN_updates = std::vector<Update_T> ( SN_count, nullptr );
         
@@ -49,14 +49,16 @@ public:
         
         TOOLS_PTIC(tag + ": Initialize factorizers");
         
-        std::vector<std::unique_ptr<Factorizer_MF_T>> SN_list (thread_count);
+        Size_T use_threads = ToSize_T(thread_count);
+        
+        std::vector<std::unique_ptr<Factorizer_MF_T>> SN_list (use_threads);
         
         ParallelDo(
-            [&SN_list,this]( const Int thread )
+            [&SN_list,this]( const Size_T thread )
             {
                 SN_list[thread] = std::make_unique<Factorizer_MF_T>(*this);
             },
-            thread_count
+            use_threads
         );
         
         Factorizer_MF_T worker(*this);
@@ -64,7 +66,7 @@ public:
         TOOLS_PTOC(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
-        if( thread_count > 1 )
+        if( thread_count > Int(1) )
         {
             aTree.template Traverse_Postordered<Parallel>( SN_list );
         }
@@ -103,20 +105,22 @@ public:
         
         TOOLS_PTIC(tag + ": Initialize factorizers");
         
-        std::vector<std::unique_ptr<Factorizer_LL_T>> SN_list (thread_count);
+        Size_T use_threads = ToSize_T(thread_count);
+        
+        std::vector<std::unique_ptr<Factorizer_LL_T>> SN_list (use_threads);
         
         ParallelDo(
-            [&SN_list,this]( const Int thread )
+            [&SN_list,this]( const Size_T thread )
             {
                 SN_list[thread] = std::make_unique<Factorizer_LL_T>(*this);
             },
-            thread_count
+            use_threads
         );
         
         TOOLS_PTOC(tag + ": Initialize factorizers");
         
         // Parallel traversal in postorder
-        if( thread_count > 1 )
+        if( thread_count > Int(1) )
         {
             aTree.template Traverse_Postordered<Parallel>( SN_list );
         }

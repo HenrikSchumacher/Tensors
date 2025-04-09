@@ -320,7 +320,7 @@ namespace Tensors
                 
                 A_val = Tensor1<Scal,LInt>( A.NonzeroCount() );
                 
-//                if( thread_count > 1 )
+//                if( thread_count > Int(1) )
 //                {
                     perm = Permutation_T( n_, thread_count ); // use identity permutation
                         
@@ -465,7 +465,7 @@ namespace Tensors
                 
                 CheckDiagonal();
                 
-                row_mutexes = std::vector<std::mutex> ( n );
+                row_mutexes = std::vector<std::mutex> ( static_cast<Size_T>(n) );
                 
                 TOOLS_PTOC(ClassName()+"::Init");
             }

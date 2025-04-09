@@ -67,7 +67,7 @@ namespace Tensors {
         
         mptr<LInt> S = S_buffer.data();
         
-        S[0] = static_cast<LInt>(0);
+        S[0] = LInt(0);
 
         const Int step = line_count / thread_count;
         const Int corr = line_count % thread_count;
@@ -100,7 +100,7 @@ namespace Tensors {
                 }
                 else
                 {
-                    S[thread+1] = static_cast<LInt>(0);
+                    S[thread+1] = LInt(0);
                 }
             },
             thread_count
@@ -108,7 +108,7 @@ namespace Tensors {
 
         // scan through the last results of each chunk
         {
-            LInt s_local = static_cast<LInt>(0);
+            LInt s_local = LInt(0);
             for( Int i = 0; i < thread_count; ++i )
             {
                 s_local += S[i+1];
@@ -162,7 +162,7 @@ namespace Tensors {
         
         TOOLS_PTIC( tag );
         
-        Tensor2<LInt,Int> counters ( list_count, m, static_cast<LInt>(0) );
+        Tensor2<LInt,Int> counters ( list_count, m, LInt(0) );
 
         // https://en.wikipedia.org/wiki/Counting_sort
         // using parallel count sort to sort the cluster (i,j)-pairs according to i.
@@ -187,7 +187,7 @@ namespace Tensors {
                         const Int j = thread_jdx[k];
                         
                         c[i] ++;
-                        c[j] += static_cast<Int>(i != j);
+                        c[j] += KroneckerDelta<Int>(i,j);   
                     }
                 }
                 else

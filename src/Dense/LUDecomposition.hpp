@@ -36,7 +36,7 @@ namespace Tensors
                const Int nrhs
            )
             {
-                const Int max_rhs = 4 * ( (nrhs + static_cast<Int>(3))/ static_cast<Int>(4) );
+                const Int max_rhs = 4 * ( (nrhs + Int(3))/ Int(4) );
                 
                 switch ( max_rhs )
                 {
@@ -304,10 +304,10 @@ namespace Tensors
                 
                 // Step 3: Inplace solve U X = Y.
                 TOOLS_LOOP_UNROLL_FULL
-                for( Int i = n; i --> 0; )
+                for( Int i = n; i --> Int(0); )
                 {
                     TOOLS_LOOP_UNROLL_FULL
-                    for( Int j = i+1; j < n; ++j )
+                    for( Int j = i + Int(1); j < n; ++j )
                     {
                         TOOLS_LOOP_UNROLL_FULL
                         for( Int k = 0; k < max_rhs; ++k )
@@ -368,9 +368,9 @@ namespace Tensors
                 
                 // Step 3: Inplace solve U X = Y.
                 TOOLS_LOOP_UNROLL_FULL
-                for( Int i = n; i --> 0; )
+                for( Int i = n; i --> Int(0); )
                 {
-                    for( Int j = i+1; j < n; ++j )
+                    for( Int j = i + Int(1); j < n; ++j )
                     {
                         for( Int k = 0; k < nrhs; ++k )
                         {

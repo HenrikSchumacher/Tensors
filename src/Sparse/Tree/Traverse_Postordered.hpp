@@ -45,15 +45,15 @@ public:
         // Process the subtrees, but not their roots!
         // (That is to be done by these roots' parents!)
         {
-            const Int k_begin = 0;
-            const Int k_end   = static_cast<Int>(subtrees.size());
+            const Size_T k_begin = 0;
+            const Size_T k_end   = subtrees.size();
             
-            const Int use_threads = (parQ == Parallel) ? Min( thread_count, k_end - k_begin ) : 1;
+            const Size_T use_threads = (parQ == Parallel) ? Min( ToSize_T(thread_count), k_end - k_begin ) : Size_T(1);
             
 //            TOOLS_PTIC(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
             
             ParallelDo_Dynamic(
-                [=,this,&workers]( const Int thread, const Int k )
+                [=,this,&workers]( const Size_T thread, const Size_T k )
                 {
 //                    const Time start_time = Clock::now();
 
@@ -71,24 +71,24 @@ public:
 //                            " s for the " + ToString(DescendantCount(node)) + " descendants of node " + ToString(node) + "."
 //                    );
                 },
-                k_begin, k_end, Scalar::One<Int>, use_threads
+                k_begin, k_end, Size_T(1), use_threads
             );
             
 //            TOOLS_PTOC(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
         }
         
 
-        for( Int d = static_cast<Int>(tree_top_levels.size()); d --> Scalar::One<Int> ; )
+        for( Size_T d = tree_top_levels.size(); d --> Size_T(1) ; )
         {
-            const Int k_begin = 0;
-            const Int k_end   = static_cast<Int>(tree_top_levels[d].size());
+            const Size_T k_begin = 0;
+            const Size_T k_end   = tree_top_levels[d].size();
 
-            const Int use_threads = parQ == Parallel ? Min( thread_count, k_end - k_begin ) : one;
+            const Size_T use_threads = parQ == Parallel ? Min( ToSize_T(thread_count), k_end - k_begin ) : Size_T(1);
 
 //            TOOLS_PTIC(tag_1 + " = " + ToString(d) + "; using " + ToString(use_threads) + " threads.");
             
             ParallelDo_Dynamic(
-                [=,this,&workers]( const Int thread, const Int k )
+                [=,this,&workers]( const Size_T thread, const Size_T k )
                 {
 //                    const Time start_time = Clock::now();
 
@@ -106,7 +106,7 @@ public:
 //                            " s for completing node " + ToString(node) + "."
 //                    );
                 },
-                k_begin, k_end, Scalar::One<Int>, use_threads
+                k_begin, k_end, Size_T(1), use_threads
             );
 
 //            TOOLS_PTOC(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");

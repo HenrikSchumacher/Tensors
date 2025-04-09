@@ -132,7 +132,7 @@ namespace Tensors
             
             void BoundCheck( const Int i ) const
             {
-                if( (i < 0) || (i > n) )
+                if( (i < Int(0)) || (i > n) )
                 {
                     eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(n) +" [.");
                 }

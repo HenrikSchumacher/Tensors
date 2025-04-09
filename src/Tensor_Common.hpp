@@ -507,7 +507,7 @@ public:
         
         file << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
         
-        if( n > 0 )
+        if( n > Int(0) )
         {
             file << a[0];
         }
@@ -518,15 +518,38 @@ public:
         file.close();
     }
 
-    void ReadFromFile( const std::filesystem::path & s ) const
+    template<bool verboseQ = true>
+    int ReadFromFile( const std::filesystem::path & s ) const
     {
-        std::ifstream file ( s );
+        std::ifstream stream ( s );
         
         for( Int i = 0; i < n; ++i )
         {
-            file >> a[i];
+            if( !stream )
+            {
+                if constexpr (verboseQ)
+                {
+                    eprint(ClassName() + "::ReadFromFile: End of file reached before buffer is filled.");
+                }
+                return 1;
+            }
+            stream >> a[i];
         }
-        file.close();
+        
+        std::string token;
+        
+        stream >> token;
+        
+        if( stream )
+        {
+            if constexpr (verboseQ)
+            {
+                wprint(ClassName() + "::ReadFromFile: End of file not reached after buffer is filled.");
+            }
+            return 2;
+        }
+        
+        return 0;
     }
 
     inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )

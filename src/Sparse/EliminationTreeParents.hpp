@@ -107,7 +107,7 @@ namespace Tensors
                 
                 if constexpr ( checkQ )
                 {
-                    if( p_k < 0 )
+                    if( p_k < Int(0) )
                     {
                         eprint( tag + ": perm[" + ToString(k) + "] < 0.");
                         TOOLS_PTOC(tag);
@@ -139,7 +139,7 @@ namespace Tensors
                     
                     if constexpr ( checkQ )
                     {
-                        if( q_j < 0 )
+                        if( q_j < Int(0) )
                         {
                             eprint( tag + ": perm_inv[" + ToString(j) + "] < 0.");
                             TOOLS_PTOC("Sparse::PermutedEliminationTreeParents");
