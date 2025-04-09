@@ -187,7 +187,7 @@ namespace Tensors {
                         const Int j = thread_jdx[k];
                         
                         c[i] ++;
-                        c[j] += KroneckerDelta<Int>(i,j);   
+                        c[j] += static_cast<Int>(i != j);
                     }
                 }
                 else

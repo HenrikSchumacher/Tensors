@@ -284,10 +284,11 @@ namespace Tensors
                 
                 for( Int thread = 0; thread < list_count; ++thread )
                 {
-                    i[thread] = triples[thread].Get_0().data();
-                    j[thread] = triples[thread].Get_1().data();
-                    a[thread] = triples[thread].Get_2().data();
-                    entry_counts[thread] = int_cast<LInt>(triples[thread].Size());
+                    const Size_T t = static_cast<Size_T>(thread);
+                    i[thread] = triples[t].Get_0().data();
+                    j[thread] = triples[t].Get_1().data();
+                    a[thread] = triples[t].Get_2().data();
+                    entry_counts[thread] = int_cast<LInt>(triples[t].Size());
                 }
                 
                 FromTriples(

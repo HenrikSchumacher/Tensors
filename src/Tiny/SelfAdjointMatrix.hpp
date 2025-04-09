@@ -23,7 +23,9 @@ namespace Tensors
             
         protected:
             
-            std::array<std::array<Scal,n>,n> A;
+//            std::array<std::array<Scal,n>,n> A;
+            
+            alignas(DefaultAlignment) Scal A[n][n];
             
             // TODO: Needs swap routine.
 //            Scal A [n][n];

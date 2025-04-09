@@ -83,7 +83,7 @@ namespace Tensors {
             ParallelDo(
                 [=,this]( const Int thread )
                 {
-                    tensors[ToSize_T(thread)].Read( other[ToSize_T(thread)].data() );
+                    tensors[ToSize_T(thread)].Read( other[thread].data() );
                 },
                 thread_count
             );

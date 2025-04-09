@@ -325,10 +325,11 @@ namespace Tensors
                 
                 for( Int thread = 0; thread < list_count; ++thread )
                 {
-                    i[thread] = pairs[thread].Get_0().data();
-                    j[thread] = pairs[thread].Get_1().data();
+                    const Size_T t = static_cast<Size_T>(thread);
+                    i[thread] = pairs[t].Get_0().data();
+                    j[thread] = pairs[t].Get_1().data();
                     
-                    entry_counts[thread] = static_cast<LInt>(pairs[thread].Size());
+                    entry_counts[thread] = static_cast<LInt>(pairs[t].Size());
                 }
                 
                 FromPairs(
@@ -416,9 +417,9 @@ namespace Tensors
                                         A_inner[pos] = j;
                                     }
                                     
-                                    c[j] -= KroneckerDelta<LInt>(i,j);
+                                    c[j] -= static_cast<LInt>(i != j);
                                     
-                                    const LInt pos  = c[j];
+                                    const LInt pos = c[j];
                                     
                                     A_inner[pos] = i;
                                 }
