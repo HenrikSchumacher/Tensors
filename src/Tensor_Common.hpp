@@ -498,58 +498,23 @@ public:
         return ArrayToString( A.a, A.dims.data(), Rank(), line_prefix );
     }
 
-
-    void WriteToFile( const std::filesystem::path & s ) const
+//
+    void Write( std::ostream & s ) const
     {
-        std::ofstream file ( s );
+//        // TODO: Not ideal.
+//        
+//        s << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
+//        
+//        if( n > Int(0) )
+//        {
+//            s << a[0];
+//        }
+//        for( Int i = 1; i < n; ++i )
+//        {
+//            s << "\t" << a[i];
+//        }
         
-        // TODO: Not ideal.
-        
-        file << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
-        
-        if( n > Int(0) )
-        {
-            file << a[0];
-        }
-        for( Int i = 1; i < n; ++i )
-        {
-            file <<"\t" << a[i];
-        }
-        file.close();
-    }
-
-    template<bool verboseQ = true>
-    int ReadFromFile( const std::filesystem::path & s ) const
-    {
-        std::ifstream stream ( s );
-        
-        for( Int i = 0; i < n; ++i )
-        {
-            if( !stream )
-            {
-                if constexpr (verboseQ)
-                {
-                    eprint(ClassName() + "::ReadFromFile: End of file reached before buffer is filled.");
-                }
-                return 1;
-            }
-            stream >> a[i];
-        }
-        
-        std::string token;
-        
-        stream >> token;
-        
-        if( stream )
-        {
-            if constexpr (verboseQ)
-            {
-                wprint(ClassName() + "::ReadFromFile: End of file not reached after buffer is filled.");
-            }
-            return 2;
-        }
-        
-        return 0;
+        s << ArrayToString( a, dims.data(), Rank(), "" );
     }
 
     inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
@@ -557,6 +522,137 @@ public:
         s << ToString(tensor);
         return s;
     }
+
+    void WriteToFile( const std::filesystem::path & filename ) const
+    {
+        std::ofstream s ( filename );
+        
+        s << *this;
+    }
+
+    template<bool verboseQ = true>
+    Int Read( std::istream & s )
+    {
+        Scal number;
+
+        for( Int i = 0; i < n; ++i )
+        {
+            if( s >> number )
+            {
+                a[i] = number;
+            }
+            else
+            {
+                if constexpr (verboseQ)
+                {
+                    eprint(ClassName() + "::Read: End of file reached before buffer is filled. Stopped after reading " + ToString(i) + " < " + ToString(n) + " entries.");
+                }
+                return 1 + i;
+            }
+        }
+        
+        if( s >> number )
+        {
+            if constexpr (verboseQ)
+            {
+                wprint(ClassName() + "::Read: End of file not reached after buffer is filled.");
+            }
+            return -2;
+        }
+        
+        return 0;
+    }
+
+    template<bool verboseQ = true>
+    Int ReadFromFile( const std::filesystem::path & filename )
+    {
+        std::ifstream s ( filename );
+        
+        if( s.fail() )
+        {
+            eprint(ClassName() + "::ReadFromFile failed to load file " + filename.string() + "." );
+            
+            return -3;
+        }
+        
+        if( s.bad() )
+        {
+            eprint(ClassName() + "::ReadFromFile: non-recoverable error while loading file " + filename.string() + "." );
+            
+            return -4;
+        }
+        
+        return Read<verboseQ>(s);
+    }
+
+
+    int WriteToBinaryFile( const std::filesystem::path & filename ) const
+    {
+        std::ofstream s ( filename );
+        
+        if( s.fail() )
+        {
+            eprint(ClassName()+"::WriteToBinaryFile: Failed to open file " + filename.string() + ".");
+            
+            return 1;
+        }
+        
+        if( !s.write( reinterpret_cast<char*>( a ), ToSize_T(n) * sizeof(Scal) ) )
+        {
+            TOOLS_DUMP(s.good());
+            TOOLS_DUMP(s.fail());
+            TOOLS_DUMP(s.eof());
+            TOOLS_DUMP(s.bad());
+            
+            eprint(ClassName()+"::WriteToBinaryFile: Failed to write to file " + filename.string() + ".");
+            
+            return 2;
+        }
+        
+        return 0;
+    }
+
+    int ReadFromBinaryFile( const std::filesystem::path & filename )
+    {
+        std::ifstream s ( filename );
+        
+        if( s.fail() || s.bad() )
+        {
+            eprint(ClassName()+"::ReadFromBinaryFile: Failed to open file " + filename.string() + ".");
+            
+            return 1;
+        }
+        
+        if( s.eof() )
+        {
+            eprint(ClassName()+"::ReadFromBinaryFile: File " + filename.string() + " is empty.");
+            
+            return 2;
+        }
+        
+        s.read( reinterpret_cast<char*>(a), ToSize_T(n) * sizeof(Scal) );
+        
+        if( s.fail() || s.bad() )
+        {
+            eprint(ClassName()+"::ReadFromBinaryFile: Failed to read from file " + filename.string() + ".");
+            
+            return 3;
+        }
+        
+        char c;
+        s >> c;
+        
+        if( !s.eof() )
+        {
+            eprint(ClassName()+"::ReadFromBinaryFile: Stopped reading from file " + filename.string() + " before end of file.");
+            
+            return 4;
+        }
+        
+        return 0;
+    }
+
+
 
     Size_T AllocatedByteCount() const
     {
@@ -566,4 +662,10 @@ public:
     Size_T ByteCount() const
     {
         return sizeof(TENSOR_T) + AllocatedByteCount();
+    }
+
+
+    friend bool operator==( cref<TENSOR_T> A, cref<TENSOR_T> B )
+    {
+        return (A.Size() == B.Size()) && buffers_equalQ(A.data(), B.data(), A.Size());
     }
