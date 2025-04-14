@@ -280,12 +280,12 @@ namespace Tensors
         
         
 #include "Tree/Init.hpp"
-#include "Tree/Traverse_Postordered_Sequential.hpp"
+#include "Tree/Traverse_PostOrdered_Sequential.hpp"
 #include "Tree/Debugging.hpp"
         
-#include "Tree/Traverse_Preordered.hpp"
-#include "Tree/Traverse_Postordered.hpp"
-//#include "Tree/Traverse_Postordered_OpenMP.hpp"
+#include "Tree/Traverse_PreOrdered.hpp"
+#include "Tree/Traverse_PostOrdered.hpp"
+//#include "Tree/Traverse_PostOrdered_OpenMP.hpp"
         
     public:
     

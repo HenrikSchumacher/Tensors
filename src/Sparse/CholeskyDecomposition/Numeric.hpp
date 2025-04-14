@@ -68,11 +68,11 @@ public:
         // Parallel traversal in postorder
         if( thread_count > Int(1) )
         {
-            aTree.template Traverse_Postordered<Parallel>( SN_list );
+            aTree.template Traverse_PostOrdered<Parallel>( SN_list );
         }
         else
         {
-            aTree.template Traverse_Postordered<Sequential>( SN_list );
+            aTree.template Traverse_PostOrdered<Sequential>( SN_list );
         }
         
         SN_factorized = true;
@@ -122,11 +122,11 @@ public:
         // Parallel traversal in postorder
         if( thread_count > Int(1) )
         {
-            aTree.template Traverse_Postordered<Parallel>( SN_list );
+            aTree.template Traverse_PostOrdered<Parallel>( SN_list );
         }
         else
         {
-            aTree.template Traverse_Postordered<Sequential>( SN_list );
+            aTree.template Traverse_PostOrdered<Sequential>( SN_list );
         }
         
         SN_factorized = true;

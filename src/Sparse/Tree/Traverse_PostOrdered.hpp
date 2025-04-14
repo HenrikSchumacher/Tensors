@@ -1,9 +1,9 @@
 public:
 
     template<class Worker_T>
-    void Traverse_Descendants_Postordered( mref<Worker_T> worker, const Int node ) const
+    void Traverse_Descendants_PostOrdered( mref<Worker_T> worker, const Int node ) const
     {
-        TOOLS_DEBUG_PRINT(ClassName() + "::Traverse_Descendants_Postordered ( node = " + ToString(node) + " ) begins.");
+        TOOLS_DEBUG_PRINT(ClassName() + "::Traverse_Descendants_PostOrdered ( node = " + ToString(node) + " ) begins.");
 
         // Applies ker to the descendants of the node _and the node itself_ in postorder.
 
@@ -22,13 +22,13 @@ public:
             worker(desc);
         }
         
-        TOOLS_DEBUG_PRINT(ClassName() + "::Traverse_Descendants_Postordered ( node = " + ToString(node) + " ) ends.");
+        TOOLS_DEBUG_PRINT(ClassName() + "::Traverse_Descendants_PostOrdered ( node = " + ToString(node) + " ) ends.");
     }
 
     template<Parallel_T parQ = Parallel, class Worker_T>
-    void Traverse_Postordered( mref<std::vector<std::unique_ptr<Worker_T>>> workers ) const
+    void Traverse_PostOrdered( mref<std::vector<std::unique_ptr<Worker_T>>> workers ) const
     {
-        std::string tag = ClassName() + "::Traverse_Postordered<" + (parQ == Parallel ? "Parallel" : "Sequential") + ">";
+        std::string tag = ClassName() + "::Traverse_PostOrdered<" + (parQ == Parallel ? "Parallel" : "Sequential") + ">";
         
         if( !PostOrderedQ() )
         {
@@ -61,7 +61,7 @@ public:
 
                     const Int node = subtrees[k];
 
-                    Traverse_Descendants_Postordered( worker, node );
+                    Traverse_Descendants_PostOrdered( worker, node );
 
 //                    const Time stop_time = Clock::now();
 //                    

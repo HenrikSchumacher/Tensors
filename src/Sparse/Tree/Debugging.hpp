@@ -83,9 +83,9 @@ public:
 
 
 
-    bool Traverse_Postordered_Test() const
+    bool Traverse_PostOrdered_Test() const
     {
-        TOOLS_PTIC(ClassName()+"::Traverse_Postordered_Test");
+        TOOLS_PTIC(ClassName()+"::Traverse_PostOrdered_Test");
         AllocateCheckList();
 
         std::vector<std::unique_ptr<DebugWorker>> workers ( static_cast<Size_T>(thread_count) );
@@ -98,30 +98,30 @@ public:
             static_cast<Size_T>(thread_count)
         );
         
-        Traverse_Postordered( workers );
+        Traverse_PostOrdered( workers );
         
         bool succeededQ = PrintCheckList();
         
         if( succeededQ )
         {
-            print(ClassName()+"::Traverse_Postordered_Test succeeded.");
-            logprint(ClassName()+"::Traverse_Postordered_Test succeeded.");
+            print(ClassName()+"::Traverse_PostOrdered_Test succeeded.");
+            logprint(ClassName()+"::Traverse_PostOrdered_Test succeeded.");
         }
         else
         {
-            eprint(ClassName()+"::Traverse_Postordered_Test failed.");
+            eprint(ClassName()+"::Traverse_PostOrdered_Test failed.");
         }
         
-        TOOLS_PTOC(ClassName()+"::Traverse_Postordered_Test");
+        TOOLS_PTOC(ClassName()+"::Traverse_PostOrdered_Test");
         
         return succeededQ;
     }
 
 
 
-    bool Traverse_Preordered_Test() const
+    bool Traverse_PreOrdered_Test() const
     {
-        TOOLS_PTIC(ClassName()+"::Traverse_Preordered_Test");
+        TOOLS_PTIC(ClassName()+"::Traverse_PreOrdered_Test");
         AllocateCheckList();
 
         std::vector<std::unique_ptr<DebugWorker>> workers ( static_cast<Size_T>(thread_count) );
@@ -134,21 +134,21 @@ public:
             static_cast<Size_T>(thread_count)
         );
         
-        Traverse_Preordered( workers );
+        Traverse_PreOrdered( workers );
         
         bool succeededQ = PrintCheckList();
         
         if( succeededQ )
         {
-            print(ClassName()+"::Traverse_Preordered_Test succeeded.");
-            logprint(ClassName()+"::Traverse_Preordered_Test succeeded.");
+            print(ClassName()+"::Traverse_PreOrdered_Test succeeded.");
+            logprint(ClassName()+"::Traverse_PreOrdered_Test succeeded.");
         }
         else
         {
-            eprint(ClassName()+"::Traverse_Preordered_Test failed.");
+            eprint(ClassName()+"::Traverse_PreOrdered_Test failed.");
         }
         
-        TOOLS_PTOC(ClassName()+"::Traverse_Preordered_Test");
+        TOOLS_PTOC(ClassName()+"::Traverse_PreOrdered_Test");
         
         return succeededQ;
     }

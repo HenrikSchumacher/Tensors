@@ -1,9 +1,9 @@
 public:
 
     template<class Worker_T>
-    void Traverse_Postordered_OpenMP( mref<std::vector<std::unique_ptr<Worker_T>>> workers )
+    void Traverse_PostOrdered_OpenMP( mref<std::vector<std::unique_ptr<Worker_T>>> workers )
     {
-        TOOLS_PTIC(ClassName() + "::Traverse_Postordered_OpenMP");
+        TOOLS_PTIC(ClassName() + "::Traverse_PostOrdered_OpenMP");
         
         Int root = Root();
         
@@ -15,7 +15,7 @@ public:
                 {
                     #pragma omp task private(n) untied
                     {
-                        Traverse_Children_Postordered_OpenMP( &workers[0], ChildIndex(child) );
+                        Traverse_Children_PostOrdered_OpenMP( &workers[0], ChildIndex(child) );
                     }
                 }
             }
@@ -23,17 +23,17 @@ public:
         
         #pragma omp taskwait
 
-        TOOLS_PTOC(ClassName() + "::Traverse_Postordered_OpenMP");
+        TOOLS_PTOC(ClassName() + "::Traverse_PostOrdered_OpenMP");
     }
 
     template<class Worker_T>
-    void Traverse_Children_Postordered_OpenMP( std::unique_ptr<Worker_T> * workers, const Int node )
+    void Traverse_Children_PostOrdered_OpenMP( std::unique_ptr<Worker_T> * workers, const Int node )
     {
         for( Int child = ChildPointer(node); child < ChildPointer(node+1); ++child )
         {
             #pragma omp task private(n) untied
             {
-                Traverse_Children_Postordered_OpenMP( &workers[0], ChildIndex(child) );
+                Traverse_Children_PostOrdered_OpenMP( &workers[0], ChildIndex(child) );
             }
         }
         

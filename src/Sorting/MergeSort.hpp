@@ -19,7 +19,7 @@ namespace Tensors
         Size_T     chunk_count;
         
         Size_T node_count = 0;
-        Size_T interior_node_count = 0;
+        Size_T internal_node_count = 0;
         
         // Leaves are precisely the last edge count nodes.
         Size_T last_row_begin = 0;
@@ -212,7 +212,7 @@ namespace Tensors
         template<typename T, typename C = std::less<T>>
         void merge_DFS( Size_T N, mptr<T> a_0, mptr<T> a_1, C comp = C() )
         {
-            if( N < interior_node_count )
+            if( N < internal_node_count )
             {
                 const Size_T L = LeftChild(N);
                 const Size_T R = L+1;
@@ -235,11 +235,11 @@ namespace Tensors
             TOOLS_PTIC(ClassName()+"::PrepareBinaryTree");
             
             node_count          = ( 2 * chunk_count - 1 );
-            interior_node_count = node_count - chunk_count;
+            internal_node_count = node_count - chunk_count;
             
             // Leaves are precisely the last edge_count nodes.
             last_row_begin      = (Size_T(1) << Depth(node_count-1)) - 1;
-            offset              = node_count - interior_node_count - last_row_begin;
+            offset              = node_count - internal_node_count - last_row_begin;
             
             node_begin.template RequireSize<false>( node_count );
             node_end  .template RequireSize<false>( node_count );
@@ -255,14 +255,14 @@ namespace Tensors
             
             
             // Compute range of leave nodes in penultimate row.
-            for( Size_T N = interior_node_count; N < last_row_begin; ++N )
+            for( Size_T N = internal_node_count; N < last_row_begin; ++N )
             {
                 node_begin[N] =       chunk_size * (N + offset    );
                 node_end  [N] = Min(n,chunk_size * (N + offset + 1));
             }
             
-            // Compute range of interior nodes.
-            for( Size_T N = interior_node_count; N --> Size_T(0); )
+            // Compute range of internal nodes.
+            for( Size_T N = internal_node_count; N --> Size_T(0); )
             {
                 const Size_T L = LeftChild (N);
                 const Size_T R = L + Size_T(1);

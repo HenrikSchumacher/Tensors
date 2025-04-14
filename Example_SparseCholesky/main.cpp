@@ -133,7 +133,7 @@ int main()
 
     print("");
 
-    S.AssemblyTree().Traverse_Postordered_Test();
+    S.AssemblyTree().Traverse_PostOrdered_Test();
 
     print("");
 

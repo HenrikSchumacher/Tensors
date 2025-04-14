@@ -1,15 +1,15 @@
 public:
 
-    // Sequential postorder traversal. Meant to be used only for initialization and for reference purposes.
-        template<class Lambda_PreVisit, class Lambda_PostVisit, class Lambda_LeafVisit>
-        void Traverse_Postordered_Sequential(
-            Lambda_PreVisit  pre_visit,
-            Lambda_PostVisit post_visit,
-            Lambda_LeafVisit leaf_visit,
+        // Sequential postorder traversal. Meant to be used only for initialization and for reference purposes.
+        template<class PreVisit_, class PostVisit_, class LeafVisit_T>
+        void Traverse_PostOrdered_Sequential(
+            PreVisit_T  && pre_visit,
+            PostVisit_T && post_visit,
+            LeafVisit_T && leaf_visit,
             const Int tree_top_depth = std::numeric_limits<Int>::max()
         )
         {
-            TOOLS_PTIC(ClassName()+"::Traverse_Postordered_Sequential");
+            TOOLS_PTIC(ClassName()+"::Traverse_PostOrdered_Sequential");
             
             Tensor1<Int, Int> stack   ( n );
             Tensor1<Int, Int> depth   ( n );
@@ -30,8 +30,9 @@ public:
                 
                 if( !visited[i] && (d < tree_top_depth) && (k_begin < k_end) )
                 {
+                    // TODO: Add a check for whether pre_visit returns true.
                     // We visit this node for the first time.
-                    pre_visit(node);
+                    (void)pre_visit(node);
                     
                     visited[i] = true;
                     
@@ -68,5 +69,5 @@ public:
                 }
             }
             
-            TOOLS_PTOC(ClassName()+"::Traverse_Postordered_Sequential");
+            TOOLS_PTOC(ClassName()+"::Traverse_PostOrdered_Sequential");
         }

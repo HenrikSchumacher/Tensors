@@ -56,7 +56,7 @@ protected:
         
         const Int root = Root();
         
-        Traverse_Postordered_Sequential(
+        Traverse_PostOrdered_Sequential(
             [this]( const Int node )
             {
                 const Int k_begin = ChildPointer( node     );
@@ -81,6 +81,8 @@ protected:
                     node_to_level       [child] = next_level;
                     node_to_split_level [child] = next_split_level;
                 }
+                
+                return true;
             }
             ,
             [=,this,&counter]( const Int node )

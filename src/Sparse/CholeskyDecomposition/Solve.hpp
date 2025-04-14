@@ -368,7 +368,7 @@ protected:
         );
         
         // Parallel traversal in preorder
-        aTree.template Traverse_Preordered<parQ>( F_list );
+        aTree.template Traverse_PreOrdered<parQ>( F_list );
         
         TOOLS_PTOC(tag);
     }
@@ -407,7 +407,7 @@ protected:
         );
         
         // Parallel traversal in postorder
-        aTree.template Traverse_Postordered<parQ>( F_list );
+        aTree.template Traverse_PostOrdered<parQ>( F_list );
         
         TOOLS_PTOC(tag);
     }
