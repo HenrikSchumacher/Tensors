@@ -1,7 +1,7 @@
 public:
 
         // Sequential postorder traversal. Meant to be used only for initialization and for reference purposes.
-        template<class PreVisit_, class PostVisit_, class LeafVisit_T>
+        template<class PreVisit_T, class PostVisit_T, class LeafVisit_T>
         void Traverse_PostOrdered_Sequential(
             PreVisit_T  && pre_visit,
             PostVisit_T && post_visit,
