@@ -115,12 +115,12 @@ void test_combine_buffers(
     z_true = y;
     auto start_time_1 = Clock::now();
     combine_buffers_true( alpha, x.data(), beta, z_true.data(), n );
-    float time_1 = Tools::Duration( start_time_1, Clock::now() );
+    auto time_1 = Tools::Duration( start_time_1, Clock::now() );
     
     z = y;
     auto start_time_2 = Clock::now();
     combine_buffers<alpha_flag,beta_flag>( alpha, x.data(), beta, z.data(), n );
-    float time_2 = Tools::Duration( start_time_2, Clock::now() );
+    auto time_2 = Tools::Duration( start_time_2, Clock::now() );
     
     
 
@@ -133,12 +133,12 @@ void test_combine_buffers(
         error = Max(error, std::abs(z[i] - z_true[i]));
     }
     
-    if( max > Real(0) )
+    if( max > 0 )
     {
         error /= max;
     }
     
-    const float speedup = time_1/time_2;
+    const auto speedup = time_1/time_2;
     valprint("         Time  1", time_1 );
     valprint("         Time  2", time_2 );
     valprint("         Speedup", speedup );

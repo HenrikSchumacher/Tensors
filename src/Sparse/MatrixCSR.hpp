@@ -368,6 +368,11 @@ namespace Tensors
                     idx, jdx, entry_counts, list_count, m, symmetrize
                 );
                 
+                if( list_count <= 0 )
+                {
+                    eprint(ClassName()+"::FromTriples: list_count <= 0");
+                }
+                
                 const LInt nnz = counters[list_count-1][m-1];
                 
                 if( nnz > LInt(0) )

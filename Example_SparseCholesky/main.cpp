@@ -19,8 +19,8 @@
 #include "Tensors.hpp"
 #include "Sparse.hpp"
 
-//#include "../src/Sparse/Metis.hpp"
 #include "../src/Sparse/ApproximateMinimumDegree.hpp"
+#include "../src/Sparse/Metis.hpp"
 
 #include "../src/CHOLMOD/CholeskyDecomposition.hpp"
 
@@ -35,11 +35,9 @@ using Int    = int32_t;
 
 int main()
 {
-    constexpr Int thread_count = 1;
-
-    std::filesystem::path home_dir = HomeDirectory();
+    constexpr Int thread_count = 8;
     
-    Profiler::Clear( home_dir );
+    Profiler::Clear();
     
     print("");
     print("###############################################################");
@@ -48,26 +46,88 @@ int main()
     print("");
     
     
-    std::string name = "Spot_4";
-//    std::string name = "Spot_0";
+    Int grid_size = 1024 * 2 * 2;
+    Real mass = 1;
     
+    // Assembling graph Laplacian + mass matrix on grid of size grid_size x grid_size.
+    TripleAggregator<Int,Int,Real,LInt> triples;
+
+    for( Int i = 0; i < grid_size - 1; ++i )
+    {
+        for( Int j = 0; j < grid_size - 1; ++j )
+        {
+            Int V = grid_size * i + j;
+            Int L = V + grid_size;
+            Int R = V + 1;
+            
+            triples.Push( V, V,  1 );
+            triples.Push( V, R, -1 );
+            triples.Push( R, V, -1 );
+            triples.Push( R, R,  1 );
+            
+            triples.Push( V, V,  1 );
+            triples.Push( V, L, -1 );
+            triples.Push( L, V, -1 );
+            triples.Push( L, L,  1 );
+        }
+    }
+    
+    for( Int i = 0; i < grid_size - 1; ++i )
+    {
+        Int j = grid_size-1;
+        Int V = grid_size * i + j;
+        Int L = V + grid_size;
+        
+        triples.Push( V, V,  1 );
+        triples.Push( V, L, -1 );
+        triples.Push( L, V, -1 );
+        triples.Push( L, L,  1 );
+    }
+    
+    for( Int j = 0; j < grid_size - 1; ++j )
+    {
+        Int i = grid_size - 1;
+        Int V = grid_size * i + j;
+        Int R = V + 1;
+        
+        triples.Push( V, V,  1 );
+        triples.Push( V, R, -1 );
+        triples.Push( R, V, -1 );
+        triples.Push( R, R,  1 );
+    }
+    
+    for( Int i = 0; i < grid_size; ++i )
+    {
+        for( Int j = 0; j < grid_size; ++j )
+        {
+            Int V = grid_size * i + j;
+            triples.Push( V, V, mass );
+        }
+    }
+    
+    tic("Assemble matrix");
+    Sparse::MatrixCSR<Scal,Int,LInt> A (
+        triples,
+        grid_size * grid_size, grid_size * grid_size,
+        thread_count, true, false
+    );
+    toc("Assemble matrix");
+    
+    TOOLS_DUMP( A.RowCount() );
+    TOOLS_DUMP( A.ColCount() );
+    TOOLS_DUMP( A.NonzeroCount() );
+    
+//    A.Outer().WriteToFile("/Users/Henrik/A_rp.txt");
+//    A.Inner().WriteToFile("/Users/Henrik/A_ci.txt");
+//    A.Values().WriteToFile("/Users/Henrik/A_val.txt");
+//    
+//    Tensor2<Real,Int> B( A.RowCount(), A.ColCount(), Real(0) );
+//    A.WriteDense(B.data(),grid_size * grid_size);
+//
+//    B.WriteToFile("/Users/Henrik/b.txt");
+        
     constexpr Int NRHS = 4;
     const     Int nrhs = NRHS;
-    
-    Sparse::MatrixCSR<Scal,Int,LInt> A;
-    
-    A.LoadFromFile( home_dir / "github/Tensors/SparseMatrices" / (name + "_Matrix.txt"), thread_count );
-    
-//    A.LoadFromMatrixMarket( home_dir / "MatrixMarket" / "bcsstk14.mtx", thread_count );
-
-    
-//    std::vector< Int> i = { 0, 0, 0, 1, 1, 1, 2, 2, 2 };
-//    std::vector< Int> j = { 0, 1, 2, 0, 1, 2, 0, 1, 2 };
-//    std::vector<Scal> a = { 2.2, 1.1, 0, 1.1, 2.2, 0, 0, 0, 2.2 };
-//    
-//    Sparse::MatrixCSR<Scal,Int,LInt> A(
-//        9, &i[0], &j[0], &a[0], 3, 3, 1, true, false
-//    );
     
     const Int n = A.RowCount();
     
@@ -81,7 +141,6 @@ int main()
     const Int ldX = nrhs;
     const Int ldY = ldB;
     
-//    const Scal alpha     = 2.4;
     const Scal alpha     = 1;
     const Scal alpha_inv = Frac<Scal>(1,alpha);
     const Scal beta      = 0;
@@ -93,16 +152,11 @@ int main()
     Tensor2<Scal,Int> Y;
 
 
-    Scal reg = 0;
+    Scal reg = 0.;
     
     print("");
-    
-//    // Using a matrix reordering created by TAUCS works splendidly.
-//    Tensor1<Int,Int> p ( n );
-//    p.ReadFromFile(path / (name + "_Permutation.txt") );
-//    Permutation<Int> perm ( std::move(p), Inverse::False, thread_count );
 
-//    
+    
 //    tic("Metis");
 //    Permutation<Int> perm = Sparse::Metis<Int>()(
 //        A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
@@ -177,9 +231,9 @@ int main()
     print("");
     
     X.SetZero();
-    tic("Cholesky matrix solve -- pointer arguments");
+    tic("Cholesky sequential matrix solve -- pointer arguments");
     S.Solve<NRHS,Sequential>( alpha, B.data(), ldB, beta, X.data(), ldX, nrhs);
-    toc("Cholesky matrix solve -- pointer arguments");
+    toc("Cholesky sequential matrix solve -- pointer arguments");
     Y = B;
     A.Dot<NRHS>( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
     TOOLS_DUMP(Y.MaxNorm());
@@ -254,8 +308,8 @@ int main()
 //          SparseOrderMetis = 3,
 //          SparseOrderCOLAMD = 4,
 //        );
-        opts.orderMethod = SparseOrderDefault;
-//        opts.orderMethod = SparseOrderAMD;
+//        opts.orderMethod = SparseOrderDefault;
+        opts.orderMethod = SparseOrderAMD;
 //        opts.orderMethod = SparseOrderMetis;
 //        opts.orderMethod = SparseOrderUser;
 //        opts.order = const_cast<Int*>(perm.GetPermutation().data());
@@ -300,63 +354,6 @@ int main()
         A.Dot(Scal(-1), X, Scal(1), Y);
         TOOLS_DUMP(Y.MaxNorm());
     }
-    
-    
-    
-//    TOOLS_DUMP(x[0]);
-//    TOOLS_DUMP(x[1]);
-//    TOOLS_DUMP(x[2]);
-//    TOOLS_DUMP(x[3]);
-//    
-//    print("");
-//    print("");
-//    
-//    tic("CHOLMOD constructor");
-//    CHOLMOD::CholeskyDecomposition<Scal,Int32,Int32> cholmod (
-//        A.Outer().data(), A.Inner().data(), A.ColCount()
-//    );
-//    toc("CHOLMOD constructor");
-//    
-//    print("");
-//    
-//    tic("CHOLMOD symbolic factorization");
-//    cholmod.SymbolicFactorization();
-//    toc("CHOLMOD symbolic factorization");
-//    
-//    print("");
-//    
-//    tic("CHOLMOD numeric factorization");
-//    cholmod.NumericFactorization(A.Values().data());
-//    toc("CHOLMOD numeric factorization");
-//
-//    print("");
-//    print("");
-//
-//    TOOLS_DUMP(b[0]);
-//    TOOLS_DUMP(b[1]);
-//    TOOLS_DUMP(b[2]);
-//    TOOLS_DUMP(b[3]);
-//    x.SetZero();
-//    
-//    tic("CHOLMOD Cholesky vector solve");
-//    cholmod.Solve( b.data(), x.data() );
-//    toc("CHOLMOD Cholesky vector solve");
-//    
-//    TOOLS_DUMP(b[0]);
-//    TOOLS_DUMP(b[1]);
-//    TOOLS_DUMP(b[2]);
-//    TOOLS_DUMP(b[3]);
-//    
-//    TOOLS_DUMP(x[0]);
-//    TOOLS_DUMP(x[1]);
-//    TOOLS_DUMP(x[2]);
-//    TOOLS_DUMP(x[3]);
-//    
-//    y = b;
-//    A.Dot(Scal(-1), x, Scal(1), y);
-//    TOOLS_DUMP(y.MaxNorm());
-//
-//    print("");
     
     return 0;
 }

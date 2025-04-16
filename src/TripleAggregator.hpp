@@ -14,7 +14,7 @@ namespace Tensors
         using Container_2_T = Tensor1<T_2,LInt>;
 
         mutable LInt current_size = LInt(0);
-        mutable LInt capacity     = LInt(1);
+        mutable LInt capacity     = LInt(BUFFER_CAP);
 
         mutable LInt current_buffer_size = LInt(0);
         mutable std::array<T_0,BUFFER_CAP> buffer_0;
@@ -97,9 +97,11 @@ namespace Tensors
                 FlushBuffer();
             }
 
-            buffer_0[current_buffer_size] = static_cast<T_0>(a);
-            buffer_1[current_buffer_size] = static_cast<T_1>(b);
-            buffer_2[current_buffer_size] = static_cast<T_2>(c);
+            const Size_T cbs = static_cast<Size_T>(current_buffer_size);
+            
+            buffer_0[cbs] = static_cast<T_0>(a);
+            buffer_1[cbs] = static_cast<T_1>(b);
+            buffer_2[cbs] = static_cast<T_2>(c);
             ++current_buffer_size;
         }
 
@@ -147,7 +149,7 @@ namespace Tensors
         }
         
         void RequireCapacity( const LInt new_capacity ) const
-        {
+        {            
             if( new_capacity > capacity)
             {
                 Container_0_T new_container_0 (new_capacity);
