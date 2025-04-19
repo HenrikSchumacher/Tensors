@@ -126,7 +126,7 @@ namespace Tensors
             
         protected:
             
-            alignas(DefaultAlignment) Scal v [n];
+            alignas(DefaultAlignment) Scal v [Max(Int(1),n)];
             
         public:
             
@@ -437,6 +437,22 @@ namespace Tensors
             TOOLS_FORCE_INLINE Int IAMin() const
             {
                 return iamin_buffer<n>(&v[0],n);
+            }
+                
+            TOOLS_FORCE_INLINE void ElementwiseMin( cref<Vector<n,Scal,Int>> x )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v[i] = Tools::Min(x[i],v[i]);
+                }
+            }
+            
+            TOOLS_FORCE_INLINE void ElementwiseMax( cref<Vector<n,Scal,Int>> x )
+            {
+                for( Int i = 0; i < n; ++i )
+                {
+                    v[i] = Tools::Max(x[i],v[i]);
+                }
             }
             
             
