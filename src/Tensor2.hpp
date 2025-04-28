@@ -268,6 +268,28 @@ namespace Tensors
                 eprint(ClassName()+"::Write: No implementation for op available.");
             }
         }
+        void SetIdentity( const Int thread_count = 1)
+        {
+            Scal * A = a;
+            const Int d_0 = dims[0];
+            const Int d_1 = dims[1];
+            
+            ParallelDo(
+                [A,d_0,d_1]( const Int i )
+                {
+                    if( i > Int(0) )
+                    {
+                        zerofy_buffer(&A[0],i-Int(1));
+                    }
+                    A[i] = Int(1);
+                    if( i < d_1 )
+                    {
+                        zerofy_buffer(&A[i+1],d_1-i);
+                    }
+                },
+                d_0, thread_count
+            );
+        }
 
     private:
         
