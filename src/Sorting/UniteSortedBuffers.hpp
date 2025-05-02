@@ -36,7 +36,7 @@ namespace Tensors
             }
             else
             {
-                goto exit;
+                goto Exit;
             }
         }
         else
@@ -61,7 +61,7 @@ namespace Tensors
             }
             else
             {
-                goto exit;
+                goto Exit;
             }
         }
         
@@ -137,7 +137,7 @@ namespace Tensors
             }
             else
             {
-                goto exit;
+                goto Exit;
             }
         }
         
@@ -153,11 +153,11 @@ namespace Tensors
             }
             else
             {
-                goto exit;
+                goto Exit;
             }
         }
         
-    exit:
+    Exit:
         
         return k+1;
     }
