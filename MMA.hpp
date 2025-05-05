@@ -258,7 +258,8 @@ namespace mma
         :   tensor      { make_MTensor<Scal>(dims) }
         ,   tensor_data { mma::data<Scal>(tensor) }
         {
-            copy_buffer( a, tensor_data, Size() );
+            //copy_buffer( a, tensor_data, Size() );
+            std::copy_n( a, Size(), tensor_data );
         }
         
         Scal * begin()
