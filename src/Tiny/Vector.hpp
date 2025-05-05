@@ -600,7 +600,7 @@ namespace Tensors
             return Det2D_Kahan_DiffPair( x[0], x[1], y[0], y[1] );
         }
         
-        template<typename Out_T = Int8, typename Real, typename Int>
+        template<typename Out_T = FastInt8, typename Real, typename Int>
         [[nodiscard]] TOOLS_FORCE_INLINE
         Out_T DetSign_Kahan(
             cref<Vector<2,Real,Int>> x,
@@ -630,10 +630,10 @@ namespace Tensors
             cref<Vector<2,Real,Int>> y
         )
         {
-            return Dot2D_Kahan_DiffPairs( x[0], x[1], y[0], y[1] );
+            return Dot2D_Kahan_DiffPair( x[0], x[1], y[0], y[1] );
         }
         
-        template<typename Out_T = Int8, typename Real, typename Int>
+        template<typename Out_T = FastInt8, typename Real, typename Int>
         [[nodiscard]] TOOLS_FORCE_INLINE
         Out_T DotSign_Kahan(
             cref<Vector<2,Real,Int>> x,
