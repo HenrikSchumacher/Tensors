@@ -2,6 +2,7 @@
 
 namespace Tensors
 {
+    // TODO: It could be helpful to track min and max of the three containers (at least of the first two) as these might be needed for a later assembly.
     template<typename T_0, typename T_1, typename T_2, typename LInt, int BUFFER_CAP = 128>
     class alignas(ObjectAlignment) TripleAggregator
     {
