@@ -4,7 +4,11 @@ namespace Tensors
 {
     namespace LAPACK
     {
-        template<Layout layout, UpLo uplo, typename Scal, typename I0, typename I1>
+        template<
+            Layout layout, UpLo uplo,
+            bool verboseQ = true,
+            typename Scal, typename I0, typename I1
+        >
         TOOLS_FORCE_INLINE Int potrf( const I0 n_, Scal * A_, const I1 ldA_ )
         {
             static_assert(IntQ<I0>,"");
@@ -77,10 +81,13 @@ namespace Tensors
                 }
                 else
                 {
-                    eprint( tag + ": The leading minor of order " + ToString(info) + " is not positive-definite." );
-                    if( info <= Int(16) )
+                    if constexpr( verboseQ )
                     {
-                        logvalprint("leading minor",  ArrayToString( A_, {info,info} ) );
+                        eprint( tag + ": The leading minor of order " + ToString(info) + " is not positive-definite." );
+                        if( info <= Int(16) )
+                        {
+                            logvalprint("leading minor",  ArrayToString( A_, {info,info} ) );
+                        }
                     }
                 }
             }

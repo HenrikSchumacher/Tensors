@@ -2,6 +2,8 @@
 
 #include <umfpack.h>
 
+// To use this you need to install SuiteSparse and link against libamd and libumfpack.
+
 namespace Tensors
 {
     // TODO: Test whether the code works in the complex case.
@@ -640,4 +642,4 @@ namespace Tensors
         
     }; // class UMFPACK
     
-} // namespace Sparse
+} // namespace Tensors

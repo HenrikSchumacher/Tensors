@@ -1,16 +1,16 @@
 public:
 
     template<typename ExtScal>
-    void NumericFactorization(
+    int NumericFactorization(
         cptr<ExtScal> A_val_,
         const ExtScal reg_  = 0 // Regularization parameter for the diagonal.
     )
     {
-        NumericFactorization_Multifrontal( A_val_, reg_ );
+        return NumericFactorization_Multifrontal( A_val_, reg_ );
     }
 
     template<typename ExtScal>
-    void NumericFactorization_Multifrontal(
+    int NumericFactorization_Multifrontal(
         cptr<ExtScal> A_val_,
         const ExtScal reg_  = 0 // Regularization parameter for the diagonal.
     )
@@ -75,6 +75,23 @@ public:
             aTree.template Traverse_PostOrdered<Sequential>( SN_list );
         }
         
+        SN_numerically_goodQ = true;
+        
+        Do(
+            [&SN_list,this]( const Size_T thread )
+            {
+                SN_numerically_goodQ
+                = SN_numerically_goodQ && SN_list[thread]->GoodQ();
+            },
+            use_threads
+        );
+        
+        if( !SN_numerically_goodQ )
+        {
+            eprint(ClassName() + "::NumericFactorization_Multifrontal: Could not complete numeric factorization. Matrix is not (sufficiently) positive-definite.");
+        }
+        
+        // We mark this as factorized in any case to not attempt the factorization again.
         SN_factorized = true;
         
         TOOLS_PTIC(tag + ": Release update buffers.");
@@ -84,11 +101,13 @@ public:
         TOOLS_PTOC(tag + ": Release update buffers.");
         
         TOOLS_PTOC(tag);
+        
+        return (SN_numerically_goodQ ? 0 : 1);
     }
 
 
     template<typename ExtScal>
-    void NumericFactorization_LeftLooking(
+    int NumericFactorization_LeftLooking(
         cptr<ExtScal> A_val_,
         const ExtScal reg_  = 0 // Regularization parameter for the diagonal.
     )
@@ -129,10 +148,28 @@ public:
             aTree.template Traverse_PostOrdered<Sequential>( SN_list );
         }
         
+        SN_numerically_goodQ = true;
+        
+        Do(
+            [&SN_list,this]( const Size_T thread )
+            {
+                SN_numerically_goodQ
+                = SN_numerically_goodQ && SN_list[thread]->GoodQ();
+            },
+            use_threads
+        );
+        
+        if( !SN_numerically_goodQ )
+        {
+            eprint(ClassName() + "::NumericFactorization_LeftLooking: Could not complete numeric factorization. Matrix is not (sufficiently) positive-definite.");
+        }
+        
+        // We mark this as factorized in any case to not attempt the factorization again.
         SN_factorized = true;
         
         TOOLS_PTOC(tag);
         
+        return (SN_numerically_goodQ ? 0 : 1);
     }
 
 

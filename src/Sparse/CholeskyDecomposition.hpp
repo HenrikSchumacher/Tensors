@@ -147,8 +147,10 @@ namespace Tensors
             // Supernode data:
             
             Int  amalgamation_threshold = 4;
-            bool SN_initialized = false;
-            bool SN_factorized  = false;
+            bool SN_initialized       = false;
+            bool SN_factorized        = false;
+            bool SN_numerically_goodQ = false;
+            
             signed char SN_strategy = 0;
             
 
@@ -562,6 +564,11 @@ namespace Tensors
             bool NumericallyFactorizedQ() const
             {
                 return SN_factorized;
+            }
+            
+            bool NumericallyGoodQ() const
+            {
+                return SN_numerically_goodQ;
             }
             
             std::string ClassName() const

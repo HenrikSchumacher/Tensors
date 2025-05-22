@@ -89,6 +89,7 @@ namespace Tensors
             mptr<Scal> C_0 = nullptr;
             mptr<Scal> C_1 = nullptr;
 
+            bool goodQ = true;
             
             // Monitors.
             Int intersec = 0;
@@ -114,6 +115,8 @@ namespace Tensors
             float factorize_supernode_time   = 0;
             
             
+            
+            
 //            CholeskyDecomposition<Scal,Int,LInt> & C;
             
         public:
@@ -133,6 +136,9 @@ namespace Tensors
 //                TOOLS_DUMP(fetch_from_A_time);
 //                TOOLS_DUMP(factorize_supernode_time);
             }
+            
+            
+            
             
             CholeskyFactorizer_LeftLooking( CholeskyDecomposition<Scal,Int,LInt> & chol )
             // shared data
@@ -170,24 +176,7 @@ namespace Tensors
             ,   B_1             ( B_1_buffer.data()                             )
             ,   C_0             ( C_0_buffer.data()                             )
             ,   C_1             ( C_1_buffer.data()                             )
-//            ,   C               ( chol                                          )
-            {
-//                valprint(
-//                    "scratch memory of type "+TypeName<Int>,
-//                    2 * (chol.max_n_0 + chol.max_n_1)
-//                );
-//
-//
-//                valprint(
-//                    "scratch memory of type "+TypeName<Scal>,
-//                    2 * (chol.max_n_0 * chol.max_n_0 + chol.max_n_0 * chol.max_n_1)
-//                );
-                
-//                TOOLS_DUMP( C.AssemblyTree().PostOrderedQ() );
-//                
-//                TOOLS_DUMP( ToString(C.AssemblyTree().PostOrdering().GetPermutation()) );
-//                TOOLS_DUMP( ToString(C.AssemblyTree().Parents()) );
-            }
+            {}
             
         protected:
             
@@ -608,7 +597,9 @@ namespace Tensors
                 if( n_0 > ione )
                 {
                     // Cholesky factorization of U_0
-                    (void)LAPACK::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
+                    const int info = LAPACK::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
+                    
+                    goodQ = goodQ && (info == 0);
 
                     // Triangular solve U_1 = U_0^{-H} U_1.
                     if( n_1 > ione )
@@ -946,6 +937,11 @@ namespace Tensors
             }
             
         public:
+            
+            bool GoodQ() const
+            {
+                return goodQ;
+            }
             
             std::string ClassName() const
             {

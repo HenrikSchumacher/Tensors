@@ -1806,6 +1806,18 @@ namespace Tensors
                 return symmetricQ;
             }
             
+            static MatrixCSR IdentityMatrix(
+                const Int n, const Int thread_count = 1
+            )
+            {
+                Sparse::MatrixCSR<Scal,Int,LInt> A ( n, n, n, thread_count );
+                A.Outer().iota();
+                A.Inner().iota();
+                A.Value().Fill(Scal(1));
+                
+                return A;
+            }
+            
             std::string Stats() const
             {
                 return std::string()

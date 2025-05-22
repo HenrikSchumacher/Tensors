@@ -69,6 +69,8 @@ namespace Tensors
             Tensor1<Int,Int>   idx;
             Tensor1<Int,Int>   lut;
 
+            bool goodQ = true;
+            
             // Monitors.
             
             float FetchFromA_time            = 0;
@@ -441,7 +443,11 @@ namespace Tensors
                 if( n_0 > ione )
                 {
                     // Cholesky factorization of U_0
-                    (void)LAPACK::potrf<Layout::RowMajor,UpLo::Upper>( n_0, U_0, n_0);
+                    const int info = LAPACK::potrf<Layout::RowMajor,UpLo::Upper,false>(
+                        n_0, U_0, n_0
+                    );
+                    
+                    goodQ = goodQ && (info == 0);
                     
                     // Triangular solve U_1 = U_0^{-H} U_1.
                     if( n_1 > ione )
@@ -500,6 +506,11 @@ namespace Tensors
             
             
         public:
+            
+            bool GoodQ() const
+            {
+                return goodQ;
+            }
             
             std::string ClassName() const
             {

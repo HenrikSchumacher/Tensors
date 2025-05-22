@@ -349,7 +349,15 @@ protected:
         
         if( !NumericallyFactorizedQ() )
         {
-            eprint(tag+": Nonzero values of matrix have not been passed, yet. Aborting.");
+            eprint(tag + ": Nonzero values of matrix have not been passed, yet. Aborting.");
+            
+            TOOLS_PTOC(tag);
+            return;
+        }
+        
+        if( !NumericallyGoodQ() )
+        {
+            eprint(tag + ": Aborting because numerical factorzation was not successful.");
             
             TOOLS_PTOC(tag);
             return;
@@ -389,6 +397,14 @@ protected:
         if( !NumericallyFactorizedQ() )
         {
             eprint(tag+": Nonzero values of matrix have not been passed, yet. Aborting.");
+            
+            TOOLS_PTOC(tag);
+            return;
+        }
+        
+        if( !NumericallyGoodQ() )
+        {
+            eprint(tag + ": Aborting because numerical factorzation was not successful.");
             
             TOOLS_PTOC(tag);
             return;

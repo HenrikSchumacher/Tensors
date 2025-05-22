@@ -191,11 +191,11 @@ public:
         zerofy_buffer<VarSize,Parallel>( a, n, thread_count );
     }
 
-    void Random( const Int thread_count = 1 )
+    void Randomize( const Int thread_count = 1 )
     {
         static_assert( Scalar::FloatQ<Scal>, "" );
         
-        TOOLS_PTIC("Random");
+        TOOLS_PTIC(ClassName()+"::Randomize");
         // This uses std::mt19937_64.
         // Moreover, the pseudorandom number generators are initilized per call.
         // So this is not very efficient.
@@ -212,7 +212,6 @@ public:
         
         std::vector<MT_T> engines;
         
-        TOOLS_PTIC("Random - Initialize");
         for( Int thread = 0; thread < thread_count; ++thread )
         {
             std::generate( seed_array.begin(), seed_array.end(), SD_T() );
@@ -221,7 +220,6 @@ public:
         
             engines.emplace_back( seed );
         }
-        TOOLS_PTOC("Random - Initialize");
         
         if constexpr (Scalar::RealQ<Scal> )
         {
@@ -264,7 +262,14 @@ public:
            );
         }
         
-        TOOLS_PTOC("Random");
+        TOOLS_PTOC(ClassName()+"::Randomize");
+    }
+
+
+    // Compatibility layer to older versions.
+    void Random( const Int thread_count = 1 )
+    {
+        Randomize(thread_count);
     }
 
 protected:
@@ -486,16 +491,19 @@ public:
         }
     }
 
-//    inline friend std::string to_string( cref<TENSOR_T> A )
-//    {
-//        return ArrayToString( A.a, A.dims.data(), Rank() );
-//    }
-
-    inline friend std::string ToString( cref<TENSOR_T> A,
-        std::string line_prefix = std::string("")
+    inline friend std::string ToString(
+        cref<TENSOR_T> A, std::string line_prefix = std::string("")
     )
     {
         return ArrayToString( A.a, A.dims.data(), Rank(), line_prefix );
+    }
+
+    template<typename F>
+    inline friend std::string ToString(
+        cref<TENSOR_T> A, F && fun, std::string line_prefix = std::string("")
+    )
+    {
+        return ArrayToString( A.a, A.dims.data(), Rank(), fun, line_prefix );
     }
 
 //
