@@ -357,7 +357,7 @@ protected:
         
         if( !NumericallyGoodQ() )
         {
-            eprint(tag + ": Aborting because numerical factorzation was not successful.");
+            eprint(tag + ": Aborting because numerical factorization was not successful.");
             
             TOOLS_PTOC(tag);
             return;
@@ -404,7 +404,7 @@ protected:
         
         if( !NumericallyGoodQ() )
         {
-            eprint(tag + ": Aborting because numerical factorzation was not successful.");
+            eprint(tag + ": Aborting because numerical factorization was not successful.");
             
             TOOLS_PTOC(tag);
             return;
