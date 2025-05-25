@@ -1383,6 +1383,19 @@ namespace Tensors
             
         public:
             
+            static PatternCSR IdentityMatrix(
+                const Int n, const Int thread_count = 1
+            )
+            {
+                Sparse::PatternCSR<Int,LInt> A ( n, n, n, thread_count );
+                A.Outer().iota();
+                A.Inner().iota();
+                
+                return A;
+            }
+            
+        public:
+            
             virtual Int Dim( const bool dim )
             {
                 return dim ? n : m;

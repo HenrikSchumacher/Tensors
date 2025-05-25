@@ -463,6 +463,19 @@ namespace Tensors
                 }
             }
             
+        public:
+            
+            static BinaryMatrixCSR IdentityMatrix(
+                const Int n, const Int thread_count = 1
+            )
+            {
+                Sparse::BinaryMatrixCSR<Int,LInt> A ( n, n, n, thread_count );
+                A.Outer().iota();
+                A.Inner().iota();
+                
+                return A;
+            }
+            
             
         public:
             
