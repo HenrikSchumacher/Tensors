@@ -194,12 +194,48 @@ namespace Tensors
                 }
             }
             
-//            if( symbolic_status != 0 )
-//            {
-//                eprint(ClassName()+"::SymbolicFactorization: Returned error code is " + ToString(symbolic_status) + ".");
-//            }
+            if( symbolic_status != UMFPACK_OK )
+            {
+                eprint(ClassName()+"::SymbolicFactorization: Returned error code is " + ToString(symbolic_status) + ". Message: " + SymbolicErrorMessage(symbolic_status)
+                );
+            }
             
             TOOLS_PTOC( ClassName() + "::SymbolicFactorization" );
+        }
+        
+        std::string SymbolicErrorMessage( int status )
+        {
+            switch(status)
+            {
+                case UMFPACK_OK:
+                {
+                    return "Symbolic factorization was successful.";
+                }
+                case UMFPACK_ERROR_n_nonpositive:
+                {
+                    return "Size of matrix is less than zero.";
+                }
+                case UMFPACK_ERROR_invalid_matrix:
+                {
+                    return "One of the following issues: number of entries in the matrix is negative, first row pointer is nonzero, a column has a negative number of entries, a row index is out of bounds, or the columns of input matrix were jumbled (unsorted columns or duplicate entries).";
+                }
+                case UMFPACK_ERROR_out_of_memory:
+                {
+                    return "Insufficient memory to perform the symbolic analysis.";
+                }
+                case UMFPACK_ERROR_argument_missing:
+                {
+                    return "One or more required arguments is missing.";
+                }
+                case UMFPACK_ERROR_internal_error:
+                {
+                    return "Something very serious went wrong. This is a bug. Please contact the author (DrTimothyAldenDavis@gmail.com).";
+                }
+                default:
+                {
+                    return "Unknown error code.";
+                }
+            }
         }
 
         
@@ -216,10 +252,12 @@ namespace Tensors
         {
             TOOLS_PTIC( ClassName() + "::NumericFactorization" );
             
-            if( symbolic_status != 0 )
+            if( symbolic_status != UMFPACK_OK )
             {
-                eprint( ClassName() + "::NumericFactorization: Called with invalid symbolic factorization. symbolic_status = " + ToString(symbolic_status) + "." );
+                eprint(ClassName()+"::NumericFactorization:  Called with invalid symbolic factorization. symbolic_status = " + ToString(symbolic_status) + ". Message: " + SymbolicErrorMessage(symbolic_status)
+                );
             }
+            
             
             Int  * Ap = A.Outer().data();
             Int  * Ai = A.Inner().data();
@@ -264,12 +302,48 @@ namespace Tensors
                 }
             }
             
-//            if( numeric_status != 0 )
-//            {
-//                eprint(ClassName()+"::NumericFactorization: Returned error code is " + ToString(numeric_status) + ".");
-//            }
+            if( numeric_status != UMFPACK_OK )
+            {
+                eprint(ClassName()+"::NumericFactorization: Returned error code is " + ToString(numeric_status) + ". Message: " + NumericErrorMessage(numeric_status)
+                );
+            }
             
             TOOLS_PTOC( ClassName() + "::NumericFactorization" );
+        }
+        
+        std::string NumericErrorMessage( int status )
+        {
+            switch(status)
+            {
+                case UMFPACK_OK:
+                {
+                    return "Numeric factorization was successful.";
+                }
+                case UMFPACK_WARNING_singular_matrix:
+                {
+                    return "Numeric factorization was successful, but the matrix is singular.";
+                }
+                case UMFPACK_ERROR_out_of_memory:
+                {
+                    return "Insufficient memory to complete the numeric factorization.";
+                }
+                case UMFPACK_ERROR_argument_missing:
+                {
+                    return "One or more required arguments are missing.";
+                }
+                case UMFPACK_ERROR_invalid_Symbolic_object:
+                {
+                    return "Symbolic object provided as input is invalid.";
+                }
+                case UMFPACK_ERROR_different_pattern:
+                {
+                    return "The sparsity pattern has changed since the call to `SymbolicFactorization`.";
+                }
+                default:
+                {
+                    return "Unknown error code.";
+                }
+            }
         }
         
     private:
@@ -299,6 +373,8 @@ namespace Tensors
             }
         }
         
+        
+        
     public:
         
         template<
@@ -307,7 +383,7 @@ namespace Tensors
         >
         void Solve( const a_T alpha, cptr<B_T> B, const b_T beta, mptr<X_T> X )
         {
-            if( numeric_status != 0 )
+            if( numeric_status != UMFPACK_OK )
             {
                 eprint( ClassName()+"::Solve: Called without valid numeric factorization. numeric_status = " + ToString(numeric_status) + "." );
                 return;
@@ -405,7 +481,7 @@ namespace Tensors
             
             if( solve_status != 0 )
             {
-                eprint(ClassName()+"::Solve: Returned error code is "+ToString(solve_status) + ".");
+                eprint(ClassName()+"::Solve: Returned error code is " + ToString(solve_status) + ".");
             }
 
             // We have to conjugate x to emulate the conjugate-transpose solve.
