@@ -4,14 +4,29 @@
 // We only provide some convenience routines to convert between Sparse::MatrixCSR and COIN-OR's
 
 // To use this you need to install CLC (see https://github.com/coin-or/Clp) and link against libClp and libCoinUtils.
-// I recommend using coinbrew:
+
+// I recommend using this workflow:
 //
-//  wget https://raw.githubusercontent.com/coin-or/coinbrew/master/coinbrew
-//  chmod u+x coinbrew
-//  ./coinbrew fetch Clp@master
-//  ./coinbrew build Clp
+//  - git-clone the CoinUtils repository https://github.com/coin-or/CoinUtils
+//  - cd into the new directory
+//  - run
+//          ./configure -C
+//          make
+//          make test
+//          make install
+//  - You can delete the cloned repository now.
+//  - git-clone CoinUtils https://github.com/coin-or/Clp
+//  - cd into the new directory
+//  - run
+//          ./configure -C
+//          make
+//          make test
+//          make install
+//  - You can delete the cloned repository now.
+//  - On macos the header files should be located at /user/local/include/coin-or and the library files should be in /usr/local/lib. I guess the paths will be the same under Linux.
 //
-// The homebrew installation does not seem to work.
+//
+// WARNING: The homebrew installation does not seem to work.
 
 // TODO: Find out how to compile COIN-OR with 64 bit integers.
 #define COIN_BIG_INDEX 1
