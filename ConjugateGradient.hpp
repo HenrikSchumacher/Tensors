@@ -119,7 +119,7 @@ namespace Tensors
             
             std::string tag = ClassName() + "::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
-            TOOLS_PTIC(tag);
+            TOOLS_PTIMER(timer,tag);
             
             Time start_time = Clock::now();
             
@@ -181,8 +181,6 @@ namespace Tensors
                 logvalprint( tag + " iter"      , iter      );
                 logvalprint( tag + " succeeded" , succeeded );
                 
-                TOOLS_PTOC(tag);
-                
                 return succeeded;
             }
             
@@ -190,8 +188,6 @@ namespace Tensors
             {
                 wprint(tag + ": Right-hand side is 0. Returning b * X_inout.");
 
-                TOOLS_DUMP( b_squared_norms );
-                
                 scale_matrix<VarSize,NRHS,Parallel>(
                     b, X_inout, ldX, n, nrhs, thread_count
                 );
@@ -200,8 +196,6 @@ namespace Tensors
 
                 logvalprint( tag + " iter"      , iter      );
                 logvalprint( tag + " succeeded" , succeeded );
-                
-                TOOLS_PTOC(tag);
                 
                 return succeeded;
             }
@@ -344,8 +338,6 @@ namespace Tensors
             time_elapsed = Tools::Duration( start_time, Clock::now() );
             
             logprint( Stats() );
-            
-            TOOLS_PTOC(tag);
             
             return succeeded;
         }

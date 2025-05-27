@@ -34,13 +34,13 @@ namespace Tensors
                 const Int n,
                 const Int thread_count,
                 const bool compressQ  = true,
-                const int  symmetrize = 0
+                const int  symmetrizeQ = 0
             )
             {
                 Tensor1<LInt,LInt> from = iota<LInt>( nnz );
                 
                 Sparse::MatrixCSR<LInt,Int,LInt> A (
-                    nnz, i, j, from.data(), m, n, thread_count, false, symmetrize
+                    nnz, i, j, from.data(), m, n, thread_count, false, symmetrizeQ
                 );
                 
                 

@@ -220,12 +220,12 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
-                const bool compressQ   = true,
-                const int  symmetrize = 0
+                const bool compressQ = true,
+                const int  symmetrizeQ = 0
             )
             :   PatternCSR ( m_, n_, list_count )
             {
-                FromPairs( idx, jdx, entry_counts, list_count, final_thread_count, compressQ, symmetrize );
+                FromPairs( idx, jdx, entry_counts, list_count, final_thread_count, compressQ, symmetrizeQ );
             }
             
             template<typename ExtInt>
@@ -236,8 +236,8 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int thread_count_,
-                const bool compressQ   = true,
-                const int  symmetrize = 0
+                const bool compressQ = true,
+                const int  symmetrizeQ = 0
             )
             :   PatternCSR ( m_, n_, thread_count_ )
             {
@@ -255,7 +255,7 @@ namespace Tensors
                     counts[thread] = end-begin;
                 }
                 
-                FromPairs( idx, jdx, counts.data(), thread_count, thread_count, compressQ, symmetrize );
+                FromPairs( idx, jdx, counts.data(), thread_count, thread_count, compressQ, symmetrizeQ );
             }
             
             template<typename ExtInt>
@@ -265,8 +265,8 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
-                const bool compressQ   = true,
-                const int  symmetrize = 0
+                const bool compressQ = true,
+                const int  symmetrizeQ = 0
             )
             :   PatternCSR ( m_, n_, Int(1) )
             {
@@ -275,7 +275,7 @@ namespace Tensors
                 
                 Tensor1<LInt,Int> entry_counts (1, int_cast<LInt>(idx.size()));
                 
-                FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compressQ, symmetrize );
+                FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compressQ, symmetrizeQ );
             }
             
             template<typename ExtInt>
@@ -285,8 +285,8 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
-                const bool compressQ   = true,
-                const int  symmetrize = 0
+                const bool compressQ = true,
+                const int  symmetrizeQ = 0
             )
             :   PatternCSR ( m_, n_, int_cast<Int>(idx.size()) )
             {
@@ -303,7 +303,7 @@ namespace Tensors
                     entry_counts[thread] = static_cast<LInt>(idx[thread].size());
                 }
                 
-                FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compressQ, symmetrize );
+                FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compressQ, symmetrizeQ );
             }
             
             template<typename ExtInt>
@@ -312,8 +312,8 @@ namespace Tensors
                 const Int m_,
                 const Int n_,
                 const Int final_thread_count,
-                const bool compressQ   = true,
-                const int  symmetrize = 0
+                const bool compressQ = true,
+                const int  symmetrizeQ = 0
             )
             :   PatternCSR ( m_, n_, static_cast<Int>(pairs.size()) )
             {
@@ -334,7 +334,7 @@ namespace Tensors
                 
                 FromPairs(
                     i.data(), j.data(), entry_counts.data(),
-                    list_count, final_thread_count, compressQ, symmetrize
+                    list_count, final_thread_count, compressQ, symmetrizeQ
                 );
             }
             
@@ -369,8 +369,8 @@ namespace Tensors
                 const LInt            *       entry_counts,
                 const  Int list_count,
                 const  Int final_thread_count,
-                const bool compressQ   = true,
-                const int  symmetrize = 0
+                const bool compressQ = true,
+                const int  symmetrizeQ = 0
             )
             {
                 TOOLS_PTIC(ClassName()+"::FromPairs");
@@ -378,7 +378,7 @@ namespace Tensors
                 // TODO: If ExtInt is wider than Int, we need to check that all entries of idx and jdx fit into an Int.
                 
                 Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
-                    idx, jdx, entry_counts, list_count, m, symmetrize
+                    idx, jdx, entry_counts, list_count, m, symmetrizeQ
                 );
                 
                 const LInt nnz = counters(list_count-1,m-1);
@@ -396,7 +396,7 @@ namespace Tensors
                     // the counters array tells each thread where to write
                     // since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
                     
-                    if( symmetrize != 0 )
+                    if( symmetrizeQ != 0 )
                     {
                         ParallelDo(
                             [&]( const Int thread )

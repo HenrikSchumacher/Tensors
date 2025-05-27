@@ -64,10 +64,6 @@ namespace Tensors
                     wprint("ApproximateMinimumDegree: Inputs have unordered column indices, but they are otherwise correct.");
                 }
                 
-//                TOOLS_DUMP(status);
-//                TOOLS_DUMP(control);
-//                TOOLS_DUMP(info);
-                
                 TOOLS_PTOC(ClassName()+": amd_l_order");
                 
                 return Permutation<Int>( perm.data(), static_cast<Int>(n), Inverse::False, Int(final_thread_count) );

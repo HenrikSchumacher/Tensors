@@ -188,12 +188,12 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compressQ   = true,
-                  const int  symmetrize = 0
+                  const bool compressQ = true,
+                  const int  symmetrizeQ = 0
                   )
             :   Base_T ( m_, n_, list_count )
             {
-                FromTriples( idx, jdx, val, entry_counts, list_count, final_thread_count, compressQ, symmetrize );
+                FromTriples( idx, jdx, val, entry_counts, list_count, final_thread_count, compressQ, symmetrizeQ );
             }
             
             
@@ -207,7 +207,7 @@ namespace Tensors
                 const Int n_,
                 const Int thread_count,
                 const bool compressQ   = true,
-                const int  symmetrize = 0
+                const int  symmetrizeQ = 0
             )
             :   Base_T ( m_, n_, thread_count )
             {
@@ -227,7 +227,7 @@ namespace Tensors
                     counts[thread] = end-begin;
                 }
                 
-                FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compressQ, symmetrize );
+                FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compressQ, symmetrizeQ );
             }
             
             template<typename ExtInt, typename ExtScal>
@@ -238,8 +238,8 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compressQ   = true,
-                  const int  symmetrize = 0
+                  const bool compressQ = true,
+                  const int  symmetrizeQ = 0
                   )
             :   Base_T ( m_, n_, int_cast<Int>(idx.size()) )
             {
@@ -260,7 +260,7 @@ namespace Tensors
                 FromTriples(
                     i.data(), j.data(), a.data(),
                     entry_counts.data(), list_count,
-                    final_thread_count, compressQ, symmetrize
+                    final_thread_count, compressQ, symmetrizeQ
                 );
             }
             
@@ -270,8 +270,8 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compressQ   = true,
-                  const int  symmetrize = 0
+                  const bool compressQ = true,
+                  const int  symmetrizeQ = 0
                   )
             :   Base_T ( m_, n_, int_cast<Int>(triples.size()) )
             {
@@ -293,7 +293,7 @@ namespace Tensors
                 
                 FromTriples(
                     i.data(), j.data(), a.data(), entry_counts.data(),
-                    list_count, final_thread_count, compressQ, symmetrize
+                    list_count, final_thread_count, compressQ, symmetrizeQ
                 );
             }
             
@@ -303,8 +303,8 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compressQ  = true,
-                  const int  symmetrize = 0
+                  const bool compressQ = true,
+                  const int  symmetrizeQ = 0
             )
             :   Base_T ( m_, n_, Int(1) )
             {
@@ -316,7 +316,7 @@ namespace Tensors
 
                 FromTriples(
                     &i,&j,&a,&entry_counts,
-                    ExtInt(1),final_thread_count,compressQ,symmetrize
+                    ExtInt(1),final_thread_count,compressQ,symmetrizeQ
                 );
             }
             
@@ -326,14 +326,14 @@ namespace Tensors
             
             template<typename ExtInt, typename ExtScal>
             void FromTriples(
-                const ExtInt  * const * const idx,               // list of lists of i-indices
-                const ExtInt  * const * const jdx,               // list of lists of j-indices
-                const ExtScal * const * const val,               // list of lists of nonzero values
-                const LInt            * const entry_counts,      // list of lengths of the lists above
+                const ExtInt  * const * const idx,            // list of lists of i-indices
+                const ExtInt  * const * const jdx,            // list of lists of j-indices
+                const ExtScal * const * const val,            // list of lists of nonzero values
+                const LInt            * const entry_counts,   // list of lengths of the lists above
                 const Int list_count,                         // number of lists
                 const Int final_thread_count,                 // number of threads that the matrix shall use
-                const bool compressQ   = true,                // whether to do additive assembly or not
-                const int  symmetrize = 0                     // whether to symmetrize the matrix
+                const bool compressQ = true,                  // whether to do additive assembly or not
+                const int  symmetrizeQ = 0                    // whether to symmetrize the matrix
             )
             {
                 // Parallel sparse matrix assembly using counting sort.
@@ -346,7 +346,7 @@ namespace Tensors
                 
                 TOOLS_PTIC(ClassName()+"::FromTriples");
                 
-                if( symmetrize )
+                if( symmetrizeQ )
                 {
                     pprint(ClassName()+"::FromTriples symmetrize");
                 }
@@ -365,7 +365,7 @@ namespace Tensors
                 }
                 
                 Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
-                    idx, jdx, entry_counts, list_count, m, symmetrize
+                    idx, jdx, entry_counts, list_count, m, symmetrizeQ
                 );
                 
                 if( list_count <= 0 )
@@ -418,7 +418,7 @@ namespace Tensors
                                 }
                                 
                                 // Write the transposed matrix (diagonal excluded) in the same go in order to symmetrize the matrix. (Typical use case: Only the upper triangular part of a symmetric matrix is stored in idx, jdx, and val, but we need the full, symmetrized matrix.)
-                                if( (symmetrize != 0) && (i != j) )
+                                if( (symmetrizeQ != 0) && (i != j) )
                                 {
                                     const LInt pos  = --c[j];
                                     A_inner[pos] = i;

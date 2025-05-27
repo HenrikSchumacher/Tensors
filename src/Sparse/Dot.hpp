@@ -266,7 +266,7 @@ namespace Tensors
                     
                     // Finished expansion phase (counting sort).
                     
-                    // Finally we row-sort inner and compressQ duplicates in inner and values.
+                    // Finally we row-sort inner and compress duplicates in inner and values.
                     C.Compress();
                     
                     return C;

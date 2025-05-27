@@ -88,7 +88,6 @@ namespace Tensors
             
             void PrintInfo()
             {
-                //            TOOLS_DUMP(info);
                 valprint("AMD status                      ", info[AMD_STATUS]);
                 valprint("Size of input matrix            ", info[AMD_N]);
                 valprint("Degree of symmetry              ", info[AMD_SYMMETRY]);
