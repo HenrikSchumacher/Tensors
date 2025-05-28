@@ -145,7 +145,7 @@ namespace Tensors
             BinaryMatrixCSR( const BinaryMatrixCSR & other )
             :   Base_T( other )
             {
-                logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
+                logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nnz = "+ToString(NonzeroCount()));
             }
             
             friend void swap( BinaryMatrixCSR & A, BinaryMatrixCSR & B ) noexcept

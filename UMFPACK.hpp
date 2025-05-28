@@ -48,6 +48,7 @@ namespace Tensors
         
     public:
 
+        UMFPACK() = default;
         
         template<typename ExtInt, typename ExtLInt>
         explicit UMFPACK(

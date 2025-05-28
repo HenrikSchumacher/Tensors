@@ -174,7 +174,7 @@ namespace Tensors
             ,   duplicate_free  ( other.duplicate_free  )
             ,   symmetric       ( other.symmetric       )
             {
-                logprint("Copy of " + ClassName() + " of size {" + ToString(other.m) + ", " + ToString(other.n) + "}, nn z = " + ToString(other.NonzeroCount()));
+                logprint("Copy of " + ClassName() + " of size {" + ToString(other.m) + ", " + ToString(other.n) + "}, nnz = " + ToString(other.NonzeroCount()));
             }
             
             friend void swap (PatternCSR &A, PatternCSR &B ) noexcept

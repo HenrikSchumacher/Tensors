@@ -147,7 +147,7 @@ namespace Tensors
             :   Base_T  ( other        )
             ,   values  ( other.values )
             {
-                logprint("Copy of "+ ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nn z = "+ToString(NonzeroCount()));
+                logprint("Copy of "+ ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nnz = "+ToString(NonzeroCount()));
             }
             
             friend void swap (MatrixCSR & A, MatrixCSR & B ) noexcept
