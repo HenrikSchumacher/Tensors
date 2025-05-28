@@ -5,7 +5,7 @@ namespace Tensors
     namespace Tiny
     {
         
-        template< int n_, typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
+        template<int n_, typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
         class VectorList
         {
         public:
