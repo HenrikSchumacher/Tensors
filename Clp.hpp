@@ -28,9 +28,6 @@
 //
 // WARNING: The homebrew installation does not seem to work.
 
-// TODO: Find out how to compile COIN-OR with 64 bit integers.
-//#define COIN_BIG_INDEX 1
-
 
 #include "ClpSimplex.hpp"
 #include "ClpSimplexDual.hpp"
