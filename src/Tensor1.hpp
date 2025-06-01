@@ -40,7 +40,7 @@ namespace Tensors
         
         template<typename S>
         TENSOR_T( std::initializer_list<S> v )
-        :   TENSOR_T( v.size() )
+        :   TENSOR_T( int_cast<Int>(v.size()) )
         {
             Read(&*v.begin());
         }
