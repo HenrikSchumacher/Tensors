@@ -15,14 +15,14 @@ namespace Tensors
             
         public:
             
-            using Scal = Scal_;
-            using Int  = Int_;
+            using Base_T = Tensor2<Scal_,Int_,alignment>;
+            using Scal   = Base_T::Scal;
+            using Int    = Base_T::Int;
             
             static constexpr Int n = static_cast<Int>(n_);
             
-            static constexpr Size_T Alignment = alignment;
+            static constexpr Size_T Alignment = Base_T::Alignment;
             
-            using Base_T = Tensor2<Scal,Int,Alignment>;
             
         public:
             
@@ -30,7 +30,7 @@ namespace Tensors
             :   Base_T()
             {}
             
-            explicit VectorList_AoS( const Scal m_ )
+            explicit VectorList_AoS( const Int m_ )
             :   Base_T(m_,n)
             {}
             
@@ -38,13 +38,25 @@ namespace Tensors
             :   Base_T(m_,n,init)
             {}
             
+            VectorList_AoS( cptr<Scal> a, const Int m_ )
+            :   Base_T(a,m_,n)
+            {}
+            
             ~VectorList_AoS() = default;
             
             // Copy constructor
             VectorList_AoS(const VectorList_AoS & other ) = default;
             
+            
+            friend void swap(VectorList_AoS & A, VectorList_AoS & B ) noexcept
+            {
+                using std::swap;
+                
+                swap(static_cast<Base_T &>(A), static_cast<Base_T &>(B));
+            }
+            
             // Copy assignment
-            VectorList_AoS & operator=(VectorList_AoS other) noexcept
+            VectorList_AoS & operator=( VectorList_AoS other) noexcept
             {
                 swap(*this, other);
                 return *this;
@@ -57,19 +69,12 @@ namespace Tensors
                 swap(*this, other);
             }
             
-            // Move assignment
-            VectorList_AoS & operator=(VectorList_AoS && other) noexcept
-            {
-                swap(*this, other);
-                return *this;
-            }
-            
-            friend void swap(VectorList_AoS & A, VectorList_AoS & B ) noexcept
-            {
-                using std::swap;
-                
-                swap(static_cast<Base_T & >(A), static_cast<Base_T &>(B));
-            }
+//            // Move assignment
+//            VectorList_AoS & operator=(VectorList_AoS && other) noexcept
+//            {
+//                swap(*this, other);
+//                return *this;
+//            }
             
         protected:
             
@@ -87,33 +92,49 @@ namespace Tensors
                 return a;
             }
             
-            TOOLS_FORCE_INLINE mptr<Scal> data( const Int i )
+            template<typename I>
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i )
             {
+                static_assert(IntQ<I>,"");
                 return &a[n * i];
             }
             
-            TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const
+            template<typename I>
+            TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const
             {
+                static_assert(IntQ<I>,"");
                 return &a[n * i];
             }
             
-            TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const bool j )
+            template<typename I, typename J>
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j )
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
                 return &a[n * i + j];
             }
             
-            TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const bool j ) const
+            template<typename I, typename J>
+            TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const J j ) const
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
                 return &a[n * i + j];
             }
             
-            TOOLS_FORCE_INLINE mref<Scal> operator()( const Int i, const bool j)
+            template<typename I, typename J>
+            TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j)
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
                 return a[n * i + j];
             }
             
-            TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const bool j) const
+            template<typename I, typename J>
+            TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j) const
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
                 return a[n * i + j];
             }
             

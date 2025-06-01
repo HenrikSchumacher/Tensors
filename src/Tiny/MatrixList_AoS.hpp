@@ -35,12 +35,16 @@ namespace Tensors
             :   Base_T()
             {}
             
-            explicit MatrixList_AoS( const Scal k_ )
+            explicit MatrixList_AoS( const Int k_ )
             :   Base_T(k_,m,n)
             {}
             
             MatrixList_AoS( const Int k_, const Scal init )
             :   Base_T(k_,m,n,init)
+            {}
+            
+            MatrixList_AoS( cptr<Scal> a_, const Int k_ )
+            :   Base_T(a_,k_,m,n)
             {}
             
             ~MatrixList_AoS() = default;
@@ -92,43 +96,69 @@ namespace Tensors
                 return a;
             }
             
-            TOOLS_FORCE_INLINE mptr<Int> data( const Int i )
+            template<typename I>
+            TOOLS_FORCE_INLINE mptr<Int> data( const I i )
             {
+                static_assert(IntQ<I>,"");
                 return &a[mn * i];
             }
             
-            TOOLS_FORCE_INLINE cptr<Int> data( const Int i ) const
+            template<typename I>
+            TOOLS_FORCE_INLINE cptr<Int> data( const I i ) const
             {
+                static_assert(IntQ<I>,"");
                 return &a[mn * i];
             }
 
-            TOOLS_FORCE_INLINE mptr<Int> data( const Int i, const bool j )
+            template<typename I, typename J>
+            TOOLS_FORCE_INLINE mptr<Int> data( const I i, const J j )
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
                 return &a[mn * i + n * j];
             }
             
-            TOOLS_FORCE_INLINE cptr<Int> data( const Int i, const bool j ) const
+            template<typename I, typename J>
+            TOOLS_FORCE_INLINE cptr<Int> data( const I i, const J j ) const
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
                 return &a[mn * i + m * j];
             }
             
-            TOOLS_FORCE_INLINE mptr<Int> data( const Int i, const bool j, const bool k)
+            template<typename I, typename J, typename K>
+            TOOLS_FORCE_INLINE mptr<Int> data( const I i, const J j, const K k)
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
+                static_assert(IntQ<K>,"");
                 return &a[mn * i + n * j + k];
             }
             
-            TOOLS_FORCE_INLINE mptr<Int> data( const Int i, const bool j, const bool k) const
+            template<typename I, typename J, typename K>
+            TOOLS_FORCE_INLINE mptr<Int> data( const I i, const J j, const K k) const
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
+                static_assert(IntQ<K>,"");
                 return &a[mn * i + n * j + k];
             }
             
-            TOOLS_FORCE_INLINE mref<Int> operator()( const Int i, const bool j, const bool k)
+            template<typename I, typename J, typename K>
+            TOOLS_FORCE_INLINE mref<Int> operator()( const I i, const J j, const K k)
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
+                static_assert(IntQ<K>,"");
                 return a[mn * i + n * j + k];
             }
-                
-            TOOLS_FORCE_INLINE cref<Int> operator()( const Int i, const bool j, const bool k) const
+            
+            template<typename I, typename J, typename K>
+            TOOLS_FORCE_INLINE cref<Int> operator()( const I i, const J j, const K k) const
             {
+                static_assert(IntQ<I>,"");
+                static_assert(IntQ<J>,"");
+                static_assert(IntQ<K>,"");
                 return a[mn * i + m * j + k];
             }
             

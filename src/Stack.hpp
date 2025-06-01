@@ -14,15 +14,22 @@ namespace Tensors
         using Int         = Int_;
         
         Stack()
-        :   a ( 1 )
+        :   a ( Int(1) )
         {
             a[0] = Entry_T();
         }
         
         Stack( Int max_size )
-        :   a ( max_size + 1 )
+        :   a ( max_size + Int(1) )
         {
             a[0] = Entry_T();
+        }
+        
+        // For debugging purposed it might be nice to have a controlled initialization.
+        Stack( Int max_size, Entry_T init )
+        :   a ( max_size + Int(1), init )
+        {
+//            a[0] = Entry_T();
         }
         
         ~Stack() = default;
@@ -118,11 +125,24 @@ namespace Tensors
         
         void Push( cref<Entry_T> value )
         {
+#ifdef TENSORS_BOUND_CHECKS
+            if( (ptr + 1) == a.Size() )
+            {
+                eprint(ClassName() + "::Push: Stack overflow");
+            }
+#endif
+            
             a[++ptr] = value;
         }
         
         void Push( Entry_T && value )
         {
+#ifdef TENSORS_BOUND_CHECKS
+            if( (ptr + 1) == a.Size() )
+            {
+                eprint(ClassName() + "::Push: Stack overflow");
+            }
+#endif
             a[++ptr] = std::move(value);
         }
         
@@ -138,6 +158,12 @@ namespace Tensors
         
         Entry_T Pop()
         {
+#ifdef TENSORS_BOUND_CHECKS
+            if( ptr <= Int(0) )
+            {
+                eprint(ClassName() + "::Push: Stack underflow");
+            }
+#endif
             Entry_T r ( std::move(a[ptr--]) );
             
 //            ptr = (ptr > Int(0)) ? (ptr - Int(1)) : Int(0);
@@ -147,7 +173,7 @@ namespace Tensors
         
         bool EmptyQ() const
         {
-            return ptr <= Int(0);
+            return (ptr <= Int(0));
         }
         
         Int ElementCount() const

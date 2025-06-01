@@ -238,6 +238,17 @@ namespace Tensors
             :   Base_T( idx, m_, n_, final_thread_count, compressQ, symmetrizeQ )
             {}
             
+            BinaryMatrixCSR(
+                  cref<PairAggregator<Int, Int, LInt>> idx,
+                  const Int m_,
+                  const Int n_,
+                  const Int final_thread_count,
+                  const bool compressQ = true,
+                  const int  symmetrizeQ = 0
+                  )
+            :   Base_T( idx, m_, n_, final_thread_count, compressQ, symmetrizeQ )
+            {}
+            
             virtual ~BinaryMatrixCSR() override = default;
             
             

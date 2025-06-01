@@ -243,7 +243,7 @@ namespace Tensors
             {
                 Tensor1<const ExtInt *,Int> idx    (thread_count);
                 Tensor1<const ExtInt *,Int> jdx    (thread_count);
-                Tensor1<      LInt     ,Int> counts (thread_count);
+                Tensor1<      LInt    ,Int> counts (thread_count);
                 
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
@@ -338,6 +338,28 @@ namespace Tensors
                 );
             }
             
+            template<typename ExtInt>
+            PatternCSR(
+                cref<PairAggregator<ExtInt,ExtInt,LInt>> pairs,
+                const Int m_,
+                const Int n_,
+                const Int final_thread_count,
+                const bool compressQ = true,
+                const int  symmetrizeQ = 0
+            )
+            :   PatternCSR ( m_, n_, int_cast<LInt>(1) )
+            {
+                LInt entry_counts = int_cast<LInt>(pairs.Size());
+
+                const ExtInt * const i = pairs.Get_0().data();
+                const ExtInt * const j = pairs.Get_1().data();
+                
+                FromPairs(
+                    &i,&j,&entry_counts,
+                    ExtInt(1),final_thread_count,compressQ,symmetrizeQ
+                );
+            }
+
             virtual ~PatternCSR() = default;
             
             
@@ -395,7 +417,7 @@ namespace Tensors
                     // writing the j-indices into sep_column_indices
                     // the counters array tells each thread where to write
                     // since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
-                    
+
                     if( symmetrizeQ != 0 )
                     {
                         ParallelDo(
