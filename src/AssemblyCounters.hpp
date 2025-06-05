@@ -49,7 +49,7 @@ namespace Tensors {
             + "," + TypeName<Int>
             + ">";
         
-        TOOLS_PTIC( tag );
+        TOOLS_PTIC(tag);
         
         const Int thread_count = counters.Dim(0);
         
@@ -57,7 +57,7 @@ namespace Tensors {
         
         if( (m <= 0) || (thread_count <= 0) )
         {
-            TOOLS_PTOC( tag );
+            TOOLS_PTOC(tag);
             return;
         }
         
@@ -139,7 +139,7 @@ namespace Tensors {
             thread_count
         );
         
-        TOOLS_PTOC( tag );
+        TOOLS_PTOC(tag);
     }
 
 
@@ -160,7 +160,7 @@ namespace Tensors {
             + "," + TypeName<Int>
             + ">";
         
-        TOOLS_PTIC( tag );
+        TOOLS_PTIC(tag);
         
         Tensor2<LInt,Int> counters ( list_count, m, LInt(0) );
 
@@ -209,7 +209,7 @@ namespace Tensors {
         
     //        print(counters.ToString());
         
-        TOOLS_PTOC( tag );
+        TOOLS_PTOC(tag);
         
         return counters;
     }
