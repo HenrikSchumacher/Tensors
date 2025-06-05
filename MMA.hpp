@@ -1,8 +1,8 @@
 #pragma once
 
-#define MATHEMATICA
+//#define MATHEMATICA
 
-#define MMA_HPP
+#define TENSORS_MMA_HPP
 
 #include "mathlink.h"
 
@@ -37,11 +37,28 @@ using Real    = mreal;
 using Complex = std::complex<Real>;
 using Int     = mint;
 
+#include "src/MathematicaTypes.hpp"
+
 namespace mma
 {
-    
-    
     WolframLibraryData libData;
+    
+    template<
+        typename T,
+        class = typename std::enable_if_t<
+            IntQ<T>
+            || (FloatQ<T> && Scalar::RealQ<T>)
+            || (FloatQ<T> && Scalar::ComplexQ<T>)
+            || std::is_same<T,mbool>
+        >
+    >
+    using Type<T> =
+        std::conditional_t<IntQ<T>, mint,
+            std::conditional_t<FloatQ<T> && Scalar::RealQ<T>,mreal,
+                std::conditional_t<FloatQ<T> && Scalar::ComplexQ<T>,mcomplex,mbool>
+            >
+        >
+    >;
     
     inline void print(const char *msg)
     {

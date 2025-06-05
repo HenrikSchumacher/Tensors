@@ -38,13 +38,6 @@ namespace Tensors
             Read(a_);
         }
         
-        template<typename S>
-        TENSOR_T( std::initializer_list<S> v )
-        :   TENSOR_T( int_cast<Int>(v.size()) )
-        {
-            Read(&*v.begin());
-        }
-        
     private:
         
         void BoundCheck( const Int i ) const

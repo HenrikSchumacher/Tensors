@@ -43,7 +43,7 @@
     
 #endif
 
-#ifdef MMA_HPP
+#ifdef TENSORS_MMA_HPP
 
     template<typename Real, typename Int, Size_T alignment,
         class = typename std::enable_if_t<FloatQ<Real>>

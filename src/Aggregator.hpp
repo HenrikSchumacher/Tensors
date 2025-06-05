@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename T_0, typename LInt>
+    template<typename T_0, typename Int>
     class alignas(ObjectAlignment) Aggregator
     {
         // A dynamically growing version of Tensor1 that allows pushing of several elements at once.
@@ -16,16 +16,16 @@ namespace Tensors
         // TODO: There will be some overhead for indexing into this nested data structure, though.
         // TODO: And using &operator[i] is asking for trouble...
         
-        static_assert(IntQ<LInt>,"");
+        static_assert(IntQ<Int>,"");
 
-        using Container_0_T = Tensor1<T_0,LInt>;
+        using Container_0_T = Tensor1<T_0,Int>;
 
-        LInt current_size   = Scalar::Zero<LInt>;
-        LInt capacity       = Scalar::One <LInt>;
+        Int current_size   = 0;
+        Int capacity       = 1;
         
         Container_0_T container_0 {capacity};
 
-        LInt thread_count = 1;
+        Int thread_count = 1;
         
     public:
 
@@ -33,18 +33,18 @@ namespace Tensors
 
         ~Aggregator() = default;
 
-        explicit Aggregator( const LInt n )
-        :   current_size ( Scalar::Zero<LInt>       )
-        ,   capacity     ( Max(Scalar::One<LInt>,n) )
-        ,   container_0  ( Max(Scalar::One<LInt>,n) )
-        ,   thread_count ( LInt(1)                  )
+        explicit Aggregator( const Int n )
+        :   current_size ( Int(0)        )
+        ,   capacity     ( Max(Int(1),n) )
+        ,   container_0  ( Max(Int(1),n) )
+        ,   thread_count ( Int(1)        )
         {}
         
-        explicit Aggregator( const LInt n, const LInt thread_count_ )
-        :   current_size ( Scalar::Zero<LInt>       )
-        ,   capacity     ( Max(Scalar::One<LInt>,n) )
-        ,   container_0  ( Max(Scalar::One<LInt>,n) )
-        ,   thread_count ( thread_count_            )
+        explicit Aggregator( const Int n, const Int thread_count_ )
+        :   current_size ( Int(0)        )
+        ,   capacity     ( Max(Int(1),n) )
+        ,   container_0  ( Max(Int(1),n) )
+        ,   thread_count ( thread_count_ )
         {}
 
         // Copy contructor
@@ -84,7 +84,7 @@ namespace Tensors
 
 
 
-        LInt Size() const
+        Int Size() const
         {
             return current_size;
         }
@@ -99,18 +99,18 @@ namespace Tensors
             container_0[current_size++] = a;
         }
         
-        TOOLS_FORCE_INLINE void Push( cptr<T_0> a, const LInt n )
+        TOOLS_FORCE_INLINE void Push( cptr<T_0> a, const Int n )
         {
             if( current_size + n >= capacity )
             {
-                RequireCapacity( Max( current_size + n, LInt(2) * capacity ) );
+                RequireCapacity( Max( current_size + n, Int(2) * capacity ) );
             }
 
             copy_buffer( a, &container_0[current_size], static_cast<Size_T>(Ramp(n)) );
             current_size += n;
         }
         
-        TOOLS_FORCE_INLINE void Pop( const LInt n )
+        TOOLS_FORCE_INLINE void Pop( const Int n )
         {
             if( current_size >= n )
             {
@@ -137,15 +137,28 @@ namespace Tensors
             
             return container_0;
         }
+        
+        // A bit dangerous, this is. But since we do not use any buffering, this might work.
+        cptr<T_0> data() const
+        {
+            return container_0.data();
+        }
+        
+        template<typename S>
+        void Write( S * target ) const
+        {
+            copy_buffer( container_0.data(), target, current_size );
+        }
+        
 
     public:
 
-        LInt Capacity() const
+        Int Capacity() const
         {
             return capacity;
         }
         
-        void RequireCapacity( const LInt new_capacity )
+        void RequireCapacity( const Int new_capacity )
         {
             TOOLS_PTIC(ClassName()+"::RequireCapacity");
             if( new_capacity > capacity)
@@ -164,12 +177,12 @@ namespace Tensors
             TOOLS_PTOC(ClassName()+"::RequireCapacity");
         }
         
-        TOOLS_FORCE_INLINE T_0 & operator[]( const LInt i )
+        TOOLS_FORCE_INLINE T_0 & operator[]( const Int i )
         {
             return container_0[i];
         }
         
-        TOOLS_FORCE_INLINE const T_0 & operator[]( const LInt i ) const
+        TOOLS_FORCE_INLINE const T_0 & operator[]( const Int i ) const
         {
             return container_0[i];
         }
@@ -195,15 +208,33 @@ namespace Tensors
         
         void Expand()
         {
-            RequireCapacity( Scalar::Two<LInt> * capacity );
+            RequireCapacity( Scalar::Two<Int> * capacity );
         }
         
     public:
         
         std::string ClassName() const
         {
-            return std::string("Aggregator")+"<"+TypeName<T_0>+","+TypeName<LInt>+">";
+            return std::string("Aggregator")+"<"+TypeName<T_0>+","+TypeName<Int>+">";
         }
     };
+    
+    
+#ifdef LTEMPLATE_H
+        
+    template<
+        typename T, typename Int,
+        class = typename std::enable_if_t<mma::HasTypeQ<T>>
+    >
+    inline mma::TensorRef<mma::Type<T>> to_MTensorRef( cref<Aggregator<T,Int>> agg )
+    {
+        mint d = agg.Size();
+        auto A = mma::makeTensor<mma::Type<T>>( mint(1), &d );
+        agg.Write( A.data() );
+        
+        return A;
+    }
+    
+#endif
     
 } // namespace Tensors
