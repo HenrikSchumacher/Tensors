@@ -2,6 +2,8 @@
 
 #include "Tensors.hpp"
 
+#define TENSORS_CONJUGATEGRADIENT_H
+
 namespace Tensors
 {
     // EQ_COUNT = number of right hand sides.

@@ -1,5 +1,7 @@
 #pragma once
 
+#define TENSORS_H
+
 #include "Base.hpp"
 
 #include "src/BitField.hpp"
@@ -19,6 +21,7 @@
 #include "src/Aggregator.hpp"
 #include "src/PairAggregator.hpp"
 #include "src/TripleAggregator.hpp"
+//#include "src/RaggedList.hpp"
 
 
 #include "src/Sparse/Permutation.hpp"
@@ -42,6 +45,5 @@
 
 //#include "src/BlockKernels/ScalarBlockKernel_fixed.hpp"
 #include "src/BlockKernels/ScalarBlockKernel_Tiny.hpp"
-
 
 #include "src/Stack.hpp"

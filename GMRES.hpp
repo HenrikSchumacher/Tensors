@@ -2,6 +2,8 @@
 
 #include "src/BLAS_Wrappers.hpp"
 
+#define TENSORS_GMRES_H
+
 // TODO: Find out why GMRES is so much slower in parallel mode.
 
 namespace Tensors

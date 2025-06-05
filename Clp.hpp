@@ -1,5 +1,6 @@
 #pragma once
 
+#define TENSORS_CLP_H
 
 // We only provide some convenience routines to convert between Sparse::MatrixCSR and COIN-OR's
 

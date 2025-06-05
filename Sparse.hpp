@@ -1,5 +1,7 @@
 #pragma once
 
+#define TENSORS_SPARSE_H
+
 #include "src/Sorting/UniteSortedBuffers.hpp"
 
 #include "src/Sparse/EliminationTreeParents.hpp"

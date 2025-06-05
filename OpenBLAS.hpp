@@ -2,6 +2,7 @@
 
 #include "Base.hpp"
 
+#define TENSORS_OPENBLAS_H
 
 #ifdef CBLAS_H
 

@@ -2,6 +2,8 @@
 
 #include "Base.hpp"
 
+#define TENSORS_ACCELERATE_H
+
 #ifdef __ACCELERATE__
 
     #ifdef TENSORS_ILP64
