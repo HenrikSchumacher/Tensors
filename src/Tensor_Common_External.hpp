@@ -1,40 +1,15 @@
+
+
 #ifdef LTEMPLATE_H
     
-    template<typename Real, typename Int, Size_T alignment,
-        class = typename std::enable_if_t<FloatQ<Real>>
+    template<typename T, typename Int, Size_T alignment,
+        class = typename std::enable_if_t<mma::HasTypeQ<T>>
     >
-    inline mma::TensorRef<mreal> to_MTensorRef(
-       cref<TENSOR_T<Real,Int,alignment>> A
+    inline mma::TensorRef<mma::Type<T>> to_MTensorRef(
+       cref<TENSOR_T<T,Int,alignment>> A
     )
     {
-        auto B = mma::makeTensor<mreal>( A.Rank(), A.Dims() );
-        
-        A.Write(B.data());
-        
-        return B;
-    }
-
-    template<typename Real, typename Int, Size_T alignment,
-        class = typename std::enable_if_t<FloatQ<Real>>
-    >
-    inline mma::TensorRef<std::complex<Real>> to_MTensorRef( cref<TENSOR_T<std::complex<Real>,Int,alignment>> A
-    )
-    {
-        auto B = mma::makeTensor<std::complex<Real>>( A.Rank(), A.Dims() );
-        
-        A.Write(B.data());
-        
-        return B;
-    }
-    
-    template<typename J, typename Int, Size_T alignment,
-        class = typename std::enable_if_t<IntQ<J>>
-    >
-    inline mma::TensorRef<mint> to_MTensorRef(
-        cref<TENSOR_T<J,Int,alignment>> A
-    )
-    {
-        auto B = mma::makeTensor<mint>( A.Rank(), A.Dims() );
+        auto B = mma::makeTensor<mma::Type<T>>( A.Rank(), A.Dims() );
         
         A.Write(B.data());
         
@@ -43,7 +18,7 @@
     
 #endif
 
-#ifdef TENSORS_MMA_HPP
+#ifdef MMA_HPP
 
     template<typename Real, typename Int, Size_T alignment,
         class = typename std::enable_if_t<FloatQ<Real>>
@@ -87,3 +62,95 @@
     }
 
 #endif
+
+//
+//
+//#ifdef LTEMPLATE_H
+//    
+//    template<typename Real, typename Int, Size_T alignment,
+//        class = typename std::enable_if_t<FloatQ<Real>>
+//    >
+//    inline mma::TensorRef<mreal> to_MTensorRef(
+//       cref<TENSOR_T<Real,Int,alignment>> A
+//    )
+//    {
+//        auto B = mma::makeTensor<mreal>( A.Rank(), A.Dims() );
+//        
+//        A.Write(B.data());
+//        
+//        return B;
+//    }
+//
+//    template<typename Real, typename Int, Size_T alignment,
+//        class = typename std::enable_if_t<FloatQ<Real>>
+//    >
+//    inline mma::TensorRef<std::complex<mreal>> to_MTensorRef( cref<TENSOR_T<std::complex<Real>,Int,alignment>> A
+//    )
+//    {
+//        auto B = mma::makeTensor<std::complex<mreal>>( A.Rank(), A.Dims() );
+//        
+//        A.Write(B.data());
+//        
+//        return B;
+//    }
+//    
+//    template<typename J, typename Int, Size_T alignment,
+//        class = typename std::enable_if_t<IntQ<J>>
+//    >
+//    inline mma::TensorRef<mint> to_MTensorRef(
+//        cref<TENSOR_T<J,Int,alignment>> A
+//    )
+//    {
+//        auto B = mma::makeTensor<mint>( A.Rank(), A.Dims() );
+//        
+//        A.Write(B.data());
+//        
+//        return B;
+//    }
+//    
+//#endif
+//
+//#ifdef MMA_HPP
+//
+//    template<typename Real, typename Int, Size_T alignment,
+//        class = typename std::enable_if_t<FloatQ<Real>>
+//    >
+//    inline mma::MTensorWrapper<mreal> to_MTensorWrapper(
+//        cref<TENSOR_T<Real,Int,alignment>> A
+//    )
+//    {
+//        mma::MTensorWrapper<mreal> B ( A.Rank(), A.Dims() );
+//        
+//        A.Write( B.data() );
+//        
+//        return B;
+//    }
+//
+//    template<typename Real, typename Int, Size_T alignment,
+//        class = typename std::enable_if_t<FloatQ<Real>>
+//    >
+//    inline mma::MTensorWrapper<std::complex<mreal>> to_MTensorWrapper( cref<TENSOR_T<std::complex<Real>,Int,alignment>> A
+//    )
+//    {
+//        mma::MTensorWrapper<std::complex<mreal>> B ( A.Rank(), A.Dims() );
+//        
+//        A.Write( B.data() );
+//        
+//        return B;
+//    }
+//
+//    template<typename J, typename Int, Size_T alignment,
+//        class = typename std::enable_if_t<IntQ<J>>
+//    >
+//    inline mma::MTensorWrapper<mint> to_MTensorWrapper(
+//        cref<TENSOR_T<J,Int,alignment>> A
+//    )
+//    {
+//        mma::MTensorWrapper<mint> B ( A.Rank(), A.Dims() );
+//        
+//        A.Write( B.data() );
+//        
+//        return B;
+//    }
+//
+//#endif
