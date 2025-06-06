@@ -38,7 +38,8 @@ namespace Tensors
             :   Base_T(m_,n,init)
             {}
             
-            VectorList_AoS( cptr<Scal> a, const Int m_ )
+            template<typename S>
+            VectorList_AoS( cptr<S> a, const Int m_ )
             :   Base_T(a,m_,n)
             {}
             

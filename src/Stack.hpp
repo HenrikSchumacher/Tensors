@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    
+    // Some extra care was taken so that Int_ can be an unsigned integer.
     template<typename Entry_T_, typename Int_>
     class Stack
     {
@@ -162,6 +162,7 @@ namespace Tensors
             if( ptr <= Int(0) )
             {
                 eprint(ClassName() + "::Push: Stack underflow");
+                return Entry_T();
             }
 #endif
             Entry_T r ( std::move(a[ptr--]) );
