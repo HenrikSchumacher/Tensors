@@ -144,7 +144,7 @@ namespace Tensors
             
             mptr<Scal> data( const Int i )
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
 #endif
                 return v[i].data();
@@ -152,7 +152,7 @@ namespace Tensors
             
             cptr<Scal> data( const Int i ) const
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
 #endif
                 return v[i].data();
@@ -160,7 +160,7 @@ namespace Tensors
             
             mref<Tensor_T> operator[]( const Int i )
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
 #endif
                 return v[i];
@@ -168,7 +168,7 @@ namespace Tensors
             
             cref<Tensor_T> operator[]( const Int i ) const
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
 #endif
                 return v[i];
@@ -176,7 +176,7 @@ namespace Tensors
             
             mref<Tensor_T> operator()( const Int i )
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
 #endif
                 return v[i];
@@ -184,7 +184,7 @@ namespace Tensors
             
             cref<Tensor_T> operator()( const Int i ) const
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
 #endif
                 return v[i];
@@ -192,7 +192,7 @@ namespace Tensors
             
             mref<Scal> operator()( const Int i, const Int k )
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
 #endif
                 return v[i][k];
@@ -200,7 +200,7 @@ namespace Tensors
             
             cref<Scal> operator()( const Int i, const Int k ) const
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
 #endif
                 return v[i][k];

@@ -479,7 +479,7 @@ namespace Tensors
             
             mref<Scal> Value( const LInt k )
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 if( k < LInt(0) || k >= values.Size() )
                 {
                     eprint(this->ClassName()+"::Value(" + ToString(k) + "): Access out of bounds.");
@@ -490,7 +490,7 @@ namespace Tensors
             
             cref<Scal> Value( const LInt k ) const
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 if( k < LInt(0) || k >= values.Size() )
                 {
                     eprint(this->ClassName()+"::Value(" + ToString(k) + "): Access out of bounds.");

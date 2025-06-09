@@ -657,7 +657,7 @@ namespace Tensors
 
             mref<LInt> Outer( const Int i )
             {
-#ifndef TOOLS_DEBUG
+#ifndef TENSORS_BOUND_CHECKS
                 if( i < Int(0) || i >= outer.Size() )
                 {
                     eprint(this->ClassName()+"::Outer(" + ToString(i) + "): Access out of bounds.");
@@ -668,7 +668,7 @@ namespace Tensors
             
             cref<LInt> Outer( const Int i ) const
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 if( i < Int(0) || i >= outer.Size() )
                 {
                     eprint(this->ClassName()+"::Outer(" + ToString(i) + "): Access out of bounds.");
@@ -690,7 +690,7 @@ namespace Tensors
 
             mref<Int> Inner( const LInt k )
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 if( k < LInt(0) || k >= inner.Size() )
                 {
                     eprint(this->ClassName()+"::Inner(" + ToString(k) + "): Access out of bounds.");
@@ -701,7 +701,7 @@ namespace Tensors
             
             cref<Int> Inner( const LInt k ) const
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 if( k < LInt(0) || k >= inner.Size() )
                 {
                     eprint(this->ClassName()+"::Inner(" + ToString(k) + "): Access out of bounds.");
@@ -720,7 +720,7 @@ namespace Tensors
             
             cref<LInt> Diag( const Int i ) const
             {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 if( i < Int(0) || i >= diag_ptr.Size() )
                 {
                     eprint(this->ClassName()+"::Diag(" + ToString(i) + "): Access out of bounds.");
@@ -1210,7 +1210,7 @@ namespace Tensors
             {
                 // Looks up the entry {i,j}. If existent, its index within the list of nonzeroes is returned. Otherwise, a negative number is returned (-1 if simply not found and -2 if i is out of bounds).
                 
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i,j);
 #endif
                 

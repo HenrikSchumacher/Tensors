@@ -136,7 +136,7 @@ namespace Tensors {
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
             using std::swap;
-#ifdef BOUND_CHECKS
+#ifdef TENSORS_BOUND_CHECKS
             print(ClassName()+" swap");
 #endif
             swap(A.tensors, B.tensors);
@@ -150,7 +150,7 @@ namespace Tensors {
         ThreadTensor3 & operator=(ThreadTensor3 B)
         {
             // see https://stackoverflow.com/a/3279550/8248900 for details
-#ifdef BOUND_CHECKS
+#ifdef TENSORS_BOUND_CHECKS
             print(ClassName()+" copy-and-swap");
 #endif
             swap(*this, B);
@@ -163,14 +163,14 @@ namespace Tensors {
         ThreadTensor3( ThreadTensor3 && other ) noexcept
         :   ThreadTensor3()
         {
-#ifdef BOUND_CHECKS
+#ifdef TENSORS_BOUND_CHECKS
             print(ClassName()+" move constructor");
 #endif
             swap(*this, other);
         }
         
         ~ThreadTensor3(){
-#ifdef BOUND_CHECKS
+#ifdef TENSORS_BOUND_CHECKS
             print("~"+ClassName()+" { " + ToString(dims[0]) + ", " + ToString(dims[1]) + " }" );
 #endif
         }
@@ -184,7 +184,7 @@ namespace Tensors {
         
         void BoundCheck( const Int i ) const
         {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
             if( (i < Int(0)) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
@@ -196,7 +196,7 @@ namespace Tensors {
         
         void BoundCheck( const Int i, const Int j ) const
         {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
             if( (i < Int(0)) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
@@ -214,7 +214,7 @@ namespace Tensors {
         
         void BoundCheck( const Int i, const Int j, const Int k ) const
         {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
             if( (i < Int(0)) || (i > dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");

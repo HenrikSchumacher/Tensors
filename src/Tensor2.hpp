@@ -295,7 +295,7 @@ namespace Tensors
         
         void BoundCheck( const Int i ) const
         {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
             if( a == nullptr )
             {
                 eprint(ClassName() + ": pointer is nullptr.");
@@ -311,7 +311,7 @@ namespace Tensors
         
         void BoundCheck( const Int i, const Int j ) const
         {
-#ifdef TOOLS_DEBUG
+#ifdef TENSORS_BOUND_CHECKS
             if( a == nullptr )
             {
                 eprint(ClassName() + ": pointer is nullptr.");
