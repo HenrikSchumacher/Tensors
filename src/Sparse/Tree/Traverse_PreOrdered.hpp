@@ -3,7 +3,7 @@ public:
     template<class Worker_T>
     void Traverse_Descendants_PreOrdered( mref<Worker_T> worker, const Int node ) const
     {
-        TOOLS_DEBUG_PRINT(ClassName() + "::Traverse_Descendants_PreOrdered ( node = " + ToString(node) + " ) begins.");
+        TOOLS_DEBUG_PRINT(ClassName()+"::Traverse_Descendants_PreOrdered ( node = " + ToString(node) + " ) begins.");
 
         // Applies ker to the descendants of the node _and the node itself_ in postorder.
         // This is to guarantee that all children of node are processed on the same thread to avoid write-conflicts in the case they attempt to write to some of their common parent's memory.
@@ -21,14 +21,14 @@ public:
             worker(desc);
         }
         
-        TOOLS_DEBUG_PRINT(ClassName() + "::Traverse_Descendants_PreOrdered ( node = " + ToString(node) + " ) ends.");
+        TOOLS_DEBUG_PRINT(ClassName()+"::Traverse_Descendants_PreOrdered ( node = " + ToString(node) + " ) ends.");
     }
 
 
     template<Parallel_T parQ = Parallel, class Worker_T>
     void Traverse_PreOrdered( std::vector<std::unique_ptr<Worker_T>> & workers ) const
     {
-        std::string tag = ClassName() + "::Traverse_PreOrdered<" + (parQ == Parallel ? "Parallel" : "Sequential") + ">";
+        std::string tag = ClassName()+"::Traverse_PreOrdered<" + (parQ == Parallel ? "Parallel" : "Sequential") + ">";
         if( !PostOrderedQ() )
         {
             eprint(tag+" requires postordered tree! Doing nothing.");

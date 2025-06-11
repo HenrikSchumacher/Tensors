@@ -141,7 +141,7 @@ namespace Tensors
             //
             // They may return something, but the returned value is ignored.
             
-            std::string tag = ClassName() + "::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
+            std::string tag = ClassName()+"::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
             TOOLS_PTIC(tag);
             
@@ -266,7 +266,7 @@ namespace Tensors
             bool implicit_zeroQ
         )
         {
-            std::string tag = ClassName() + "::Solve<" + TypeName<B_T> + ">";
+            std::string tag = ClassName()+"::Solve<" + TypeName<B_T> + ">";
             
 //            TOOLS_PTIC(tag);
             

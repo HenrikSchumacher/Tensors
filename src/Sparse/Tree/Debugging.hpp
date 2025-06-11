@@ -23,7 +23,7 @@ public:
 
     void AllocateCheckList() const
     {
-//        print(ClassName() + "::AllocateCheckList");
+//        print(ClassName()+"::AllocateCheckList");
         check_list = Tensor1<Int,Int> ( n, 0 );
     }
 

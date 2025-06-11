@@ -53,7 +53,7 @@ namespace Tensors
                 
                 if( !std::in_range<Int>(rp_[n]) )
                 {
-                    eprint(ClassName() + "::operator(): row pointers do not fit into type " + TypeName<Int> + " .");
+                    eprint(ClassName()+"::operator(): row pointers do not fit into type " + TypeName<Int> + " .");
                 }
                 
                 // We need to discard the diagonal entries.

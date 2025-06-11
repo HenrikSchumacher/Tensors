@@ -148,7 +148,7 @@ namespace Tensors
                 return;
             }
             
-            TOOLS_PTIC( ClassName() + "::SymbolicFactorization" );
+            TOOLS_PTIC( ClassName()+"::SymbolicFactorization" );
             
             const Int m = A.RowCount();
             const Int n = A.ColCount();
@@ -201,7 +201,7 @@ namespace Tensors
                 );
             }
             
-            TOOLS_PTOC( ClassName() + "::SymbolicFactorization" );
+            TOOLS_PTOC( ClassName()+"::SymbolicFactorization" );
         }
         
         std::string SymbolicErrorMessage( int status )
@@ -251,7 +251,7 @@ namespace Tensors
         
         void NumericFactorization()
         {
-            TOOLS_PTIC( ClassName() + "::NumericFactorization" );
+            TOOLS_PTIC( ClassName()+"::NumericFactorization" );
             
             if( symbolic_status != UMFPACK_OK )
             {
@@ -309,7 +309,7 @@ namespace Tensors
                 );
             }
             
-            TOOLS_PTOC( ClassName() + "::NumericFactorization" );
+            TOOLS_PTOC( ClassName()+"::NumericFactorization" );
         }
         
         std::string NumericErrorMessage( int status )
@@ -397,7 +397,7 @@ namespace Tensors
             }
             
             
-            TOOLS_PTIC( ClassName() + "::Solve"
+            TOOLS_PTIC( ClassName()+"::Solve"
                  + "<" + TypeName<a_T>
                  + "," + TypeName<B_T>
                  + "," + TypeName<b_T>
@@ -494,7 +494,7 @@ namespace Tensors
             );
             
             
-            TOOLS_PTOC( ClassName() + "::Solve"
+            TOOLS_PTOC( ClassName()+"::Solve"
                  + "<" + TypeName<a_T>
                  + "," + TypeName<B_T>
                  + "," + TypeName<b_T>
@@ -513,13 +513,13 @@ namespace Tensors
         
         std::pair<Scal,Real> Determinant()
         {
-            TOOLS_PTIC( ClassName() + "::Determinant" );
+            TOOLS_PTIC( ClassName()+"::Determinant" );
             
             if( numeric == nullptr )
             {
                 eprint( ClassName()+"::Determinant: NumericFactorization has not been called, yet." );
                 
-                TOOLS_PTOC( ClassName() + "::Determinant" );
+                TOOLS_PTOC( ClassName()+"::Determinant" );
                 return std::pair<Scal,Real>( 0, 0 );
             }
             
@@ -527,7 +527,7 @@ namespace Tensors
             {
 //                wprint( ClassName()+"::Determinant: Called without valid numeric factorization. numeric_status = " + ToString(numeric_status) + "." );
                 
-                TOOLS_PTOC( ClassName() + "::Determinant" );
+                TOOLS_PTOC( ClassName()+"::Determinant" );
                 return std::pair<Scal,Real>( 0, 0 );
             }
             
@@ -595,10 +595,10 @@ namespace Tensors
             
             if( status != 0 )
             {
-                eprint(ClassName() + "::Determinant: Returned error code is " + ToString(status) + ".");
+                eprint(ClassName()+"::Determinant: Returned error code is " + ToString(status) + ".");
             }
             
-            TOOLS_PTOC( ClassName() + "::Determinant" );
+            TOOLS_PTOC( ClassName()+"::Determinant" );
             
             return std::pair<Scal,Real>( Mx, Ex );
         }
@@ -613,7 +613,7 @@ namespace Tensors
                 return;
             }
             
-            TOOLS_PTIC( ClassName() + "::FreeSymbolic" );
+            TOOLS_PTIC( ClassName()+"::FreeSymbolic" );
             
             if constexpr( SameQ<Int,Int64> )
             {
@@ -656,7 +656,7 @@ namespace Tensors
                 
             symbolic = nullptr;
             
-            TOOLS_PTOC( ClassName() + "::FreeSymbolic" );
+            TOOLS_PTOC( ClassName()+"::FreeSymbolic" );
         }
         
         void FreeNumeric()
@@ -666,7 +666,7 @@ namespace Tensors
                 return;
             }
             
-            TOOLS_PTIC( ClassName() + "::FreeNumeric" );
+            TOOLS_PTIC( ClassName()+"::FreeNumeric" );
             
             if constexpr( SameQ<Int,Int64> )
             {
@@ -707,7 +707,7 @@ namespace Tensors
                 }
             }
             
-            TOOLS_PTOC( ClassName() + "::FreeNumeric" );
+            TOOLS_PTOC( ClassName()+"::FreeNumeric" );
         }
         
     public:

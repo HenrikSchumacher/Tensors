@@ -12,7 +12,7 @@ public:
     {
         nrhs = Max( ione, nrhs_ );
         
-        const std::string tag = ClassName() + "::ReadRightHandSide<" + TypeName<B_T> + ">(" + ToString(nrhs)+ ")";
+        const std::string tag = ClassName()+"::ReadRightHandSide<" + TypeName<B_T> + ">(" + ToString(nrhs)+ ")";
         
         TOOLS_PTIC(tag);
         
@@ -40,7 +40,7 @@ public:
     template<typename X_T>
     void WriteSolution( mptr<X_T> X_, const Int ldX )
     {
-        const std::string tag = ClassName() + "::WriteSolution<" + TypeName<X_T> + "> (" + ToString(nrhs)+ ")";
+        const std::string tag = ClassName()+"::WriteSolution<" + TypeName<X_T> + "> (" + ToString(nrhs)+ ")";
         
         TOOLS_PTIC(tag);
         
@@ -54,7 +54,7 @@ public:
         const a_T alpha,
         const b_T beta,  mptr<Y_T> Y_, const Int ldY )
     {
-        const std::string tag = ClassName() + "::WriteSolution"
+        const std::string tag = ClassName()+"::WriteSolution"
             + "<" + ToString(NRHS)
             + "," + TypeName<a_T>
             + "," + TypeName<b_T>

@@ -804,7 +804,7 @@ namespace Tensors
         template<typename J>
         bool PermutationQ( cptr<J> p_ ) const
         {
-            std::string tag = ClassName() + "::PermutationQ";
+            std::string tag = ClassName()+"::PermutationQ";
             
             TOOLS_PTIC(tag);
             if( (n == zero) || (n == one ) )

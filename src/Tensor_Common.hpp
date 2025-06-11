@@ -553,7 +553,7 @@ public:
             {
                 if constexpr (verboseQ)
                 {
-                    eprint(ClassName() + "::Read: End of file reached before buffer is filled. Stopped after reading " + ToString(i) + " < " + ToString(n) + " entries.");
+                    eprint(ClassName()+"::Read: End of file reached before buffer is filled. Stopped after reading " + ToString(i) + " < " + ToString(n) + " entries.");
                 }
                 return 1 + i;
             }
@@ -563,7 +563,7 @@ public:
         {
             if constexpr (verboseQ)
             {
-                wprint(ClassName() + "::Read: End of file not reached after buffer is filled.");
+                wprint(ClassName()+"::Read: End of file not reached after buffer is filled.");
             }
             return -2;
         }
@@ -578,14 +578,14 @@ public:
         
         if( s.fail() )
         {
-            eprint(ClassName() + "::ReadFromFile failed to load file " + filename.string() + "." );
+            eprint(ClassName()+"::ReadFromFile failed to load file " + filename.string() + "." );
             
             return -3;
         }
         
         if( s.bad() )
         {
-            eprint(ClassName() + "::ReadFromFile: non-recoverable error while loading file " + filename.string() + "." );
+            eprint(ClassName()+"::ReadFromFile: non-recoverable error while loading file " + filename.string() + "." );
             
             return -4;
         }

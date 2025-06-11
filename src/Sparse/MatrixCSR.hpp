@@ -522,7 +522,7 @@ namespace Tensors
             >
             MatrixCSR<Return_T,Int,LInt> Op() const
             {
-                std::string tag = ClassName() + "::Op"
+                std::string tag = ClassName()+"::Op"
                     + "<" + ToString(op)
                     + "," + TypeName<Return_T>
                     + ">";
@@ -1361,7 +1361,7 @@ namespace Tensors
                 const std::filesystem::path & file, const Int thread_count_
             )
             {
-                std::string tag = ClassName() + "::LoadFromMatrixMarket";
+                std::string tag = ClassName()+"::LoadFromMatrixMarket";
                 
                 TOOLS_PTIC(tag);
                 
@@ -1409,7 +1409,7 @@ namespace Tensors
 
             void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
             {
-                std::string tag = ClassName() + "::LoadFromMatrixMarket";
+                std::string tag = ClassName()+"::LoadFromMatrixMarket";
                 
                 TOOLS_PTIC(tag);
                 
@@ -1634,7 +1634,7 @@ namespace Tensors
             
             void WriteToMatrixMarket( cref<std::filesystem::path> file )
             {
-                std::string tag = ClassName() + "::WriteToMatrixMarket";
+                std::string tag = ClassName()+"::WriteToMatrixMarket";
                 
                 TOOLS_PTIC(tag);
                 

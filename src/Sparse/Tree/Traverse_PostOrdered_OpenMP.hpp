@@ -3,7 +3,7 @@ public:
     template<class Worker_T>
     void Traverse_PostOrdered_OpenMP( mref<std::vector<std::unique_ptr<Worker_T>>> workers )
     {
-        TOOLS_PTIC(ClassName() + "::Traverse_PostOrdered_OpenMP");
+        TOOLS_PTIC(ClassName()+"::Traverse_PostOrdered_OpenMP");
         
         Int root = Root();
         
@@ -23,7 +23,7 @@ public:
         
         #pragma omp taskwait
 
-        TOOLS_PTOC(ClassName() + "::Traverse_PostOrdered_OpenMP");
+        TOOLS_PTOC(ClassName()+"::Traverse_PostOrdered_OpenMP");
     }
 
     template<class Worker_T>

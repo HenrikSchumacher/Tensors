@@ -128,7 +128,7 @@ namespace Tensors
 #ifdef TENSORS_BOUND_CHECKS
             if( (ptr + 1) == a.Size() )
             {
-                eprint(ClassName() + "::Push: Stack overflow");
+                eprint(ClassName()+"::Push: Stack overflow");
             }
 #endif
             
@@ -140,7 +140,7 @@ namespace Tensors
 #ifdef TENSORS_BOUND_CHECKS
             if( (ptr + 1) == a.Size() )
             {
-                eprint(ClassName() + "::Push: Stack overflow");
+                eprint(ClassName()+"::Push: Stack overflow");
             }
 #endif
             a[++ptr] = std::move(value);
@@ -161,7 +161,7 @@ namespace Tensors
 #ifdef TENSORS_BOUND_CHECKS
             if( ptr <= Int(0) )
             {
-                eprint(ClassName() + "::Push: Stack underflow");
+                eprint(ClassName()+"::Push: Stack underflow");
                 return Entry_T();
             }
 #endif

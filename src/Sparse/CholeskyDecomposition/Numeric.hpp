@@ -88,7 +88,7 @@ public:
         
         if( !SN_numerically_goodQ )
         {
-            eprint(ClassName() + "::NumericFactorization_Multifrontal: Could not complete numeric factorization. Matrix is not (sufficiently) positive-definite.");
+            eprint(ClassName()+"::NumericFactorization_Multifrontal: Could not complete numeric factorization. Matrix is not (sufficiently) positive-definite.");
         }
         
         // We mark this as factorized in any case to not attempt the factorization again.
@@ -161,7 +161,7 @@ public:
         
         if( !SN_numerically_goodQ )
         {
-            eprint(ClassName() + "::NumericFactorization_LeftLooking: Could not complete numeric factorization. Matrix is not (sufficiently) positive-definite.");
+            eprint(ClassName()+"::NumericFactorization_LeftLooking: Could not complete numeric factorization. Matrix is not (sufficiently) positive-definite.");
         }
         
         // We mark this as factorized in any case to not attempt the factorization again.

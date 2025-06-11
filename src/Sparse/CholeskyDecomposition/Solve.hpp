@@ -21,7 +21,7 @@ public:
         const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
     )
     {
-        const std::string tag = ClassName() + "::Solve"
+        const std::string tag = ClassName()+"::Solve"
             + "<" + ToString(VarSize)
             + "," + ToString(parQ)
             + "," + ToString(op)
@@ -108,19 +108,19 @@ public:
         
         if ( B.Dim(0) < RowCount() )
         {
-            eprint( ClassName() + "::Solve: B.Dim(0) < RowCount(). Aborting");
+            eprint( ClassName()+"::Solve: B.Dim(0) < RowCount(). Aborting");
             return;
         }
         
         if ( X_out.Dim(0) < RowCount() )
         {
-            eprint( ClassName() + "::Solve: X.Dim(0) < RowCount(). Aborting");
+            eprint( ClassName()+"::Solve: X.Dim(0) < RowCount(). Aborting");
             return;
         }
         
         if ( B.Dim(1) != X_out.Dim(1) )
         {
-            eprint( ClassName() + "::Solve: B.Dim(1) != B.Dim(1).");
+            eprint( ClassName()+"::Solve: B.Dim(1) != B.Dim(1).");
             return;
         }
         
@@ -146,13 +146,13 @@ public:
         
         if ( B.Dim(0) < RowCount() )
         {
-            eprint( ClassName() + "::Solve: B.Dim(0) < RowCount(). Aborting");
+            eprint( ClassName()+"::Solve: B.Dim(0) < RowCount(). Aborting");
             return;
         }
         
         if ( X_out.Dim(0) < RowCount() )
         {
-            eprint( ClassName() + "::Solve: X.Dim(0) < RowCount(). Aborting");
+            eprint( ClassName()+"::Solve: X.Dim(0) < RowCount(). Aborting");
             return;
         }
         
@@ -178,7 +178,7 @@ public:
         const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
     )
     {
-        const std::string tag = ClassName() + "::UpperSolve"
+        const std::string tag = ClassName()+"::UpperSolve"
             + "<" + ToString(VarSize)
             + "," + ToString(parQ)
             + "," + ToString(op)
@@ -248,7 +248,7 @@ public:
         const Int nrhs_ = ((NRHS > VarSize) ? NRHS : ione )
     )
     {
-        const std::string tag = ClassName() + "::LowerSolve"
+        const std::string tag = ClassName()+"::LowerSolve"
             + "<" + ToString(VarSize)
             + "," + ToString(parQ)
             + "," + ToString(op)
@@ -343,7 +343,7 @@ protected:
         
         using Solver_T = UpperSolver<mult_rhsQ,Scal,Int,LInt>;
         
-        const std::string tag = ClassName() + "::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName()+"::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
         TOOLS_PTIC(tag);
         
@@ -390,7 +390,7 @@ protected:
         // Use locks if run in parallel.
         using Solver_T = LowerSolver<mult_rhsQ,( parQ == Parallel ? true : false),Scal,Int,LInt>;
         
-        const std::string tag = ClassName() + "::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName()+"::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
         TOOLS_PTIC(tag);
         
