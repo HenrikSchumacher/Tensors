@@ -1403,6 +1403,33 @@ namespace Tensors
                 return symmetricQ;
             }
             
+            
+            Tiny::VectorList_AoS<2,Int,LInt> NonzeroPositions_AoS() const
+            {
+                Tiny::VectorList_AoS<2,Int,LInt> edges ( NonzeroCount() );
+
+                RequireJobPtr();
+                
+                ParallelDo(
+                    [&edges,this]( const Int i )
+                    {
+                        const LInt k_begin = outer[i    ];
+                        const LInt k_end   = outer[i + 1];
+                        
+                        for( LInt k = k_begin; k < k_end; ++k )
+                        {
+                            const Int j = inner[k];
+                            
+                            edges(k,0) = i;
+                            edges(k,1) = j;
+                        }
+                    },
+                    job_ptr
+                );
+                
+                return edges;
+            }
+            
         public:
             
             static PatternCSR IdentityMatrix(
