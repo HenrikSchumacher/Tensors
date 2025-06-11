@@ -6,6 +6,14 @@
 
 #include "mathlink.h"
 
+#ifdef True
+    #undef True
+#endif
+
+#ifdef False
+    #undef False
+#endif
+
 // Unbelievable that they defined a function-like macro with the name `P`...
 #if defined( P )
     #undef P
@@ -22,6 +30,7 @@
 #if defined( Pi )
     #undef Pi
 #endif
+
 
 #include <string>
 #include <cstdint>

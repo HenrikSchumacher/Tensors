@@ -1,20 +1,27 @@
 #pragma once
 
+#include <type_traits>
+
+
 namespace mma
 {
     template<typename T>
-    constexpr bool HasTypeQ = (Tools::IntQ<T>
-        || (Tools::Scalar::FloatQ<T> && Tools::Scalar::RealQ<T>)
-        || (Tools::Scalar::FloatQ<T> && Tools::Scalar::ComplexQ<T>) );
+    constexpr bool HasTypeQ = (
+        std::is_integral<T>::value
+        || std::is_floating_point<T>::value
+        || std::is_same<T,std::complex<double>>::value
+        || std::is_same<T,std::complex<float>>::value
+    );
     
     template< typename T, class = typename std::enable_if_t<HasTypeQ<T>>>
     using Type = std::conditional_t<
-        Tools::IntQ<T>,
+        std::is_integral<T>::value,
         mint,
         std::conditional_t<
-            Tools::Scalar::FloatQ<T> && Tools::Scalar::RealQ<T>,
+            std::is_floating_point<T>::value,
             mreal,
-            std::complex<double>
+            std::complex<mreal>
         >
     >;
 } // namespace mma
+
