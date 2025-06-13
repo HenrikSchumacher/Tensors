@@ -156,6 +156,8 @@ void FromTriples(
                 std::move(from),
                 assembler_m, assembler_n, final_thread_count
             );
+            
+            assembler.SortInner();
         }
         else
         {
