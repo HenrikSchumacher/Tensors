@@ -1023,9 +1023,9 @@ namespace Tensors
             // Use own nonzero values.
             template<Int NRHS = VarSize, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
-                 const a_T alpha, cref<Tensor2<X_T,Int>> X,
-                 const b_T beta,  mref<Tensor2<Y_T,Int>> Y
-             ) const
+                const a_T alpha, cref<Tensor2<X_T,Int>> X,
+                const b_T beta,  mref<Tensor2<Y_T,Int>> Y
+            ) const
             {
                 if( X.Dim(0) == n && Y.Dim(0) == m && (X.Dim(1) == Y.Dim(1)) )
                 {
@@ -1086,10 +1086,10 @@ namespace Tensors
             
             template<Int NRHS = VarSize, typename T_ext, typename a_T, typename X_T, typename b_T, typename Y_T>
             void Dot(
-                 cref<Tensor1<T_ext,Int>> ext_values,
-                 const a_T alpha, cref<Tensor2<X_T,Int>> X,
-                 const b_T beta,  mref<Tensor2<Y_T,Int>> Y
-         ) const
+                cref<Tensor1<T_ext,Int>> ext_values,
+                const a_T alpha, cref<Tensor2<X_T,Int>> X,
+                const b_T beta,  mref<Tensor2<Y_T,Int>> Y
+            ) const
             {
                 if( X.Dim(0) == n && Y.Dim(0) == m && (X.Dim(1) == Y.Dim(1)) )
                 {

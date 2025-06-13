@@ -1,6 +1,6 @@
 public:
     
-template<typename ExtInt, typename ExtScal>
+template<typename ExtScal, typename ExtInt>
 void FromTriples(
     const ExtInt  * const * const idx,            // list of lists of i-indices
     const ExtInt  * const * const jdx,            // list of lists of j-indices
@@ -61,7 +61,7 @@ TOOLS_PDUMP(values.Size());
     
     if ( assemblerQ )
     {
-        from = Tensor1<Scal,LInt>( nnz );
+        from = Tensor1<LInt,LInt>( nnz );
     }
     
     mptr<LInt> A_o = outer.data();
