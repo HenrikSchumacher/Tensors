@@ -21,14 +21,20 @@ void FromTriples(
         + ")"
     );
     
-    LInt triple_count = 0;
+    TOOLS_DUMP(list_count);
     
-    TOOLS_PDUMP(triple_count);
+    Tensor1<LInt,Int> acc_entry_counts ( list_count + Int(1) );
+    acc_entry_counts[0] = LInt(0);
     
     for( Int i = 0; i < list_count; ++i )
     {
-        triple_count += entry_counts[i];
+        acc_entry_counts[i+1] = acc_entry_counts[i] + entry_counts[i];
     }
+    
+    LInt triple_count = acc_entry_counts.Last();
+    
+    TOOLS_PDUMP(triple_count);
+    TOOLS_DUMP(acc_entry_counts);
     
     Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
         idx, jdx, entry_counts, list_count, m, symmetrizeQ
@@ -49,6 +55,10 @@ void FromTriples(
     
     inner  = Tensor1<Int ,LInt>( nnz );
     values = Tensor1<Scal,LInt>( nnz );
+
+TOOLS_DUMP(outer.Size());
+TOOLS_DUMP(inner.Size());
+TOOLS_DUMP(values.Size());
     
     Tensor1<LInt,LInt> from;
     
@@ -63,7 +73,8 @@ void FromTriples(
     mptr<LInt> A_f = from.data();
     
     copy_buffer( counters.data(list_count-Int(1)), &A_o[1], m );
-    
+
+TOOLS_DUMP(outer.Last());
     // The counters array tells each thread where to write.
     // Since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
     
@@ -71,17 +82,14 @@ void FromTriples(
     
     // TODO: False sharing can be prevented by not distributing whole sublists of idx, jdx, val to the threads but by distributing the rows of the final matrix, instead. It's just a bit fiddly, though.
     
-    Tensor1<LInt,Int> acc_entry_counts ( list_count + Int(1) );
-    acc_entry_counts[0] = LInt(0);
-    
-    for( Int i = 0; i < list_count; ++i )
-    {
-        acc_entry_counts[i+1] = acc_entry_counts[i] + entry_counts[i];
-    }
-    
     // Writing reordered data.
     ParallelDo(
-        [=,&counters]( const Int thread )
+        [
+            assemblerQ,symmetrizeQ,A_o,A_i,A_v,A_f,
+            &counters,&entry_counts,&acc_entry_counts,&idx,&jdx,&val
+        ](
+            const Int thread
+        )
         {
             const LInt entry_count = entry_counts[thread];
             

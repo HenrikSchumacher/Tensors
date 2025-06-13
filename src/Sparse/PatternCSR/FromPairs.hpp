@@ -25,10 +25,10 @@ void FromPairs(
     {
         inner = Tensor1<Int,LInt>( nnz );
         
-        mptr<LInt> A_outer = outer.data();
-        mptr<Int>  A_inner = inner.data();
+        mptr<LInt> A_o = outer.data();
+        mptr<Int>  A_i = inner.data();
         
-        copy_buffer( counters.data(list_count-1), &A_outer[1], m );
+        copy_buffer( counters.data(list_count-1), &A_o[1], m );
         
         // writing the j-indices into sep_column_indices
         // the counters array tells each thread where to write
@@ -37,7 +37,7 @@ void FromPairs(
         if( symmetrizeQ != 0 )
         {
             ParallelDo(
-                [&]( const Int thread )
+                [A_o,A_i,&counters,&entry_counts,&idx,&jdx]( const Int thread )
                 {
                     const LInt entry_count = entry_counts[thread];
                     
@@ -52,14 +52,14 @@ void FromPairs(
                         const Int j = static_cast<Int>(thread_jdx[k]);
                         {
                             const LInt pos = --c[i];
-                            A_inner[pos] = j;
+                            A_i[pos] = j;
                         }
                         
                         c[j] -= static_cast<LInt>(i != j);
                         
                         const LInt pos = c[j];
                         
-                        A_inner[pos] = i;
+                        A_i[pos] = i;
                     }
                 },
                 list_count
@@ -68,22 +68,24 @@ void FromPairs(
         else
         {
             ParallelDo(
-                [&]( const Int thread )
+                [A_o,A_i,&counters,&entry_counts,&idx,&jdx](
+                    const Int thread
+                )
                 {
                     const LInt entry_count = entry_counts[thread];
                     
-                    cptr<Int> thread_idx = idx[thread];
-                    cptr<Int> thread_jdx = jdx[thread];
+                    cptr<Int> t_idx = idx[thread];
+                    cptr<Int> t_jdx = jdx[thread];
                     
                     mptr<LInt> c = counters.data(thread);
                     
                     for( LInt k = entry_count; k --> LInt(0); )
                     {
-                        const Int i = thread_idx[k];
-                        const Int j = thread_jdx[k];
+                        const Int i = t_idx[k];
+                        const Int j = t_jdx[k];
                         {
                             const LInt pos = --c[i];
-                            A_inner[pos] = j;
+                            A_i[pos] = j;
                         }
                     }
                 },
