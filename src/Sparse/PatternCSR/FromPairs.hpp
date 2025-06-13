@@ -37,7 +37,7 @@ void FromPairs(
         if( symmetrizeQ != 0 )
         {
             ParallelDo(
-                [A_o,A_i,&counters,&entry_counts,&idx,&jdx]( const Int thread )
+                [A_i,&counters,&entry_counts,&idx,&jdx]( const Int thread )
                 {
                     const LInt entry_count = entry_counts[thread];
                     
@@ -68,7 +68,7 @@ void FromPairs(
         else
         {
             ParallelDo(
-                [A_o,A_i,&counters,&entry_counts,&idx,&jdx](
+                [A_i,&counters,&entry_counts,&idx,&jdx](
                     const Int thread
                 )
                 {

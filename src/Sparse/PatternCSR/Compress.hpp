@@ -47,6 +47,14 @@ void Compress_impl(
         ParallelDo(
             [A_o,A_i,A_v,B_o,c_c,this]( const Int thread )
             {
+                if constexpr( !valuesQ )
+                {
+                    (void)A_v;
+                }
+                if constexpr( !assemblerQ )
+                {
+                    (void)c_c;
+                }
                 const Int i_begin = job_ptr[thread  ];
                 const Int i_end   = job_ptr[thread+1];
 
@@ -151,6 +159,16 @@ void Compress_impl(
         ParallelDo(
             [A_o,A_i,A_v,B_o,B_i,B_v,c_c,C_o,this]( const Int thread )
             {
+                if constexpr( !valuesQ )
+                {
+                    (void)A_v;
+                    (void)B_v;
+                }
+                if constexpr( !assemblerQ )
+                {
+                    (void)c_c;
+                    (void)C_o;
+                }
                 const  Int i_begin = job_ptr[thread  ];
                 const  Int i_end   = job_ptr[thread+1];
                 

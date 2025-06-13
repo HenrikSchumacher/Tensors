@@ -82,7 +82,7 @@ TOOLS_PDUMP(outer.Last());
     // Writing reordered data.
     ParallelDo(
         [
-            assemblerQ,symmetrizeQ,A_o,A_i,A_v,A_f,
+            assemblerQ,symmetrizeQ,A_i,A_v,A_f,
             &counters,&entry_counts,&acc_entry_counts,&idx,&jdx,&val
         ](
             const Int thread
