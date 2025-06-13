@@ -29,7 +29,6 @@
 #include "src/Sparse/PatternCSR.hpp"
 #include "src/Sparse/BinaryMatrixCSR.hpp"
 #include "src/Sparse/MatrixCSR.hpp"
-#include "src/Sparse/CompressorCSR.hpp"
 #include "src/Sparse/Dot.hpp"
 
 #include "src/Sparse/KernelMatrixCSR.hpp"
