@@ -46,8 +46,7 @@ int main()
     print("");
     
     
-//    Int grid_size = 1024 * 2 * 2;
-    Int grid_size = 1024;
+    Int grid_size = 1024 * 2 * 2;
     Real mass = 1;
     
     // Assembling graph Laplacian + mass matrix on grid of size grid_size x grid_size.
@@ -110,17 +109,23 @@ int main()
     Sparse::MatrixCSR<Scal,Int,LInt> A (
         triples,
         grid_size * grid_size, grid_size * grid_size,
-        thread_count, true, false
+        thread_count, true, false, true
     );
     toc("Assemble matrix");
     
     triples = TripleAggregator<Int,Int,Real,LInt>();
     
-    TOOLS_DUMP( A.ProvenInnerSortedQ() );
-    TOOLS_DUMP( A.ProvenDuplicatedFreeQ() );
-    TOOLS_DUMP( A.RowCount() );
-    TOOLS_DUMP( A.ColCount() );
-    TOOLS_DUMP( A.NonzeroCount() );
+    TOOLS_DUMP(A.ProvenInnerSortedQ());
+    TOOLS_DUMP(A.ProvenDuplicatedFreeQ());
+    TOOLS_DUMP(A.RowCount());
+    TOOLS_DUMP(A.ColCount());
+    TOOLS_DUMP(A.NonzeroCount());
+    
+//    auto A_dense = A.ToTensor2();
+//    valprint(
+//        "A_dense",
+//        ToString(A_dense,[](const double x){return ToStringFPGeneral(x);})
+//    );
     
 //    A.Outer().WriteToFile("/Users/Henrik/A_rp.txt");
 //    A.Inner().WriteToFile("/Users/Henrik/A_ci.txt");
@@ -164,7 +169,6 @@ int main()
 
     print("");
     print("");
-
     {
         
         
@@ -287,10 +291,11 @@ int main()
         A.Dot<NRHS>( -alpha_inv, X.data(), ldX, Scal(1), Y.data(), ldY, nrhs );
         TOOLS_DUMP(Y.MaxNorm());
     }
+#define TEST_ACCELERATE
     
+#ifdef TEST_ACCELERATE
     print("");
     print("");
-
     {
         SparseMatrixStructure pat = {
             A.RowCount(), A.ColCount(), A.Outer().data(), A.Inner().data(),
@@ -361,6 +366,7 @@ int main()
         A.Dot(Scal(-1), X, Scal(1), Y);
         TOOLS_DUMP(Y.MaxNorm());
     }
+#endif
     
     return 0;
 }

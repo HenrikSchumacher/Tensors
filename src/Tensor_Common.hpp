@@ -149,7 +149,7 @@ public:
         for( Size_T i = 0; i < ToSize_T(Rank()); ++i )
         {
 
-            different_dimsQ = different_dimsQ || std::cmp_not_equal( dims[i], other.Dimension(i) );
+            different_dimsQ = different_dimsQ || std::cmp_not_equal( dims[i], other.Dimensions()[i] );
         }
         
         if( different_dimsQ )
@@ -161,7 +161,7 @@ public:
             
             for( Size_T i = 0; i < ToSize_T(Rank()); ++i )
             {
-                dims[i] = int_cast<Int>(other.Dimension(i));
+                dims[i] = int_cast<Int>(other.Dimensions()[i]);
             }
             
             safe_free(a);

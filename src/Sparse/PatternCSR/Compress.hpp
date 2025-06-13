@@ -14,33 +14,38 @@ void Compress_impl(
         + "," + TypeName<T> + ">"
     );
     
+    TOOLS_PDUMP(A_outer.Size());
+    TOOLS_PDUMP(A_inner.Size());
+    TOOLS_PDUMP(A_values.Size());
+    
     if( proven_duplicate_freeQ ) { return; }
     
     if( !this->WellFormedQ() ) { return; }
     
     RequireJobPtr();
     SortInner();
-    
+
     Tensor1<LInt,Int> B_outer (A_outer.Size());
-    
+    B_outer[0] = LInt(0);
+
     Tensor1<LInt,LInt> contraction_counts;
     
     if constexpr ( assemblerQ )
     {
         contraction_counts = Tensor1<LInt,LInt>(A_inner.Size() + LInt(1));
     }
-    
+
     {
         cptr<LInt> A_o = A_outer.data();
         mptr< Int> A_i = A_inner.data();
         mptr<   T> A_v = A_values.data();
         
         mptr<LInt> B_o = B_outer.data();
-        mptr<LInt> c_counts = contraction_counts.data();
+        mptr<LInt> c_c = contraction_counts.data();
         
         
         ParallelDo(
-            [=,this]( const Int thread )
+            [A_o,A_i,A_v,B_o,c_c,this]( const Int thread )
             {
                 const Int i_begin = job_ptr[thread  ];
                 const Int i_end   = job_ptr[thread+1];
@@ -101,7 +106,7 @@ void Compress_impl(
                         
                         if constexpr ( assemblerQ )
                         {
-                            c_counts[k_new] = c_counter;
+                            c_c[k_new] = c_counter;
                         }
                         
                         ++k_new;
@@ -114,10 +119,9 @@ void Compress_impl(
             job_ptr.ThreadCount()
         );
     }
-    
+
     // This is the new array of outer indices.
     B_outer.Accumulate( thread_count );
-    
     const LInt nnz = B_outer[m];
     
     // Now we create new arrays for B_inner and B_values.
@@ -125,9 +129,11 @@ void Compress_impl(
     
     Tensor1<Int,LInt> B_inner  (nnz);
     Tensor1<  T,LInt> B_values ( valuesQ ? nnz : LInt(0) );
-    
+
     C_outer = Tensor1<LInt,LInt>(nnz + LInt(1));
     C_outer[0] = LInt(0);
+    
+    TOOLS_PDUMP(C_outer.Size());
     
     {
         cptr<LInt> A_o = A_outer.data();
@@ -138,11 +144,12 @@ void Compress_impl(
         mptr< Int> B_i = B_inner.data();
         mptr<   T> B_v = B_values.data();
         
+        mptr<LInt> c_c = contraction_counts.data();
         mptr<LInt> C_o = C_outer.data();
         
         //TODO: Parallelization might be a bad idea here.
         ParallelDo(
-            [=,this]( const Int thread )
+            [A_o,A_i,A_v,B_o,B_i,B_v,c_c,C_o,this]( const Int thread )
             {
                 const  Int i_begin = job_ptr[thread  ];
                 const  Int i_end   = job_ptr[thread+1];
@@ -159,13 +166,13 @@ void Compress_impl(
                 }
                 if constexpr( assemblerQ )
                 {
-                    copy_buffer( &contraction_counts[pos], &C_o[new_pos+LInt(1)], thread_nonzeroes );
+                    copy_buffer( &c_c[pos], &C_o[new_pos+LInt(1)], thread_nonzeroes );
                 }
             },
             job_ptr.ThreadCount()
         );
     }
-    
+
     swap(B_outer,A_outer);
     swap(B_inner,A_inner);
     if constexpr( valuesQ )
@@ -176,7 +183,7 @@ void Compress_impl(
     {
         C_outer.Accumulate(thread_count);
     }
-    
+
     job_ptr = JobPointers<Int>();
     job_ptr_initialized = false;
     proven_duplicate_freeQ = true;

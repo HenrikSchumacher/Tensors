@@ -23,6 +23,8 @@ void FromTriples(
     
     LInt triple_count = 0;
     
+    TOOLS_PDUMP(triple_count);
+    
     for( Int i = 0; i < list_count; ++i )
     {
         triple_count += entry_counts[i];
