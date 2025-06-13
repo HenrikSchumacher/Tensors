@@ -46,7 +46,8 @@ int main()
     print("");
     
     
-    Int grid_size = 1024 * 2 * 2;
+//    Int grid_size = 1024 * 2 * 2;
+    Int grid_size = 1024;
     Real mass = 1;
     
     // Assembling graph Laplacian + mass matrix on grid of size grid_size x grid_size.
@@ -115,6 +116,8 @@ int main()
     
     triples = TripleAggregator<Int,Int,Real,LInt>();
     
+    TOOLS_DUMP( A.ProvenInnerSortedQ() );
+    TOOLS_DUMP( A.ProvenDuplicatedFreeQ() );
     TOOLS_DUMP( A.RowCount() );
     TOOLS_DUMP( A.ColCount() );
     TOOLS_DUMP( A.NonzeroCount() );

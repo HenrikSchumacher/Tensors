@@ -382,7 +382,7 @@ namespace Tensors
                 return proven_inner_sortedQ;
             }
             
-            bool ProvenDuplicatedFree() const
+            bool ProvenDuplicatedFreeQ() const
             {
                 return proven_duplicate_freeQ;
             }

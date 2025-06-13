@@ -160,6 +160,8 @@ void FromTriples(
                 std::move(from),
                 inner.Size(), triple_count, final_thread_count
             );
+            
+            assembler.SortInner();
         }
         else
         {
