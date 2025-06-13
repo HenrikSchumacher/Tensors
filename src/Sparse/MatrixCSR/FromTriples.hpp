@@ -21,8 +21,6 @@ void FromTriples(
         + ")"
     );
     
-    TOOLS_DUMP(list_count);
-    
     Tensor1<LInt,Int> acc_entry_counts ( list_count + Int(1) );
     acc_entry_counts[0] = LInt(0);
     
@@ -34,7 +32,6 @@ void FromTriples(
     LInt triple_count = acc_entry_counts.Last();
     
     TOOLS_PDUMP(triple_count);
-    TOOLS_DUMP(acc_entry_counts);
     
     Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
         idx, jdx, entry_counts, list_count, m, symmetrizeQ
@@ -56,9 +53,9 @@ void FromTriples(
     inner  = Tensor1<Int ,LInt>( nnz );
     values = Tensor1<Scal,LInt>( nnz );
 
-TOOLS_DUMP(outer.Size());
-TOOLS_DUMP(inner.Size());
-TOOLS_DUMP(values.Size());
+TOOLS_PDUMP(outer.Size());
+TOOLS_PDUMP(inner.Size());
+TOOLS_PDUMP(values.Size());
     
     Tensor1<LInt,LInt> from;
     
@@ -74,7 +71,7 @@ TOOLS_DUMP(values.Size());
     
     copy_buffer( counters.data(list_count-Int(1)), &A_o[1], m );
 
-TOOLS_DUMP(outer.Last());
+TOOLS_PDUMP(outer.Last());
     // The counters array tells each thread where to write.
     // Since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
     
