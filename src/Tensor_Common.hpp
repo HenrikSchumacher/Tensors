@@ -23,7 +23,9 @@ public:
     // Destructor
     ~TENSOR_T()
     {
-//        logprint("Destuctor of "+ClassName()+" of size "+ToString(Size()) );
+#ifdef TENSORS_ALLOCATION_LOGS
+        logprint(ClassName() + " destructor (size = " + ToString(Size()) + ")");
+#endif
         safe_free(a);
     }
 
@@ -32,8 +34,9 @@ public:
     :   n    ( other.n    )
     ,   dims ( other.dims )
     {
-//        logprint("Copy of "+ClassName()+" of size "+ToString(other.Size()) );
-        
+#ifdef TENSORS_ALLOCATION_LOGS
+        logprint(ClassName() + " copy-constructor (size = " + ToString(other.Size()) + ")");
+#endif
         allocate();
         Read(other.a);
     }
@@ -41,19 +44,24 @@ public:
     // Copy-cast constructor
     template<typename S, typename J, Size_T alignment_>
     explicit TENSOR_T( const TENSOR_T<S,J,alignment_> & other )
-    :   n    ( other.n    )
-    ,   dims ( other.dims )
+    :   n    ( other.Size()    )
     {
         static_assert(IntQ<J>,"");
-//        logprint("Copy-cast of "+ClassName()+" of size "+ToString(other.Size()) );
         
+        std::copy_n( other.Dimensions(),other.Rank(),&dims[0]);
+        
+#ifdef TENSORS_ALLOCATION_LOGS
+        logprint(ClassName() + " copy-cast constuctor (size = " + ToString(other.Size()) + ")");
+#endif
         allocate();
-        Read(other.a);
+        Read(other.data());
     }
 
     inline friend void swap( TENSOR_T & A, TENSOR_T & B) noexcept
     {
-//        logprint(A.ClassName()+": swap");
+#ifdef TENSORS_ALLOCATION_LOGS
+        logprint(ClassName() + " swap (sizes = {" + ToString(A.Size()) + "," + ToString(B.Size()) + "})");
+#endif
         // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
         using std::swap;
         
@@ -75,7 +83,9 @@ public:
     TENSOR_T( TENSOR_T && other ) noexcept
     :   TENSOR_T()
     {
-//        logprint(other.ClassName()+": Move-constructor");
+#ifdef TENSORS_ALLOCATION_LOGS
+        logprint(ClassName() + " move-constructor (size = " + ToString(other.Size()) + ")");
+#endif
         swap(*this, other);
     }
 
@@ -83,7 +93,9 @@ public:
     /* Move-assignment operator */
     mref<TENSOR_T> operator=( TENSOR_T && other ) noexcept
     {
-//        logprint(other.ClassName()+": Move-assign");
+#ifdef TENSORS_ALLOCATION_LOGS
+        logprint(ClassName() + " move-assignment (size = " + ToString(other.Size()) + ")");
+#endif
         if( this == &other )
         {
             wprint("An object of type " + ClassName() + " has been move-assigned to itself.");
@@ -98,22 +110,64 @@ public:
     /* Copy-assignment operator */
     mref<TENSOR_T> operator=( const TENSOR_T & other )
     {
+#ifdef TENSORS_ALLOCATION_LOGS
+            logprint(ClassName() + " copy-assignment (size = " + ToString(other.Size()) + ")");
+#endif
         if( this != &other )
         {
-//            logprint(other.ClassName()+": Copy-assignment of size "+ToString( other.n ));
-            
             if( dims != other.dims )
             {
                 n    = other.n;
                 dims = other.dims;
                 
-//                logprint(other.ClassName()+": Reallocation of size "+ToString( n ) );
+#ifdef TENSORS_ALLOCATION_LOGS
+                logprint( ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
+#endif
                 
                 safe_free(a);
                 allocate();
             }
             Read( other.a );
         }
+        return *this;
+    }
+
+
+    /* Copy-cast-assignment operator */
+    template<
+        typename S, typename J, Size_T alignment_,
+        class = std::enable_if_t<(!SameQ<S,Scal>) || (!SameQ<J,Int>) || ( alignment_ != Alignment)>
+    >
+    mref<TENSOR_T> operator=( const TENSOR_T<S,J,alignment_> & other )
+    {
+
+#ifdef TENSORS_ALLOCATION_LOGS
+        logprint(ClassName() + " copy-cast-assignment (size = " + ToString(other.Size()) + ")");
+#endif
+        bool different_dimsQ = false;
+        
+        for( Int i = 0; i < Rank(); ++i )
+        {
+            different_dimsQ = different_dimsQ || (dims[i] != int_cast<Int>(other.Dimension(i)) );
+        }
+        
+        if( different_dimsQ )
+        {
+#ifdef TENSORS_ALLOCATION_LOGS
+            logprint(ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
+#endif
+            n    = other.Size();
+            
+            for( Int i = 0; i < Rank(); ++i )
+            {
+                dims[i] = int_cast<Int>(other.Dimension(i));
+            }
+            
+            safe_free(a);
+            allocate();
+        }
+        Read( other.data() );
+        
         return *this;
     }
 
@@ -553,7 +607,7 @@ public:
             {
                 if constexpr (verboseQ)
                 {
-                    eprint(ClassName()+"::Read: End of file reached before buffer is filled. Stopped after reading " + ToString(i) + " < " + ToString(n) + " entries.");
+                    eprint(ClassName() + "::Read: End of file reached before buffer is filled. Stopped after reading " + ToString(i) + " < " + ToString(n) + " entries.");
                 }
                 return 1 + i;
             }
@@ -563,7 +617,7 @@ public:
         {
             if constexpr (verboseQ)
             {
-                wprint(ClassName()+"::Read: End of file not reached after buffer is filled.");
+                wprint(ClassName() + "::Read: End of file not reached after buffer is filled.");
             }
             return -2;
         }
@@ -578,14 +632,14 @@ public:
         
         if( s.fail() )
         {
-            eprint(ClassName()+"::ReadFromFile failed to load file " + filename.string() + "." );
+            eprint(ClassName() + "::ReadFromFile failed to load file " + filename.string() + "." );
             
             return -3;
         }
         
         if( s.bad() )
         {
-            eprint(ClassName()+"::ReadFromFile: non-recoverable error while loading file " + filename.string() + "." );
+            eprint(ClassName() + "::ReadFromFile: non-recoverable error while loading file " + filename.string() + "." );
             
             return -4;
         }

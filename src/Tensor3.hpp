@@ -21,6 +21,9 @@ namespace Tensors
         :   n    { d0 * d1 * d2 }
         ,   dims { d0, d1, d2 }
         {
+#ifdef TENSORS_ALLOCATION_LOGS
+            logprint(ClassName() + " constructor (size = " + ToString(Size()) + ")");
+#endif
             allocate();
         }
         
