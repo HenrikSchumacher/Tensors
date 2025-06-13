@@ -52,6 +52,12 @@ namespace Tensors
             // Copy constructor
             MatrixList_AoS(const MatrixList_AoS & other ) = default;
             
+            // Copy-cast constructor
+            template<typename T, typename I, Size_T align>
+            MatrixList_AoS( const MatrixList_AoS<m,n,T,I,align> & other )
+            :   Base_T( other )
+            {}
+            
             // Copy assignment
             MatrixList_AoS & operator=(MatrixList_AoS other) noexcept
             {

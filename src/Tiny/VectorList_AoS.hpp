@@ -48,6 +48,11 @@ namespace Tensors
             // Copy constructor
             VectorList_AoS(const VectorList_AoS & other ) = default;
             
+            // Copy-cast constructor
+            template<typename T, typename I, Size_T align>
+            VectorList_AoS( const VectorList_AoS<n,T,I,align> & other )
+            :   Base_T( other )
+            {}
             
             friend void swap(VectorList_AoS & A, VectorList_AoS & B ) noexcept
             {
