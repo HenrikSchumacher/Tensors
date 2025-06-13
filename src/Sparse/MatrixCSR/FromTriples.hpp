@@ -21,6 +21,13 @@ void FromTriples(
         + ")"
     );
     
+    LInt triple_count = 0;
+    
+    for( Int i = 0; i < list_count; ++i )
+    {
+        triple_count += entry_counts[i];
+    }
+    
     Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
         idx, jdx, entry_counts, list_count, m, symmetrizeQ
     );
@@ -147,14 +154,11 @@ void FromTriples(
             this->template Compress_impl<true,true>(
                 outer, inner, values, C_outer
             );
-            
-            const LInt assembler_m   = inner.Size();
-            const LInt assembler_n   = from.Size();
 
             assembler = Assembler_T(
                 std::move(C_outer),
                 std::move(from),
-                assembler_m, assembler_n, final_thread_count
+                inner.Size(), triple_count, final_thread_count
             );
         }
         else
@@ -172,14 +176,11 @@ void FromTriples(
         {
             // TODO: In this case the `assembler` is a mere permutation matrix.
             // TODO: It would be more efficient to use the `Permutation` class instead.
-            const LInt assembler_nnz = inner.Size();
-            const LInt assembler_m   = inner.Size();
-            const LInt assembler_n   = from.Size();
 
             assembler = Assembler_T(
-                iota<LInt,LInt>(assembler_nnz + LInt(1)),
+                iota<LInt,LInt>(inner.Size() + LInt(1)),
                 std::move(from),
-                assembler_m, assembler_n, final_thread_count
+                inner.Size(), triple_count, final_thread_count
             );
         }
         
