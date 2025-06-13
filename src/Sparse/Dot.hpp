@@ -33,7 +33,6 @@ namespace Tensors
                 
                 if( (n <= 0) ||(u_nnz <= 0) || (v_nnz <= 0) )
                 {
-                    
                     return result;
                 }
                 
@@ -167,116 +166,114 @@ namespace Tensors
              
                 wprint( "Sparse::Details::Dot_NN: Implemented not tested, yet.");
                 
-                if( A.WellFormedQ() )
-                {
-                    auto job_ptr = A.JobPtr();
-                    
-                    const Int thread_count = A.ThreadCount();
-                    
-                    const Int m = A.RowCount();
-                    
-                    Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
-                    
-                    // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
-                    // https://en.wikipedia.org/wiki/Counting_sort
-                    
-                    
-                    cptr<A_LInt> A_outer = A.Outer().data();
-                    cptr<A_Int > A_inner = A.Inner().data();
-                    cptr<A_Scal> A_value = A.Value().data();
-                    
-                    cptr<A_LInt> B_outer = B.Outer().data();
-                    cptr<A_Int > B_inner = B.Inner().data();
-                    cptr<A_Scal> B_value = B.Value().data();
-                    
-                    ParallelDo(
-                        [=,&job_ptr,&counters]( const Int thread )
-                        {
-                            const A_Int i_begin = job_ptr[thread  ];
-                            const A_Int i_end   = job_ptr[thread+1];
-                            
-                            mptr<LInt> c = counters.data(thread);
-                            
-                            for( A_Int i = i_begin; i < i_end; ++i )
-                            {
-                                LInt c_i = 0;
-                                
-                                const A_LInt jj_begin = A_outer[i  ];
-                                const A_LInt jj_end   = A_outer[i+1];
-                                
-                                for( A_LInt jj = jj_begin; jj < jj_end; ++jj )
-                                {
-                                    const A_Int j = A_inner[jj];
-                                    
-                                    c_i += (B_outer[j+1] - B_outer[j]);
-                                }
-                                
-                                c[i] = c_i;
-                            }
-                        },
-                        thread_count
-                    );
-                    
-                    AccumulateAssemblyCounters_Parallel( counters );
-                    
-                    const LInt nnz = counters.data(thread_count-1)[m-1];
-                    
-                    Sparse::MatrixCSR<Scal,Int,LInt> C ( m, B.ColCount(), nnz, thread_count );
-                    
-                    copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
-
-                    mptr< Int> C_inner  = C.Inner().data();
-                    mptr<Scal> C_values = C.Value().data();
-                    
-                    ParallelDo(
-                        [=,&job_ptr,&counters]( const Int thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            mptr<LInt> c = counters.data(thread);
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
-                            {
-                                const A_LInt jj_begin = A_outer[i  ];
-                                const A_LInt jj_end   = A_outer[i+1];
-                                
-                                for( A_LInt jj = jj_begin; jj < jj_end; ++jj )
-                                {
-                                    const A_Int j = A_inner[jj];
-                                    
-                                    const B_LInt kk_begin = B_outer[j  ];
-                                    const B_LInt kk_end   = B_outer[j+1];
-                                    
-                                    for( B_LInt kk = kk_end; kk --> kk_begin; )
-                                    {
-                                        const Int  k   = B_inner[kk];
-                                        const LInt pos = --c[i];
-                                        
-                                        C_inner [pos] = k;
-                                        C_values[pos] = Scalar::Op<opA>(A_value[jj]) 
-                                                        *
-                                                        Scalar::Op<opB>(B_value[kk]);
-                                    }
-                                }
-                            }
-                        },
-                        thread_count
-                    );
-                    
-                    // Finished expansion phase (counting sort).
-                    
-                    // Finally we row-sort inner and compress duplicates in inner and values.
-                    C.Compress();
-                    
-                    return C;
-                }
-                else
+                if( !A.WellFormedQ() )
                 {
                     eprint("Sparse::Details::Dot_NN: Matrix A is not well-formed.");
                     
                     return Sparse::MatrixCSR<Scal,Int,LInt>();
                 }
+                
+                auto job_ptr = A.JobPtr();
+                
+                const Int thread_count = A.ThreadCount();
+                
+                const Int m = A.RowCount();
+                
+                Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
+                
+                // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
+                // https://en.wikipedia.org/wiki/Counting_sort
+                
+                cptr<A_LInt> A_o = A.Outer().data();
+                cptr<A_Int > A_i = A.Inner().data();
+                cptr<A_Scal> A_v = A.Value().data();
+                
+                cptr<A_LInt> B_o = B.Outer().data();
+                cptr<A_Int > B_i = B.Inner().data();
+                cptr<A_Scal> B_v = B.Value().data();
+                
+                ParallelDo(
+                    [=,&job_ptr,&counters]( const Int thread )
+                    {
+                        const A_Int i_begin = job_ptr[thread  ];
+                        const A_Int i_end   = job_ptr[thread+1];
+                        
+                        mptr<LInt> c = counters.data(thread);
+                        
+                        for( A_Int i = i_begin; i < i_end; ++i )
+                        {
+                            LInt c_i = 0;
+                            
+                            const A_LInt jj_begin = A_o[i  ];
+                            const A_LInt jj_end   = A_o[i+1];
+                            
+                            for( A_LInt jj = jj_begin; jj < jj_end; ++jj )
+                            {
+                                const A_Int j = A_i[jj];
+                                
+                                c_i += (B_o[j+1] - B_o[j]);
+                            }
+                            
+                            c[i] = c_i;
+                        }
+                    },
+                    thread_count
+                );
+                
+                AccumulateAssemblyCounters_Parallel( counters );
+                
+                const LInt nnz = counters.data(thread_count-1)[m-1];
+                
+                Sparse::MatrixCSR<Scal,Int,LInt> C ( m, B.ColCount(), nnz, thread_count );
+                
+                copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
+
+                mptr< Int> C_inner  = C.Inner().data();
+                mptr<Scal> C_values = C.Value().data();
+                
+                ParallelDo(
+                    [=,&job_ptr,&counters]( const Int thread )
+                    {
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        mptr<LInt> c = counters.data(thread);
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            const A_LInt jj_begin = A_o[i  ];
+                            const A_LInt jj_end   = A_o[i+1];
+                            
+                            for( A_LInt jj = jj_begin; jj < jj_end; ++jj )
+                            {
+                                const A_Int j = A_i[jj];
+                                
+                                const B_LInt kk_begin = B_o[j  ];
+                                const B_LInt kk_end   = B_o[j+1];
+                                
+                                for( B_LInt kk = kk_end; kk --> kk_begin; )
+                                {
+                                    const Int  k   = B_i[kk];
+                                    const LInt pos = --c[i];
+                                    
+                                    C_inner [pos] = k;
+                                    C_values[pos] = Scalar::Op<opA>(A_v[jj])
+                                                    *
+                                                    Scalar::Op<opB>(B_v[kk]);
+                                }
+                            }
+                        }
+                    },
+                    thread_count
+                );
+                
+                // Finished expansion phase (counting sort).
+                
+                // Finally we row-sort inner and compress duplicates in inner and values.
+                C.Compress();
+                
+                return C;
+                
             }
             
         }  // namespace Details

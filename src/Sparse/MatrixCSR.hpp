@@ -19,6 +19,8 @@ namespace Tensors
             using Int  = Int_;
             using LInt = LInt_;
             
+            using Assembler_T = Sparse::BinaryMatrixCSR<LInt,LInt>;
+            
         protected:
             
             using Base_T::m;
@@ -29,13 +31,15 @@ namespace Tensors
             using Base_T::job_ptr;
             using Base_T::job_ptr_initialized;
             using Base_T::diag_ptr;
-            using Base_T::inner_sorted;
-            using Base_T::duplicate_free;
+            using Base_T::proven_inner_sortedQ;
+            using Base_T::proven_duplicate_freeQ;
             using Base_T::upper_triangular_job_ptr;
             using Base_T::lower_triangular_job_ptr;
             
             // I have to make this mutable so that SortInner and Compress can have the const attribute.
             mutable Tensor1<Scal,LInt> values;
+            
+            Assembler_T assembler;
             
         public:
             
@@ -144,8 +148,9 @@ namespace Tensors
             
             // Copy constructor
             MatrixCSR( const MatrixCSR & other ) noexcept
-            :   Base_T  ( other        )
-            ,   values  ( other.values )
+            :   Base_T    ( other           )
+            ,   values    ( other.values    )
+            ,   assembler ( other.assembler )
             {
                 logprint("Copy of "+ ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nnz = "+ToString(NonzeroCount()));
             }
@@ -157,6 +162,7 @@ namespace Tensors
                 
                 swap( static_cast<Base_T&>(A), static_cast<Base_T&>(B) );
                 swap( A.values,                B.values                );
+                swap( A.assembler,             B.assembler             );
             }
             
             // (Copy-)assignment operator
@@ -178,22 +184,26 @@ namespace Tensors
             
             // We do not need a move-assignment operator, because we use the copy-swap idiom!
             
-            template<typename ExtInt, typename ExtScal>
+            template<typename ExtScal, typename ExtInt>
             MatrixCSR(
                   const ExtInt  * const * const idx,
                   const ExtInt  * const * const jdx,
                   const ExtScal * const * const val,
-                  const LInt   * const entry_counts,
+                  const LInt    * const entry_counts,
                   const Int list_count,
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
                   const bool compressQ = true,
                   const int  symmetrizeQ = 0
-                  )
+            )
             :   Base_T ( m_, n_, list_count )
             {
-                FromTriples( idx, jdx, val, entry_counts, list_count, final_thread_count, compressQ, symmetrizeQ );
+                FromTriples(
+                    idx, jdx, val,
+                    entry_counts, list_count, final_thread_count,
+                    compressQ, symmetrizeQ, false
+                );
             }
             
             
@@ -207,7 +217,8 @@ namespace Tensors
                 const Int n_,
                 const Int thread_count,
                 const bool compressQ   = true,
-                const int  symmetrizeQ = 0
+                const int  symmetrizeQ = 0,
+                const bool assemblerQ = false
             )
             :   Base_T ( m_, n_, thread_count )
             {
@@ -218,8 +229,8 @@ namespace Tensors
                 
                 for( Int thread = 0; thread < thread_count; ++thread )
                 {
-                    const LInt begin = JobPointer<LInt>(nnz_, thread_count, thread    );
-                    const LInt end   = JobPointer<LInt>(nnz_, thread_count, thread + 1);
+                    const LInt begin = JobPointer<LInt>(nnz_,thread_count,thread);
+                    const LInt end   = JobPointer<LInt>(nnz_,thread_count,thread + 1);
                     
                     idx[thread] = &i[begin];
                     jdx[thread] = &j[begin];
@@ -227,7 +238,7 @@ namespace Tensors
                     counts[thread] = end-begin;
                 }
                 
-                FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compressQ, symmetrizeQ );
+                FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compressQ, symmetrizeQ, assemblerQ );
             }
             
             template<typename ExtInt, typename ExtScal>
@@ -238,9 +249,9 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compressQ = true,
+                  const bool compressQ   = true,
                   const int  symmetrizeQ = 0
-                  )
+            )
             :   Base_T ( m_, n_, int_cast<Int>(idx.size()) )
             {
                 Int list_count = int_cast<Int>(idx.size());
@@ -260,7 +271,7 @@ namespace Tensors
                 FromTriples(
                     i.data(), j.data(), a.data(),
                     entry_counts.data(), list_count,
-                    final_thread_count, compressQ, symmetrizeQ
+                    final_thread_count, compressQ, symmetrizeQ, false
                 );
             }
             
@@ -270,9 +281,9 @@ namespace Tensors
                   const Int m_,
                   const Int n_,
                   const Int final_thread_count,
-                  const bool compressQ = true,
+                  const bool compressQ   = true,
                   const int  symmetrizeQ = 0
-                  )
+            )
             :   Base_T ( m_, n_, int_cast<Int>(triples.size()) )
             {
                 Int list_count = int_cast<Int>(triples.size());
@@ -292,19 +303,21 @@ namespace Tensors
                 }
                 
                 FromTriples(
-                    i.data(), j.data(), a.data(), entry_counts.data(),
-                    list_count, final_thread_count, compressQ, symmetrizeQ
+                    i.data(), j.data(), a.data(),
+                    entry_counts.data(), list_count, final_thread_count,
+                    compressQ, symmetrizeQ, false
                 );
             }
             
             template<typename ExtInt, typename ExtScal>
             MatrixCSR(
-                  cref<TripleAggregator<ExtInt,ExtInt,ExtScal,LInt>> triples,
-                  const Int m_,
-                  const Int n_,
-                  const Int final_thread_count,
-                  const bool compressQ = true,
-                  const int  symmetrizeQ = 0
+                cref<TripleAggregator<ExtInt,ExtInt,ExtScal,LInt>> triples,
+                const Int m_,
+                const Int n_,
+                const Int final_thread_count,
+                const bool compressQ   = true,
+                const int  symmetrizeQ = 0,
+                const bool assemblerQ  = false
             )
             :   Base_T ( m_, n_, Int(1) )
             {
@@ -316,144 +329,12 @@ namespace Tensors
 
                 FromTriples(
                     &i,&j,&a,&entry_counts,
-                    ExtInt(1),final_thread_count,compressQ,symmetrizeQ
+                    Int(1), final_thread_count,
+                    compressQ, symmetrizeQ, assemblerQ
                 );
             }
             
             virtual ~MatrixCSR() override = default;
-            
-        protected:
-            
-            template<typename ExtInt, typename ExtScal>
-            void FromTriples(
-                const ExtInt  * const * const idx,            // list of lists of i-indices
-                const ExtInt  * const * const jdx,            // list of lists of j-indices
-                const ExtScal * const * const val,            // list of lists of nonzero values
-                const LInt            * const entry_counts,   // list of lengths of the lists above
-                const Int list_count,                         // number of lists
-                const Int final_thread_count,                 // number of threads that the matrix shall use
-                const bool compressQ = true,                  // whether to do additive assembly or not
-                const int  symmetrizeQ = 0                    // whether to symmetrize the matrix
-            )
-            {
-                // Parallel sparse matrix assembly using counting sort.
-                // Counting sort employs list_count threads (one per list).
-                // Sorting of column indices and compression step employ final_thread_count threads.
-                
-                // k-th i-list goes from idx[k] to &idx[k][entry_counts[k]] (last one excluded)
-                // k-th j-list goes from jdx[k] to &jdx[k][entry_counts[k]] (last one excluded)
-                // and k goes from 0 to list_count (last one excluded)
-                
-                TOOLS_PTIC(ClassName()+"::FromTriples");
-                
-                if( symmetrizeQ )
-                {
-                    pprint(ClassName()+"::FromTriples symmetrize");
-                }
-                else
-                {
-                    pprint(ClassName()+"::FromTriples no symmetrize");
-                }
-                
-                if( compressQ )
-                {
-                    pprint(ClassName()+"::FromTriples compressQ");
-                }
-                else
-                {
-                    pprint(ClassName()+"::FromTriples no compressQ");
-                }
-                
-                Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
-                    idx, jdx, entry_counts, list_count, m, symmetrizeQ
-                );
-                
-                if( list_count <= 0 )
-                {
-                    eprint(ClassName()+"::FromTriples: list_count <= 0");
-                }
-                
-                const LInt nnz = counters[list_count-1][m-1];
-                
-                if( nnz > LInt(0) )
-                {
-                    inner  = Tensor1<Int ,LInt>( nnz );
-                    values = Tensor1<Scal,LInt>( nnz );
-                    
-                    mptr<LInt> A_outer = outer.data();
-                    mptr<Int>  A_inner = inner.data();
-                    mptr<Scal> A_value = values.data();
-                    
-                    copy_buffer( counters.data(list_count-1), &A_outer[1], m );
-                    
-                    // The counters array tells each thread where to write.
-                    // Since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
-                    
-                    // TODO: The threads write quite chaotically to inner_ and value_. This might cause a lot of false sharing. Nonetheless, it seems to scale quite well -- at least among 4 threads!
-                    
-                    // TODO: False sharing can be prevented by not distributing whole sublists of idx, jdx, val to the threads but by distributing the rows of the final matrix, instead. It's just a bit fiddly, though.
-                    
-                    // Writing reordered data.
-                    ParallelDo(
-                        [=,&counters]( const Int thread )
-                        {
-                            const LInt entry_count = entry_counts[thread];
-                            
-                            cptr<ExtInt>  thread_idx = idx[thread];
-                            cptr<ExtInt>  thread_jdx = jdx[thread];
-                            cptr<ExtScal> thread_val = val[thread];
-                            
-                            mptr<LInt> c = counters.data(thread);
-                            
-                            for( LInt k = entry_count; k --> LInt(0); )
-                            {
-                                const Int  i = static_cast<Int>(thread_idx[k]);
-                                const Int  j = static_cast<Int>(thread_jdx[k]);
-                                const Scal a = static_cast<Scal>(thread_val[k]);
-                                
-                                {
-                                    const LInt pos  = --c[i];
-                                    A_inner[pos] = j;
-                                    A_value[pos] = a;
-                                }
-                                
-                                // Write the transposed matrix (diagonal excluded) in the same go in order to symmetrize the matrix. (Typical use case: Only the upper triangular part of a symmetric matrix is stored in idx, jdx, and val, but we need the full, symmetrized matrix.)
-                                if( (symmetrizeQ != 0) && (i != j) )
-                                {
-                                    const LInt pos  = --c[j];
-                                    A_inner[pos] = i;
-                                    A_value[pos] = a;
-                                }
-                            }
-                        },
-                        list_count
-                    );
-                    
-                    // Now all j-indices and nonzero values lie in the correct row (as indexed by outer).
-
-                    // From here on, we may use as many threads as we want.
-                    SetThreadCount( final_thread_count );
-                    
-                    // We have to sort b_inner to be compatible with the CSR format.
-                    SortInner();
-                    
-                    // Deal with duplicated {i,j}-pairs (additive assembly).
-                    if( compressQ )
-                    {
-                        Compress();
-                    }
-                    else
-                    {
-                        duplicate_free = true; // We have to rely on the user here...
-                    }
-                }
-                else
-                {
-                    SetThreadCount( final_thread_count );
-                }
-                
-                TOOLS_PTOC(ClassName()+"::FromTriples");
-            }
             
         public:
             
@@ -507,6 +388,11 @@ namespace Tensors
                 return ( pos.found ) ? values[pos.index] : static_cast<Scal>(0);
             }
             
+            cref<Assembler_T> Assembler() const
+            {
+                return assembler;
+            }
+            
         public:
             
             template<Tools::Op op,
@@ -527,11 +413,10 @@ namespace Tensors
                     + "," + TypeName<Return_T>
                     + ">";
                 
-                TOOLS_PTIC(tag);
+                TOOLS_PTIMER(timer,tag);
                 
                 if( !this->WellFormedQ() )
                 {
-                    TOOLS_PTOC(tag);
                     return MatrixCSR<Return_T,Int,LInt> ( m, n, 0, 1 );
                 }
                 
@@ -541,19 +426,16 @@ namespace Tensors
                     (Scalar::RealQ<Scal> && ( (op == Op::Conj) || (op == Op::Re) ) )
                 )
                 {
-                    TOOLS_PTOC(tag);
                     return MatrixCSR<Return_T,Int,LInt>( *this );
                 }
                 else if constexpr ( Scalar::RealQ<Scal> && (op == Op::Im) )
                 {
                     if constexpr ( NotTransposedQ(op) )
                     {
-                        TOOLS_PTOC(tag);
                         return MatrixCSR<Return_T,Int,LInt> ( m, n, 0, 1 );
                     }
                     else
                     {
-                        TOOLS_PTOC(tag);
                         return MatrixCSR<Return_T,Int,LInt> ( n, m, 0, 1 );
                     }
                 }
@@ -564,17 +446,17 @@ namespace Tensors
                     B.Outer().Read( outer.data(), thread_count );
                     B.Inner().Read( inner.data(), thread_count );
                     
-                    mptr<Return_T> B_val = B.Values();
+                    cptr<Return_T> A_v = values;
+                    mptr<Return_T> B_v = B.Values();
                     
                     ParallelDo(
-                        [B_val,this]( LInt k )
+                        [B_v,this]( LInt k )
                         {
-                            B_val[k] = Scalar::Op<op>( values[k] );
+                            B_v[k] = Scalar::Op<op>(A_v[k]);
                         },
                         outer[m], thread_count
                     );
                     
-                    TOOLS_PTOC(tag);
                     return B;
                 }
                 else // if constexpr ( TransposedQ(op) )
@@ -594,24 +476,23 @@ namespace Tensors
                             const Int i_end   = job_ptr[thread+1];
                             
                             mptr<LInt> c = counters.data(thread);
-                            mptr<Int > B_inner  = B.Inner().data();
-                            mptr<Scal> B_values = B.Value().data();
-                            cptr<LInt> A_outer  = Outer().data();
-                            cptr<Int > A_inner  = Inner().data();
-                            cptr<Scal> A_value  = Value().data();
+                            mptr<Int > B_i = B.Inner().data();
+                            mptr<Scal> B_v = B.Value().data();
+                            cptr<LInt> A_o = Outer().data();
+                            cptr<Int > A_i = Inner().data();
+                            cptr<Scal> A_v = Value().data();
                             
                             for( Int i = i_begin; i < i_end; ++i )
                             {
-                                const LInt k_begin = A_outer[i  ];
-                                const LInt k_end   = A_outer[i+1];
+                                const LInt k_begin = A_o[i  ];
+                                const LInt k_end   = A_o[i+1];
                                 
                                 for( LInt k = k_end; k --> k_begin; )
                                 {
-                                    const Int j = A_inner[k];
+                                    const Int j = A_i[k];
                                     const LInt pos = --c[j];
-                                    B_inner [pos] = i;
-                                    
-                                    B_values[pos] = Scalar::Op<op>(A_value[k]);
+                                    B_i [pos] = i;
+                                    B_v[pos] = Scalar::Op<op>(A_v[k]);
                                 }
                             }
                         },
@@ -623,7 +504,6 @@ namespace Tensors
                     // We only have to care about the correct ordering of inner indices and values.
                     B.SortInner();
 
-                    TOOLS_PTOC(tag);
                     return B;
                 }
                     
@@ -645,189 +525,78 @@ namespace Tensors
             template<typename A_T = Scal>
             void WriteDense( mptr<A_T> A, const Int ldA ) const
             {
-                return this->WriteDense_( values.data(), A, ldA );
+                return this->WriteDenseValues( values.data(), A, ldA );
             }
             
             // Supply an external list of values.
             template<typename A_T = Scal>
             Tensor2<A_T,LInt> ToTensor2() const
             {
-                return this->template ToTensor2_<A_T>( values.data() );
+                return this->template ToTensor2WithValues<A_T>( values.data() );
             }
             
             
             void SortInner() const override
-            {   
-                if( !inner_sorted )
-                {
-                    TOOLS_PTIC(ClassName()+"::SortInner");
-
-                    if( this->WellFormedQ() )
-                    {
-                        RequireJobPtr();
-                        
-                        ParallelDo(
-                            [=,this]( const Int thread )
-                            {
-                                TwoArraySort<Int,Scal,LInt> S;
-                                
-                                const Int i_begin = job_ptr[thread  ];
-                                const Int i_end   = job_ptr[thread+1];
-                                
-                                for( Int i = i_begin; i < i_end; ++i )
-                                {
-                                    const LInt begin = outer[i  ];
-                                    const LInt end   = outer[i+1];
-                                    S( inner.data(begin), values.data(begin), end - begin );
-                                }
-                            },
-                            thread_count
-                        );
-                        
-                        inner_sorted = true;
-                    }
-                    
-                    TOOLS_PTOC(ClassName()+"::SortInner");
-                }
+            {
+                TOOLS_PTIMER(timer,ClassName()+"::SortInner");
+                
+                this->template SortInner_impl<false>(
+                    outer.data(), inner.data(), values.data(), nullptr
+                );
             }
             
-            
-            void Compress() const override
+            virtual void Compress() const override
             {
                 // Removes duplicate {i,j}-pairs by adding their corresponding nonzero values.
                 
-                if( !duplicate_free )
+                TOOLS_PTIMER(timer,ClassName()+"::Compress");
+
+                Tensor1<LInt,LInt> C_outer;
+                
+                this->template Compress_impl<true,false>(
+                    outer,inner,values,C_outer
+                );
+            }
+            
+        public:
+            
+            std::tuple<
+                Tensor1<LInt,Int>, Tensor1<Int,LInt>, Tensor1<Scal,LInt>,
+                Int, Int
+            > Disband()
+            {
+                Tensor1<LInt, Int> outer_     = std::move(outer);
+                Tensor1< Int,LInt> inner_     = std::move(inner);
+                Tensor1<Scal,LInt> values_    = std::move(values);
+                Assembler_T        assembler_ = std::move(assembler);
+                Int m_ = m;
+                Int n_ = n;
+                
+                *this = MatrixCSR();
+                
+                return { outer_, inner_, values_, assembler_, m_, n_ };
+            }
+            
+            template<typename ExtScal>
+            void Reassemble( cptr<ExtScal> unassemble_values )
+            {
+                TOOLS_PTIMER(timer,ClassName() + "::Reassemble");
+                
+                if( (assembler.Dimension(0) == LInt(0)) && (assembler.Dimension(1) == LInt(0))
+                    )
                 {
-                    TOOLS_PTIC(ClassName()+"::Compress");
-                    
-                    if( this->WellFormedQ() )
-                    {
-                        RequireJobPtr();
-                        SortInner();
-                        
-                        Tensor1<LInt,Int> new_outer (outer.Size(),0);
-                        
-                        cptr<LInt> A_outer     = outer.data();
-                        mptr<Int > A_inner     = inner.data();
-                        mptr<Scal> A_value     = values.data();
-                        mptr<LInt> new_A_outer = new_outer.data();
-                        
-                        ParallelDo(
-                            [=,this]( const Int thread )
-                            {
-                                const Int i_begin = job_ptr[thread  ];
-                                const Int i_end   = job_ptr[thread+1];
-      
-                                // To where we write.
-                                LInt jj_new        = A_outer[i_begin];
-                                LInt next_jj_begin = A_outer[i_begin];
-                                
-                                for( Int i = i_begin; i < i_end; ++i )
-                                {
-                                    const LInt jj_begin = next_jj_begin;
-                                    const LInt jj_end   = A_outer[i+1];
-                                    
-                                    // Memorize the next entry in outer because outer will be overwritten
-                                    next_jj_begin = jj_end;
-                                    
-                                    LInt row_nonzero_counter = 0;
-                                    
-                                    // From where we read.
-                                    LInt jj = jj_begin;
-                                    
-                                    while( jj< jj_end )
-                                    {
-                                        Int j = A_inner [jj];
-                                        Scal a = A_value[jj];
-                                        
-                                        {
-//                                            if( jj > jj_new )
-//                                            {
-//                                                A_inner[jj] = 0;
-//                                                A_value[jj] = 0;
-//                                            }
-                                            
-                                            ++jj;
-                                        }
-                                        
-                                        while( (jj < jj_end) && (j == A_inner[jj]) )
-                                        {
-                                            a+= A_value[jj];
-                                            
-//                                            if( jj > jj_new )
-//                                            {
-//                                                A_inner[jj] = 0;
-//                                                A_value[jj] = 0;
-//                                            }
-                                            
-                                            ++jj;
-                                        }
-                                        
-                                        A_inner[jj_new] = j;
-                                        A_value[jj_new] = a;
-                                        
-                                        ++jj_new;
-                                        ++row_nonzero_counter;
-                                    }
-                                    
-                                    new_A_outer[i+1] = row_nonzero_counter;
-                                }
-                            },
-                            thread_count
-                        );
-                        
-                        // This is the new array of outer indices.
-                        new_outer.Accumulate( thread_count );
-                        
-                        const LInt nnz = new_outer[m];
-                        
-                        // Now we create a new arrays for new_inner and new_values.
-                        // Then we copy inner and values to it, eliminating the gaps in between.
-                        
-                        Tensor1< Int,LInt> new_inner  (nnz);
-                        Tensor1<Scal,LInt> new_values (nnz);
-                        
-                        mptr<Int > new_A_inner = new_inner.data();
-                        mptr<Scal> new_A_value = new_values.data();
-                        
-                        //TODO: Parallelization might be a bad idea here.
-                        ParallelDo(
-                            [=,this]( const Int thread )
-                            {
-                                const  Int i_begin = job_ptr[thread  ];
-                                const  Int i_end   = job_ptr[thread+1];
-                                
-                                const LInt new_pos = new_A_outer[i_begin];
-                                const LInt     pos =     A_outer[i_begin];
-                                
-                                const LInt thread_nonzeroes = new_A_outer[i_end] - new_A_outer[i_begin];
-                                
-                                // Starting position of thread in inner list.
-                                
-                                copy_buffer( &A_inner[pos], &new_A_inner[new_pos],  thread_nonzeroes );
-                                
-                                copy_buffer( &A_value[pos], &new_A_value[new_pos], thread_nonzeroes );
-                            },
-                            thread_count
-                        );
-                        
-                        swap( new_outer,  outer  );
-                        swap( new_inner,  inner  );
-                        swap( new_values, values );
-                        
-                        job_ptr = JobPointers<Int>();
-                        job_ptr_initialized = false;
-                        duplicate_free = true;
-                    }
-                    
-                    TOOLS_PTOC(ClassName()+"::Compress");
+                    eprint(ClassName() + "::Reassemble" + "<" + TypeName<ExtScal> + ">: No assembler avaible. You have to construct the matrix with another constructor that allows to set the option assemblerQ = true.");
                 }
+                
+                assembler.Dot(
+                    Scal(1), unassemble_values, Scal(0), values.data()
+                );
             }
             
         
-//#########################################################################################
+//############################################################
 //####          Permute
-//#########################################################################################
+//############################################################
             
         public:
             
@@ -867,6 +636,7 @@ namespace Tensors
                     }
                 }
                 else
+                {
                     if( q == nullptr )
                     {
                         return PermuteRows(p);
@@ -875,6 +645,7 @@ namespace Tensors
                     {
                         return PermuteRowsCols(p,q,sortQ);
                     }
+                }
             }
             
         protected:
@@ -884,17 +655,17 @@ namespace Tensors
                 MatrixCSR B( RowCount(), ColCount(), NonzeroCount(), ThreadCount() );
                 
                 {
-                    cptr<LInt> A_outer = outer.data();
-                    mptr<LInt> B_outer = B.Outer().data();
+                    cptr<LInt> A_o = outer.data();
+                    mptr<LInt> B_o = B.Outer().data();
                     
-                    B_outer[0] = 0;
+                    B_o[0] = 0;
                     
                     ParallelDo(
                         [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
                             
-                            B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
+                            B_o[i+1] = A_o[p_i+1] - A_o[p_i];
                         },
                         m,
                         ThreadCount()
@@ -906,28 +677,26 @@ namespace Tensors
                 {
                     auto & B_job_ptr = B.JobPtr();
                     
-                    cptr<LInt> A_outer  = outer.data();
-                    cptr<Int > A_inner  = inner.data();
-                    mptr<Scal> A_value = values.data();
+                    cptr<LInt> A_o = outer.data();
+                    cptr<Int > A_i = inner.data();
+                    mptr<Scal> A_v = values.data();
                     
-                    cptr<LInt> B_outer  = B.Outer().data();
-                    mptr<Int > B_inner  = B.Inner().data();
-                    mptr<Scal> B_values = B.Values().data();
+                    cptr<LInt> B_o = B.Outer().data();
+                    mptr<Int > B_i = B.Inner().data();
+                    mptr<Scal> B_v = B.Values().data();
                     
                     ParallelDo(
                         [=,this,&B]( const Int i )
                         {
-                            const Int p_i = p[i];
-                            const LInt A_begin = A_outer[p_i  ];
-                            const LInt A_end   = A_outer[p_i+1];
+                            const Int  p_i = p[i];
+                            const LInt A_begin = A_o[p_i  ];
+                            const LInt A_end   = A_o[p_i+1];
                             
-                            const LInt B_begin = B_outer[i  ];
-                            //                        const LInt B_end   = B_outer[i+1];
-                            //                        const LInt B_end   = B_outer[i+1];
+                            const LInt B_begin = B_o[i  ];
                             
-                            copy_buffer( &A_inner [A_begin], &A_inner [A_end], &B_inner [B_begin] );
-                            copy_buffer( &A_value[A_begin], &A_value[A_end], &B_values[B_begin] );
-                            B.inner_sorted = true;
+                            copy_buffer(&A_i[A_begin],&A_i[A_end],&B_i[B_begin]);
+                            copy_buffer(&A_v[A_begin],&A_v[A_end],&B_v[B_begin]);
+                            B.proven_inner_sortedQ = true;
                         },
                         B_job_ptr
                     );
@@ -960,35 +729,35 @@ namespace Tensors
                     {
                         TwoArraySort<Int,Scal,LInt> S;
                         
-//                        cptr<LInt> A_outer  = outer.data();
-                        cptr<Int > A_inner  = inner.data();
-                        cptr<Scal> A_value = values.data();
+//                        cptr<LInt> A_o = outer.data();
+                        cptr<Int > A_i = inner.data();
+                        cptr<Scal> A_v = values.data();
                         
-                        cptr<LInt> B_outer  = B.Outer().data();
-                        mptr<Int > B_inner  = B.Inner().data();
-                        mptr<Scal> B_values = B.Values().data();
+                        cptr<LInt> B_o = B.Outer().data();
+                        mptr<Int > B_i = B.Inner().data();
+                        mptr<Scal> B_v = B.Values().data();
                         
                         const Int i_begin = B.JobPtr()[thread  ];
                         const Int i_end   = B.JobPtr()[thread+1];
                         
                         for( Int i = i_begin; i < i_end; ++i )
                         {
-                            const LInt B_begin = B_outer[i  ];
-                            const LInt B_end   = B_outer[i+1];;
+                            const LInt B_begin = B_o[i  ];
+                            const LInt B_end   = B_o[i+1];;
                             
                             for( LInt k = B_begin; k < B_begin; ++k )
                             {
-                                B_inner[B_begin] = q_inv[A_inner[B_begin]];
+                                B_i[B_begin] = q_inv[A_i[B_begin]];
                             }
                             
                             const LInt k_max = B_end - B_begin;
                             
-                            copy_buffer( &A_value[B_begin], &B_values[B_begin], k_max );
+                            copy_buffer(&A_v[B_begin],&B_v[B_begin],k_max);
                             
                             if( sortQ )
                             {
-                                S( &B_inner[B_begin], &B_values[B_begin], k_max );
-                                B.inner_sorted = true;
+                                S(&B_i[B_begin],&B_v[B_begin],k_max);
+                                B.proven_inner_sortedQ = true;
                             }
                         }
                     },
@@ -1015,17 +784,16 @@ namespace Tensors
                 );
                 
                 {
-                    cptr<LInt> A_outer = outer.data();
-                    mptr<LInt> B_outer = B.Outer().data();
+                    cptr<LInt> A_o = outer.data();
+                    mptr<LInt> B_o = B.Outer().data();
                     
-                    B_outer[0] = 0;
+                    B_o[0] = 0;
                     
                     ParallelDo(
                         [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
-                            
-                            B_outer[i+1] = A_outer[p_i+1] - A_outer[p_i];
+                            B_o[i+1] = A_o[p_i+1] - A_o[p_i];
                         },
                         m,
                         ThreadCount()
@@ -1037,13 +805,13 @@ namespace Tensors
                 ParallelDo(
                     [=,this,&B]( const Int thread )
                     {
-                        cptr<LInt> A_outer  = outer.data();
-                        cptr<Int > A_inner  = inner.data();
-                        cptr<Scal> A_value = values.data();
+                        cptr<LInt> A_o = outer.data();
+                        cptr<Int > A_i = inner.data();
+                        cptr<Scal> A_v = values.data();
                         
-                        cptr<LInt> B_outer  = B.Outer().data();
-                        mptr<Int > B_inner  = B.Inner().data();
-                        mptr<Scal> B_values = B.Values().data();
+                        cptr<LInt> B_o = B.Outer().data();
+                        mptr<Int > B_i = B.Inner().data();
+                        mptr<Scal> B_v = B.Values().data();
                         
                         TwoArraySort<Int,Scal,LInt> S;
                         
@@ -1053,25 +821,24 @@ namespace Tensors
                         for( Int i = i_begin; i < i_end; ++i )
                         {
                             const Int p_i = p[i];
-                            const LInt A_begin = A_outer[p_i  ];
-                            //                        const LInt A_end   = A_outer[p_i+1];
+                            const LInt A_begin = A_o[p_i  ];
                             
-                            const LInt B_begin = B_outer[i  ];
-                            const LInt B_end   = B_outer[i+1];
+                            const LInt B_begin = B_o[i  ];
+                            const LInt B_end   = B_o[i+1];
                             
                             const LInt k_max = B_end - B_begin;
                             
                             for( LInt k = 0; k < k_max; ++k )
                             {
-                                B_inner[B_begin+k] = q_inv[A_inner[A_begin+k]];
+                                B_i[B_begin+k] = q_inv[A_i[A_begin+k]];
                             }
                             
-                            copy_buffer( &A_value[A_begin], &B_values[B_begin], k_max );
+                            copy_buffer(&A_v[A_begin],&B_v[B_begin],k_max);
                             
                             if( sortQ )
                             {
-                                S( &B_inner[B_begin], &B_values[B_begin], k_max );
-                                B.inner_sorted = true;
+                                S(&B_i[B_begin],&B_v[B_begin],k_max );
+                                B.proven_inner_sortedQ = true;
                             }
                         }
                     },
@@ -1085,120 +852,113 @@ namespace Tensors
             
             MatrixCSR Dot( const MatrixCSR & B ) const
             {
-                TOOLS_PTIC(ClassName()+"::Dot");
+                TOOLS_PTIMER(timer,ClassName()+"::Dot");
                 
-                if( this->WellFormedQ() )
-                {
-                    RequireJobPtr();
-                    
-                    Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
-                    
-                    // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
-                    // https://en.wikipedia.org/wiki/Counting_sort
-                    
-                    ParallelDo(
-                        [=,this,&B,&counters]( const Int thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            mptr<LInt> c = counters.data(thread);
-                            
-                            cptr<LInt> A_outer  = Outer().data();
-                            cptr<Int>  A_inner  = Inner().data();
-                            
-                            cptr<LInt> B_outer  = B.Outer().data();
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
-                            {
-                                LInt c_i = 0;
-                                
-                                const LInt jj_begin = A_outer[i  ];
-                                const LInt jj_end   = A_outer[i+1];
-                                
-                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
-                                {
-                                    const Int j = A_inner[jj];
-                                    
-                                    c_i += (B_outer[j+1] - B_outer[j]);
-                                }
-                                
-                                c[i] = c_i;
-                            }
-                        },
-                        thread_count
-                    );
-                    
-                    AccumulateAssemblyCounters_Parallel( counters );
-                    
-                    const LInt nnz = counters.data(thread_count-1)[m-1];
-                    
-                    MatrixCSR C ( m, B.ColCount(), nnz, thread_count );
-                    
-                    copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
-                    
-                    ParallelDo(
-                        [&,this]( const Int thread )
-                        {
-                            const Int i_begin   = job_ptr[thread  ];
-                            const Int i_end     = job_ptr[thread+1];
-                            
-                            mptr<LInt> c        = counters.data(thread);
-                            
-                            cptr<LInt> A_outer  = Outer().data();
-                            cptr< Int> A_inner  = Inner().data();
-                            cptr<Scal> A_value  = Value().data();
-                            
-                            cptr<LInt> B_outer  = B.Outer().data();
-                            cptr< Int> B_inner  = B.Inner().data();
-                            cptr<Scal> B_values = B.Value().data();
-                            
-                            mptr< Int> C_inner  = C.Inner().data();
-                            mptr<Scal> C_values = C.Value().data();
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
-                            {
-                                const LInt jj_begin = A_outer[i  ];
-                                const LInt jj_end   = A_outer[i+1];
-                                
-                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
-                                {
-                                    const Int j = A_inner[jj];
-                                    
-                                    const LInt kk_begin = B_outer[j  ];
-                                    const LInt kk_end   = B_outer[j+1];
-                                    
-                                    for( LInt kk = kk_end; kk --> kk_begin; )
-                                    {
-                                        const Int k = B_inner[kk];
-                                        const LInt pos = --c[i];
-                                        
-                                        C_inner [pos] = k;
-                                        C_values[pos] = A_value[jj] * B_values[kk];
-                                    }
-                                }
-                            }
-                        },
-                        thread_count
-                    );
-                    
-                    // Finished expansion phase (counting sort).
-                    
-                    // Finally we row-sort inner and compressQ duplicates in inner and values.
-                    C.Compress();
-                    
-                    TOOLS_PTOC(ClassName()+"::Dot");
-                    
-                    return C;
-                }
-                else
+                if( !this->WellFormedQ() )
                 {
                     eprint(ClassName()+"::Dot: Matrix is not well-formed.");
-                    
-                    TOOLS_PTOC(ClassName()+"::Dot");
-                    
                     return MatrixCSR ();
                 }
+
+                RequireJobPtr();
+                
+                Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
+                
+                // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
+                // https://en.wikipedia.org/wiki/Counting_sort
+                
+                ParallelDo(
+                    [=,this,&B,&counters]( const Int thread )
+                    {
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        mptr<LInt> c = counters.data(thread);
+                        
+                        cptr<LInt> A_o  = Outer().data();
+                        cptr<Int>  A_i  = Inner().data();
+                        
+                        cptr<LInt> B_o  = B.Outer().data();
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            LInt c_i = 0;
+                            
+                            const LInt jj_begin = A_o[i  ];
+                            const LInt jj_end   = A_o[i+1];
+                            
+                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            {
+                                const Int j = A_i[jj];
+                                
+                                c_i += (B_o[j+1] - B_o[j]);
+                            }
+                            
+                            c[i] = c_i;
+                        }
+                    },
+                    thread_count
+                );
+                
+                AccumulateAssemblyCounters_Parallel( counters );
+                
+                const LInt nnz = counters.data(thread_count-1)[m-1];
+                
+                MatrixCSR C ( m, B.ColCount(), nnz, thread_count );
+                
+                copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
+                
+                ParallelDo(
+                    [&,this]( const Int thread )
+                    {
+                        const Int i_begin   = job_ptr[thread  ];
+                        const Int i_end     = job_ptr[thread+1];
+                        
+                        mptr<LInt> c        = counters.data(thread);
+                        
+                        cptr<LInt> A_o  = Outer().data();
+                        cptr< Int> A_i  = Inner().data();
+                        cptr<Scal> A_v  = Value().data();
+                        
+                        cptr<LInt> B_o  = B.Outer().data();
+                        cptr< Int> B_i  = B.Inner().data();
+                        cptr<Scal> B_v = B.Value().data();
+                        
+                        mptr< Int> C_inner  = C.Inner().data();
+                        mptr<Scal> C_values = C.Value().data();
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            const LInt jj_begin = A_o[i  ];
+                            const LInt jj_end   = A_o[i+1];
+                            
+                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            {
+                                const Int j = A_i[jj];
+                                
+                                const LInt kk_begin = B_o[j  ];
+                                const LInt kk_end   = B_o[j+1];
+                                
+                                for( LInt kk = kk_end; kk --> kk_begin; )
+                                {
+                                    const Int k = B_i[kk];
+                                    const LInt pos = --c[i];
+                                    
+                                    C_inner [pos] = k;
+                                    C_values[pos] = A_v[jj] * B_v[kk];
+                                }
+                            }
+                        }
+                    },
+                    thread_count
+                );
+                
+                // Finished expansion phase (counting sort).
+                
+                // Finally we row-sort inner and compressQ duplicates in inner and values.
+                C.Compress();
+                
+                return C;
             }
             
             Sparse::BinaryMatrixCSR<Int,LInt> DotBinary( const MatrixCSR & B ) const
@@ -1215,9 +975,9 @@ namespace Tensors
             
         public:
             
-//###################################################################################
+//############################################################
 //####          Matrix Multiplication
-//###################################################################################        
+//############################################################
             
             // Use own nonzero values.
             template<Int NRHS = VarSize, typename a_T, typename X_T, typename b_T, typename Y_T>
@@ -1406,364 +1166,6 @@ namespace Tensors
                 
                 swap( A, *this);
             }
-
-            void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
-            {
-                std::string tag = ClassName()+"::LoadFromMatrixMarket";
-                
-                TOOLS_PTIC(tag);
-                
-                std::ifstream  s ( file );
-        
-                if( !s.good() )
-                {
-                    eprint(tag + ": File " + file.string() + " not found. Aborting.");
-                    
-                    TOOLS_PTOC(tag);
-                    
-                    return;
-                }
-                
-                logprint("Loading from file " + file.string() );
-                
-                std::string token;
-                
-                s >> token;
-                
-                std::transform(token.begin(), token.end(), token.begin(), ::tolower);
-                if( token != "%%matrixmarket")
-                {
-                    eprint( tag + ": Not a MatrixMarket file. Doing nothing.");
-                    TOOLS_DUMP( token );
-                    TOOLS_LOGDUMP( token );
-                    TOOLS_PTOC(tag);
-                    return;
-                }
-                
-                s >> token;
-                std::transform(token.begin(), token.end(), token.begin(), ::tolower);
-                
-                if( token != "matrix")
-                {
-                    eprint( tag + ": Second word in file is not \"matrix\". Doing nothing.");
-                    TOOLS_DUMP( token );
-                    TOOLS_PTOC(tag);
-                    return;
-                }
-                
-                s >> token;
-                std::transform(token.begin(), token.end(), token.begin(), ::tolower);
-                if( token != "coordinate")
-                {
-                    eprint( tag + ": Third word in file is not \"coordinate\". Stored matrix is a dense matrix and shall better not be loaded. Doing nothing.");
-                    TOOLS_DUMP( token );
-                    TOOLS_PTOC(tag);
-                    return;
-                }
-                
-                std::string scalar_type;
-                s >> scalar_type;
-                std::transform(scalar_type.begin(), scalar_type.end(), scalar_type.begin(), ::tolower);
-                if constexpr ( Scalar::RealQ<Scal> )
-                {
-                    if( scalar_type == "complex")
-                    {
-                        eprint( tag + ": Scalar type requested is " + TypeName<Scal> + ", but type in file is \"complex\". Doing nothing.");
-                        TOOLS_PTOC(tag);
-                        return;
-                    }
-                }
-                
-                if constexpr ( IntQ<Scal> )
-                {
-                    if( (scalar_type != "integer") && (scalar_type != "pattern") )
-                    {
-                        eprint( tag + ": Scalar type requested is " + TypeName<Scal> + ", but type in file is \"" + scalar_type + "\". Doing nothin.");
-                        TOOLS_PTOC(tag);
-                        return;
-                    }
-                }
-                
-                std::string symmetry;
-                s >> symmetry;
-                std::transform(symmetry.begin(), symmetry.end(), symmetry.begin(), ::tolower);
-                
-                bool symmetrizeQ = false;
-                
-                if( symmetry == "skew-symmetric")
-                {
-                    eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". The current implementation cannot handle this. Doing nothing.");
-                    TOOLS_PTOC(tag);
-                    return;
-                }
-                else if ( symmetry == "hermitian")
-                {
-                    eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". The current implementation cannot handle this. Doing nothing.");
-                    TOOLS_PTOC(tag);
-                    return;
-                }
-                else if ( symmetry == "symmetric")
-                {
-                    symmetrizeQ = true;
-                }
-                else if ( symmetry == "general")
-                {
-                    symmetrizeQ = false;
-                }
-                else
-                {
-                    eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". This is invalid for the MatrixMarket format. Doing nothing.");
-                    TOOLS_DUMP( token );
-                    TOOLS_PTOC(tag);
-                    return;
-                }
-                    
-
-                s.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-                
-                while( std::getline( s, token ) && (token[0] == '%') )
-                {}
-                
-                std::stringstream line (token);
-                
-                Int row_count = 0;
-                line >> row_count;
-                TOOLS_LOGDUMP(row_count);
-                
-                Int col_count = 0;
-                line >> col_count;
-                TOOLS_LOGDUMP(col_count);
-                
-                LInt nonzero_count = 0;
-                line >> nonzero_count;
-                TOOLS_LOGDUMP(nonzero_count);
-
-                if(row_count < Int(0))
-                {
-                    eprint( tag + ": Invalid row_count." );
-                    
-                    TOOLS_PTOC(tag);
-                    
-                    return;
-                }
-                
-                if(col_count < Int(0))
-                {
-                    eprint( tag + ": Invalid col_count." );
-                    
-                    TOOLS_PTOC(tag);
-                    
-                    return;
-                }
-                
-                if(nonzero_count < LInt(0))
-                {
-                    eprint( tag + ": Invalid nonzero_count." );
-                    
-                    TOOLS_PTOC(tag);
-                    
-                    return;
-                }
-                
-                Tensor1<Int, LInt> i_list ( nonzero_count );
-                Tensor1<Int, LInt> j_list ( nonzero_count );
-                Tensor1<Scal,LInt> a_list ( nonzero_count );
-                
-                // TODO: We could also use std::from_chars -- once that is broadly available with floating point support an all compilers.
-                
-                if ( scalar_type == "pattern" )
-                {
-                    for( LInt k = 0; k < nonzero_count; ++k )
-                    {
-                        Int i;
-                        Int j;
-                        s >> i;
-                        i_list[k] = i - Int(1);
-                        s >> j;
-                        j_list[k] = j - Int(1);
-                        
-                        a_list[k] = Scal(1);
-                    }
-                }
-                else if ( scalar_type != "complex" )
-                {
-                    for( LInt k = 0; k < nonzero_count; ++k )
-                    {
-                        Int i;
-                        Int j;
-                        
-                        s >> i;
-                        i_list[k] = i - Int(1);
-                        s >> j;
-                        j_list[k] = j - Int(1);
-                        
-                        s >> a_list[k];
-                    }
-                }
-                else if constexpr (Scalar::ComplexQ<Scal>)
-                {
-                    for( LInt k = 0; k < nonzero_count; ++k )
-                    {
-                        Int i;
-                        Int j;
-                        s >> i;
-                        i_list[k] = i - Int(1);
-                        s >> j;
-                        j_list[k] = j - Int(1);
-                        
-                        Scalar::Real<Scal> re;
-                        Scalar::Real<Scal> im;
-                        s >> re;
-                        s >> im;
-                        
-                        a_list[k] = Scal(re,im);
-                    }
-                }
-                
-                MatrixCSR<Scal,Int,LInt> A (
-                    nonzero_count,
-                    i_list.data(), j_list.data(), a_list.data(),
-                    row_count, col_count, thread_count_, true, symmetrizeQ
-                );
-                
-                swap( *this, A );
-                
-                TOOLS_PTOC(tag);
-            }
-            
-            
-            void WriteToMatrixMarket( cref<std::filesystem::path> file )
-            {
-                std::string tag = ClassName()+"::WriteToMatrixMarket";
-                
-                TOOLS_PTIC(tag);
-                
-                if( !WellFormedQ() )
-                {
-                    eprint( tag + ": Matrix is not well-formed. Doing nothing." );
-                    
-                    TOOLS_PTOC(tag);
-                    
-                    return;
-                }
-                
-                std::ofstream  s ( file );
-                
-                s << "%%MatrixMarket" << " " << "matrix" << " " << "coordinate" << " ";
-                
-                if constexpr ( Scalar::ComplexQ<Scal> )
-                {
-//                    s << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
-                    s << "complex";
-                }
-                else if constexpr ( IntQ<Scal> )
-                {
-                    s << "integer";
-                }
-                else /*if constexpr ( Scalar::RealQ<Scal> )*/
-                {
-//                    s << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scal>::digits10 + 1 );
-                    s << "real";
-                }
-                
-                s << " " << "general" << "\n";
-                
-                
-                s << RowCount() << " " << ColCount() << " " << NonzeroCount() << "\n";
-                
-                const Int s_thread_count = 4;
-                
-                std::vector<std::string> thread_strings ( s_thread_count );
-                
-                auto s_job_ptr = JobPointers<Int>( m, outer.data(), s_thread_count, false );
-                
-                ParallelDo(
-                    [&,this]( const Int thread )
-                    {
-                        const Int i_begin = s_job_ptr[thread+0];
-                        const Int i_end   = s_job_ptr[thread+1];
-   
-                        char line[128];
-                        
-                        std::string s_loc;
-                        
-                        // TODO: Use std::to_chars .
-                        
-                        for( Int i = i_begin; i < i_end; ++i )
-                        {
-                            const LInt k_begin = outer[i    ];
-                            const LInt k_end   = outer[i + 1];
-        
-                            for( LInt k = k_begin; k < k_end; ++k )
-                            {
-                                const Int  j = inner[k];
-                                const Scal a = values[k];
-                                
-                                if constexpr ( IntQ<Scal> )
-                                {
-                                    std::snprintf(line, 128, "%d %d %d\n", i+1,j+1,a);
-                                }
-                                else if constexpr ( std::is_same_v<Scal,Complex64> )
-                                {
-                                    std::snprintf(line, 128, "%d %d %.17E %.17E\n", i+1,j+1,Re(a),Im(a));
-                                }
-                                else if constexpr ( std::is_same_v<Scal,Complex32> )
-                                {
-                                    std::snprintf(line, 128, "%d %d %.7E %.7E\n", i+1,j+1,Re(a),Im(a));
-                                }
-                                else if constexpr ( std::is_same_v<Scal,Real64> )
-                                {
-                                    std::snprintf(line, 128, "%d %d %.17E\n", i+1,j+1,a);
-                                }
-                                else if constexpr ( std::is_same_v<Scal,Real32> )
-                                {
-                                    std::snprintf(line, 128, "%d %d %.7E\n", i+1,j+1,a);
-                                }
-                                
-                                s_loc += line;
-                            }
-                        }
-
-                        thread_strings[thread] = std::move(s_loc);
-                    },
-                    s_thread_count
-                );
-                
-                ParallelDo(
-                    [&,this]( const Int thread )
-                    {
-                        thread_strings[2 * thread] += thread_strings[2 * thread + 2];
-                    },
-                    2
-                );
-                
-                s << thread_strings[0];
-                s << thread_strings[2];
-                
-//                for( Int i = 0; i < m; ++i )
-//                {
-//                    const LInt k_begin = outer[i    ];
-//                    const LInt k_end   = outer[i + 1];
-//
-//                    for( LInt k = k_begin; k < k_end; ++k )
-//                    {
-//                        const Int j = inner[k];
-//
-//                        if constexpr ( Scalar::ComplexQ<Scal> )
-//                        {
-//                            const Scal a = values[k];
-//
-//                            s << (i+1) << " " << (j+1) << " " << Re(a) << " " << Im(a) << "\n";
-//                        }
-//                        else
-//                        {
-//                            s << (i+1) << " " << (j+1) << " " << values[k] << "\n";
-//                        }
-//                    }
-//                }
-   
-                TOOLS_PTOC(tag);
-            }
             
             
             bool SymmetricQ() const
@@ -1831,14 +1233,24 @@ namespace Tensors
                 + " Value().Size()  = " + ToString(Value().Size()) + "\n"
                 + "\n==== "+ClassName()+" Stats ====\n\n";
             }
+
+
+#include "MatrixCSR/SortInner.hpp"
+#include "MatrixCSR/FromTriples.hpp"
+#include "MatrixCSR/MatrixMarket.hpp"
+            
+        public:
             
             static std::string ClassName()
             {
-                return std::string("Sparse::MatrixCSR<")+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
+                return std::string("Sparse::MatrixCSR")
+                    + "<" + TypeName<Scal>
+                    + "," + TypeName<Int>
+                    + "," + TypeName<LInt>
+                    + ">";
             }
             
         }; // MatrixCSR
-    
     
         
     } // namespace Sparse

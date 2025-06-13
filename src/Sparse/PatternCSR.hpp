@@ -48,8 +48,8 @@ namespace Tensors
             mutable JobPointers<Int> lower_triangular_job_ptr;
             
             
-            mutable bool inner_sorted         = false;
-            mutable bool duplicate_free       = false;
+            mutable bool proven_inner_sortedQ         = false;
+            mutable bool proven_duplicate_freeQ       = false;
             
             mutable bool diag_ptr_initialized = false;
             mutable bool job_ptr_initialized  = false;
@@ -78,7 +78,7 @@ namespace Tensors
                 static_assert(IntQ<I_0>,"");
                 static_assert(IntQ<I_1>,"");
                 static_assert(IntQ<I_3>,"");
-                Init();
+                outer[0] = LInt(0);
             }
             
             template<typename I_0, typename I_1, typename I_2, typename I_3>
@@ -98,7 +98,7 @@ namespace Tensors
                 static_assert(IntQ<I_1>,"");
                 static_assert(IntQ<I_2>,"");
                 static_assert(IntQ<I_3>,"");
-                Init();
+                outer[0] = LInt(0);
             }
             
             template<typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
@@ -170,8 +170,8 @@ namespace Tensors
             ,   m               ( other.m               )
             ,   n               ( other.n               )
             ,   thread_count    ( other.thread_count    )
-            ,   inner_sorted    ( other.inner_sorted    )
-            ,   duplicate_free  ( other.duplicate_free  )
+            ,   proven_inner_sortedQ    ( other.proven_inner_sortedQ    )
+            ,   proven_duplicate_freeQ  ( other.proven_duplicate_freeQ  )
             ,   symmetric       ( other.symmetric       )
             {
                 logprint("Copy of " + ClassName() + " of size {" + ToString(other.m) + ", " + ToString(other.n) + "}, nnz = " + ToString(other.NonzeroCount()));
@@ -187,8 +187,8 @@ namespace Tensors
                 swap( A.m,              B.m              );
                 swap( A.n,              B.n              );
                 swap( A.thread_count,   B.thread_count   );
-                swap( A.inner_sorted,   B.inner_sorted   );
-                swap( A.duplicate_free, B.duplicate_free );
+                swap( A.proven_inner_sortedQ,   B.proven_inner_sortedQ   );
+                swap( A.proven_duplicate_freeQ, B.proven_duplicate_freeQ );
                 swap( A.symmetric,      B.symmetric      );
             }
             
@@ -255,7 +255,7 @@ namespace Tensors
                     counts[thread] = end-begin;
                 }
                 
-                FromPairs( idx, jdx, counts.data(), thread_count, thread_count, compressQ, symmetrizeQ );
+                FromPairs( idx.data(), jdx.data(), counts.data(), thread_count, thread_count, compressQ, symmetrizeQ );
             }
             
             template<typename ExtInt>
@@ -377,146 +377,32 @@ namespace Tensors
                 job_ptr_initialized = false;
             }
             
+            bool ProvenInnerSortedQ() const
+            {
+                return proven_inner_sortedQ;
+            }
+            
+            bool ProvenDuplicatedFree() const
+            {
+                return proven_duplicate_freeQ;
+            }
+            
         protected:
-            
-            void Init()
-            {
-                outer[0] = LInt(0);
-            }
-            
-            template<typename ExtInt>
-            void FromPairs(
-                const  ExtInt * const * const idx,
-                const  ExtInt * const * const jdx,
-                const LInt            *       entry_counts,
-                const  Int list_count,
-                const  Int final_thread_count,
-                const bool compressQ = true,
-                const int  symmetrizeQ = 0
-            )
-            {
-                TOOLS_PTIC(ClassName()+"::FromPairs");
-                
-                // TODO: If ExtInt is wider than Int, we need to check that all entries of idx and jdx fit into an Int.
-                
-                Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
-                    idx, jdx, entry_counts, list_count, m, symmetrizeQ
-                );
-                
-                const LInt nnz = counters(list_count-1,m-1);
-                
-                if( nnz > LInt(0) )
-                {
-                    inner = Tensor1<Int,LInt>( nnz );
-                    
-                    mptr<LInt> A_outer = outer.data();
-                    mptr<Int>  A_inner = inner.data();
-                    
-                    copy_buffer( counters.data(list_count-1), &A_outer[1], m );
-                    
-                    // writing the j-indices into sep_column_indices
-                    // the counters array tells each thread where to write
-                    // since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
-
-                    if( symmetrizeQ != 0 )
-                    {
-                        ParallelDo(
-                            [&]( const Int thread )
-                            {
-                                const LInt entry_count = entry_counts[thread];
-                                
-                                cptr<ExtInt> thread_idx = idx[thread];
-                                cptr<ExtInt> thread_jdx = jdx[thread];
-                                
-                                mptr<LInt> c = counters.data(thread);
-                                
-                                for( LInt k = entry_count; k --> LInt(0); )
-                                {
-                                    const Int i = static_cast<Int>(thread_idx[k]);
-                                    const Int j = static_cast<Int>(thread_jdx[k]);
-                                    {
-                                        const LInt pos = --c[i];
-                                        A_inner[pos] = j;
-                                    }
-                                    
-                                    c[j] -= static_cast<LInt>(i != j);
-                                    
-                                    const LInt pos = c[j];
-                                    
-                                    A_inner[pos] = i;
-                                }
-                            },
-                            list_count
-                        );
-                    }
-                    else
-                    {
-                        ParallelDo(
-                            [&]( const Int thread )
-                            {
-                                const LInt entry_count = entry_counts[thread];
-                                
-                                cptr<Int> thread_idx = idx[thread];
-                                cptr<Int> thread_jdx = jdx[thread];
-                                
-                                mptr<LInt> c = counters.data(thread);
-                                
-                                for( LInt k = entry_count; k --> LInt(0); )
-                                {
-                                    const Int i = thread_idx[k];
-                                    const Int j = thread_jdx[k];
-                                    {
-                                        const LInt pos = --c[i];
-                                        A_inner[pos] = j;
-                                    }
-                                }
-                            },
-                            list_count
-                        );
-                    }
-                    
-                    // From here on, we may use as many threads as we want.
-                    SetThreadCount( final_thread_count );
-                                        
-                    // We have to sort b_inner to be compatible with the CSR format.
-                    SortInner();
-                    
-                    if( compressQ )
-                    {
-                        Compress();
-                        
-                    }
-                    else
-                    {
-                        duplicate_free = true; // We have to rely on the caller here...
-                    }
-                    
-                }
-                else
-                {
-                    SetThreadCount( final_thread_count );
-                }
-                
-                TOOLS_PTOC(ClassName()+"::FromPairs");
-            }
             
             void RequireJobPtr() const
             {
-                if( !job_ptr_initialized )
-                {
-                    TOOLS_PTIC(ClassName()+"::RequireJobPtr");
-                    
-                    job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
-                    
-                    job_ptr_initialized = true;
-                    
-                    TOOLS_PTOC(ClassName()+"::RequireJobPtr");
-                }
+                if( job_ptr_initialized ) { return; }
+                
+                TOOLS_PTIMER(timer,ClassName()+"::RequireJobPtr");
+                
+                job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
+                
+                job_ptr_initialized = true;
             }
             
             void CheckOrdering() const
             {
-                if( !inner_sorted )
+                if( !proven_inner_sortedQ )
                 {
                     eprint(ClassName()+"::RequireDiag: Column indices might not be sorted appropriately. Better call SortInner() first.");
                 }
@@ -524,102 +410,98 @@ namespace Tensors
             
             void RequireDiag() const
             {
-                if( !diag_ptr_initialized )
+                if( diag_ptr_initialized ) { return; }
+                
+                TOOLS_PTIMER(timer,ClassName()+"::RequireDiag");
+                
+                SortInner();
+                
+                if( outer.Last() <= 0 )
                 {
-                    TOOLS_PTIC(ClassName()+"::RequireDiag");
-                    
-                    SortInner();
-                    
-                    if( outer.Last() <= 0 )
-                    {
-                        diag_ptr = Tensor1<LInt,Int>( outer.data()+1, m );
-                    }
-                    else
-                    {
-                        RequireJobPtr();
-                        
-                        diag_ptr = Tensor1<LInt,Int>( m );
-                        
-                        ParallelDo(
-                            [=,this]( const Int i )
-                            {
-                                const LInt k_begin = outer[i  ];
-                                const LInt k_end   = outer[i+1];
-                                
-                                LInt k = k_begin;
-                                
-                                while( (k < k_end) && (inner[k] < i)  )
-                                {
-                                    ++k;
-                                }
-                                diag_ptr[i] = k;
-                            },
-                            job_ptr
-                        );
-                    }
-                    
-                    diag_ptr_initialized = true;
-                    
-                    TOOLS_PTOC(ClassName()+"::RequireDiag");
+                    diag_ptr = Tensor1<LInt,Int>( outer.data()+1, m );
                 }
+                else
+                {
+                    RequireJobPtr();
+                    
+                    diag_ptr = Tensor1<LInt,Int>( m );
+                    
+                    ParallelDo(
+                        [=,this]( const Int i )
+                        {
+                            const LInt k_begin = outer[i  ];
+                            const LInt k_end   = outer[i+1];
+                            
+                            LInt k = k_begin;
+                            
+                            while( (k < k_end) && (inner[k] < i)  )
+                            {
+                                ++k;
+                            }
+                            diag_ptr[i] = k;
+                        },
+                        job_ptr
+                    );
+                }
+                
+                diag_ptr_initialized = true;
             }
             
             void RequireUpperTriangularJobPtr() const
             {
-                if( (m > Int(0)) && !upper_triangular_job_ptr_initialized )
+                if( (m <= Int(0)) || upper_triangular_job_ptr_initialized )
                 {
-                    TOOLS_PTIC(ClassName()+"::RequireUpperTriangularJobPtr");
-                    
-                    RequireDiag();
-                    
-                    Tensor1<LInt,Int> costs (m + Int(1));
-                    costs[0] = 0;
-                    
-                    ParallelDo(
-                        [this,&costs]( const Int i )
-                        {
-                            costs[i+Int(1)] = outer[i+Int(1)] - diag_ptr[i];
-                        },
-                        job_ptr
-                    );
-                    
-                    costs.Accumulate( thread_count );
-                    
-                    upper_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
-                    
-                    upper_triangular_job_ptr_initialized = true;
-                    
-                    TOOLS_PTOC(ClassName()+"::RequireUpperTriangularJobPtr");
+                    return;
                 }
+                
+                TOOLS_PTIMER(timer,ClassName()+"::RequireUpperTriangularJobPtr");
+                
+                RequireDiag();
+                
+                Tensor1<LInt,Int> costs (m + Int(1));
+                costs[0] = 0;
+                
+                ParallelDo(
+                    [this,&costs]( const Int i )
+                    {
+                        costs[i+Int(1)] = outer[i+Int(1)] - diag_ptr[i];
+                    },
+                    job_ptr
+                );
+                
+                costs.Accumulate( thread_count );
+                
+                upper_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
+                
+                upper_triangular_job_ptr_initialized = true;
             }
             
             void RequireLowerTriangularJobPtr() const
             {
-                if( (m > Int(0)) && !lower_triangular_job_ptr_initialized )
+                if( (m <= Int(0)) || lower_triangular_job_ptr_initialized )
                 {
-                    TOOLS_PTIC(ClassName()+"::RequireLowerTriangularJobPtr");
-                    
-                    RequireDiag();
-                    
-                    Tensor1<LInt,Int> costs (m + Int(1));
-                    costs[0] = 0;
-                    
-                    ParallelDo(
-                        [this,&costs]( const Int i )
-                        {
-                            costs[i + Int(1)] = diag_ptr[i] - outer[i];
-                        },
-                        job_ptr
-                    );
-                    
-                    costs.Accumulate( thread_count );
-                    
-                    lower_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
-                    
-                    lower_triangular_job_ptr_initialized = true;
-                    
-                    TOOLS_PTOC(ClassName()+"::RequireLowerTriangularJobPtr");
+                    return;
                 }
+                TOOLS_PTIMER(timer,ClassName()+"::RequireLowerTriangularJobPtr");
+                
+                RequireDiag();
+                
+                Tensor1<LInt,Int> costs (m + Int(1));
+                costs[0] = 0;
+                
+                ParallelDo(
+                    [this,&costs]( const Int i )
+                    {
+                        costs[i + Int(1)] = diag_ptr[i] - outer[i];
+                    },
+                    job_ptr
+                );
+                
+                costs.Accumulate( thread_count );
+                
+                lower_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
+                
+                lower_triangular_job_ptr_initialized = true;
             }
             
         public:
@@ -758,44 +640,44 @@ namespace Tensors
             
             [[nodiscard]] Tensor2<LInt,Int> CreateTransposeCounters() const
             {
-                TOOLS_PTIC(ClassName()+"::CreateTransposeCounters");
+                TOOLS_PTIMER(timer,ClassName()+"::CreateTransposeCounters");
                 
                 RequireJobPtr();
                 
                 Tensor2<LInt,Int> counters ( thread_count, n, LInt(0) );
                 
-                if( WellFormedQ() )
+                if( !WellFormedQ() )
                 {
-                    // Use counting sort to sort outer indices of output matrix.
-                    // https://en.wikipedia.org/wiki/Counting_sort
-                    
-                    ParallelDo(
-                        [&,this]( const Int thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            mptr<LInt> c = counters.data(thread);
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
-                            {
-                                const LInt jj_begin = outer[i  ];
-                                const LInt jj_end   = outer[i+1];
-                                
-                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
-                                {
-                                    const Int j = inner[jj];
-                                    ++c[j];
-                                }
-                            }
-                        },
-                        thread_count
-                    );
-                    
-                    AccumulateAssemblyCounters_Parallel<LInt,Int>( counters );
+                    return Tensor2<LInt,Int>();
                 }
                 
-                TOOLS_PTOC(ClassName()+"::CreateTransposeCounters");
+                // Use counting sort to sort outer indices of output matrix.
+                // https://en.wikipedia.org/wiki/Counting_sort
+                
+                ParallelDo(
+                    [&,this]( const Int thread )
+                    {
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        mptr<LInt> c = counters.data(thread);
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            const LInt jj_begin = outer[i  ];
+                            const LInt jj_end   = outer[i+1];
+                            
+                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            {
+                                const Int j = inner[jj];
+                                ++c[j];
+                            }
+                        }
+                    },
+                    thread_count
+                );
+                
+                AccumulateAssemblyCounters_Parallel<LInt,Int>( counters );
                 
                 return counters;
             }
@@ -806,149 +688,39 @@ namespace Tensors
             {
                 // Sorts the column indices of each matrix row.
                 
-                if( !inner_sorted )
-                {
-                    TOOLS_PTIC(ClassName()+"::SortInner");
+                if( proven_inner_sortedQ ) { return; }
+                
+                TOOLS_PTIMER(timer,ClassName()+"::SortInner");
+                
+                if( !WellFormedQ() ) { return; }
                     
-                    if( WellFormedQ() )
+                ParallelDo(
+                    [this]( const Int i )
                     {
-                        ParallelDo(
-                            [this]( const Int i )
-                            {
-                                Sort( &inner[outer[i]], &inner[outer[i+1]], std::less<LInt>() );
-                            },
-                            JobPtr()
-                        );
-                        
-                        inner_sorted = true;
-                    }
-                    
-                    TOOLS_PTOC(ClassName()+"::SortInner");
-                    
-                }
+                        Sort( &inner[outer[i]], &inner[outer[i+1]], std::less<LInt>() );
+                    },
+                    JobPtr()
+                );
+                
+                proven_inner_sortedQ = true;
             }
             
-        public:
+    public:
+
+        virtual void Compress() const
+        {
+            // Removes duplicate {i,j}-pairs.
             
+            TOOLS_PTIMER(timer,ClassName()+"::Compress");
             
-            virtual void Compress() const
-            {
-                if( !duplicate_free )
-                {
-                    TOOLS_PTIC(ClassName()+"::Compress");
-                    
-                    if( WellFormedQ() )
-                    {
-                        RequireJobPtr();
-                        SortInner();
-                        
-                        Tensor1<LInt,Int> new_outer ( outer.Size(), 0 );
-                        
-                        mptr<LInt> new_A_outer = new_outer.data();
-                        mptr<LInt>     A_outer = outer.data();
-                        mptr<Int>      A_inner = inner.data();
-                        
-                        ParallelDo(
-                            [=,this]( const Int thread )
-                            {
-                                const Int i_begin = job_ptr[thread  ];
-                                const Int i_end   = job_ptr[thread+1];
-                                
-                                // To where we write.
-                                LInt jj_new       = A_outer[i_begin];
-                                
-                                // Memoize the next entry in outer because outer will be overwritten
-                                LInt next_jj_begin = A_outer[i_begin];
-                                
-                                for( Int i = i_begin; i < i_end; ++i )
-                                {
-                                    const LInt jj_begin = next_jj_begin;
-                                    const LInt jj_end   = A_outer[i+1];
-                                    
-                                    // Memoize the next entry in outer because outer will be overwritten
-                                    next_jj_begin = jj_end;
-                                    
-                                    LInt row_nonzero_counter = 0;
-                                    
-                                    // From where we read.
-                                    LInt jj = jj_begin;
-                                    
-                                    while( jj < jj_end )
-                                    {
-                                        Int j = A_inner[jj];
-                                        
-                                        {
-//                                            // TODO: Can we remove the overwrite?
-//                                            if( jj > jj_new )
-//                                            {
-//                                                A_inner[jj] = 0;
-//                                            }
-                                            
-                                            ++jj;
-                                        }
-                                        
-                                        while( (jj < jj_end) && (j == A_inner[jj]) )
-                                        {
-//                                            // TODO: Can we remove the overwrite?
-//                                            if( jj > jj_new )
-//                                            {
-//                                                A_inner[jj] = 0;
-//                                            }
-                                            
-                                            ++jj;
-                                        }
-                                        
-                                        A_inner[jj_new] = j;
-                                        
-                                        ++jj_new;
-                                        ++row_nonzero_counter;
-                                    }
-                                    new_A_outer[i+1] = row_nonzero_counter;
-                                }
-                            },
-                            thread_count
-                        );
-                        
-                        // This is the new array of outer indices.
-                        new_outer.Accumulate( thread_count  );
-                        
-                        const LInt nnz = new_outer[m];
-                        
-                        Tensor1<Int,LInt> new_inner (nnz, 0);
-                        
-                        //TODO: Parallelization might be a bad idea here.
-                        
-                        ParallelDo(
-                            [&,this]( const Int thread )
-                            {
-                                const  Int i_begin = job_ptr[thread  ];
-                                const  Int i_end   = job_ptr[thread+1];
-                                
-                                const LInt new_pos = new_A_outer[i_begin];
-                                const LInt     pos =     A_outer[i_begin];
-                                
-                                const LInt thread_nonzeroes = new_A_outer[i_end] - new_A_outer[i_begin];
-                                
-                                copy_buffer(
-                                    &inner.data()[pos], 
-                                    &new_inner.data()[new_pos],
-                                    thread_nonzeroes
-                                );
-                            },
-                            thread_count
-                        );
-                        
-                        swap( new_outer, outer  );
-                        swap( new_inner, inner  );
-                        
-                        job_ptr = JobPointers<Int>();
-                        job_ptr_initialized = false;
-                        duplicate_free = true;
-                    }
-                    
-                    TOOLS_PTOC(ClassName()+"::Compress");
-                }
-            }
+            Tensor1< Int,LInt> values;  // a dummy
+            Tensor1<LInt,LInt> C_outer; // a dummy
+            
+            this->template Compress_impl<false,false>(
+                outer, inner, values, C_outer
+            );
+        }
+
             
 //##########################################################################
 //####          Matrix Multiplication
@@ -958,116 +730,112 @@ namespace Tensors
             
             PatternCSR DotBinary_( cref<PatternCSR> B ) const
             {
-                TOOLS_PTIC(ClassName()+"::DotBinary_");
+                TOOLS_PTIMER(timer,ClassName()+"::DotBinary_");
                 
-                if( WellFormedQ() && B.WellFormedQ() )
-                {
-                    RequireJobPtr();
-                    
-                    // Create counters for counting sort
-                    
-                    Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
-                    
-                    // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
-                    // https://en.wikipedia.org/wiki/Counting_sort
-                    
-                    ParallelDo(
-                        [&,this]( const Int thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            mptr<LInt> c = counters.data(thread);
-                            
-                            cptr<LInt> A_outer = Outer().data();
-                            cptr<Int>  A_inner = Inner().data();
-                            cptr<LInt> B_outer = B.Outer().data();
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
-                            {
-                                LInt c_i = 0;
-                                
-                                const LInt jj_begin = A_outer[i  ];
-                                const LInt jj_end   = A_outer[i+1];
-                                
-                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
-                                {
-                                    const Int j = A_inner[jj];
-                                    
-                                    c_i += (B_outer[j+1] - B_outer[j]);
-                                }
-                                
-                                c[i] = c_i;
-                            }
-                        },
-                        thread_count
-                    );
-                    
-                    AccumulateAssemblyCounters_Parallel<LInt,Int>(counters);
-                    
-                    const LInt nnz = counters[thread_count-1][m-1];
-                    
-                    PatternCSR C ( m, B.ColCount(), nnz, thread_count );
-                    
-                    copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
-                    
-                    // Counting sort.
-                    
-                    ParallelDo(
-                        [&,this]( const Int thread )
-                        {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
-                            
-                            mptr<LInt> c        = counters.data(thread);
-                            
-                            cptr<LInt> A_outer  = Outer().data();
-                            cptr< Int> A_inner  = Inner().data();
-                            
-                            cptr<LInt> B_outer  = B.Outer().data();
-                            cptr< Int> B_inner  = B.Inner().data();
-                            
-                            mptr< Int> C_inner  = C.Inner().data();
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
-                            {
-                                const LInt jj_begin = A_outer[i  ];
-                                const LInt jj_end   = A_outer[i+1];
-                                
-                                for( LInt jj = jj_begin; jj < jj_end; ++jj )
-                                {
-                                    const Int j = A_inner[jj];
-                                    
-                                    const LInt kk_begin = B_outer[j  ];
-                                    const LInt kk_end   = B_outer[j+1];
-                                    
-                                    for( LInt kk = kk_end; kk --> kk_begin; )
-                                    {
-                                        const Int k = B_inner[kk];
-                                        const LInt pos = --c[i];
-                                        
-                                        C_inner [pos] = k;
-//                                        C_values[pos] = A_values[jj] * B_values[kk];
-                                    }
-                                }
-                            }
-                        },
-                        thread_count
-                    );
-                    
-                    // Finished expansion phase (counting sort).
-                    
-                    // Finally we rwo-sort inner and remove duplicates in inner and values.
-                    C.Compress();
-                    
-                    TOOLS_PTOC(ClassName()+"::DotBinary_");
-                    
-                    return C;
-                }
-                else
+                if( !WellFormedQ() || !B.WellFormedQ() )
                 {
                     return PatternCSR ();
                 }
+                
+                RequireJobPtr();
+                
+                // Create counters for counting sort
+                
+                Tensor2<LInt,Int> counters ( thread_count, m, LInt(0) );
+                
+                // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
+                // https://en.wikipedia.org/wiki/Counting_sort
+                
+                ParallelDo(
+                    [&,this]( const Int thread )
+                    {
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        mptr<LInt> c = counters.data(thread);
+                        
+                        cptr<LInt> A_outer = Outer().data();
+                        cptr<Int>  A_inner = Inner().data();
+                        cptr<LInt> B_outer = B.Outer().data();
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            LInt c_i = 0;
+                            
+                            const LInt jj_begin = A_outer[i  ];
+                            const LInt jj_end   = A_outer[i+1];
+                            
+                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            {
+                                const Int j = A_inner[jj];
+                                
+                                c_i += (B_outer[j+1] - B_outer[j]);
+                            }
+                            
+                            c[i] = c_i;
+                        }
+                    },
+                    thread_count
+                );
+                
+                AccumulateAssemblyCounters_Parallel<LInt,Int>(counters);
+                
+                const LInt nnz = counters[thread_count-1][m-1];
+                
+                PatternCSR C ( m, B.ColCount(), nnz, thread_count );
+                
+                copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
+                
+                // Counting sort.
+                
+                ParallelDo(
+                    [&,this]( const Int thread )
+                    {
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        mptr<LInt> c        = counters.data(thread);
+                        
+                        cptr<LInt> A_outer  = Outer().data();
+                        cptr< Int> A_inner  = Inner().data();
+                        
+                        cptr<LInt> B_outer  = B.Outer().data();
+                        cptr< Int> B_inner  = B.Inner().data();
+                        
+                        mptr< Int> C_inner  = C.Inner().data();
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
+                        {
+                            const LInt jj_begin = A_outer[i  ];
+                            const LInt jj_end   = A_outer[i+1];
+                            
+                            for( LInt jj = jj_begin; jj < jj_end; ++jj )
+                            {
+                                const Int j = A_inner[jj];
+                                
+                                const LInt kk_begin = B_outer[j  ];
+                                const LInt kk_end   = B_outer[j+1];
+                                
+                                for( LInt kk = kk_end; kk --> kk_begin; )
+                                {
+                                    const Int k = B_inner[kk];
+                                    const LInt pos = --c[i];
+                                    
+                                    C_inner [pos] = k;
+//                                        C_values[pos] = A_values[jj] * B_values[kk];
+                                }
+                            }
+                        }
+                    },
+                    thread_count
+                );
+                
+                // Finished expansion phase (counting sort).
+                
+                // Finally we rwo-sort inner and remove duplicates in inner and values.
+                C.Compress();
+                
+                return C;
             }
             
         protected:
@@ -1080,22 +848,20 @@ namespace Tensors
                 const Int nrhs = Int(1)
             ) const
             {
-                if( WellFormedQ() )
-                {
-                    SparseBLAS<Scalar::Real<X_T>,Int,LInt> sblas;
-                    
-                    sblas.template Multiply_DenseMatrix<NRHS>(
-                        outer.data(), inner.data(), nullptr,
-                        m, n,
-                        alpha, X, ldX,
-                        beta,  Y, ldY,
-                        nrhs, JobPtr()
-                    );
-                }
-                else
+                if( !WellFormedQ() )
                 {
                     wprint(ClassName()+"::Dot_: Not WellFormedQ(). Doing nothing.");
                 }
+                                
+                SparseBLAS<Scalar::Real<X_T>,Int,LInt> sblas;
+                
+                sblas.template Multiply_DenseMatrix<NRHS>(
+                    outer.data(), inner.data(), nullptr,
+                    m, n,
+                    alpha, X, ldX,
+                    beta,  Y, ldY,
+                    nrhs, JobPtr()
+                );
             }
             
             // Supply an external list of values.
@@ -1107,23 +873,20 @@ namespace Tensors
                       const Int   nrhs = Int(1)
             ) const
             {
-                if( WellFormedQ() )
-                {
-                    SparseBLAS<a_T,Int,LInt> sblas;
-                    
-                    sblas.template Multiply_DenseMatrix<NRHS>(
-                        outer.data(), inner.data(), values,
-                        m, n, 
-                        alpha, X, ldX,
-                        beta,  Y, ldY,
-                        nrhs, JobPtr()
-                    );
-                    
-                }
-                else
+                if( !WellFormedQ() )
                 {
                     wprint(ClassName()+"::Dot_: Not WellFormedQ(). Doing nothing.");
                 }
+                
+                SparseBLAS<a_T,Int,LInt> sblas;
+                
+                sblas.template Multiply_DenseMatrix<NRHS>(
+                    outer.data(), inner.data(), values,
+                    m, n,
+                    alpha, X, ldX,
+                    beta,  Y, ldY,
+                    nrhs, JobPtr()
+                );
             }
             
 //##########################################################################
@@ -1134,7 +897,9 @@ namespace Tensors
             
             // Supply an external list of values.
             template<typename A_T, typename values_T>
-            void WriteDense_( cptr<values_T> values, mptr<A_T> A, const Int ldA ) const
+            void WriteDenseWithValues(
+                cptr<values_T> values, mptr<A_T> A, const Int ldA
+            ) const
             {
                 ParallelDo(
                     [this,values,A,ldA]( const Int i )
@@ -1146,23 +911,65 @@ namespace Tensors
                         
                         for( LInt k = k_begin; k < k_end; ++k )
                         {
-                            A[i * ldA + inner[k]] = values[k];
-                        } // for( Int k = k_begin; k < k_end; ++k )
+                            A[i * ldA + inner[k]] += values[k];
+                        }
+                    },
+                    JobPtr()
+                );
+            }
+            
+            template<typename A_T>
+            void WriteDense( mptr<A_T> A, const Int ldA ) const
+            {
+                ParallelDo(
+                    [this,A,ldA]( const Int i )
+                    {
+                        const LInt k_begin = outer[i    ];
+                        const LInt k_end   = outer[i + 1];
+                        
+                        zerofy_buffer( &A[i * ldA], n );
+                        
+                        for( LInt k = k_begin; k < k_end; ++k )
+                        {
+                            A[i * ldA + inner[k]] += A_T(1);
+                        }
                     },
                     JobPtr()
                 );
             }
             
             // Supply an external list of values.
-            template<typename A_T, typename values_T>
-            Tensor2<A_T,LInt> ToTensor2_( cptr<values_T> values ) const
+            template<typename values_T, typename A_T = values_T >
+            Tensor2<A_T,LInt> ToTensor2WithValues( cptr<values_T> values ) const
             {
-                
                 Tensor2<A_T,LInt> A ( m, n );
                 
-                WriteDense_( values, A.data(), n );
+                WriteDenseWithValues( values, A.data(), n );
                 
                 return A;
+            }
+            
+            // Supply an external list of values.
+            template<typename A_T>
+            Tensor2<A_T,LInt> ToTensor2() const
+            {
+                Tensor2<A_T,LInt> A ( m, n );
+                
+                WriteDense( A.data(), n );
+                
+                return A;
+            }
+            
+            std::tuple<Tensor1<LInt,Int>,Tensor1<Int,LInt>,Int,Int> Disband()
+            {
+                Tensor1<LInt, Int> outer_  = std::move(outer);
+                Tensor1< Int,LInt> inner_  = std::move(inner);
+                Int m_ = m;
+                Int n_ = n;
+                
+                *this = PatternCSR();
+                
+                return { outer_, inner_, m_, n_ };
             }
             
 //##########################################################################
@@ -1188,17 +995,17 @@ namespace Tensors
             
             bool InnerSortedQ() const
             {
-                return inner_sorted;
+                return proven_inner_sortedQ;
             }
             
             void AssumeInnerSorted()
             {
-                inner_sorted = true;
+                proven_inner_sortedQ = true;
             }
             
             void AssumeInnerUnsorted()
             {
-                inner_sorted = false;
+                proven_inner_sortedQ = false;
             }
             
             bool NonzeroPositionQ( const Int i, const Int j ) const
@@ -1235,7 +1042,7 @@ namespace Tensors
                     
                     --R;
                     
-                    if( inner_sorted && ( L + threshold > R ) )
+                    if( proven_inner_sortedQ && ( L + threshold > R ) )
                     {
                         if( j < A_inner[L] )
                         {
@@ -1287,60 +1094,53 @@ namespace Tensors
             template<typename S, typename T, typename J>
             void FillLowerTriangleFromUpperTriangle( mref<std::map<S,Tensor1<T,J>>> values )
             {
-                TOOLS_PTIC(ClassName()+"::FillLowerTriangleFromUpperTriangle");
+                TOOLS_PTIMER(timer,ClassName()+"::FillLowerTriangleFromUpperTriangle");
                 
-                if( WellFormedQ() )
-                {
-                    if( !inner_sorted )
+                if( !WellFormedQ() ) { return; }
+                
+                SortInner();
+                
+                cptr<LInt> A_diag  = Diag().data();
+                cptr<LInt> A_outer = Outer().data();
+                cptr<Int>  A_inner = Inner().data();
+                
+                ParallelDo(
+                    [=,this]( const Int i )
                     {
-                        SortInner();
-                    }
-                    
-                    cptr<LInt> A_diag  = Diag().data();
-                    cptr<LInt> A_outer = Outer().data();
-                    cptr<Int>  A_inner = Inner().data();
-                    
-                    ParallelDo(
-                        [=,this]( const Int i )
+                        const LInt k_begin = A_outer[i];
+                        const LInt k_end   = A_diag [i];
+                        
+                        for( LInt k = k_begin; k < k_end; ++k )
                         {
-                            const LInt k_begin = A_outer[i];
-                            const LInt k_end   = A_diag [i];
+                            const Int j = A_inner[k];
                             
-                            for( LInt k = k_begin; k < k_end; ++k )
+                            LInt L = A_diag [j];
+                            LInt R = A_outer[j+1]-1;
+                            
+                            while( L < R )
                             {
-                                const Int j = A_inner[k];
+                                const LInt M   = R - (R-L)/Int(2);
+                                const  Int col = A_inner[M];
                                 
-                                LInt L = A_diag [j];
-                                LInt R = A_outer[j+1]-1;
-                                
-                                while( L < R )
+                                if( col > i )
                                 {
-                                    const LInt M   = R - (R-L)/Int(2);
-                                    const  Int col = A_inner[M];
-                                    
-                                    if( col > i )
-                                    {
-                                        R = M-1;
-                                    }
-                                    else
-                                    {
-                                        L = M;
-                                    }
+                                    R = M-1;
                                 }
-                                
-                                for( auto & f : values )
+                                else
                                 {
-                                    f.second[k] = f.second[L];
+                                    L = M;
                                 }
-                                
-                            } // for( Int k = k_begin; k < k_end; ++k )
-                        },
-                        LowerTriangularJobPtr()
-                    );
-                    
-                }
-                
-                TOOLS_PTOC(ClassName()+"::FillLowerTriangleFromUpperTriangle");
+                            }
+                            
+                            for( auto & f : values )
+                            {
+                                f.second[k] = f.second[L];
+                            }
+                            
+                        } // for( Int k = k_begin; k < k_end; ++k )
+                    },
+                    LowerTriangularJobPtr()
+                );
             }
             
             bool WellFormedQ() const
@@ -1468,6 +1268,11 @@ namespace Tensors
                 + " Inner().Size()  = " + ToString(Inner().Size()) + "\n"
                 + "\n==== "+ClassName()+" Stats ====\n\n";
             }
+            
+#include "PatternCSR/Compress.hpp"
+#include "PatternCSR/FromPairs.hpp"
+            
+        public:
             
             static std::string ClassName()
             {

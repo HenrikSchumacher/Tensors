@@ -4,6 +4,8 @@ namespace Tensors
 {
     namespace Sparse
     {
+        // TODO: Make permutation matrices more efficient: Add a flag if `outer = iota(m+1)`, avoid storing `outer` and adapt the indexing and `Dot` algorithms. Maybe.
+        
         template<typename Int_, typename LInt_>
         class BinaryMatrixCSR : public Sparse::PatternCSR<Int_,LInt_>
         {
@@ -254,51 +256,59 @@ namespace Tensors
             
             BinaryMatrixCSR Transpose() const
             {
-                TOOLS_PTIC(ClassName()+"::Transpose");
+                TOOLS_PTIMER(timer,ClassName()+"::Transpose");
+                
+                if( !this->WellFormedQ() ) { return BinaryMatrixCSR(); }
                 
                 Tensor2<LInt,Int> counters = CreateTransposeCounters();
                 
                 BinaryMatrixCSR<Int,LInt> B ( n, m, outer[m], thread_count );
                 
                 copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
-                
-                if( this->WellFormedQ() )
-                {
-                    ParallelDo(
-                        [&]( const Int thread )
+
+                ParallelDo(
+                    [&]( const Int thread )
+                    {
+                        const Int i_begin = job_ptr[thread  ];
+                        const Int i_end   = job_ptr[thread+1];
+                        
+                        mptr<LInt> c = counters.data(thread);
+                        
+                        for( Int i = i_begin; i < i_end; ++i )
                         {
-                            const Int i_begin = job_ptr[thread  ];
-                            const Int i_end   = job_ptr[thread+1];
+                            const LInt k_begin = outer[i  ];
+                            const LInt k_end   = outer[i+1];
                             
-                            mptr<LInt> c = counters.data(thread);
-                            
-                            for( Int i = i_begin; i < i_end; ++i )
+                            for( LInt k = k_end; k --> k_begin; )
                             {
-                                const LInt k_begin = outer[i  ];
-                                const LInt k_end   = outer[i+1];
-                                
-                                for( LInt k = k_end; k --> k_begin; )
-                                {
-                                    const Int j = inner[k];
-                                    const LInt pos = --c[j];
-                                    B.Inner(pos) = i;
-                                }
+                                const Int j = inner[k];
+                                const LInt pos = --c[j];
+                                B.Inner(pos) = i;
                             }
-                        },
-                        thread_count
-                    );
-                }
+                        }
+                    },
+                    thread_count
+                );
                 
                 // Finished counting sort.
                 
                 // We only have to care about the correct ordering of inner indices and values.
                 B.SortInner();
                 
-                TOOLS_PTOC(ClassName()+"::Transpose");
-                
                 return B;
             }
             
+            std::tuple<Tensor1<LInt,Int>,Tensor1<Int,LInt>,Int,Int> Disband()
+            {
+                Tensor1<LInt,Int > outer_  = std::move(outer);
+                Tensor1<Int ,LInt> inner_  = std::move(inner);
+                Int m_ = m;
+                Int n_ = n;
+                
+                *this = BinaryMatrixCSR();
+                
+                return { outer_, inner_, m_, n_ };
+            }
 
 //#########################################################################
 //####          Permute
@@ -311,19 +321,16 @@ namespace Tensors
                 const Permutation<Int> & q      // column permutation
             )
             {
-                TOOLS_PTIC(ClassName()+"::Permute");
-                // Modifies inner and outer  accordingly; returns the permutation to be applied to the nonzero values.
+                TOOLS_PTIMER(timer,ClassName()+"::Permute");
+                // Modifies `inner` and `outer` accordingly; returns the permutation to be applied to the nonzero values.
                 
-                
-                this->inner_sorted = true;
+                this->proven_inner_sortedQ = true;
                 this->diag_ptr_initialized = false;
                 this->job_ptr_initialized  = false;
                 this->upper_triangular_job_ptr_initialized = false;
                 this->lower_triangular_job_ptr_initialized = false;
                 
                 Tensor1<LInt,LInt> perm = PermutePatternCSR( outer, inner, p, q, inner.Size(), true );
-                
-                TOOLS_PTOC(ClassName()+"::Permute");
                 
                 return perm;
             }
@@ -389,18 +396,16 @@ namespace Tensors
                 const b_T beta,  mref<Tensor1<Y_T,Int>> Y
             ) const
             {
-                if( X.Dim(0) == n && Y.Dim(0) == m )
-                {
-                    this->template Dot_<1>(
-                        alpha, X.data(), Int(1),
-                        beta,  Y.data(), Int(1),
-                        Int(1)
-                    );
-                }
-                else
+                if( X.Dim(0) != n || Y.Dim(0) != m )
                 {
                     eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
                 }
+                
+                this->template Dot_<1>(
+                    alpha, X.data(), Int(1),
+                    beta,  Y.data(), Int(1),
+                    Int(1)
+                );
             }
             
             template<Int NRHS = 0, typename a_T, typename b_T, typename X_T, typename Y_T>
@@ -409,16 +414,14 @@ namespace Tensors
                 const b_T beta,  mref<Tensor2<Y_T,Int>> Y
             ) const
             {
-                if( X.Dim(0) == n && Y.Dim(0) == m && (X.Dim(1) == Y.Dim(1)) )
-                {
-                    const Int nrhs = X.Dim(1);
-                    
-                    this->template Dot_<NRHS>( alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
-                }
-                else
+                if( (X.Dim(0) != n) || (Y.Dim(0) != m) || (X.Dim(1) != Y.Dim(1)) )
                 {
                     eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
                 }
+                
+                const Int nrhs = X.Dim(1);
+                
+                this->template Dot_<NRHS>( alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
             }
             
             
@@ -442,18 +445,16 @@ namespace Tensors
                 const b_T beta,  mref<Tensor1<Y_T,Int>> Y
             ) const
             {
-                if( X.Dim(0) == n && Y.Dim(0) == m )
-                {
-                    this->template Dot_<1>( ext_values.data(),
-                        alpha, X.data(), Int(1),
-                        beta,  Y.data(), Int(1),
-                        Int(1)
-                    );
-                }
-                else
+                if( (X.Dim(0) != n) || (Y.Dim(0) != m) )
                 {
                     eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
                 }
+                
+                this->template Dot_<1>( ext_values.data(),
+                    alpha, X.data(), Int(1),
+                    beta,  Y.data(), Int(1),
+                    Int(1)
+                );
             }
             
             template<Int NRHS = 0, typename T_ext, typename a_T, typename b_T, typename X_T, typename Y_T>
@@ -463,15 +464,13 @@ namespace Tensors
                      const b_T beta,  mref<Tensor2<Y_T,Int>> Y
                      ) const
             {
-                if( X.Dim(0) == n && Y.Dim(0) == m && (X.Dim(1) == Y.Dim(1)) )
-                {
-                    const Int nrhs = X.Dim(1);
-                    this->template Dot_<NRHS>( ext_values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
-                }
-                else
+                if( (X.Dim(0) != n) || (Y.Dim(0) != m) || (X.Dim(1) != Y.Dim(1)) )
                 {
                     eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
                 }
+                
+                const Int nrhs = X.Dim(1);
+                this->template Dot_<NRHS>( ext_values.data(), alpha, X.data(), nrhs, beta, Y.data(), nrhs, nrhs );
             }
             
         public:

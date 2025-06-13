@@ -266,7 +266,7 @@ namespace Tensors
 //                    swap( this->values, new_values);
 //                }
 //                
-//                this->inner_sorted = true;
+//                this->proven_inner_sortedQ = true;
 //                
 //                this->diag_ptr_initialized = false;
 //                this->job_ptr_initialized  = false;

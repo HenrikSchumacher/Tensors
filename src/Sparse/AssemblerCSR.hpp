@@ -15,7 +15,7 @@ namespace Tensors
             using Int  = Int_;
             using LInt = LInt_;
     
-            BinaryMatrix_T = SparseBinaryMatrixCSR<Int,LInt>;
+            BinaryMatrix_T = BinaryMatrixCSR<Int,LInt>;
             
         protected:
             
@@ -147,7 +147,7 @@ namespace Tensors
                     std::move(new_outer), std::move(new_inner), m, n, thread_count
                 );
                 
-                assember = BinaryMatrix_T(
+                assembler = BinaryMatrix_T(
                     to.data(), from.data(), compress_nnz, nnz, thread_count, compressQ, false
                 );
             }
@@ -159,7 +159,7 @@ namespace Tensors
             
             cref<BinaryMatrix_T> AssemblyMatrix() const
             {
-                return assember;
+                return assembler;
             }
             
             LInt NonzeroCount() const
@@ -218,9 +218,6 @@ namespace Tensors
             {
                 swap(*this, other);
             }
-            
-
-            
             
             virtual ~AssemblerCSR() override = default;
             
