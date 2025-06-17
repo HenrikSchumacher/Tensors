@@ -562,7 +562,7 @@ namespace Tensors
             
             std::tuple<
                 Tensor1<LInt,Int>, Tensor1<Int,LInt>, Tensor1<Scal,LInt>,
-                Int, Int
+                Assembler_T, Int, Int
             > Disband()
             {
                 Tensor1<LInt, Int> outer_     = std::move(outer);
