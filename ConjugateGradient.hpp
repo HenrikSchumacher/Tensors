@@ -61,8 +61,6 @@ namespace Tensors
         
     public:
         
-        ConjugateGradient() = delete;
-        
         ConjugateGradient(
             const Int n_,
             const Int max_iter_,
@@ -89,8 +87,18 @@ namespace Tensors
         ,   job_ptr         ( n, thread_count                       )
         {}
         
-        
+        // Default constructor
+        ConjugateGradient() = delete;
+        // Destructor
         ~ConjugateGradient() = default;
+        // Copy constructor
+        ConjugateGradient( const ConjugateGradient & other ) = default;
+        // Copy assignment operator
+        ConjugateGradient & operator=( const ConjugateGradient & other ) = default;
+        // Move constructor
+        ConjugateGradient( ConjugateGradient && other ) = default;
+        // Move assignment operator
+        ConjugateGradient & operator=( ConjugateGradient && other ) = default;
         
         // Computes X_inout <- a * A^{-1} . B_in + b * X_inout via CG method.
         // Uses P as precondition, i.e., P should be a proxy of A^{-1}.
