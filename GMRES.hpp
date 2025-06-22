@@ -78,7 +78,6 @@ namespace Tensors
         
     public:
         
-        GMRES() = delete;
         
         GMRES(
             const Int n_,
@@ -108,8 +107,18 @@ namespace Tensors
         ,   h               ( nrhs                                  )
         {}
         
-        
+        // No default constructor
+        GMRES() = delete;
+        // Destructor
         ~GMRES() = default;
+        // Copy constructor
+        GMRES( const GMRES & other ) = default;
+        // Copy assignment operator
+        GMRES & operator=( const GMRES & other ) = default;
+        // Move constructor
+        GMRES( GMRES && other ) = default;
+        // Move assignment operator
+        GMRES & operator=( GMRES && other ) = default;
         
         
         // Computes X_inout <- a * A^{-1} . B_in + b * X_inout via CG method.

@@ -19,15 +19,24 @@ namespace Tensors
             
         public:
             
+            // No default constructor
             LUDecomposition() = default;
+            // Destructor
+            ~LUDecomposition() = default;
+            // Copy constructor
+            LUDecomposition( const LUDecomposition & other ) = default;
+            // Copy assignment operator
+            LUDecomposition & operator=( const LUDecomposition & other ) = default;
+            // Move constructor
+            LUDecomposition( LUDecomposition && other ) = default;
+            // Move assignment operator
+            LUDecomposition & operator=( LUDecomposition && other ) = default;
             
             template<typename T>
             LUDecomposition( cptr<T> A_, const Int ldA )
             {
                 Factorize( A_, ldA );
             }
-            
-            ~LUDecomposition() = default;
             
             template<typename T>
             void Solve(

@@ -18,15 +18,24 @@ namespace Tensors
             
         public:
             
+            // No default constructor
             CholeskyDecomposition() = default;
+            // Destructor
+            ~CholeskyDecomposition() = default;
+            // Copy constructor
+            CholeskyDecomposition( const CholeskyDecomposition & other ) = default;
+            // Copy assignment operator
+            CholeskyDecomposition & operator=( const CholeskyDecomposition & other ) = default;
+            // Move constructor
+            CholeskyDecomposition( CholeskyDecomposition && other ) = default;
+            // Move assignment operator
+            CholeskyDecomposition & operator=( CholeskyDecomposition && other ) = default;
             
             template<typename T>
             CholeskyDecomposition( cptr<T> A_, const Int ldA )
             {
                 Factorize( A_, ldA );
             }
-            
-            ~CholeskyDecomposition() = default;
             
             template<typename T>
             void Solve( cptr<T> B, const Int ldB, mptr<T> X, const Int ldX, const Int nrhs )

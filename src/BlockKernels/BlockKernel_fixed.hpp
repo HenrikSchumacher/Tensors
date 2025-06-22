@@ -58,8 +58,6 @@ namespace Tensors
         
     public:
         
-        BlockKernel_fixed() = delete;
-        
         explicit BlockKernel_fixed( mptr<Scal> A_ )
         :   A       ( A_      )
         ,   A_const ( nullptr )
@@ -109,7 +107,18 @@ namespace Tensors
         ,   cols_size ( other.cols_size   )
         {}
         
+        // No default constructor
+        BlockKernel_fixed() = delete;
+        // Destructor
         virtual ~BlockKernel_fixed() = default;
+        // Copy constructor
+        BlockKernel_fixed( const BlockKernel_fixed & other ) = default;
+        // Copy assignment operator
+        BlockKernel_fixed & operator=( const BlockKernel_fixed & other ) = default;
+        // Move constructor
+        BlockKernel_fixed( BlockKernel_fixed && other ) = default;
+        // Move assignment operator
+        BlockKernel_fixed & operator=( BlockKernel_fixed && other ) = default;
 
 
     public:

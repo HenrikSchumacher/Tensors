@@ -102,8 +102,6 @@ namespace Tensors
             
         public:
             
-            BLAS_3() = delete;
-            
             BLAS_3( const Int M_ = M_ct, const Int N_ = N_ct, const Int K_ = K_ct, const Int thread_count_ = 1 )
             :   M_rt                    ( M_ )
             ,   N_rt                    ( N_ )
@@ -114,7 +112,19 @@ namespace Tensors
             ,   CP                      ( M_, N_, thread_count )
             {}
             
+            
+            // No default constructor
+            BLAS_3() = default;
+            // Destructor
             ~BLAS_3() = default;
+            // Copy constructor
+            BLAS_3( const BLAS_3 & other ) = default;
+            // Copy assignment operator
+            BLAS_3 & operator=( const BLAS_3 & other ) = default;
+            // Move constructor
+            BLAS_3( BLAS_3 && other ) = default;
+            // Move assignment operator
+            BLAS_3 & operator=( BLAS_3 && other ) = default;
             
         public:
             

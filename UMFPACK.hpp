@@ -48,7 +48,22 @@ namespace Tensors
         
     public:
 
-        UMFPACK() = default;
+        // No default constructor
+        UMFPACK() = delete;
+        // Destructor
+        ~UMFPACK()
+        {
+            FreeSymbolic();
+            FreeNumeric ();
+        }
+        // Copy constructor
+        UMFPACK( const UMFPACK & other ) = delete;
+        // Copy assignment operator
+        UMFPACK & operator=( const UMFPACK & other ) = delete;
+//        // Move constructor
+//        UMFPACK( UMFPACK && other ) = default;
+//        // Move assignment operator
+//        UMFPACK & operator=( UMFPACK && other ) = default;
         
         template<typename ExtInt, typename ExtLInt>
         explicit UMFPACK(
@@ -84,12 +99,7 @@ namespace Tensors
         explicit UMFPACK( cref<Sparse::BinaryMatrixCSR<ExtScal,ExtInt>> A )
         :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner() )
         {}
-        
-        ~UMFPACK()
-        {
-            FreeSymbolic();
-            FreeNumeric ();
-        }
+
         
         
     public:

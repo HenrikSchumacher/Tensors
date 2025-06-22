@@ -193,7 +193,8 @@ namespace Tensors
             +","+ToString(alpha_flag)
             +","+ToString(beta_flag)
             +","+ToString(a_copy)
-            +","+ToString(x_RM)+","+ToString(x_prefetch)
+            +","+ToString(x_RM)
+            +","+ToString(x_prefetch)
             +","+ToString(y_RM)
             +">";
         }

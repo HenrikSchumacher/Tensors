@@ -69,8 +69,6 @@ namespace Tensors
         
     public:
         
-        BlockKernel_Tiny() = delete;
-        
         explicit BlockKernel_Tiny( mptr<Scal> A_ )
         :   A       ( A_      )
         ,   A_const ( nullptr )
@@ -97,20 +95,31 @@ namespace Tensors
         ,   cols_size ( COLS * nrhs )
         {}
         
-        // Copy constructor
-        BlockKernel_Tiny( const BlockKernel_Tiny & other )
-        :   A         ( other.A           )
-        ,   A_const   ( other.A_const     )
-        ,   alpha     ( other.alpha       )
-        ,   X         ( other.X           )
-        ,   beta      ( other.beta        )
-        ,   Y         ( other.Y           )
-        ,   nrhs      ( other.nrhs        )
-        ,   rows_size ( other.rows_size   )
-        ,   cols_size ( other.cols_size   )
-        {}
+//        // Copy constructor
+//        BlockKernel_Tiny( const BlockKernel_Tiny & other )
+//        :   A         ( other.A           )
+//        ,   A_const   ( other.A_const     )
+//        ,   alpha     ( other.alpha       )
+//        ,   X         ( other.X           )
+//        ,   beta      ( other.beta        )
+//        ,   Y         ( other.Y           )
+//        ,   nrhs      ( other.nrhs        )
+//        ,   rows_size ( other.rows_size   )
+//        ,   cols_size ( other.cols_size   )
+//        {}
         
+        // No default constructor
+        BlockKernel_Tiny() = delete;
+        // Destructor
         virtual ~BlockKernel_Tiny() = default;
+        // Copy constructor
+        BlockKernel_Tiny( const BlockKernel_Tiny & other ) = default;
+        // Copy assignment operator
+        BlockKernel_Tiny & operator=( const BlockKernel_Tiny & other ) = default;
+        // Move constructor
+        BlockKernel_Tiny( BlockKernel_Tiny && other ) = default;
+        // Move assignment operator
+        BlockKernel_Tiny & operator=( BlockKernel_Tiny && other ) = default;
 
 
     public:
