@@ -187,21 +187,7 @@ namespace Tensors
 //            {
 //                logprint("Copy of " + ClassName() + " of size {" + ToString(other.m) + ", " + ToString(other.n) + "}, nnz = " + ToString(other.NonzeroCount()));
 //            }
-//            
-//            friend void swap (PatternCSR &A, PatternCSR &B ) noexcept
-//            {
-//                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-//                using std::swap;
-//                
-//                swap( A.outer,          B.outer          );
-//                swap( A.inner,          B.inner          );
-//                swap( A.m,              B.m              );
-//                swap( A.n,              B.n              );
-//                swap( A.thread_count,   B.thread_count   );
-//                swap( A.proven_inner_sortedQ,   B.proven_inner_sortedQ   );
-//                swap( A.proven_duplicate_freeQ, B.proven_duplicate_freeQ );
-//                swap( A.symmetric,      B.symmetric      );
-//            }
+//
 //            
 //            // Copy assignment operator
 //            PatternCSR & operator=( PatternCSR other ) // Passing by value is okay, because of copy elision.
@@ -222,6 +208,22 @@ namespace Tensors
 //            }
             
             // We do not need a move-assignment operator, because we use the copy-swap idiom!
+            
+            // Swap function
+            friend void swap (PatternCSR &A, PatternCSR &B ) noexcept
+            {
+                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+                using std::swap;
+                
+                swap( A.outer,          B.outer          );
+                swap( A.inner,          B.inner          );
+                swap( A.m,              B.m              );
+                swap( A.n,              B.n              );
+                swap( A.thread_count,   B.thread_count   );
+                swap( A.proven_inner_sortedQ,   B.proven_inner_sortedQ   );
+                swap( A.proven_duplicate_freeQ, B.proven_duplicate_freeQ );
+                swap( A.symmetric,      B.symmetric      );
+            }
             
             template<typename ExtInt>
             PatternCSR(

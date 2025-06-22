@@ -51,10 +51,6 @@ namespace Tensors
             using Base_T::CreateTransposeCounters;
             using Base_T::WellFormedQ;
             
-            BinaryMatrixCSR()
-            :   Base_T()
-            {}
-            
             template<typename I_0, typename I_1, typename I_3>
             BinaryMatrixCSR(
                 const I_0 m_,
@@ -143,13 +139,48 @@ namespace Tensors
                 static_assert(IntQ<I_3>,"");
             }
             
+            // Default constructor
+            BinaryMatrixCSR() = default;
+            // Destructor
+            virtual ~BinaryMatrixCSR() override = default;
             // Copy constructor
-            BinaryMatrixCSR( const BinaryMatrixCSR & other )
-            :   Base_T( other )
-            {
-                logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nnz = "+ToString(NonzeroCount()));
-            }
+            BinaryMatrixCSR( const BinaryMatrixCSR & other ) = default;
+            // Copy assignment operator
+            BinaryMatrixCSR & operator=( const BinaryMatrixCSR & other ) = default;
+            // Move constructor
+            BinaryMatrixCSR( BinaryMatrixCSR && other ) = default;
+            // Move assignment operator
+            BinaryMatrixCSR & operator=( BinaryMatrixCSR && other ) = default;
             
+//            // Copy constructor
+//            BinaryMatrixCSR( const BinaryMatrixCSR & other )
+//            :   Base_T( other )
+//            {
+//                logprint("Copy of "+ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nnz = "+ToString(NonzeroCount()));
+//            }
+//            
+//
+//            
+//            // (Copy-)assignment operator
+//            BinaryMatrixCSR & operator=( BinaryMatrixCSR other ) // Pass by value is okay, because we use copy-swap idiom and copy elision.
+//            {
+//                // copy-and-swap idiom
+//                // see https://stackoverflow.com/a/3279550/8248900 for details
+//                
+//                swap(*this, other);
+//                
+//                return *this;
+//            }
+//            
+//            // Move constructor
+//            BinaryMatrixCSR( BinaryMatrixCSR && other ) noexcept : BinaryMatrixCSR()
+//            {
+//                swap(*this, other);
+//            }
+//            
+//            // We do not need a move-assignment operator, because we use the copy-swap idiom!
+            
+            // Swap function
             friend void swap( BinaryMatrixCSR & A, BinaryMatrixCSR & B ) noexcept
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
@@ -157,26 +188,6 @@ namespace Tensors
                 
                 swap( static_cast<Base_T&>(A), static_cast<Base_T&>(B) );
             }
-            
-            // (Copy-)assignment operator
-            BinaryMatrixCSR & operator=( BinaryMatrixCSR other ) // Pass by value is okay, because we use copy-swap idiom and copy elision.
-            {
-                // copy-and-swap idiom
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                
-                swap(*this, other);
-                
-                return *this;
-            }
-            
-            // Move constructor
-            BinaryMatrixCSR( BinaryMatrixCSR && other ) noexcept : BinaryMatrixCSR()
-            {
-                swap(*this, other);
-            }
-            
-            // We do not need a move-assignment operator, because we use the copy-swap idiom!
-            
             
             BinaryMatrixCSR(
                   const Int    * const * const idx,
@@ -251,9 +262,7 @@ namespace Tensors
             :   Base_T( idx, m_, n_, final_thread_count, compressQ, symmetrizeQ )
             {}
             
-            virtual ~BinaryMatrixCSR() override = default;
-            
-            
+
             BinaryMatrixCSR Transpose() const
             {
                 TOOLS_PTIMER(timer,ClassName()+"::Transpose");

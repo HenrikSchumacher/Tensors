@@ -143,9 +143,7 @@ namespace Tensors
             }
 
             // Default constructor
-            MatrixCSR()
-            :   Base_T()
-            {}
+            MatrixCSR() = default;
             // Destructor
             virtual ~MatrixCSR() override = default;
             // Copy constructor
@@ -165,16 +163,7 @@ namespace Tensors
 //            {
 //                logprint("Copy of "+ ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nnz = "+ToString(NonzeroCount()));
 //            }
-//            
-//            friend void swap (MatrixCSR & A, MatrixCSR & B ) noexcept
-//            {
-//                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-//                using std::swap;
-//                
-//                swap( static_cast<Base_T&>(A), static_cast<Base_T&>(B) );
-//                swap( A.values,                B.values                );
-//                swap( A.assembler,             B.assembler             );
-//            }
+//
 //            
 //            // (Copy-)assignment operator
 //            MatrixCSR & operator=( MatrixCSR other ) noexcept // Pass by value is okay, because we use copy-swap idiom and copy elision.
@@ -194,6 +183,16 @@ namespace Tensors
 //            }
             
             // We do not need a move-assignment operator, because we use the copy-swap idiom!
+            
+            
+            friend void swap (MatrixCSR & A, MatrixCSR & B ) noexcept
+            {
+                using std::swap;
+                
+                swap( static_cast<Base_T&>(A), static_cast<Base_T&>(B) );
+                swap( A.values,                B.values                );
+                swap( A.assembler,             B.assembler             );
+            }
             
             template<typename ExtScal, typename ExtInt>
             MatrixCSR(
