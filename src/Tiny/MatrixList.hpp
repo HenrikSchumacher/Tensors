@@ -69,7 +69,7 @@ namespace Tensors
                 }
             }
             
-            friend void swap( MatrixList & X, MatrixList & Y )
+            friend void swap( MatrixList & X, MatrixList & Y ) noexcept
             {
                 // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
                 using std::swap;
@@ -85,46 +85,20 @@ namespace Tensors
                 }
             }
             
+            // Copy assignment operator
+            MatrixList & operator=( MatrixList other ) noexcept
+            {   //                                ^
+                //                                |
+                // Use the copy constructor ------+
+                swap( *this, other );
+                return *this;
+            }
+            
             // Move constructor
             MatrixList( MatrixList && other ) noexcept
             :   MatrixList()
             {
                 swap(*this, other);
-            }
-            
-            /* Copy assignment operator */
-            MatrixList & operator=( const MatrixList & other )
-            {
-                if( this != &other )
-                {
-                    if( (length != other.length) )
-                    {
-                        // Use the copy constructor.
-                        swap( *this, MatrixList(other.length) );
-                    }
-                    else
-                    {
-                        for( Int i = 0; i < m; ++i )
-                        {
-                            for( Int j = 0; j < n; ++j )
-                            {
-                                A[i][j].Read( other.A[i][j].data());
-                            }
-                        }
-                    }
-                }
-                return *this;
-            }
-            
-            /* Move assignment operator */
-            MatrixList & operator=( MatrixList && other ) noexcept
-            {
-                if( this == &other )
-                {
-                    wprint("An object of type "+ClassName()+" has been move-assigned to itself.");
-                }
-                swap( *this, other );
-                return *this;
             }
             
             

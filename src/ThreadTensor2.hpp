@@ -28,8 +28,6 @@ namespace Tensors
         
     public:
         
-        ThreadTensor2() = default;
-        
         ThreadTensor2( const Int d0, const Int d1 )
         :   n( d0 * d1 )
         ,   dims{ d0, d1 }
@@ -77,6 +75,16 @@ namespace Tensors
             );
         }
 
+        // Default constructor
+        ThreadTensor2() = default;
+        
+        // Destructor
+        ~ThreadTensor2(){
+#ifdef TENSORS_BOUND_CHECKS
+            print("~"+ClassName()+" { " + ToString(dims[0]) + ", " + ToString(dims[1]) + " }" );
+#endif
+        }
+        
         // Copy constructor
         explicit ThreadTensor2( const ThreadTensor2<Scal,Int> & other )
         :   ThreadTensor2( other.dims[0], other.dims[1] )
@@ -94,7 +102,7 @@ namespace Tensors
             );
         }
         
-        // Copy constructor
+        // Copy-cast constructor
         template<typename S, typename J>
         explicit ThreadTensor2( const ThreadTensor2<S,J> & other )
         :   ThreadTensor2( other.dims[0], other.dims[1] )
@@ -137,7 +145,6 @@ namespace Tensors
             swap(*this, B);
 
             return *this;
-            
         }
         
         // Move constructor
@@ -150,11 +157,6 @@ namespace Tensors
             swap(*this, other);
         }
         
-        ~ThreadTensor2(){
-#ifdef TENSORS_BOUND_CHECKS
-            print("~"+ClassName()+" { " + ToString(dims[0]) + ", " + ToString(dims[1]) + " }" );
-#endif
-        }
         
         
         static constexpr Int Rank()

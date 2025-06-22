@@ -31,10 +31,6 @@ namespace Tensors
             
         public:
             
-            MatrixList_AoS()
-            :   Base_T()
-            {}
-            
             explicit MatrixList_AoS( const Int k_ )
             :   Base_T(k_,m,n)
             {}
@@ -47,37 +43,25 @@ namespace Tensors
             :   Base_T(a_,k_,m,n)
             {}
             
-            ~MatrixList_AoS() = default;
-            
+            // Default constructor
+            MatrixList_AoS() = default;
+            // Destructor
+            virtual ~MatrixList_AoS() override = default;
             // Copy constructor
-            MatrixList_AoS(const MatrixList_AoS & other ) = default;
-            
+            MatrixList_AoS( const MatrixList_AoS & other ) = default;
+            // Copy assignment operator
+            MatrixList_AoS & operator=( const MatrixList_AoS & other ) = default;
+            // Move constructor
+            MatrixList_AoS( MatrixList_AoS && other ) = default;
+            // Move assignment operator
+            MatrixList_AoS & operator=( MatrixList_AoS && other ) = default;
+
             // Copy-cast constructor
             template<typename T, typename I, Size_T align>
             MatrixList_AoS( const MatrixList_AoS<m,n,T,I,align> & other )
             :   Base_T( other )
             {}
             
-            // Copy assignment
-            MatrixList_AoS & operator=(MatrixList_AoS other) noexcept
-            {
-                swap(*this, other);
-                return *this;
-            }
-            
-            // Move constructor
-            MatrixList_AoS( MatrixList_AoS && other) noexcept
-            :   MatrixList_AoS()
-            {
-                swap(*this, other);
-            }
-            
-            // Move assignment
-            MatrixList_AoS & operator=(MatrixList_AoS && other) noexcept
-            {
-                swap(*this, other);
-                return *this;
-            }
             
             friend void swap(MatrixList_AoS & A, MatrixList_AoS & B ) noexcept
             {

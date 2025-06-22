@@ -56,10 +56,6 @@ namespace Tensors
         
     public:
         
-        Tree() = default;
-        
-        ~Tree() = default;
-        
         explicit Tree(
             Tensor1<Int,Int> && parents_,
             const Int thread_count_ = 1
@@ -89,59 +85,75 @@ namespace Tensors
         
     public:
         
+        // Default constructor
+        Tree() = default;
+        // Destructor
+        ~Tree() = default;
         // Copy constructor
-        Tree( const Tree & other )
-        :   n                 ( other.n                 )
-        ,   thread_count      ( other.thread_count      )
-        ,   parents           ( other.parents           )
-        ,   costs             ( other.costs             )
-        ,   desc_costs        ( other.desc_costs        )
-        ,   A                 ( other.A                 )
-        ,   desc_counts       ( other.desc_counts       )
-        ,   post              ( other.post              )
-        ,   levels            ( other.levels            )
-        ,   tree_top_levels   ( other.tree_top_levels   )
-        ,   tree_top_vertices ( other.tree_top_vertices )
-        ,   subtrees          ( other.subtrees          )
-        {}
-
-        // We could also simply use the implicitly created copy constructor.
-
-        friend void swap (Tree &X, Tree &Y ) noexcept
-        {
-            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-            using std::swap;
-
-            swap( X.n,                 Y.n                 );
-            swap( X.thread_count,      Y.thread_count      );
-            swap( X.parents,           Y.parents           );
-            swap( X.A,                 Y.A                 );
-            swap( X.desc_counts, Y.desc_counts );
-            swap( X.post,              Y.post              );
-            swap( X.costs,             Y.costs             );
-            swap( X.desc_costs,  Y.desc_costs  );
-            swap( X.levels,            Y.levels            );
-            swap( X.tree_top_vertices, Y.tree_top_vertices );
-            swap( X.subtrees,          Y.subtrees          );
-            swap( X.tree_top_levels,   Y.tree_top_levels   );
-        }
-
+        Tree( const Tree & other ) = default;
         // Copy assignment operator
-        Tree & operator=(Tree other)
-        {
-            // copy-and-swap idiom
-            // see https://stackoverflow.com/a/3279550/8248900 for details
-
-            swap(*this, other);
-
-            return *this;
-        }
-
+        Tree & operator=( const Tree & other ) = default;
         // Move constructor
-        Tree( Tree && other ) noexcept : Tree()
-        {
-            swap(*this, other);
-        }
+        Tree( Tree && other ) = default;
+        // Move assignment operator
+        Tree & operator=( Tree && other ) = default;
+        
+//        // Destructor
+//        ~Tree() = default;
+//        
+//        // Copy constructor
+//        Tree( const Tree & other )
+//        :   n                 ( other.n                 )
+//        ,   thread_count      ( other.thread_count      )
+//        ,   parents           ( other.parents           )
+//        ,   costs             ( other.costs             )
+//        ,   desc_costs        ( other.desc_costs        )
+//        ,   A                 ( other.A                 )
+//        ,   desc_counts       ( other.desc_counts       )
+//        ,   post              ( other.post              )
+//        ,   levels            ( other.levels            )
+//        ,   tree_top_levels   ( other.tree_top_levels   )
+//        ,   tree_top_vertices ( other.tree_top_vertices )
+//        ,   subtrees          ( other.subtrees          )
+//        {}
+//
+//        // We could also simply use the implicitly created copy constructor.
+//
+//        friend void swap (Tree &X, Tree &Y ) noexcept
+//        {
+//            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+//            using std::swap;
+//
+//            swap( X.n,                 Y.n                 );
+//            swap( X.thread_count,      Y.thread_count      );
+//            swap( X.parents,           Y.parents           );
+//            swap( X.A,                 Y.A                 );
+//            swap( X.desc_counts, Y.desc_counts );
+//            swap( X.post,              Y.post              );
+//            swap( X.costs,             Y.costs             );
+//            swap( X.desc_costs,  Y.desc_costs  );
+//            swap( X.levels,            Y.levels            );
+//            swap( X.tree_top_vertices, Y.tree_top_vertices );
+//            swap( X.subtrees,          Y.subtrees          );
+//            swap( X.tree_top_levels,   Y.tree_top_levels   );
+//        }
+//
+//        // Copy assignment operator
+//        Tree & operator=(Tree other)
+//        {
+//            // copy-and-swap idiom
+//            // see https://stackoverflow.com/a/3279550/8248900 for details
+//
+//            swap(*this, other);
+//
+//            return *this;
+//        }
+//
+//        // Move constructor
+//        Tree( Tree && other ) noexcept : Tree()
+//        {
+//            swap(*this, other);
+//        }
         
         
         cref<Tensor1<Int,Int>> Parents() const

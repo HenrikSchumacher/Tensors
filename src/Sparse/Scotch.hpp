@@ -10,9 +10,18 @@ namespace Tensors
         
     public:
         
+        // Default constructor
         Scotch() = default;
-        
-        ~Scotch() = default;
+        // Destructor
+        ~Scotch() override = default;
+        // Copy constructor
+        Scotch( const Scotch & other ) = default;
+        // Copy assignment operator
+        Scotch & operator=( const Scotch & other ) = default;
+        // Move constructor
+        Scotch( Scotch && other ) = default;
+        // Move assignment operator
+        Scotch & operator=( Scotch && other ) = default;
         
         
         template<typename ExtInt1, typename ExtInt2, typename Int>

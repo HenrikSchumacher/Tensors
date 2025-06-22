@@ -61,7 +61,19 @@ namespace Tensors
             
         public:
             
+            // No default constructor
+            LowerSolver() = delete;
+            // Destructor
             ~LowerSolver() = default;
+            // Copy constructor
+            LowerSolver( const LowerSolver & other ) = default;
+            // Copy assignment operator
+            LowerSolver & operator=( const LowerSolver & other ) = default;
+            // Move constructor
+            LowerSolver( LowerSolver && other ) = default;
+            // Move assignment operator
+            LowerSolver & operator=( LowerSolver && other ) = default;
+            
             
             LowerSolver(
                 CholeskyDecomposition<Scal,Int,LInt> & chol, const Int nrhs_

@@ -33,11 +33,6 @@ namespace Tensors
             
         public:
             
-
-            Matrix() = default;
-
-            ~Matrix() = default;
-
             Matrix(std::nullptr_t) = delete;
 
             explicit Matrix( const Scal * a )
@@ -73,27 +68,40 @@ namespace Tensors
                 }
             }
             
+            // Default constructor
+            Matrix() = default;
+            
+            // Destructor
+            ~Matrix() = default;
+            
             // Copy constructor
-            Matrix( const Matrix & other )
+            Matrix( const Matrix & other ) noexcept
             {
                 Read( &other.A[0][0] );
             }
-            
-            /* Move constructor */
-            Matrix( Matrix && other ) noexcept
-            {
-                swap(*this, other);
-            }
-            
+
             // Copy assignment operator
-            Matrix & operator=( Matrix other )
+            Matrix & operator=( const Matrix & other ) noexcept
             {
-                // copy-and-swap idiom
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                swap(*this, other);
+                Read( &other.A[0][0] );
 
                 return *this;
             }
+            
+            // Move constructor
+            Matrix( Matrix && other ) noexcept
+            {
+//                swap(*this, other);
+                Read( &other.A[0][0] );
+            }
+            
+            // Move assignment operator
+            Matrix & operator=( Matrix && other ) noexcept
+            {
+                Read( &other.A[0][0] );
+                return *this;
+            }
+
             
             template<typename S, Size_T alignment>
             Matrix( cref<MatrixList<m,n,S,Int,alignment>> m_list, const Int k )

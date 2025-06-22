@@ -7,11 +7,15 @@ public:
 //        
 //        swap( X.A, Y.A );
         
-        Scal buffer [Class_T::RowCount()][Class_T::ColCount()];
+//        Scal buffer [Class_T::RowCount()][Class_T::ColCount()];
+//        
+//        X.Write( &buffer[0][0] );
+//        X.Read ( &Y[0][0]      );
+//        Y.Read ( &buffer[0][0] );
+//        
+        const Int mn = Class_T::RowCount() * Class_T::ColCount();
         
-        X.Write( &buffer[0][0] );
-        X.Read ( &Y[0][0]      );
-        Y.Read ( &buffer[0][0] );
+        std::swap_ranges( &X[0][0], &X[0][0] + mn, &Y[0][0] );
     }
 
 

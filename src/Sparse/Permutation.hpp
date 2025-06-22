@@ -45,18 +45,6 @@ namespace Tensors
         
     public:
         
-        Permutation()
-        :   n              ( zero  )
-        ,   p              ( n     )
-        ,   p_inv          ( n     )
-        ,   scratch        ( n     )
-        ,   thread_count   ( one   )
-        ,   is_trivial     ( true  )
-        ,   p_computed     ( true  )
-        ,   p_inv_computed ( true  )
-        ,   is_valid       ( true  )    // Yeah, we say that an empty permutation is valid! ^^
-        {}
-        
         Permutation( const Int n_, const Int thread_count_ )
         :   n              ( n_               )
         ,   p              ( iota<Int,Int>(n) )
@@ -135,57 +123,79 @@ namespace Tensors
             }
         }
         
-        ~Permutation() = default;
-        
-        
-        /* Copy constructor */
-        Permutation( const Permutation & other )
-        :   n                 ( other.n                 )
-        ,   p                 ( other.p                 )
-        ,   p_inv             ( other.p_inv             )
-        ,   scratch           ( other.scratch           )
-        ,   thread_count      ( other.thread_count      )
-        ,   is_trivial        ( other.is_trivial        )
-        ,   p_computed        ( other.p_computed        )
-        ,   p_inv_computed    ( other.p_inv_computed    )
-        ,   is_valid          ( other.is_valid          )
+        // Default constructor
+        Permutation()
+        :   n              ( zero  )
+        ,   p              ( n     )
+        ,   p_inv          ( n     )
+        ,   scratch        ( n     )
+        ,   thread_count   ( one   )
+        ,   is_trivial     ( true  )
+        ,   p_computed     ( true  )
+        ,   p_inv_computed ( true  )
+        ,   is_valid       ( true  )    // Yeah, we say that an empty permutation is valid! ^^
         {}
         
-        // We could also simply use the implicitly created copy constructor.
+        // Destructor
+        ~Permutation() = default;
+        // Copy constructor
+        Permutation( const Permutation & other ) = default;
+        // Copy assignment operator
+        Permutation & operator=( const Permutation & other ) = default;
+        // Move constructor
+        Permutation( Permutation && other ) = default;
+        // Move assignment operator
+        Permutation & operator=( Permutation && other ) = default;
         
-        /* Swap function */
-        friend void swap (Permutation &A, Permutation &B ) noexcept
-        {
-            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-            using std::swap;
-
-            swap( A.n,                 B.n                 );
-            swap( A.p,                 B.p                 );
-            swap( A.p_inv,             B.p_inv             );
-            swap( A.scratch,           B.scratch           );
-            swap( A.thread_count,      B.thread_count      );
-            swap( A.is_trivial,        B.is_trivial        );
-            swap( A.p_computed,        B.p_computed        );
-            swap( A.p_inv_computed,    B.p_inv_computed    );
-            swap( A.is_valid,          B.is_valid          );
-        }
-        
-        /* Copy assignment operator */
-        Permutation & operator=(Permutation other)
-        {
-            // copy-and-swap idiom
-            // see https://stackoverflow.com/a/3279550/8248900 for details
-
-            swap(*this, other);
-
-            return *this;
-        }
-
-        /* Move constructor */
-        Permutation( Permutation && other ) noexcept : Permutation()
-        {
-            swap(*this, other);
-        }
+//        // Destructor
+//        ~Permutation() = default;
+//        
+//        // Copy constructor
+//        Permutation( const Permutation & other )
+//        :   n                 ( other.n                 )
+//        ,   p                 ( other.p                 )
+//        ,   p_inv             ( other.p_inv             )
+//        ,   scratch           ( other.scratch           )
+//        ,   thread_count      ( other.thread_count      )
+//        ,   is_trivial        ( other.is_trivial        )
+//        ,   p_computed        ( other.p_computed        )
+//        ,   p_inv_computed    ( other.p_inv_computed    )
+//        ,   is_valid          ( other.is_valid          )
+//        {}
+//        
+//        // Swap function
+//        friend void swap (Permutation &A, Permutation &B ) noexcept
+//        {
+//            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+//            using std::swap;
+//
+//            swap( A.n,                 B.n                 );
+//            swap( A.p,                 B.p                 );
+//            swap( A.p_inv,             B.p_inv             );
+//            swap( A.scratch,           B.scratch           );
+//            swap( A.thread_count,      B.thread_count      );
+//            swap( A.is_trivial,        B.is_trivial        );
+//            swap( A.p_computed,        B.p_computed        );
+//            swap( A.p_inv_computed,    B.p_inv_computed    );
+//            swap( A.is_valid,          B.is_valid          );
+//        }
+//        
+//        // Copy assignment operator
+//        Permutation & operator=(Permutation other)
+//        {
+//            // copy-and-swap idiom
+//            // see https://stackoverflow.com/a/3279550/8248900 for details
+//
+//            swap(*this, other);
+//
+//            return *this;
+//        }
+//
+//        // Move constructor
+//        Permutation( Permutation && other ) noexcept : Permutation()
+//        {
+//            swap(*this, other);
+//        }
         
         
         

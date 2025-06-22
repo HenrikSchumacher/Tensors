@@ -12,13 +12,7 @@ namespace Tensors
         
         using Entry_T     = Entry_T_;
         using Int         = Int_;
-        
-        Stack()
-        :   a ( Int(1) )
-        {
-            a[0] = Entry_T();
-        }
-        
+
         Stack( Int max_size )
         :   a ( max_size + Int(1) )
         {
@@ -32,13 +26,49 @@ namespace Tensors
 //            a[0] = Entry_T();
         }
         
-        ~Stack() = default;
+        // Default constructor
+        Stack()
+        :   a ( Int(1) )
+        {
+            a[0] = Entry_T();
+        }
         
+        // Destructor
+        ~Stack() = default;
         // Copy constructor
-        Stack( const Stack & other )
-        :   a   ( other.a   )
-        ,   ptr ( other.ptr )
-        {}
+        Stack( const Stack & other ) = default;
+        // Copy assignment operator
+        Stack & operator=( const Stack & other ) = default;
+        // Move constructor
+        Stack( Stack && other ) = default;
+        // Move assignment operator
+        Stack & operator=( Stack && other ) = default;
+        
+//        // Destructor
+//        ~Stack() = default;
+//        
+//        // Copy constructor
+//        Stack( const Stack & other )
+//        :   a   ( other.a   )
+//        ,   ptr ( other.ptr )
+//        {}
+//
+//        
+//        // Copy-assignment operator
+//        Stack & operator=( Stack other ) noexcept
+//        {
+//            swap(*this, other);
+//            
+//            return *this;
+//        }
+//        
+//        
+//        // Move constructor
+//        Stack( Stack && other ) noexcept
+//        :   Stack()
+//        {
+//            swap(*this, other);
+//        }
         
         inline friend void swap( Stack & A, Stack & B) noexcept
         {
@@ -54,23 +84,6 @@ namespace Tensors
                 swap( A.ptr, B.ptr );
             }
         }
-        
-        // Copy-assignment operator
-        Stack & operator=( Stack other ) noexcept
-        {
-            swap(*this, other);
-            
-            return *this;
-        }
-        
-        
-        // Move constructor
-        Stack( Stack && other ) noexcept
-        :   Stack()
-        {
-            swap(*this, other);
-        }
-        
         
         Int Capacity() const
         {

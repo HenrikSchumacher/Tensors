@@ -62,8 +62,6 @@ namespace Tensors
             
             friend class BinaryMatrixCSR<Int,LInt>;
             
-            PatternCSR() = default;
-            
             template<typename I_0, typename I_1, typename I_3>
             PatternCSR(
                 const I_0 m_,
@@ -163,51 +161,65 @@ namespace Tensors
                 static_assert(IntQ<I_3>,"");
             }
             
+            // Default constructor
+            PatternCSR() = default;
+            // Destructor
+            virtual ~PatternCSR() = default;
             // Copy constructor
-            PatternCSR( const PatternCSR & other )
-            :   outer           ( other.outer           )
-            ,   inner           ( other.inner           )
-            ,   m               ( other.m               )
-            ,   n               ( other.n               )
-            ,   thread_count    ( other.thread_count    )
-            ,   proven_inner_sortedQ    ( other.proven_inner_sortedQ    )
-            ,   proven_duplicate_freeQ  ( other.proven_duplicate_freeQ  )
-            ,   symmetric       ( other.symmetric       )
-            {
-                logprint("Copy of " + ClassName() + " of size {" + ToString(other.m) + ", " + ToString(other.n) + "}, nnz = " + ToString(other.NonzeroCount()));
-            }
-            
-            friend void swap (PatternCSR &A, PatternCSR &B ) noexcept
-            {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                swap( A.outer,          B.outer          );
-                swap( A.inner,          B.inner          );
-                swap( A.m,              B.m              );
-                swap( A.n,              B.n              );
-                swap( A.thread_count,   B.thread_count   );
-                swap( A.proven_inner_sortedQ,   B.proven_inner_sortedQ   );
-                swap( A.proven_duplicate_freeQ, B.proven_duplicate_freeQ );
-                swap( A.symmetric,      B.symmetric      );
-            }
-            
-            //(Copy-)assignment operator
-            PatternCSR & operator=( PatternCSR other ) // Passing by value is okay, because of copy elision.
-            {
-                // copy-and-swap idiom
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                
-                swap(*this, other);
-                
-                return *this;
-            }
-            
+            PatternCSR( const PatternCSR & other ) = default;
+            // Copy assignment operator
+            PatternCSR & operator=( const PatternCSR & other ) = default;
             // Move constructor
-            PatternCSR( PatternCSR && other ) noexcept : PatternCSR()
-            {
-                swap(*this, other);
-            }
+            PatternCSR( PatternCSR && other ) = default;
+            // Move assignment operator
+            PatternCSR & operator=( PatternCSR && other ) = default;
+            
+//            // Copy constructor
+//            PatternCSR( const PatternCSR & other )
+//            :   outer           ( other.outer           )
+//            ,   inner           ( other.inner           )
+//            ,   m               ( other.m               )
+//            ,   n               ( other.n               )
+//            ,   thread_count    ( other.thread_count    )
+//            ,   proven_inner_sortedQ    ( other.proven_inner_sortedQ    )
+//            ,   proven_duplicate_freeQ  ( other.proven_duplicate_freeQ  )
+//            ,   symmetric       ( other.symmetric       )
+//            {
+//                logprint("Copy of " + ClassName() + " of size {" + ToString(other.m) + ", " + ToString(other.n) + "}, nnz = " + ToString(other.NonzeroCount()));
+//            }
+//            
+//            friend void swap (PatternCSR &A, PatternCSR &B ) noexcept
+//            {
+//                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+//                using std::swap;
+//                
+//                swap( A.outer,          B.outer          );
+//                swap( A.inner,          B.inner          );
+//                swap( A.m,              B.m              );
+//                swap( A.n,              B.n              );
+//                swap( A.thread_count,   B.thread_count   );
+//                swap( A.proven_inner_sortedQ,   B.proven_inner_sortedQ   );
+//                swap( A.proven_duplicate_freeQ, B.proven_duplicate_freeQ );
+//                swap( A.symmetric,      B.symmetric      );
+//            }
+//            
+//            // Copy assignment operator
+//            PatternCSR & operator=( PatternCSR other ) // Passing by value is okay, because of copy elision.
+//            {
+//                // copy-and-swap idiom
+//                // see https://stackoverflow.com/a/3279550/8248900 for details
+//                
+//                swap(*this, other);
+//                
+//                return *this;
+//            }
+//            
+//            // Move constructor
+//            PatternCSR( PatternCSR && other ) noexcept
+//            : PatternCSR()
+//            {
+//                swap(*this, other);
+//            }
             
             // We do not need a move-assignment operator, because we use the copy-swap idiom!
             
@@ -359,8 +371,6 @@ namespace Tensors
                     ExtInt(1),final_thread_count,compressQ,symmetrizeQ
                 );
             }
-
-            virtual ~PatternCSR() = default;
             
             
         public:

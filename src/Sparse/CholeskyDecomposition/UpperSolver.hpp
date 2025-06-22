@@ -52,7 +52,18 @@ namespace Tensors
             
         public:
             
+            // No default constructor
+            UpperSolver() = delete;
+            // Destructor
             ~UpperSolver() = default;
+            // Copy constructor
+            UpperSolver( const UpperSolver & other ) = default;
+            // Copy assignment operator
+            UpperSolver & operator=( const UpperSolver & other ) = default;
+            // Move constructor
+            UpperSolver( UpperSolver && other ) = default;
+            // Move assignment operator
+            UpperSolver & operator=( UpperSolver && other ) = default;
             
             UpperSolver(
                 CholeskyDecomposition<Scal,Int,LInt> & chol, const Int nrhs_

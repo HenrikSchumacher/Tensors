@@ -121,23 +121,18 @@ namespace Tensors
             
         public:
             
-//            ~CholeskyFactorizer_LeftLooking() = default;
-            
-            ~CholeskyFactorizer_LeftLooking()
-            {
-//                TOOLS_DUMP(fetch_from_decendants_time);
-//                TOOLS_DUMP(intersection_time);
-//                TOOLS_DUMP(empty_intersection_time);
-//                TOOLS_DUMP(sup_sup_time);
-//                TOOLS_DUMP(scatter_time);
-//                
-//                TOOLS_DUMP(col_sup_time);
-//
-//                TOOLS_DUMP(fetch_from_A_time);
-//                TOOLS_DUMP(factorize_supernode_time);
-            }
-            
-            
+            // No default constructor
+            CholeskyFactorizer_LeftLooking() = delete;
+            // Destructor
+            ~CholeskyFactorizer_LeftLooking() = default;
+            // Copy constructor
+            CholeskyFactorizer_LeftLooking( const CholeskyFactorizer_LeftLooking & other ) = default;
+            // Copy assignment operator
+            CholeskyFactorizer_LeftLooking & operator=( const CholeskyFactorizer_LeftLooking & other ) = default;
+            // Move constructor
+            CholeskyFactorizer_LeftLooking( CholeskyFactorizer_LeftLooking && other ) = default;
+            // Move assignment operator
+            CholeskyFactorizer_LeftLooking & operator=( CholeskyFactorizer_LeftLooking && other ) = default;
             
             
             CholeskyFactorizer_LeftLooking( CholeskyDecomposition<Scal,Int,LInt> & chol )
@@ -177,10 +172,7 @@ namespace Tensors
             ,   C_0             ( C_0_buffer.data()                             )
             ,   C_1             ( C_1_buffer.data()                             )
             {}
-            
-        protected:
-            
-            
+                        
         public:
                 
             // Factorization routine.

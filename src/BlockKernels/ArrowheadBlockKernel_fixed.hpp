@@ -3,7 +3,7 @@
 #define CLASS ArrowheadBlockKernel_fixed
 
 #define BASE  BlockKernel_fixed<                            \
-    ROWS_,COLS_,NRHS_,fixed,                           \
+    ROWS_,COLS_,NRHS_,fixed,                                \
     Scal_,Scal_in_,Scal_out_,                               \
     Int_, LInt_,                                            \
     alpha_flag, beta_flag,                                  \
@@ -76,8 +76,6 @@ namespace Tensors
         
     public:
         
-        CLASS() = delete;
-        
         explicit CLASS( mptr<Scal> A_ )
         :   Base_T( A_ )
         {}
@@ -91,10 +89,19 @@ namespace Tensors
         :   Base_T( A_, alpha_, X_, beta_, Y_, nrhs_ )
         {}
         
-        // Copy constructor
-        CLASS( const CLASS & other ) : Base_T(other) {}
         
+        // No default constructor
+        CLASS() = delete;
+        // Destructor
         virtual ~CLASS() override = default;
+        // Copy constructor
+        CLASS( const CLASS & other ) = default;
+        // Copy assignment operator
+        CLASS & operator=( const CLASS & other ) = default;
+        // Move constructor
+        CLASS( CLASS && other ) = default;
+        // Move assignment operator
+        CLASS & operator=( CLASS && other ) = default;
         
     public:
         

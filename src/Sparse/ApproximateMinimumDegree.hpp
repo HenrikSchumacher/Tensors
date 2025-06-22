@@ -13,11 +13,19 @@ namespace Tensors
         {
         public:
             
+            // Default constuctor
             ApproximateMinimumDegree() = default;
-            
+            // Destructor
             ~ApproximateMinimumDegree() = default;
-            
-            
+            // Copy constructor
+            ApproximateMinimumDegree( const ApproximateMinimumDegree & other ) = default;
+            // Copy assignment operator
+            ApproximateMinimumDegree & operator=( const ApproximateMinimumDegree & other ) = default;
+            // Move constructor
+            ApproximateMinimumDegree( ApproximateMinimumDegree && other ) = default;
+            // Move assignment operator
+            ApproximateMinimumDegree & operator=( ApproximateMinimumDegree && other ) = default;
+                        
             template<typename I_1, typename I_2, typename I_3, typename I_4>
             Permutation<Int> operator()(
                 mptr<I_1> rp_, mptr<I_2> ci_, const I_3 n_, const I_4 final_thread_count = 1

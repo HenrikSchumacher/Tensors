@@ -79,8 +79,6 @@ namespace Tensors
         
     public:
         
-        CLASS() = delete;
-        
         explicit CLASS( mptr<Scal> A_ )
         :   BASE( A_ )
         {}
@@ -94,10 +92,18 @@ namespace Tensors
         :   BASE( A_, alpha_, X_, beta_, Y_, nrhs_ )
         {}
         
-        // Copy constructor
-        CLASS( const CLASS & other ) : BASE(other) {}
-        
+        // No default constructor
+        CLASS() = delete;
+        // Destructor
         virtual ~CLASS() override = default;
+        // Copy constructor
+        CLASS( const CLASS & other ) = default;
+        // Copy assignment operator
+        CLASS & operator=( const CLASS & other ) = default;
+        // Move constructor
+        CLASS( CLASS && other ) = default;
+        // Move assignment operator
+        CLASS & operator=( CLASS && other ) = default;
         
     public:
         

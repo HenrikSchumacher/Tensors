@@ -16,12 +16,11 @@ protected:
 
 public:
 
-    // The big four and a half:
-
+    // Default constructor
     TENSOR_T() = default;
 
     // Destructor
-    ~TENSOR_T()
+    virtual ~TENSOR_T()
     {
 #ifdef TENSORS_ALLOCATION_LOGS
         logprint(ClassName() + " destructor (size = " + ToString(Size()) + ")");
@@ -71,12 +70,36 @@ public:
         }
         else
         {
-            swap( A.dims, B.dims );
-            
-            swap( A.n, B.n );
-            
-            swap( A.a, B.a );
+            swap( A.dims, B.dims    );
+            swap( A.n   , B.n       );
+            swap( A.a   , B.a       );
         }
+    }
+
+    // Copy assignment operator
+    // We ship our own because we can do a few optimizations here.
+    mref<TENSOR_T> operator=( const TENSOR_T & other )
+    {
+    #ifdef TENSORS_ALLOCATION_LOGS
+            logprint(ClassName() + " copy-assignment (size = " + ToString(other.Size()) + ")");
+    #endif
+        if( this != &other )
+        {
+            if( dims != other.dims )
+            {
+                n    = other.n;
+                dims = other.dims;
+                
+    #ifdef TENSORS_ALLOCATION_LOGS
+                logprint( ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
+    #endif
+                
+                safe_free(a);
+                allocate();
+            }
+            Read( other.a );
+        }
+        return *this;
     }
 
     // Move constructor
@@ -89,8 +112,7 @@ public:
         swap(*this, other);
     }
 
-
-    /* Move-assignment operator */
+    // Move assignment operator
     mref<TENSOR_T> operator=( TENSOR_T && other ) noexcept
     {
 #ifdef TENSORS_ALLOCATION_LOGS
@@ -98,7 +120,9 @@ public:
 #endif
         if( this == &other )
         {
+#ifdef TENSORS_ALLOCATION_LOGS
             wprint("An object of type " + ClassName() + " has been move-assigned to itself.");
+#endif
         }
         else
         {
@@ -107,33 +131,8 @@ public:
         return *this;
     }
 
-    /* Copy-assignment operator */
-    mref<TENSOR_T> operator=( const TENSOR_T & other )
-    {
-#ifdef TENSORS_ALLOCATION_LOGS
-            logprint(ClassName() + " copy-assignment (size = " + ToString(other.Size()) + ")");
-#endif
-        if( this != &other )
-        {
-            if( dims != other.dims )
-            {
-                n    = other.n;
-                dims = other.dims;
-                
-#ifdef TENSORS_ALLOCATION_LOGS
-                logprint( ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
-#endif
-                
-                safe_free(a);
-                allocate();
-            }
-            Read( other.a );
-        }
-        return *this;
-    }
 
-
-    /* Copy-cast-assignment operator */
+    // Copy-cast-assignment operator
     template<
         typename S, typename J, Size_T alignment_,
         class = std::enable_if_t<(!SameQ<S,Scal>) || (!SameQ<J,Int>) || ( alignment_ != Alignment)>
@@ -148,7 +147,6 @@ public:
         
         for( Size_T i = 0; i < ToSize_T(Rank()); ++i )
         {
-
             different_dimsQ = different_dimsQ || std::cmp_not_equal( dims[i], other.Dimensions()[i] );
         }
         
@@ -157,7 +155,7 @@ public:
 #ifdef TENSORS_ALLOCATION_LOGS
             logprint(ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
 #endif
-            n    = other.Size();
+            n = other.Size();
             
             for( Size_T i = 0; i < ToSize_T(Rank()); ++i )
             {
@@ -380,6 +378,7 @@ public:
     {
         return Dim(i);
     }
+
 public:
 
     TOOLS_FORCE_INLINE mptr<Scal> data()

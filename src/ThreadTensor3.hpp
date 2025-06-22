@@ -23,8 +23,6 @@ namespace Tensors {
         
     public:
         
-        ThreadTensor3() = default;
-        
         ThreadTensor3( const Int d0, const Int d1, const Int d2 )
         :   n( d0 * d1 * d2 )
         ,   dims{ d0, d1, d2 }
@@ -71,6 +69,16 @@ namespace Tensors {
                 thread_count
             );
         }
+        
+        // Default constructor
+        ThreadTensor3() = default;
+        
+        // Destructor
+        ~ThreadTensor3(){
+#ifdef TENSORS_BOUND_CHECKS
+            print("~"+ClassName()+" { " + ToString(dims[0]) + ", " + ToString(dims[1]) + " }" );
+#endif
+        }
 
         // Copy constructor
         explicit ThreadTensor3( const ThreadTensor3 & other )
@@ -89,7 +97,7 @@ namespace Tensors {
             );
         }
         
-        // Copy constructor
+        // Copy-cast constructor
         template<typename S, typename J, Size_T alignment_>
         explicit ThreadTensor3( const ThreadTensor3<S,J,alignment_> & other )
         :   ThreadTensor3( other.dims[0], other.dims[1], other.dims[2] )
@@ -109,29 +117,6 @@ namespace Tensors {
             );
         }
         
-//        // Copy constructor
-//        ThreadTensor3( const ThreadTensor3 & other )
-//        :
-//            tensors( std::vector<Tensor_T> (other.Dim(0)) ),
-//            n(other.Size())
-//        {
-//            dims[0] = other.Dim(0);
-//            dims[1] = other.Dim(1);
-//            dims[2] = other.Dim(2);
-//
-//            print(ClassName()+" copy constructor");
-//
-//            const Int thread_count = dims[0];
-//
-//            ParallelDo(
-//                [=,this]( const Int thread )
-//                {
-//                    tensors[thread] = Tensor_T( other[thread] );
-//                },
-//                thread_count
-//            );
-//        }
-        
         friend void swap( ThreadTensor3 & A, ThreadTensor3 & B ) noexcept
         {
             // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
@@ -146,7 +131,7 @@ namespace Tensors {
             swap(A.n , B.n );
         }
         
-        // copy-and-swap idiom
+        // Copy constructor
         ThreadTensor3 & operator=(ThreadTensor3 B)
         {
             // see https://stackoverflow.com/a/3279550/8248900 for details
@@ -168,12 +153,7 @@ namespace Tensors {
 #endif
             swap(*this, other);
         }
-        
-        ~ThreadTensor3(){
-#ifdef TENSORS_BOUND_CHECKS
-            print("~"+ClassName()+" { " + ToString(dims[0]) + ", " + ToString(dims[1]) + " }" );
-#endif
-        }
+
         
         
         static constexpr Int Rank()

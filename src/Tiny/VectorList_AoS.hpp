@@ -25,10 +25,7 @@ namespace Tensors
             
             
         public:
-            
-            VectorList_AoS()
-            :   Base_T()
-            {}
+
             
             explicit VectorList_AoS( const Int m_ )
             :   Base_T(m_,n)
@@ -42,11 +39,19 @@ namespace Tensors
             VectorList_AoS( cptr<S> a, const Int m_ )
             :   Base_T(a,m_,n)
             {}
-            
-            ~VectorList_AoS() = default;
-            
+    
+            // Default constructor
+            VectorList_AoS() = default;
+            // Destructor
+            virtual ~VectorList_AoS() override = default;
             // Copy constructor
-            VectorList_AoS(const VectorList_AoS & other ) = default;
+            VectorList_AoS( const VectorList_AoS & other ) = default;
+            // Copy assignment operator
+            VectorList_AoS & operator=( const VectorList_AoS & other ) = default;
+            // Move constructor
+            VectorList_AoS( VectorList_AoS && other ) = default;
+            // Move assignment operator
+            VectorList_AoS & operator=( VectorList_AoS && other ) = default;
             
             // Copy-cast constructor
             template<typename T, typename I, Size_T align>
@@ -57,30 +62,8 @@ namespace Tensors
             friend void swap(VectorList_AoS & A, VectorList_AoS & B ) noexcept
             {
                 using std::swap;
-                
                 swap(static_cast<Base_T &>(A), static_cast<Base_T &>(B));
             }
-            
-            // Copy assignment
-            VectorList_AoS & operator=( VectorList_AoS other) noexcept
-            {
-                swap(*this, other);
-                return *this;
-            }
-            
-            // Move constructor
-            VectorList_AoS( VectorList_AoS && other) noexcept
-            :   VectorList_AoS()
-            {
-                swap(*this, other);
-            }
-            
-//            // Move assignment
-//            VectorList_AoS & operator=(VectorList_AoS && other) noexcept
-//            {
-//                swap(*this, other);
-//                return *this;
-//            }
             
         protected:
             

@@ -21,10 +21,6 @@ namespace Tensors
         public:
             
             static constexpr Int n = SIZE;
-            
-            Vector() = default;
-
-            ~Vector() = default;
 
             Vector(std::nullptr_t) = delete;
 
@@ -44,10 +40,23 @@ namespace Tensors
             :   v {{init}}
             {}
             
+            // Default constructor
+            Vector() = default;
+
+            // Destructor
+            ~Vector() = default;
+            
             // Copy constructor
-            Vector( const Vector & other )
+            Vector( const Vector & other ) noexcept
             {
                 Read( &other.v[0] );
+            }
+            
+            // Copy assignment operator
+            Vector & operator=( const Vector & other ) noexcept
+            {
+                Read( &other.v[0] );
+                return *this;
             }
 
             friend void swap( Vector & A, Vector & B ) noexcept
@@ -57,32 +66,31 @@ namespace Tensors
                 
 //                swap( A.v, B.v );
                 
-                Scal buffer [n];
+//                Scal buffer [n];
+//                
+//                A.Write( &buffer[0] );
+//                A.Read ( &B.v[0] );
+//                B.Read ( &buffer[0] );
                 
-                A.Write( &buffer[0] );
-                A.Read ( &B.v[0] );
-                B.Read ( &buffer[0] );
+                std::swap_ranges( &A.v[0], &A.v[n], &B.v[0] );
             }
 
-            // Copy assignment operator
-            Vector & operator=( Vector other )
+            // Move constructor
+            explicit Vector( Vector && other ) noexcept
             {
-                // copy-and-swap idiom
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                swap(*this, other);
-
+//                swap(*this, other);
+                Read( &other.v[0] );
+            }
+            
+            // Move assignment operator
+            Vector & operator=( Vector && other ) noexcept
+            {
+                Read( &other.v[0] );
                 return *this;
             }
 
-            /* Move constructor */
-            explicit Vector( Vector && other ) noexcept
-            {
-                swap(*this, other);
-            }
-            
-
             template<typename S, Size_T alignment>
-            Vector( cref<VectorList<n,S,Int,alignment>> v_list, const Int k )
+            Vector( cref<VectorList<n,S,Int,alignment>> v_list, const Int k ) noexcept
             {
                 Read(v_list, k);
             }

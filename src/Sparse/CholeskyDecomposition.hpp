@@ -228,10 +228,6 @@ namespace Tensors
             
         public:
             
-            CholeskyDecomposition() = default;
-            
-            virtual ~CholeskyDecomposition() override = default;
-            
             template<typename ExtLInt, typename ExtInt>
             CholeskyDecomposition(
                 cptr<ExtLInt> A_outer,
@@ -363,9 +359,18 @@ namespace Tensors
                 TOOLS_PTOC(tag);
             }
 
-            
+            // Default constructor
+            CholeskyDecomposition() = default;
+            // Destructor (virtual because of inheritance)
+            virtual ~CholeskyDecomposition() override = default;
             // Copy constructor
             CholeskyDecomposition( const CholeskyDecomposition & other ) = default;
+            // Copy assignment operator
+            CholeskyDecomposition & operator=( const CholeskyDecomposition & other ) = default;
+            // Move constructor
+            CholeskyDecomposition( CholeskyDecomposition && other ) = default;
+            // Move assignment operator
+            CholeskyDecomposition & operator=( CholeskyDecomposition && other ) = default;
             
 //            /* Copy constructor */
 //            CholeskyDecomposition( const CholeskyDecomposition & other )
@@ -400,57 +405,57 @@ namespace Tensors
 //                Init();
 //            }
             
-            /* Swap function */
-            friend void swap (CholeskyDecomposition & A_, CholeskyDecomposition & B_ ) noexcept
-            {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                swap( static_cast<CachedObject&>(A_), static_cast<CachedObject&>(B_) );
-                
-                swap( A_.n,                  B_.n                     );
-                swap( A_.thread_count,       B_.thread_count          );
-                swap( A_.A,                  B_.A                     );
-                swap( A_.A_inner_perm,       B_.A_inner_perm          );
-                swap( A_.A_val,              B_.A_val                 );
-                swap( A_.eTree_initialized,  B_.eTree_initialized     );
-                swap( A_.eTree,              B_.eTree                 );
-                swap( A_.aTree,              B_.aTree                 );
-                swap( A_.SN_initialized,     B_.SN_initialized        );
-                swap( A_.SN_count,           B_.SN_count              );
-                swap( A_.SN_rp,              B_.SN_rp                 );
-                swap( A_.SN_outer,           B_.SN_outer              );
-                swap( A_.SN_inner,           B_.SN_inner              );
-                swap( A_.row_to_SN,          B_.row_to_SN             );
-                swap( A_.SN_tri_ptr,         B_.SN_tri_ptr            );
-                swap( A_.SN_tri_val,         B_.SN_tri_val            );
-                swap( A_.SN_rec_ptr,         B_.SN_rec_ptr            );
-                swap( A_.SN_rec_val,         B_.SN_rec_val            );
-                swap( A_.SN_updates,         B_.SN_updates            );
-                swap( A_.max_n_0,            B_.max_n_0               );
-                swap( A_.max_n_1,            B_.max_n_1               );
-                swap( A_.nrhs,               B_.nrhs                  );
-                swap( A_.X,                  B_.X                     );
-                swap( A_.X_scratch,          B_.X_scratch             );
-                swap( A_.row_mutexes,        B_.row_mutexes           );
-            }
-            
-            
-            /* Copy assignment operator */
-            CholeskyDecomposition & operator=( CholeskyDecomposition other )
-            {
-                // copy-and-swap idiom
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                swap(*this, other);
-
-                return *this;
-            }
-            
-            /* Move constructor */
-            CholeskyDecomposition( CholeskyDecomposition && other ) noexcept
-            {
-                swap(*this, other);
-            }
+//            // Swap function
+//            friend void swap (CholeskyDecomposition & A_, CholeskyDecomposition & B_ ) noexcept
+//            {
+//                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+//                using std::swap;
+//                
+//                swap( static_cast<CachedObject&>(A_), static_cast<CachedObject&>(B_) );
+//                
+//                swap( A_.n,                  B_.n                     );
+//                swap( A_.thread_count,       B_.thread_count          );
+//                swap( A_.A,                  B_.A                     );
+//                swap( A_.A_inner_perm,       B_.A_inner_perm          );
+//                swap( A_.A_val,              B_.A_val                 );
+//                swap( A_.eTree_initialized,  B_.eTree_initialized     );
+//                swap( A_.eTree,              B_.eTree                 );
+//                swap( A_.aTree,              B_.aTree                 );
+//                swap( A_.SN_initialized,     B_.SN_initialized        );
+//                swap( A_.SN_count,           B_.SN_count              );
+//                swap( A_.SN_rp,              B_.SN_rp                 );
+//                swap( A_.SN_outer,           B_.SN_outer              );
+//                swap( A_.SN_inner,           B_.SN_inner              );
+//                swap( A_.row_to_SN,          B_.row_to_SN             );
+//                swap( A_.SN_tri_ptr,         B_.SN_tri_ptr            );
+//                swap( A_.SN_tri_val,         B_.SN_tri_val            );
+//                swap( A_.SN_rec_ptr,         B_.SN_rec_ptr            );
+//                swap( A_.SN_rec_val,         B_.SN_rec_val            );
+//                swap( A_.SN_updates,         B_.SN_updates            );
+//                swap( A_.max_n_0,            B_.max_n_0               );
+//                swap( A_.max_n_1,            B_.max_n_1               );
+//                swap( A_.nrhs,               B_.nrhs                  );
+//                swap( A_.X,                  B_.X                     );
+//                swap( A_.X_scratch,          B_.X_scratch             );
+//                swap( A_.row_mutexes,        B_.row_mutexes           );
+//            }
+//            
+//            
+//            // Copy assignment operator
+//            CholeskyDecomposition & operator=( CholeskyDecomposition other )
+//            {
+//                // copy-and-swap idiom
+//                // see https://stackoverflow.com/a/3279550/8248900 for details
+//                swap(*this, other);
+//
+//                return *this;
+//            }
+//            
+//            // Move constructor
+//            CholeskyDecomposition( CholeskyDecomposition && other ) noexcept
+//            {
+//                swap(*this, other);
+//            }
             
             
         protected:

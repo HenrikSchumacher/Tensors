@@ -61,10 +61,6 @@ namespace Tensors
             using Base_T::WellFormedQ;
             using Base_T::Dot_;
             
-            MatrixCSR()
-            :   Base_T()
-            {}
-            
             template<typename I_0, typename I_1, typename I_3>
             MatrixCSR(
                 const I_0 m_,
@@ -145,42 +141,57 @@ namespace Tensors
                 static_assert(IntQ<I_1>,"");
                 static_assert(IntQ<I_3>,"");
             }
-            
+
+            // Default constructor
+            MatrixCSR()
+            :   Base_T()
+            {}
+            // Destructor
+            virtual ~MatrixCSR() override = default;
             // Copy constructor
-            MatrixCSR( const MatrixCSR & other ) noexcept
-            :   Base_T    ( other           )
-            ,   values    ( other.values    )
-            ,   assembler ( other.assembler )
-            {
-                logprint("Copy of "+ ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nnz = "+ToString(NonzeroCount()));
-            }
-            
-            friend void swap (MatrixCSR & A, MatrixCSR & B ) noexcept
-            {
-                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-                using std::swap;
-                
-                swap( static_cast<Base_T&>(A), static_cast<Base_T&>(B) );
-                swap( A.values,                B.values                );
-                swap( A.assembler,             B.assembler             );
-            }
-            
-            // (Copy-)assignment operator
-            MatrixCSR & operator=( MatrixCSR other ) noexcept // Pass by value is okay, because we use copy-swap idiom and copy elision.
-            {
-                // see https://stackoverflow.com/a/3279550/8248900 for details
-                
-                swap(*this, other);
-                
-                return *this;
-            }
-            
+            MatrixCSR( const MatrixCSR & other ) = default;
+            // Copy assignment operator
+            MatrixCSR & operator=( const MatrixCSR & other ) = default;
             // Move constructor
-            MatrixCSR( MatrixCSR && other ) noexcept
-            :   MatrixCSR()
-            {
-                swap(*this, other);
-            }
+            MatrixCSR( MatrixCSR && other ) = default;
+            // Move assignment operator
+            MatrixCSR & operator=( MatrixCSR && other ) = default;
+
+//            // Copy constructor
+//            MatrixCSR( const MatrixCSR & other ) noexcept
+//            :   Base_T    ( other           )
+//            ,   values    ( other.values    )
+//            ,   assembler ( other.assembler )
+//            {
+//                logprint("Copy of "+ ClassName()+" of size {"+ToString(m)+", "+ToString(n)+"}, nnz = "+ToString(NonzeroCount()));
+//            }
+//            
+//            friend void swap (MatrixCSR & A, MatrixCSR & B ) noexcept
+//            {
+//                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+//                using std::swap;
+//                
+//                swap( static_cast<Base_T&>(A), static_cast<Base_T&>(B) );
+//                swap( A.values,                B.values                );
+//                swap( A.assembler,             B.assembler             );
+//            }
+//            
+//            // (Copy-)assignment operator
+//            MatrixCSR & operator=( MatrixCSR other ) noexcept // Pass by value is okay, because we use copy-swap idiom and copy elision.
+//            {
+//                // see https://stackoverflow.com/a/3279550/8248900 for details
+//                
+//                swap(*this, other);
+//                
+//                return *this;
+//            }
+//            
+//            // Move constructor
+//            MatrixCSR( MatrixCSR && other ) noexcept
+//            :   MatrixCSR()
+//            {
+//                swap(*this, other);
+//            }
             
             // We do not need a move-assignment operator, because we use the copy-swap idiom!
             
@@ -333,8 +344,6 @@ namespace Tensors
                     compressQ, symmetrizeQ, assemblerQ
                 );
             }
-            
-            virtual ~MatrixCSR() override = default;
             
         public:
             

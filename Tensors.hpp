@@ -21,7 +21,7 @@
 #include "src/Aggregator.hpp"
 #include "src/PairAggregator.hpp"
 #include "src/TripleAggregator.hpp"
-//#include "src/RaggedList.hpp"
+#include "src/RaggedList.hpp"
 
 
 #include "src/Sparse/Permutation.hpp"

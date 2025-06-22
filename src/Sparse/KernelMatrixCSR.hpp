@@ -17,8 +17,6 @@ namespace Tensors
             
             using Pattern_T = Sparse::PatternCSR<Int,LInt>;
             
-            KernelMatrixCSR() = delete;
-            
             //        KernelMatrixCSR()
             //        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
             //        {}
@@ -28,13 +26,18 @@ namespace Tensors
             ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
             {}
             
-            // Copy constructor
-            KernelMatrixCSR( const KernelMatrixCSR & other )
-            :   pattern ( other.pattern )
-            ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
-            {}
-            
+            // No default constructor
+            KernelMatrixCSR() = delete;
+            // Destructor
             ~KernelMatrixCSR() = default;
+            // Copy constructor
+            KernelMatrixCSR( const KernelMatrixCSR & other ) = default;
+            // Copy assignment operator
+            KernelMatrixCSR & operator=( const KernelMatrixCSR & other ) = default;
+            // Move constructor
+            KernelMatrixCSR( KernelMatrixCSR && other ) = default;
+            // Move assignment operator
+            KernelMatrixCSR & operator=( KernelMatrixCSR && other ) = default;
             
         protected:
             
@@ -129,9 +132,9 @@ namespace Tensors
             }
             
             
-//#####################################################################################
+//###########################################################
 //      Matrix multiplication
-//#####################################################################################
+//###########################################################
             
             void Scale( mptr<Scal_out> Y, cref<Scal_out> beta, const Int nrhs ) const
             {
@@ -229,9 +232,9 @@ namespace Tensors
                 TOOLS_PTOC(ClassName()+"::Dot" );
             }
             
-//#####################################################################################
+//###########################################################
 //####          Permute
-//#####################################################################################
+//###########################################################
             
         public:
             

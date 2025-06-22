@@ -12,10 +12,7 @@ namespace Tensors
         using LInt     = typename Kernel_T::LInt;
         using Scal_in  = typename Kernel_T::Scal_in;
         using Scal_out = typename Kernel_T::Scal_out;
-        
-        DiagonalKernelMatrix()
-        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
-        {}
+
         
         DiagonalKernelMatrix(
               const Int n_,
@@ -26,14 +23,21 @@ namespace Tensors
         ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
         {}
         
-        // Copy constructor
-        DiagonalKernelMatrix( const DiagonalKernelMatrix & other )
-        :   n ( other.n )
-        ,   thread_count( other.thread_count )
-        ,   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
+        // Default constructor
+        DiagonalKernelMatrix()
+        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
         {}
         
+        // Destructor
         ~DiagonalKernelMatrix() = default;
+        // Copy constructor
+        DiagonalKernelMatrix( const DiagonalKernelMatrix & other ) = default;
+        // Copy assignment operator
+        DiagonalKernelMatrix & operator=( const DiagonalKernelMatrix & other ) = default;
+        // Move constructor
+        DiagonalKernelMatrix( DiagonalKernelMatrix && other ) = default;
+        // Move assignment operator
+        DiagonalKernelMatrix & operator=( DiagonalKernelMatrix && other ) = default;
         
     protected:
         
