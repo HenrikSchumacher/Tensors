@@ -30,6 +30,7 @@
 #include "src/Sparse/BinaryMatrixCSR.hpp"
 #include "src/Sparse/MatrixCSR.hpp"
 #include "src/Sparse/Dot.hpp"
+#include "src/Sparse/GridLaplacian.hpp"
 
 #include "src/Sparse/KernelMatrixCSR.hpp"
 #include "src/Sparse/DiagonalKernelMatrix.hpp"

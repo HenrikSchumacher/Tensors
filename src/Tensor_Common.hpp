@@ -282,7 +282,7 @@ public:
                     const Int i_begin = JobPointer( n, thread_count, thread     );
                     const Int i_end   = JobPointer( n, thread_count, thread + 1 );
                     
-                    MT_T & engine = engines[static_cast<Size_T>(thread)];
+                    MT_T & engine = engines[ToSize_T(thread)];
                     
                     std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
                    
@@ -302,7 +302,7 @@ public:
                    const Int i_begin = JobPointer( n, thread_count, thread     );
                    const Int i_end   = JobPointer( n, thread_count, thread + 1 );
                    
-                   MT_T & engine = engines[thread];
+                   MT_T & engine = engines[ToSize_T(thread)];
                    
                    std::uniform_real_distribution<Real> unif(-Scalar::One<Real>,Scalar::One<Real>);
                    
