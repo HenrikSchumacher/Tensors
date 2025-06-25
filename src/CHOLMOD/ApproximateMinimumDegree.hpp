@@ -8,7 +8,7 @@ namespace Tensors
     namespace CHOLMOD
     {
         template<typename Int_>
-        class ApproximateMinimumDegree
+        class ApproximateMinimumDegree final
         {
             
         public:

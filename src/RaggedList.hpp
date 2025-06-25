@@ -3,7 +3,7 @@
 namespace Tensors
 {
     template<typename T_, typename Int_>
-    class RaggedList
+    class RaggedList final
     {
         static_assert(IntQ<Int_>,"");
     public:

@@ -8,7 +8,7 @@ namespace Tensors
         template<int SIZE, typename Scal_, typename Int_, Size_T alignment> class VectorList;
         
         template<int SIZE, typename Scal_, typename Int_>
-        class Vector
+        class Vector final
         {
             /// Very slim vector type of fixed length, with basic arithmetic operations.
             

@@ -10,7 +10,7 @@ namespace Tensors
         template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
         
         template<bool mult_rhs, bool lockedQ, typename Scal_, typename Int_, typename LInt_>
-        class alignas(ObjectAlignment) LowerSolver
+        class alignas(ObjectAlignment) LowerSolver final
         {
             static_assert(IntQ<Int_>,"");
             static_assert(IntQ<LInt_>,"");

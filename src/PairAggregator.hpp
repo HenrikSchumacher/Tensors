@@ -3,7 +3,7 @@
 namespace Tensors
 {
     template<typename T_0, typename T_1, typename LInt, int BUFFER_CAP = 128>
-    class alignas(ObjectAlignment) PairAggregator
+    class alignas(ObjectAlignment) PairAggregator final
     {
         static_assert(IntQ<LInt>,"");
 

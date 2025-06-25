@@ -5,7 +5,7 @@ namespace Tensors
     namespace Tiny
     {
         template< int m_, int n_, typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
-        class MatrixList
+        class MatrixList final
         {
         public:
             

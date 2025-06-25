@@ -8,7 +8,7 @@ namespace Tensors
         Op store_op, Op op,
         typename Scal
     >
-    class MatrixBlockMajor
+    class MatrixBlockMajor final
     {
         /// TODO: Data layout
         /// We are using a `Tensor2<Tiny::Matrix<...>,Size_T>` at the moment.

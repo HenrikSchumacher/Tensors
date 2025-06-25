@@ -3,13 +3,11 @@
 namespace Tensors
 {    
     template<Size_T vector_size = 8, bool reverseQ = false>
-    class MergeSorter
+    class MergeSorter final
     {
     public:
         
         MergeSorter() = default;
-        
-        ~MergeSorter() = default;
         
     private:
         

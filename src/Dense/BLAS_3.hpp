@@ -12,7 +12,7 @@ namespace Tensors
             Op opA, Op opB, Op opC,
             typename A_T_, typename B_T_, typename C_T_, typename Int_
         >
-        class BLAS_3
+        class BLAS_3 final
         {
         public:
             

@@ -8,7 +8,7 @@ namespace Tensors
     namespace CHOLMOD
     {
         template<typename Int_>
-        class NestedDissection
+        class NestedDissection final
         {
             
         public:

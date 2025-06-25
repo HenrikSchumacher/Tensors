@@ -6,7 +6,7 @@ namespace Tensors
 #define TENSOR_T Tensor2
 
     template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
-    class TENSOR_T
+    class TENSOR_T final
     {
 
 #include "Tensor_Common.hpp"

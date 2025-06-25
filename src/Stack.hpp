@@ -4,7 +4,7 @@ namespace Tensors
 {
     // Some extra care was taken so that Int_ can be an unsigned integer.
     template<typename Entry_T_, typename Int_>
-    class Stack
+    class Stack final
     {
         static_assert(IntQ<Int_>, "");
         

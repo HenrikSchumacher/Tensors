@@ -32,18 +32,42 @@
 
 #include "ClpSimplex.hpp"
 #include "ClpSimplexDual.hpp"
+#include "ClpPlusMinusOneMatrix.hpp"
 //#include "CoinHelperFunctions.hpp"
 
 
 namespace Tensors
 {
+    CoinPackedMatrix MatrixCSR_transpose_to_CoinPackedMatrix(
+        const Sparse::MatrixCSR<double,int,CoinBigIndex> & A
+    )
+    {
+        // https://coin-or.github.io/Clp/Doxygen/classClpPackedMatrix.html
+//        CoinPackedMatrix B(
+//            false, A.RowCount(), A.ColCount(), A.NonzeroCount(),
+//            A.Values().data(), A.Inner().data(), A.Outer().data(), nullptr
+//        );
+        
+        CoinPackedMatrix B (
+            true, A.ColCount(), A.RowCount(), A.NonzeroCount(),
+            A.Values().data(), A.Inner().data(), A.Outer().data(), nullptr
+        );
+        
+        return B;
+    }
+    
     CoinPackedMatrix MatrixCSR_to_CoinPackedMatrix(
         const Sparse::MatrixCSR<double,int,CoinBigIndex> & A
     )
     {
         // https://coin-or.github.io/Clp/Doxygen/classClpPackedMatrix.html
-        CoinPackedMatrix B(
-            false, A.RowCount(), A.ColCount(), A.NonzeroCount(),
+//        CoinPackedMatrix B(
+//            false, A.RowCount(), A.ColCount(), A.NonzeroCount(),
+//            A.Values().data(), A.Inner().data(), A.Outer().data(), nullptr
+//        );
+        
+        CoinPackedMatrix B (
+            false, A.ColCount(), A.RowCount(), A.NonzeroCount(),
             A.Values().data(), A.Inner().data(), A.Outer().data(), nullptr
         );
         

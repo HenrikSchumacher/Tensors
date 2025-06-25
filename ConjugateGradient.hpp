@@ -16,7 +16,7 @@ namespace Tensors
     template<Size_T NRHS_, typename Scal_, typename Int_,
         bool A_verboseQ = true, bool P_verboseQ = true
     >
-    class ConjugateGradient
+    class ConjugateGradient final
     {
     public:
         

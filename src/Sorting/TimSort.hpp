@@ -3,7 +3,7 @@
 namespace Tensors
 {
     template<typename T, typename I, I RUN = 32 >
-    class TimSort
+    class TimSort final
     {
     public:
         
@@ -12,8 +12,6 @@ namespace Tensors
         explicit TimSort( const I estimated_size )
         :   buffer( estimated_size )
         {}
-        
-        ~TimSort() = default;
         
     private:
         

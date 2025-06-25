@@ -3,7 +3,7 @@
 namespace Tensors {
 
     template <typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
-    class ThreadTensor3
+    class ThreadTensor3 final
     {
         static_assert(IntQ<Int_>,"");
         

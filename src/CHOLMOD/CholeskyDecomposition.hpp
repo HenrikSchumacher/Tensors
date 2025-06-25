@@ -8,7 +8,7 @@ namespace Tensors
     namespace CHOLMOD
     {
         template<typename Scal_, typename Int_, typename LInt_>
-        class CholeskyDecomposition
+        class CholeskyDecomposition final
         {
             
         public:

@@ -6,7 +6,7 @@ namespace Tensors
     {
         
         template< int n_, typename Scal_, typename Int_ >
-        class SelfAdjointTridiagonalMatrix
+        class SelfAdjointTridiagonalMatrix final
         {
             // Uses only upper triangle.
             

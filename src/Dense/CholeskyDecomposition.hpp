@@ -5,7 +5,7 @@ namespace Tensors
     namespace Dense
     {
         template<int n, typename Scal, typename Int>
-        class CholeskyDecomposition
+        class CholeskyDecomposition final
         {
         protected:
             
@@ -46,6 +46,16 @@ namespace Tensors
                 {
                     case 0:
                     {
+                        return;
+                    }
+                    case 2:
+                    {
+                        solve<2>( B, ldB, X, ldX, nrhs );
+                        return;
+                    }
+                    case 3:
+                    {
+                        solve<3>( B, ldB, X, ldX, nrhs );
                         return;
                     }
                     case 4:

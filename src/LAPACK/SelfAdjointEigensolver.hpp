@@ -6,14 +6,12 @@ namespace Tensors
     {
         
         template<Layout layout, UpLo uplo, typename Scal>
-        class SelfAdjointEigensolver
+        class SelfAdjointEigensolver final
         {
             
         public:
             
             SelfAdjointEigensolver() = default;
-            
-            ~SelfAdjointEigensolver() = default;
             
         private:
             

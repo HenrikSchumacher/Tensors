@@ -14,7 +14,7 @@
 namespace Tensors
 {
     template<typename Int>
-    class Tree
+    class Tree final
     {
         static_assert(SignedIntQ<Int>,"");
 

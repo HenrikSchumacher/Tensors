@@ -9,7 +9,7 @@ namespace Tensors
     // TODO: Test whether the code works in the complex case.
     
     template<typename Scal_, typename Int_>
-    class UMFPACK
+    class UMFPACK final
     {
     public:
         

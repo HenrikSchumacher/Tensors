@@ -11,7 +11,7 @@ namespace Tensors
         template< int ROW_COUNT, int COL_COUNT, typename Scal_, typename Int_, Size_T alignment> class MatrixList;
         
         template< int ROW_COUNT, int COL_COUNT, typename Scal_, typename Int_>
-        class Matrix
+        class Matrix final
         {
         public:
             
@@ -879,6 +879,11 @@ namespace Tensors
             [[nodiscard]] TOOLS_FORCE_INLINE Real MaxNorm() const
             {
                 return norm_max<m*n>( &A[0][0] );
+            }
+            
+            [[nodiscard]] TOOLS_FORCE_INLINE Real AbsTotal() const
+            {
+                return norm_1<m*n>( &A[0][0] );
             }
             
             [[nodiscard]] TOOLS_FORCE_INLINE Real FrobeniusNorm() const

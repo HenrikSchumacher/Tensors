@@ -46,7 +46,7 @@ namespace Tensors
             MatrixView_TArgs targs = MatrixView_TArgs{}
         >
         {
-            class MatrixView
+            class MatrixView final
             {
                 static_assert(IntQ<Int_>,"");
                 

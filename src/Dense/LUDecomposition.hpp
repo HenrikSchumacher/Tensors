@@ -5,7 +5,7 @@ namespace Tensors
     namespace Dense
     {
         template<int n, typename Scal, typename Int>
-        class LUDecomposition
+        class LUDecomposition final
         {
         protected:
             

@@ -16,7 +16,7 @@ namespace Tensors
     };
     
     template<typename Int_>
-    class Permutation
+    class Permutation final
     {
         static_assert(IntQ<Int_>,"");
      

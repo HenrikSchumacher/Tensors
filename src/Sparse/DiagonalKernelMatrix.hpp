@@ -3,7 +3,7 @@
 namespace Tensors
 {
     template<typename Kernel_T>
-    class DiagonalKernelMatrix
+    class DiagonalKernelMatrix final
     {
     public:
         

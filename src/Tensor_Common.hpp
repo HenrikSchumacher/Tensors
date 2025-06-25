@@ -20,7 +20,7 @@ public:
     TENSOR_T() = default;
 
     // Destructor
-    virtual ~TENSOR_T()
+    ~TENSOR_T()
     {
 #ifdef TENSORS_ALLOCATION_LOGS
         logprint(ClassName() + " destructor (size = " + ToString(Size()) + ")");

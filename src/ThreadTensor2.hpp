@@ -4,7 +4,7 @@ namespace Tensors
 {
 
     template <typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
-    class ThreadTensor2
+    class ThreadTensor2 final
     {
     public:
 

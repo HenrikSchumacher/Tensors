@@ -5,7 +5,7 @@
 namespace Tensors
 {
 
-    class Scotch
+    class Scotch final
     {
         
     public:

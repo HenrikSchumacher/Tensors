@@ -5,7 +5,7 @@ namespace Tensors
     namespace Tiny
     {
         template< int n_, typename Scal_, typename Int_>
-        class UpperTriangularMatrix
+        class UpperTriangularMatrix final
         {
             // Allocates a square array, but accesses only upper triangle.
             

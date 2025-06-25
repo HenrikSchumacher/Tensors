@@ -5,7 +5,7 @@ namespace Tensors
     namespace Sparse
     {
         template<typename Kernel_T>
-        class KernelMatrixCSR
+        class KernelMatrixCSR final
         {
         public:
             

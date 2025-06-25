@@ -5,7 +5,7 @@ namespace Tensors
     namespace Tiny
     {
         template< int n_, typename Scal_, typename Int_>
-        class SelfAdjointMatrix
+        class SelfAdjointMatrix final
         {
             /// This class uses only upper triangle.
             

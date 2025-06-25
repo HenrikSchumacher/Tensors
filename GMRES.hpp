@@ -18,7 +18,7 @@ namespace Tensors
     template<Size_T NRHS_,typename Scal_,typename Int_,
         Side side = Side::Left, bool A_verboseQ = true, bool P_verboseQ = true
     >
-    class GMRES
+    class GMRES final
     {
     public:
         
