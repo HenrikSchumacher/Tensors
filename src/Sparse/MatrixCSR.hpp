@@ -458,7 +458,7 @@ namespace Tensors
                     mptr<Return_T> B_v = B.Values();
                     
                     ParallelDo(
-                        [B_v,this]( LInt k )
+                        [A_v,B_v,this]( LInt k )
                         {
                             B_v[k] = Scalar::Op<op>(A_v[k]);
                         },
