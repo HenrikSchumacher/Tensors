@@ -271,9 +271,15 @@ namespace Tensors
             }
             
 ///######################################################
-///##                  Artihmethic                     ##
+///##                  Arithmethic                     ##
 ///######################################################
 
+            TOOLS_FORCE_INLINE friend bool operator==(
+                cref<Vector> x, cref<Vector> y
+            )
+            {
+                return buffers_equalQ<n>(x.data(), y.data());
+            }
             
             template<
                 typename a_T, typename x_T, typename b_T, typename y_T,

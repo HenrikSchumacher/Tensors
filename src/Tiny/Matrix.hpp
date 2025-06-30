@@ -620,6 +620,13 @@ namespace Tensors
 ///##                   Arithmetic                     ##
 ///######################################################
 
+            TOOLS_FORCE_INLINE friend bool operator==(
+                cref<Matrix> x, cref<Matrix> y
+            )
+            {
+                return buffers_equalQ<m * n>(x.data(), y.data());
+            }
+            
             // TODO: Make this more type flexible.
             // TODO: Also, where is Minus?
             TOOLS_FORCE_INLINE friend void Plus( const Matrix & x, const Matrix & y, const Matrix & z )

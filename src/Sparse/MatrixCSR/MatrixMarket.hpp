@@ -4,16 +4,13 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
 {
     std::string tag = ClassName()+"::LoadFromMatrixMarket";
     
-    TOOLS_PTIC(tag);
+    TOOLS_PTIMER(timer,tag);
     
     std::ifstream  s ( file );
 
     if( !s.good() )
     {
         eprint(tag + ": File " + file.string() + " not found. Aborting.");
-        
-        TOOLS_PTOC(tag);
-        
         return;
     }
     
@@ -27,9 +24,7 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
     if( token != "%%matrixmarket")
     {
         eprint( tag + ": Not a MatrixMarket file. Doing nothing.");
-        TOOLS_DUMP( token );
-        TOOLS_LOGDUMP( token );
-        TOOLS_PTOC(tag);
+        TOOLS_DDUMP( token );
         return;
     }
     
@@ -39,8 +34,7 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
     if( token != "matrix")
     {
         eprint( tag + ": Second word in file is not \"matrix\". Doing nothing.");
-        TOOLS_DUMP( token );
-        TOOLS_PTOC(tag);
+        TOOLS_DDUMP( token );
         return;
     }
     
@@ -49,8 +43,7 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
     if( token != "coordinate")
     {
         eprint( tag + ": Third word in file is not \"coordinate\". Stored matrix is a dense matrix and shall better not be loaded. Doing nothing.");
-        TOOLS_DUMP( token );
-        TOOLS_PTOC(tag);
+        TOOLS_DDUMP( token );
         return;
     }
     
@@ -62,7 +55,6 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
         if( scalar_type == "complex")
         {
             eprint( tag + ": Scalar type requested is " + TypeName<Scal> + ", but type in file is \"complex\". Doing nothing.");
-            TOOLS_PTOC(tag);
             return;
         }
     }
@@ -72,7 +64,6 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
         if( (scalar_type != "integer") && (scalar_type != "pattern") )
         {
             eprint( tag + ": Scalar type requested is " + TypeName<Scal> + ", but type in file is \"" + scalar_type + "\". Doing nothin.");
-            TOOLS_PTOC(tag);
             return;
         }
     }
@@ -86,13 +77,11 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
     if( symmetry == "skew-symmetric")
     {
         eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". The current implementation cannot handle this. Doing nothing.");
-        TOOLS_PTOC(tag);
         return;
     }
     else if ( symmetry == "hermitian")
     {
         eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". The current implementation cannot handle this. Doing nothing.");
-        TOOLS_PTOC(tag);
         return;
     }
     else if ( symmetry == "symmetric")
@@ -106,8 +95,7 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
     else
     {
         eprint( tag + ": Matrix symmetry is \"" + symmetry + "\". This is invalid for the MatrixMarket format. Doing nothing.");
-        TOOLS_DUMP( token );
-        TOOLS_PTOC(tag);
+        TOOLS_DDUMP( token );
         return;
     }
         
@@ -134,27 +122,18 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
     if(row_count < Int(0))
     {
         eprint( tag + ": Invalid row_count." );
-        
-        TOOLS_PTOC(tag);
-        
         return;
     }
     
     if(col_count < Int(0))
     {
         eprint( tag + ": Invalid col_count." );
-        
-        TOOLS_PTOC(tag);
-        
         return;
     }
     
     if(nonzero_count < LInt(0))
     {
         eprint( tag + ": Invalid nonzero_count." );
-        
-        TOOLS_PTOC(tag);
-        
         return;
     }
     
@@ -220,8 +199,6 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
     );
     
     swap( *this, A );
-    
-    TOOLS_PTOC(tag);
 }
 
 

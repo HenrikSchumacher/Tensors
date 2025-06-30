@@ -1,18 +1,28 @@
 #ifdef LTEMPLATE_H
     
-    template<typename T, typename Int, Size_T alignment,
-        class = typename std::enable_if_t<mma::HasTypeQ<T>>
+    template<bool replace_inftyQ = false, typename S, typename Int, Size_T alignment,
+        class = typename std::enable_if_t<mma::HasTypeQ<S>>
     >
-    inline mma::TensorRef<mma::Type<T>> to_MTensorRef(
-       cref<TENSOR_T<T,Int,alignment>> A
+    inline mma::TensorRef<mma::Type<S>> to_MTensorRef(
+       cref<TENSOR_T<S,Int,alignment>> A
     )
     {
-        auto B = mma::makeTensor<mma::Type<T>>( A.Rank(), A.Dims() );
+        using T = mma::Type<S>;
         
-        A.Write(B.data());
+        auto B = mma::makeTensor<T>( A.Rank(), A.Dims() );
+        
+        if constexpr ( SameQ<T,double> && replace_inftyQ )
+        {
+            copy_buffer_replace_infty(A.data(),B.data(),A.Size());
+        }
+        else
+        {
+            A.Write(B.data());
+        }
         
         return B;
     }
+
     
 #endif
 
@@ -27,7 +37,14 @@
     {
         mma::MTensorWrapper<mreal> B ( A.Rank(), A.Dims() );
         
-        A.Write( B.data() );
+        if constexpr ( SameQ<T,double> && replace_infyQ )
+        {
+            copy_buffer_replace_infty(A.data(),B.data());
+        }
+        else
+        {
+            A.Write(B.data());
+        }
         
         return B;
     }
@@ -39,9 +56,7 @@
     )
     {
         mma::MTensorWrapper<std::complex<mreal>> B ( A.Rank(), A.Dims() );
-        
         A.Write( B.data() );
-        
         return B;
     }
 
@@ -53,9 +68,7 @@
     )
     {
         mma::MTensorWrapper<mint> B ( A.Rank(), A.Dims() );
-        
         A.Write( B.data() );
-        
         return B;
     }
 

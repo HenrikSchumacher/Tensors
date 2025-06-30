@@ -232,6 +232,33 @@ namespace Tensors
         
     public:
         
+        friend std::string ToString(
+            cref<RaggedList> list,
+            std::string line_prefix = ""
+        )
+        {
+            std::string prefix = line_prefix + "\t";
+            
+            std::string str = line_prefix + "{\n";
+            {
+                const Int s = 0;
+                str += prefix;
+                str += ToString(list.Sublist(s));
+            }
+            for( Int s = 1; s < list.SublistCount(); ++s )
+            {
+                str += ",\n";
+                str += prefix;
+                str += ToString(list.Sublist(s) );
+            }
+            
+            str += "\n";
+            str += line_prefix;
+            str += "}\n";
+            
+            return str;
+        }
+        
         std::string ClassName() const
         {
             return std::string("RaggedList")

@@ -1163,27 +1163,25 @@ namespace Tensors
                 {
                     wprint(ClassName()+"::WellFormedQ: Matrix is not well formed.");
                     
-                    TOOLS_DUMP(m);
-                    TOOLS_DUMP(n);
-                    TOOLS_DUMP(outer.Size());
-                    TOOLS_DUMP(inner.Size());
+                    TOOLS_LOGDUMP(m);
+                    TOOLS_LOGDUMP(n);
+                    TOOLS_LOGDUMP(outer.Size());
+                    TOOLS_LOGDUMP(inner.Size());
                     
                     if( outer.Size() > Int(0) )
                     {
-                        TOOLS_DUMP(outer.First());
-                        TOOLS_DUMP(outer.Last());
+                        TOOLS_LOGDUMP(outer.First());
+                        TOOLS_LOGDUMP(outer.Last());
                     }
                 }
                 
                 return wellformed;
             }
             
-            bool StructurallySymmetricQ() const
+            LInt NonsymmetricCount() const
             {
                 // This routine is not optimized.
                 // Only meant for debugging.
-                
-                bool symmetricQ = true;
                 
                 LInt unmatched_count = 0;
                 
@@ -1200,19 +1198,12 @@ namespace Tensors
                         {
                             const bool found = NonzeroPositionQ(j,i);
                             
-                            symmetricQ = symmetricQ && found;
-                            
                             unmatched_count += (!found);
                         }
                     }
                 }
                 
-                if( !symmetricQ )
-                {
-                    TOOLS_DUMP(unmatched_count);
-                }
-                
-                return symmetricQ;
+                return unmatched_count;
             }
             
             
