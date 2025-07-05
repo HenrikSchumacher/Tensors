@@ -5,7 +5,7 @@ namespace Tensors {
     template<typename LInt, typename Int>
     inline void AccumulateAssemblyCounters( mref<Tensor2<LInt,Int>> counters )
     {
-        TOOLS_PTIC( std::string( "AccumulateAssemblyCounters") 
+        TOOLS_PTIMER(timer, std::string( "AccumulateAssemblyCounters")
             + "<" + TypeName<LInt>
             + "," + TypeName<Int>
             + ">" );
@@ -32,8 +32,6 @@ namespace Tensors {
                 counters(thread, i) += counters(thread-1, i);
             }
         }
-
-        TOOLS_PTOC( std::string( "AccumulateAssemblyCounters") + "<" + TypeName<LInt> + "," + TypeName<Int> + ">" );
     }
 
 
@@ -49,7 +47,7 @@ namespace Tensors {
             + "," + TypeName<Int>
             + ">";
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         const Int thread_count = counters.Dim(0);
         
@@ -57,7 +55,6 @@ namespace Tensors {
         
         if( (m <= 0) || (thread_count <= 0) )
         {
-            TOOLS_PTOC(tag);
             return;
         }
         
@@ -138,8 +135,6 @@ namespace Tensors {
             },
             thread_count
         );
-        
-        TOOLS_PTOC(tag);
     }
 
 
@@ -160,7 +155,7 @@ namespace Tensors {
             + "," + TypeName<Int>
             + ">";
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         Tensor2<LInt,Int> counters ( list_count, m, LInt(0) );
 
@@ -208,8 +203,6 @@ namespace Tensors {
         AccumulateAssemblyCounters_Parallel<LInt,Int>(counters);
         
     //        print(counters.ToString());
-        
-        TOOLS_PTOC(tag);
         
         return counters;
     }

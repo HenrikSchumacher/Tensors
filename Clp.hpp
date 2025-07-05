@@ -2,11 +2,23 @@
 
 #define TENSORS_CLP_H
 
-// We only provide some convenience routines to convert between Sparse::MatrixCSR and COIN-OR's
+// To use this you need to install CLP (see https://github.com/coin-or/Clp) and link against libClp and libCoinUtils.
 
-// To use this you need to install CLC (see https://github.com/coin-or/Clp) and link against libClp and libCoinUtils.
+// With homebrew ypu just do
+//
+//      brew install clp
+//
+// In an Apple Silicon Mac the headers should be located in
+//
+//      /opt/homebrew/opt/coinutils/include/coinutils/coin
+//      /opt/homebrew/opt/clp/include/clp/coin
+//
+// and the libraries should be located in
+//
+//      /opt/homebrew/opt/coinutils/lib
+//      /opt/homebrew/opt/clp/lib
 
-// I recommend using this workflow:
+// Without homwbrew you can use this workflow:
 //
 //  - git-clone the CoinUtils repository https://github.com/coin-or/CoinUtils
 //  - cd into the new directory
@@ -27,12 +39,12 @@
 //  - On macos the header files should be located at /user/local/include/coin-or and the library files should be in /usr/local/lib. I guess the paths will be the same under Linux.
 //
 //
-// WARNING: The homebrew installation does not seem to work.
 
 
 #include "ClpSimplex.hpp"
 #include "ClpSimplexDual.hpp"
 #include "ClpPlusMinusOneMatrix.hpp"
+#include "ClpNetworkMatrix.hpp"
 //#include "CoinHelperFunctions.hpp"
 
 
@@ -93,5 +105,388 @@ namespace Tensors
             );
         }
     }
+    
+    template<typename Real_ = double, typename Int_ = int, typename LInt_ = Int_>
+    class ClpWrapper final
+    {
+    public:
+
+        using Real = Real_;
+        using Int  = Int_;
+        using LInt = LInt_;
+        
+        using COIN_Real = double;
+        using COIN_Int  = int;
+        using COIN_LInt = CoinBigIndex;
+        
+        struct Settings_T
+        {
+            bool minimizeQ       = true;
+            bool dualQ           = false;
+            bool check_integralQ = true;
+        };
+        
+    private:
+        
+        Settings_T settings;
+        
+        ClpSimplex LP;
+        
+        const COIN_Real integer_tol = 0.000'1;
+        
+    public:
+        
+    /*!@brief Create an instance of ClpSimplex by loading the supplied data. This sets up the optimization problem
+     *      Mininimize/maximize  `c^T.x`
+     *      s.t,    `y = x.AT`,
+     *             `var_lb[i] <= x[i] <= var_ub[i]` for `0 <= i < n`,
+     *      and    `con_lb[j] <= y[j] <= con_ub[j]` for `0 <= j < m`,
+     *
+     *      where `n = AT.RowCount()`, `m = AT.ColCount()`.
+     *
+     * @param c The vector with the coefficients for the objective.
+     * @param var_lb The lower bounds on the variables.
+     * @param var_ub The upper bounds on the variables.
+     * @param AT_outer The row pointers of the _transpose_ of the constraint matrix`A`.
+     * @param AT_inner The column indices of the _transpose_ of the constraint matrix`A`.
+     * @param AT_value The nonzero values of the _transpose_ of the constraint matrix`A`.
+     * @param con_ub The lower bounds for the matrix contraints.
+     * @param con_lb The upper bounds for the matrix contraints.
+     * @param settings_ An instance of `ClpWrapper::Settings_T` to set up parameters.
+     */
+        
+        template<typename R, typename I, typename J>
+        ClpWrapper(
+            I variable_count, I constraint_count,
+            cptr<R> c, cptr<R> var_lb, cptr<R> var_ub,
+            cptr<J> AT_outer, cptr<I> AT_inner, cptr<R> AT_values,
+            cptr<R> con_lb, cptr<R> con_ub,
+            Settings_T settings_ = ClpWrapper::Settings_T{}
+        )
+        :   settings( settings_ )
+        {
+            LP.setMaximumIterations(1000000);
+            
+            if( settings.minimizeQ )
+            {
+                LP.setOptimizationDirection( 1); // +1 -> minimize; -1 -> maximize
+            }
+            else
+            {
+                LP.setOptimizationDirection(-1);
+            }
+            
+            LP.setLogLevel(0);
+            
+            using RArray_T = Tensor1<COIN_Real,COIN_Int>;
+            using IArray_T = Tensor1<COIN_Int ,COIN_Int>;
+            using JArray_T = Tensor1<COIN_LInt,COIN_Int>;
+            
+            const COIN_Int n = static_cast<COIN_Int>(variable_count);
+            const COIN_Int m = static_cast<COIN_Int>(constraint_count);
+            
+            RArray_T AT_values_;
+            RArray_T var_lb_;
+            RArray_T var_ub_;
+            RArray_T con_lb_;
+            RArray_T con_ub_;
+            RArray_T c_;
+            
+            IArray_T AT_inner_;
+            JArray_T AT_outer_;
+
+            if( !SameQ<R,COIN_Real> )
+            {
+                
+                c_         = RArray_T( c     , n );
+                var_lb_    = RArray_T( var_lb, n );
+                var_ub_    = RArray_T( var_ub, n );
+                AT_values_ = RArray_T( AT_values, AT_outer[n] );
+                con_lb_    = RArray_T( con_lb, m );
+                con_ub_    = RArray_T( con_ub, m );
+                
+            }
+            else
+            {
+                (void)AT_values_;
+                (void)var_lb_;
+                (void)var_ub_;
+                (void)con_lb_;
+                (void)con_ub_;
+                (void)c_;
+            }
+            
+            if( !SameQ<I,COIN_Int> )
+            {
+                AT_inner_ = RArray_T( AT_inner, AT_outer[n] );
+            }
+            else
+            {
+                (void)AT_inner_;
+            }
+            
+            if( !SameQ<J,COIN_Int> )
+            {
+                AT_outer_ = RArray_T( AT_outer, n + 1 );
+            }
+            else
+            {
+                (void)AT_outer_;
+            }
+            
+            LP.loadProblem(
+                n, m,
+                SameQ<J,COIN_LInt> ? AT_outer  : AT_outer_.data(),
+                SameQ<I, COIN_Int> ? AT_inner  : AT_inner_.data(),
+                SameQ<R,COIN_Real> ? AT_values : AT_values_.data(),
+                SameQ<R,COIN_Real> ? var_lb    : var_lb_.data(),
+                SameQ<R,COIN_Real> ? var_ub    : var_ub_.data(),
+                SameQ<R,COIN_Real> ? c         : c_.data(),
+                SameQ<R,COIN_Real> ? con_lb    : con_lb_.data(),
+                SameQ<R,COIN_Real> ? con_ub    : con_ub_.data()
+            );
+            
+            LP.setLogLevel(0);
+            
+            if( settings.dualQ )
+            {
+                LP.dual();
+            }
+            else
+            {
+                LP.primal();
+            }
+        }
+        
+        /*!@brief Create an instance of ClpSimplex by loading the supplied data. This sets up the optimization problem
+         *      Mininimize/maximize  `c^T.x`
+         *      s.t,    `y = x.AT`,
+         *             `var_lb[i] <= x[i] <= var_ub[i]` for `0 <= i < n`,
+         *      and    `con_lb[j] <= y[j] <= con_ub[j]` for `0 <= j < m`,
+         *
+         *      where `n = AT.RowCount()`, `m = AT.ColCount()`.
+         *
+         * @param c The vector with the coefficients for the objective.
+         * @param var_lb The lower bounds on the variables.
+         * @param var_ub The upper bounds on the variables.
+         * @param AT The _transpose_ of the constraint matrix `A`. Mind row-major/column-major conversion!
+         * @param con_ub The lower bounds for the matrix contraints.
+         * @param con_lb The upper bounds for the matrix contraints.
+         * @param settings_ An instance of `ClpWrapper::Settings_T` to set up parameters.
+         */
+        
+        template<typename R, typename I, typename J>
+        ClpWrapper(
+            cref<Tensor1<R,I>> c,
+            cref<Tensor1<R,I>> var_lb,
+            cref<Tensor1<R,I>> var_ub,
+            cref<Sparse::MatrixCSR<R,I,J>> AT,
+            cref<Tensor1<R,I>> con_lb,
+            cref<Tensor1<R,I>> con_ub,
+            Settings_T settings_ = ClpWrapper::Settings_T{}
+        )
+        : ClpWrapper{
+            AT.RowCount(), AT.ColCount(),
+            c.data(), var_lb.data(), var_ub.data(),
+            AT.Outer().data(), AT.Inner().data(), AT.Values().data(),
+            con_lb.data(), con_ub.data()
+        }
+        {
+            const I n = AT.RowCount();
+            const I m = AT.ColCount();
+
+            if( c.Size() != n )
+            {
+                eprint(ClassName()+ "(): argument c has size " + ToString(c.Size()) + ", but should have size " + ToString(n) +".");
+            }
+            if( var_lb.Size() != n )
+            {
+                eprint(ClassName()+ "(): argument var_lb has size " + ToString(var_lb.Size()) + ", but should have size " + ToString(n) +".");
+            }
+            if( var_ub.Size() != n )
+            {
+                eprint(ClassName()+ "(): argument var_ub has size " + ToString(var_ub.Size()) + ", but should have size " + ToString(n) +".");
+            }
+            
+            if( con_lb.Size() != m )
+            {
+                eprint(ClassName()+ "(): argument con_lb has size " + ToString(con_lb.Size()) + ", but should have size " + ToString(m) +".");
+            }
+            if( con_ub.Size() != m )
+            {
+                eprint(ClassName()+ "(): argument con_ub has size " + ToString(con_ub.Size()) + ", but should have size " + ToString(m) +".");
+            }
+        }
+        
+        mref<ClpSimplex> Problem()
+        {
+            return LP;
+        }
+        
+        Int VariableCount() const
+        {
+            return int_cast<Int>(LP.matrix()->getNumCols());
+        }
+        
+        Int ConstraintCount() const
+        {
+            return int_cast<Int>(LP.matrix()->getNumRows());
+        }
+        
+        cptr<COIN_Real> PrimalSolutionPtr() const
+        {
+            return LP.primalColumnSolution();
+        }
+        
+        Tensor1<Real,Int> PrimalSolution() const
+        {
+            return Tensor1<Real,Int>( PrimalSolutionPtr(), VariableCount() );
+        }
+        
+        cptr<COIN_Real> VariableLowerBoundPtr() const
+        {
+            return LP.getColLower();
+        }
+        
+        Tensor1<Real,Int> VariableLowerBound() const
+        {
+            return Tensor1<Real,Int>( VariableLowerBoundPtr(), VariableCount() );
+        }
+
+        
+        cptr<COIN_Real> VariableUpperBoundPtr() const
+        {
+            return LP.getColUpper();
+        }
+        
+        Tensor1<Real,Int> VariableUpperBound() const
+        {
+            return Tensor1<Real,Int>( VariableUpperBoundPtr(), VariableCount() );
+        }
+        
+        
+        cptr<COIN_Real> ConstraintLowerBoundPtr() const
+        {
+            return LP.getRowLower();
+        }
+                
+        Tensor1<Real,Int> ConstraintLowerBound() const
+        {
+            return Tensor1<Real,Int>(ConstraintLowerBoundPtr(),ConstraintCount());
+        }
+        
+        
+        cptr<COIN_Real> ConstraintUpperBoundPtr() const
+        {
+            return LP.getRowUpper();
+        }
+
+        Tensor1<Real,Int> ConstraintUpperBound() const
+        {
+            return Tensor1<Real,Int>(ConstraintUpperBoundPtr(),ConstraintCount());
+        }
+        
+        /*!@brief This does what ClpSimplex::cleanPrimalSolution is supposed to do: Round the solution to nearest integer and recheck feasibility.
+         */
+        
+        template<typename I = Int>
+        Tensor1<I,Int> IntegralPrimalSolution() const
+        {
+            TOOLS_MAKE_FP_STRICT();
+            
+            static_assert(IntQ<I>,"");
+            
+            const COIN_Int n = LP.getNumCols();
+            const COIN_Int m = LP.getNumRows();
+            
+            Tensor1<COIN_Real,COIN_Int> s ( n );
+            Tensor1<COIN_Real,COIN_Int> b ( m );
+            
+            COIN_Real diff_max = 0;
+            COIN_Real diff_sum = 0;
+            
+            Int var_lb_infeasible_count = 0;
+            Int var_ub_infeasible_count = 0;
+            
+            // Rounding and check.
+
+            cptr<COIN_Real> sol = LP.primalColumnSolution();
+            cptr<COIN_Real> var_lb = VariableLowerBoundPtr();
+            cptr<COIN_Real> var_ub = VariableUpperBoundPtr();
+            
+            for( COIN_Int i = 0; i < n; ++i )
+            {
+                COIN_Real r_i  = std::round(sol[i]);
+                COIN_Real diff = Abs(sol[i] - r_i);
+                
+                diff_max = Max( diff_max, diff );
+                diff_sum += diff;
+                s[i] = r_i;
+                
+                var_lb_infeasible_count += (r_i < var_lb[i]);
+                var_ub_infeasible_count += (r_i > var_ub[i]);
+            }
+            
+            if( diff_max > integer_tol )
+            {
+                eprint(MethodName("IntegralPrimalSolution") + ": CLP returned noninteger solution vector. Greatest deviation = " + ToStringFPGeneral(diff_max) + ". Sum of deviations = " + ToString(diff_sum) + "." );
+            }
+            
+            if( var_lb_infeasible_count > Int(0) )
+            {
+                eprint(MethodName("IntegralPrimalSolution") + ": violations for lower box constraints: " + ToString(var_lb_infeasible_count) + ".");
+            }
+            
+            if( var_ub_infeasible_count > Int(0) )
+            {
+                eprint(MethodName("IntegralPrimalSolution") + ": violations for upper box constraints: " + ToString(var_ub_infeasible_count) +".");
+            }
+            
+            // Using CLP's matrix-vector product so that I do not have to transpose A.
+            // Also, I do not want to pull in all that code from SparseBLAS.
+            LP.matrix()->times(s.data(),b.data());
+            
+            Int con_lb_infeasible_count = 0;
+            Int con_ub_infeasible_count = 0;
+            
+            cptr<COIN_Real> con_lb = ConstraintLowerBoundPtr();
+            cptr<COIN_Real> con_ub = ConstraintUpperBoundPtr();
+            
+            for( COIN_Int j = 0; j < m; ++j )
+            {
+                b[j] = std::round(b[j]);
+                con_lb_infeasible_count += (b[j] < con_lb[j]);
+                con_ub_infeasible_count += (b[j] > con_ub[j]);
+            }
+            
+            if( con_lb_infeasible_count > Int(0) )
+            {
+                eprint(MethodName("IntegralPrimalSolution") + ": violations for lower matrix constraints: " + ToString(con_lb_infeasible_count) + ".");
+            }
+            
+            if( con_ub_infeasible_count > Int(0) )
+            {
+                eprint(MethodName("IntegralPrimalSolution") + ": violations for upper matrix constraints: " + ToString(con_ub_infeasible_count) + ".");
+            }
+            
+            // The integer conversion is safe as we have rounded s correctly already.
+            return Tensor1<I,Int>(s);
+        }
+
+        static std::string MethodName( const std::string & tag )
+        {
+            return ClassName() + "::" + tag;
+        }
+        
+        static std::string ClassName()
+        {
+            return std::string("ClpWrapper")
+                + "<" + TypeName<Real>
+                + "," + TypeName<Int>
+                + "," + TypeName<LInt>
+                + ">";
+        }
+        
+    }; // ClpWrapper
     
 } // namespace Tensors
