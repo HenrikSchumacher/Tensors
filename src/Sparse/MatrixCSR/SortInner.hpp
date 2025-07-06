@@ -29,8 +29,8 @@ void SortInner_impl(
             
             for( Int i = i_begin; i < i_end; ++i )
             {
-                const LInt begin = outer[i  ];
-                const LInt end   = outer[i+1];
+                const LInt begin = A_o[i  ];
+                const LInt end   = A_o[i+1];
                 
                 if constexpr ( assemblerQ )
                 {

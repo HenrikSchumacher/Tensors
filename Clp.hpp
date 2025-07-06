@@ -106,6 +106,9 @@ namespace Tensors
         }
     }
     
+    
+    // TODO: Check input.
+    
     template<typename Real_ = double, typename Int_ = int, typename LInt_ = Int_>
     class ClpWrapper final
     {
@@ -121,6 +124,7 @@ namespace Tensors
         
         struct Settings_T
         {
+            bool check_inputQ    = true;
             bool minimizeQ       = true;
             bool dualQ           = false;
             bool check_integralQ = true;
@@ -258,6 +262,7 @@ namespace Tensors
             }
         }
         
+        
         /*!@brief Create an instance of ClpSimplex by loading the supplied data. This sets up the optimization problem
          *      Mininimize/maximize  `c^T.x`
          *      s.t,    `y = x.AT`,
@@ -283,7 +288,7 @@ namespace Tensors
             cref<Sparse::MatrixCSR<R,I,J>> AT,
             cref<Tensor1<R,I>> con_lb,
             cref<Tensor1<R,I>> con_ub,
-            Settings_T settings_ = ClpWrapper::Settings_T{}
+            cref<Settings_T> settings_ = ClpWrapper::Settings_T{}
         )
         : ClpWrapper{
             AT.RowCount(), AT.ColCount(),
@@ -317,6 +322,135 @@ namespace Tensors
                 eprint(ClassName()+ "(): argument con_ub has size " + ToString(con_ub.Size()) + ", but should have size " + ToString(m) +".");
             }
         }
+        
+        
+        template<typename R, typename I>
+        ClpWrapper(
+            I vertex_count, I edge_count,
+            cptr<I> tails, cptr<I> heads,
+            cptr<R> edge_cost, cptr<R> edge_cap_lb, cptr<R> edge_cap_ub,
+            cptr<R> vertex_supply_demand,
+            cref<Settings_T> settings_ = ClpWrapper::Settings_T{}
+        )
+        :   settings( settings_ )
+        {
+            
+            LP.setMaximumIterations(1000000);
+            
+            if( settings.minimizeQ )
+            {
+                LP.setOptimizationDirection( 1); // +1 -> minimize; -1 -> maximize
+            }
+            else
+            {
+                LP.setOptimizationDirection(-1);
+            }
+            
+            LP.setLogLevel(0);
+            
+            using RArray_T = Tensor1<COIN_Real,COIN_Int>;
+            using IArray_T = Tensor1<COIN_Int ,COIN_Int>;
+            
+            const COIN_Int n = static_cast<COIN_Int>(edge_count);
+            const COIN_Int m = static_cast<COIN_Int>(vertex_count);
+            
+            RArray_T edge_cap_lb_;
+            RArray_T edge_cap_ub_;
+            RArray_T supply_demand_;
+            RArray_T edge_cost_;
+            
+            IArray_T tails_;
+            IArray_T heads_;
+
+            if( !SameQ<R,COIN_Real> )
+            {
+                edge_cost_     = RArray_T( edge_cost           , n );
+                edge_cap_lb_   = RArray_T( edge_cap_lb         , n );
+                edge_cap_ub_   = RArray_T( edge_cap_ub         , n );
+                supply_demand_ = RArray_T( vertex_supply_demand, m );
+            }
+            else
+            {
+                (void)edge_cost_;
+                (void)edge_cap_lb_;
+                (void)edge_cap_ub_;
+                (void)supply_demand_;
+            }
+            
+            if( !SameQ<I,COIN_Int> )
+            {
+                tails_ = RArray_T( tails, n );
+                heads_ = RArray_T( heads, n );
+            }
+            else
+            {
+                (void)tails_;
+                (void)heads_;
+            }
+            
+            ClpNetworkMatrix network (
+                edge_count,
+                SameQ<I,COIN_Int> ? heads : heads_.data(),
+                SameQ<I,COIN_Int> ? tails : tails_.data()
+            );
+            
+            LP.loadProblem(
+                network,
+                SameQ<R,COIN_Real> ? edge_cap_lb  : edge_cap_lb_.data(),
+                SameQ<R,COIN_Real> ? edge_cap_ub  : edge_cap_ub_.data(),
+                SameQ<R,COIN_Real> ? edge_cost    : edge_cost_.data(),
+                SameQ<R,COIN_Real> ? vertex_supply_demand : supply_demand_.data(),
+                SameQ<R,COIN_Real> ? vertex_supply_demand : supply_demand_.data()
+            );
+            
+            LP.setLogLevel(0);
+            
+            if( settings.dualQ )
+            {
+                LP.dual();
+            }
+            else
+            {
+                LP.primal();
+            }
+        }
+        
+        
+        template<typename R, typename I>
+        ClpWrapper(
+            cref<Tensor1<I,I>> tails,
+            cref<Tensor1<I,I>> heads,
+            cref<Tensor1<R,I>> edge_cost,
+            cref<Tensor1<R,I>> edge_cap_lb,
+            cref<Tensor1<R,I>> edge_cap_ub,
+            cref<Tensor1<R,I>> vertex_supply_demand,
+            cref<Settings_T>   settings_ = ClpWrapper::Settings_T{}
+        )
+        : ClpWrapper{
+            vertex_supply_demand.Size(), tails.Size(),
+            tails.data(), heads.data(),
+            edge_cost.data(), edge_cap_lb.data(), edge_cap_ub.data(),
+            vertex_supply_demand.data(),
+            settings_
+        }
+        {
+            const I n = tails.Size();
+//            const I m = vertex_supply_demand.Size();
+
+            if( edge_cost.Size() != n )
+            {
+                eprint(ClassName()+ "(): argument edge_cost has size " + ToString(edge_cost.Size()) + ", but should have size " + ToString(n) +".");
+            }
+            if( edge_cap_lb.Size() != n )
+            {
+                eprint(ClassName()+ "(): argument edge_cap_lb has size " + ToString(edge_cap_lb.Size()) + ", but should have size " + ToString(n) +".");
+            }
+            if( edge_cap_ub.Size() != n )
+            {
+                eprint(ClassName()+ "(): argument edge_cap_ub has size " + ToString(edge_cap_ub.Size()) + ", but should have size " + ToString(n) +".");
+            }
+        }
+        
         
         mref<ClpSimplex> Problem()
         {
