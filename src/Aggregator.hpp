@@ -90,7 +90,7 @@ namespace Tensors
             current_size = Int(0);
         }
 
-        TOOLS_FORCE_INLINE void Push( const T_0 a )
+        TOOLS_FORCE_INLINE void Push( cref<T_0> a )
         {
             if( current_size >= capacity )
             {
@@ -98,6 +98,16 @@ namespace Tensors
             }
 
             container_0[current_size++] = a;
+        }
+        
+        TOOLS_FORCE_INLINE void Push( T_0 && a )
+        {
+            if( current_size >= capacity )
+            {
+                Expand();
+            }
+
+            container_0[current_size++] = std::move(a);
         }
         
         TOOLS_FORCE_INLINE void Push( cptr<T_0> a, const Int n )

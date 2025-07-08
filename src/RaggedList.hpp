@@ -183,9 +183,14 @@ namespace Tensors
             ptrs.Push(elements.Size());
         }
         
-        void Push( const T x )
+        void Push( cref<T> x )
         {
             elements.Push(x);
+        }
+        
+        void Push( T && x )
+        {
+            elements.Push(std::move(x));
         }
         
         Int SublistCount() const
