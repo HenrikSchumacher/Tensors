@@ -84,6 +84,11 @@ namespace Tensors
         {
             return current_size;
         }
+        
+        void Clear()
+        {
+            current_size = Int(0);
+        }
 
         TOOLS_FORCE_INLINE void Push( const T_0 a )
         {
