@@ -43,19 +43,19 @@ namespace Tensors
                 vals = Tensor1<Val_T,Int> ( n );
             }
             
-            copy_buffer<N>( keys_, keys.data(), n );
+            move_buffer<N>( keys_, keys.data(), n );
 
             Ordering<N>( keys.data(), perm.data(), n, comp );
             
-            copy_buffer<N>( vals_, vals.data(), n);
+            move_buffer<N>( vals_, vals.data(), n);
                 
             {
                 for( Int i = 0; i < n; ++i )
                 {
                     const Int perm_i = perm[i];
                     
-                    keys_[i] = keys[perm_i];
-                    vals_[i] = vals[perm_i];
+                    keys_[i] = std::move(keys[perm_i]);
+                    vals_[i] = std::move(vals[perm_i]);
                 }
             }
             

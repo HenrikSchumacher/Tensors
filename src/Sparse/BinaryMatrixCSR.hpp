@@ -265,7 +265,7 @@ namespace Tensors
 
             BinaryMatrixCSR Transpose() const
             {
-                TOOLS_PTIMER(timer,ClassName()+"::Transpose");
+                TOOLS_PTIMER(timer,MethodName("Transpose"));
                 
                 if( !this->WellFormedQ() ) { return BinaryMatrixCSR(); }
                 
@@ -330,7 +330,7 @@ namespace Tensors
                 const Permutation<Int> & q      // column permutation
             )
             {
-                TOOLS_PTIMER(timer,ClassName()+"::Permute");
+                TOOLS_PTIMER(timer,MethodName("Permute"));
                 // Modifies `inner` and `outer` accordingly; returns the permutation to be applied to the nonzero values.
                 
                 this->proven_inner_sortedQ = true;
@@ -407,7 +407,7 @@ namespace Tensors
             {
                 if( X.Dim(0) != n || Y.Dim(0) != m )
                 {
-                    eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
+                    eprint(MethodName("Dot")+": shapes of matrix, input, and output do not match.");
                 }
                 
                 this->template Dot_<1>(
@@ -425,7 +425,7 @@ namespace Tensors
             {
                 if( (X.Dim(0) != n) || (Y.Dim(0) != m) || (X.Dim(1) != Y.Dim(1)) )
                 {
-                    eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
+                    eprint(MethodName("Dot")+": shapes of matrix, input, and output do not match.");
                 }
                 
                 const Int nrhs = X.Dim(1);
@@ -456,7 +456,7 @@ namespace Tensors
             {
                 if( (X.Dim(0) != n) || (Y.Dim(0) != m) )
                 {
-                    eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
+                    eprint(MethodName("Dot")+": shapes of matrix, input, and output do not match.");
                 }
                 
                 this->template Dot_<1>( ext_values.data(),
@@ -475,7 +475,7 @@ namespace Tensors
             {
                 if( (X.Dim(0) != n) || (Y.Dim(0) != m) || (X.Dim(1) != Y.Dim(1)) )
                 {
-                    eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
+                    eprint(MethodName("Dot")+": shapes of matrix, input, and output do not match.");
                 }
                 
                 const Int nrhs = X.Dim(1);
@@ -497,6 +497,11 @@ namespace Tensors
             
             
         public:
+            
+            static std::string MethodName( const std::string & tag )
+            {
+                return ClassName() + "::" + tag;
+            }
             
             static std::string ClassName()
             {

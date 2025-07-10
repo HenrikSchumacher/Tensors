@@ -557,7 +557,7 @@ namespace Tensors
             {
                 // Removes duplicate {i,j}-pairs by adding their corresponding nonzero values.
                 
-                TOOLS_PTIMER(timer,ClassName()+"::Compress");
+                TOOLS_PTIMER(timer,MethodName("Compress"));
 
                 Tensor1<LInt,LInt> C_outer;
                 
@@ -616,13 +616,13 @@ namespace Tensors
             {
                 if( p.Dim(0) != m )
                 {
-                    eprint(ClassName()+"::Permute: Length of first argument does not coincide with RowCount().");
+                    eprint(MethodName("Permute")+": Length of first argument does not coincide with RowCount().");
                     return MatrixCSR();
                 }
                 
                 if( q.Dim(0) != n )
                 {
-                    eprint(ClassName()+"::Permute: Length of second argument does not coincide with ColCount().");
+                    eprint(MethodName("Permute")+": Length of second argument does not coincide with ColCount().");
                     return MatrixCSR();
                 }
                 
@@ -860,11 +860,11 @@ namespace Tensors
             
             MatrixCSR Dot( const MatrixCSR & B ) const
             {
-                TOOLS_PTIMER(timer,ClassName()+"::Dot");
+                TOOLS_PTIMER(timer,MethodName("Dot"));
                 
                 if( !this->WellFormedQ() )
                 {
-                    eprint(ClassName()+"::Dot: Matrix is not well-formed.");
+                    eprint(MethodName("Dot")+": Matrix is not well-formed.");
                     return MatrixCSR ();
                 }
 
@@ -1024,7 +1024,7 @@ namespace Tensors
                 }
                 else
                 {
-                    eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
+                    eprint(MethodName("Dot")+": shapes of matrix, input, and output do not match.");
                 }
             }
             
@@ -1043,7 +1043,7 @@ namespace Tensors
                 }
                 else
                 {
-                    eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
+                    eprint(MethodName("Dot")+": shapes of matrix, input, and output do not match.");
                 }
             }
             
@@ -1088,7 +1088,7 @@ namespace Tensors
                 }
                 else
                 {
-                    eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
+                    eprint(MethodName("Dot")+": shapes of matrix, input, and output do not match.");
                 }
             }
             
@@ -1107,7 +1107,7 @@ namespace Tensors
                 }
                 else
                 {
-                    eprint(ClassName()+"::Dot: shapes of matrix, input, and output do not match.");
+                    eprint(MethodName("Dot")+": shapes of matrix, input, and output do not match.");
                 }
             }
             
@@ -1129,18 +1129,15 @@ namespace Tensors
                 const std::filesystem::path & file, const Int thread_count_
             )
             {
-                std::string tag = ClassName()+"::LoadFromMatrixMarket";
+                std::string tag = MethodName("LoadFromMatrixMarket");
                 
-                TOOLS_PTIC(tag);
+                TOOLS_PTIMER(timer,tag);
                 
                 std::ifstream  s ( file );
         
                 if( !s.good() )
                 {
                     eprint(tag + ": File " + file.string() + " not found. Aborting.");
-                    
-                    TOOLS_PTOC(tag);
-                    
                     return;
                 }
                 
@@ -1248,6 +1245,11 @@ namespace Tensors
 #include "MatrixCSR/MatrixMarket.hpp"
             
         public:
+            
+            static std::string MethodName( const std::string & tag )
+            {
+                return ClassName() + "::" + tag;
+            }
             
             static std::string ClassName()
             {

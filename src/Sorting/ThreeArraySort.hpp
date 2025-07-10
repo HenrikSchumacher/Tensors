@@ -46,21 +46,21 @@ namespace Tensors
                 v_1  = Tensor1<V_1,Int> ( n );
             }
             
-            copy_buffer<N>( keys_, keys.data(), n );
+            move_buffer<N>( keys_, keys.data(), n );
 
             Ordering<N>( keys.data(), perm.data(), n, comp );
             
-            copy_buffer<N>( v_0_, v_0.data(), n );
-            copy_buffer<N>( v_1_, v_1.data(), n );
+            move_buffer<N>( v_0_, v_0.data(), n );
+            move_buffer<N>( v_1_, v_1.data(), n );
                 
             {
                 for( Int i = 0; i < n; ++i )
                 {
                     const Int perm_i = perm[i];
                     
-                    keys_[i] = keys[perm_i];
-                    v_0_ [i] = v_0 [perm_i];
-                    v_1_ [i] = v_1 [perm_i];
+                    keys_[i] = std::move(keys[perm_i]);
+                    v_0_ [i] = std::move(v_0 [perm_i]);
+                    v_1_ [i] = std::move(v_1 [perm_i]);
                 }
             }
             
