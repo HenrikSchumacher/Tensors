@@ -163,7 +163,7 @@ private:
             +TypeName<b_T>+","
             +TypeName<Y_T>+">";
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
         //  - a_flag     == Generic
@@ -272,7 +272,5 @@ private:
             },
             job_ptr.ThreadCount()
         );
-
-        TOOLS_PTOC(tag);
     }
 

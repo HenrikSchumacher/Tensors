@@ -11,19 +11,14 @@ namespace Tensors
         // Setting thread_count higher than 1 can speed up copy operations -- but only if sufficiently many threads are free and only if there is sufficient RAM bandwidth.
         // Better set thread_count = 1 if you want to use more than one Aggregator at a time.
         
-        
-        // TODO: It might be a better idea to use a std::vector of Tensor1s and then grow it.
-        // TODO: There will be some overhead for indexing into this nested data structure, though.
-        // TODO: And using &operator[i] is asking for trouble...
-        
         static_assert(IntQ<Int>,"");
 
         using Container_0_T = Tensor1<T_0,Int>;
 
-        Int current_size   = 0;
-        Int capacity       = 1;
+        mutable Int current_size   = 0;
+        mutable Int capacity       = 1;
         
-        Container_0_T container_0 {capacity};
+        mutable Container_0_T container_0 {capacity};
 
         Int thread_count = 1;
         
@@ -92,22 +87,18 @@ namespace Tensors
 
         TOOLS_FORCE_INLINE void Push( cref<T_0> a )
         {
-            if( current_size >= capacity )
-            {
-                Expand();
-            }
+            if( current_size >= capacity ) { Expand(); }
 
-            container_0[current_size++] = a;
+            container_0[current_size] = a;
+            ++current_size;
         }
         
         TOOLS_FORCE_INLINE void Push( T_0 && a )
         {
-            if( current_size >= capacity )
-            {
-                Expand();
-            }
+            if( current_size >= capacity ) { Expand(); }
 
-            container_0[current_size++] = std::move(a);
+            container_0[current_size] = std::move(a);
+            ++current_size;
         }
         
         TOOLS_FORCE_INLINE void Push( cptr<T_0> a, const Int n )
@@ -135,18 +126,24 @@ namespace Tensors
             }
         }
 
-        Container_0_T & Get()
-        {
-            ShrinkToFit();
-            
-            return container_0;
-        }
+//        Container_0_T & Get()
+//        {
+//            ShrinkToFit();
+//            
+//            return container_0;
+//        }
 
-        const Container_0_T & Get() const
+//        const Container_0_T & Get() const
+//        {
+//            ShrinkToFit();
+//            
+//            return container_0;
+//        }
+        
+        Container_0_T Disband()
         {
             ShrinkToFit();
-            
-            return container_0;
+            return std::move(container_0);
         }
         
         // A bit dangerous, this is. But since we do not use any buffering, this might work.
@@ -158,7 +155,7 @@ namespace Tensors
         template<typename S>
         void Write( S * target ) const
         {
-            copy_buffer( container_0.data(), target, current_size );
+            copy_buffer( container_0.data(), target, current_size, thread_count );
         }
         
 
@@ -169,25 +166,47 @@ namespace Tensors
             return capacity;
         }
         
-        void RequireCapacity( const Int new_capacity )
+        void RequireCapacity( const Int new_capacity ) const
         {
-            TOOLS_PTIC(ClassName()+"::RequireCapacity");
             if( new_capacity > capacity)
             {
-                Container_0_T new_container_0 (new_capacity);
-                
-                copy_buffer<VarSize,Parallel>(
-                    container_0.data(), new_container_0.data(), capacity, thread_count
-                );
-                
-                using std::swap;
-                swap( container_0, new_container_0 );
-                
-                capacity = new_capacity;
+                SetCapacity( new_capacity );
             }
-            TOOLS_PTOC(ClassName()+"::RequireCapacity");
         }
         
+        void ShrinkToFit()
+        {
+            if( capacity > current_size )
+            {
+                SetCapacity(current_size);
+            }
+        }
+        
+        void SetCapacity( const Int new_capacity ) const
+        {
+            TOOLS_PTIMER(timer,MethodName("SetCapacity"));
+            
+#ifdef TENSORS_ALLOCATION_LOGS
+            TOOLS_LOGDUMP(capacity);
+            TOOLS_LOGDUMP(new_capacity);
+#endif
+            
+            Container_0_T new_container_0 (new_capacity);
+            
+            const Int s = Min( capacity, new_capacity );
+            
+            std::move(
+                container_0.data(),
+                container_0.data(s),
+                new_container_0.data()
+            );
+            
+            using std::swap;
+            swap( container_0, new_container_0 );
+            
+            capacity = new_capacity;
+        }
+
         TOOLS_FORCE_INLINE T_0 & operator[]( const Int i )
         {
             return container_0[i];
@@ -197,29 +216,13 @@ namespace Tensors
         {
             return container_0[i];
         }
-        
-        void ShrinkToFit()
-        {
-            TOOLS_PTIC(ClassName()+"::ShrinkToFit");
-            
-            if( current_size != capacity )
-            {
-                Container_0_T new_container_0 ( current_size );
-                
-                new_container_0.ReadParallel( container_0.data(), thread_count );
-                
-                using std::swap;
-                swap( container_0, new_container_0 );
-            }
-            
-            TOOLS_PTOC(ClassName()+"::ShrinkToFit");
-        }
+
         
     protected:
         
         void Expand()
         {
-            RequireCapacity( Scalar::Two<Int> * capacity );
+            SetCapacity( Int(2) * capacity );
         }
         
     public:
@@ -233,7 +236,12 @@ namespace Tensors
         
     public:
         
-        std::string ClassName() const
+        static std::string MethodName( const std::string & tag )
+        {
+            return ClassName() + "::" + tag;
+        }
+        
+        static std::string ClassName()
         {
             return std::string("Aggregator")+"<"+TypeName<T_0>+","+TypeName<Int>+">";
         }

@@ -340,8 +340,8 @@ namespace Tensors
                 for( Int thread = 0; thread < list_count; ++thread )
                 {
                     const Size_T t = static_cast<Size_T>(thread);
-                    i[thread] = pairs[t].Get_0().data();
-                    j[thread] = pairs[t].Get_1().data();
+                    i[thread] = pairs[t].data_0();
+                    j[thread] = pairs[t].data_1();
                     
                     entry_counts[thread] = static_cast<LInt>(pairs[t].Size());
                 }
@@ -365,8 +365,8 @@ namespace Tensors
             {
                 LInt entry_counts = int_cast<LInt>(pairs.Size());
 
-                const ExtInt * const i = pairs.Get_0().data();
-                const ExtInt * const j = pairs.Get_1().data();
+                const ExtInt * const i = pairs.data_0();
+                const ExtInt * const j = pairs.data_1();
                 
                 FromPairs(
                     &i,&j,&entry_counts,

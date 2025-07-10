@@ -241,7 +241,7 @@ protected:
             
         } // for( Int i = 0; i < n+1; ++i )
         
-        SN_inner = std::move(SN_inner_agg.Get());
+        SN_inner = std::move(SN_inner_agg.Disband());
         
         TOOLS_PTOC(ClassName()+"::FindAmalgamatedSupernodes");
     }
@@ -432,7 +432,7 @@ protected:
             
         } // for( Int i = 0; i < n+1; ++i )
         
-        SN_inner = std::move(SN_inner_agg.Get());
+        SN_inner = std::move(SN_inner_agg.Disband());
         
         TOOLS_PTOC(ClassName()+"::FindMaximalSupernodes");
     }
@@ -577,7 +577,7 @@ protected:
             
         } // for( Int i = 0; i < n+1; ++i )
         
-        SN_inner = std::move(SN_inner_agg.Get());
+        SN_inner = std::move(SN_inner_agg.Disband());
         
         TOOLS_PTOC(ClassName()+"FindFundamentalSupernodes");
     }

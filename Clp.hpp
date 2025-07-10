@@ -260,6 +260,31 @@ namespace Tensors
             {
                 LP.primal();
             }
+            
+            if( !LP.statusOfProblem() )
+            {
+                eprint("ClpSimplex::primal reports a problem in the solve phase.  The returned solution may be incorrect.");
+
+                TOOLS_DDUMP(LP.statusOfProblem());
+                TOOLS_DDUMP(LP.getIterationCount());
+                TOOLS_DDUMP(LP.numberPrimalInfeasibilities());
+                TOOLS_DDUMP(LP.largestPrimalError());
+                TOOLS_DDUMP(LP.sumPrimalInfeasibilities());
+                    
+                TOOLS_DDUMP(LP.numberDualInfeasibilities());
+                TOOLS_DDUMP(LP.largestDualError());
+                TOOLS_DDUMP(LP.sumDualInfeasibilities());
+                   
+                TOOLS_DDUMP(LP.objectiveValue());
+                    
+//                logvalprint(
+//                    "solution",
+//                    ArrayToString(
+//                        LP.primalColumnSolution(),{LP.getNumCols()},
+//                        [](double x){ return ToStringFPGeneral(x); }
+//                    )
+//                );
+            }
         }
         
         
@@ -544,7 +569,7 @@ namespace Tensors
             
             // Rounding and check.
 
-            cptr<COIN_Real> sol = LP.primalColumnSolution();
+            cptr<COIN_Real> sol    = LP.primalColumnSolution();
             cptr<COIN_Real> var_lb = VariableLowerBoundPtr();
             cptr<COIN_Real> var_ub = VariableUpperBoundPtr();
             
