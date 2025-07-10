@@ -70,42 +70,6 @@ namespace Tensors
             container_2[current_size] = std::move(a_2);
             ++current_size;
         }
-
-//        mref<Container_0_T> Get_0()
-//        {
-//            ShrinkToFit();
-//            return container_0;
-//        }
-//
-//        cref<Container_0_T> Get_0()
-//        {
-//            ShrinkToFit();
-//            return container_0;
-//        }
-//
-//        mref<Container_1_T> Get_1()
-//        {
-//            ShrinkToFit();
-//            return container_1;
-//        }
-//
-//        cref<Container_1_T> Get_1()
-//        {
-//            ShrinkToFit();
-//            return container_1;
-//        }
-//        
-//        mref<Container_2_T> Get_2()
-//        {
-//            ShrinkToFit();
-//            return container_2;
-//        }
-//
-//        cref<Container_2_T> Get_2()
-//        {
-//            ShrinkToFit();
-//            return container_2;
-//        }
         
         Container_0_T Disband_0()
         {
@@ -125,16 +89,30 @@ namespace Tensors
             return std::move(container_2);
         }
         
-        
         // A bit dangerous, this is. But since we do not use any buffering, this might work.
+        mptr<T_0> data_0()
+        {
+            return container_0.data();
+        }
+        
         cptr<T_0> data_0() const
         {
             return container_0.data();
+        }
+
+        mptr<T_1> data_1()
+        {
+            return container_1.data();
         }
         
         cptr<T_1> data_1() const
         {
             return container_1.data();
+        }
+        
+        mptr<T_2> data_2()
+        {
+            return container_2.data();
         }
         
         cptr<T_2> data_2() const

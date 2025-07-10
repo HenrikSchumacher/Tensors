@@ -61,30 +61,6 @@ namespace Tensors
             ++current_size;
         }
         
-//        Container_0_T & Get_0()
-//        {
-//            ShrinkToFit();
-//            return container_0;
-//        }
-//        
-//        const Container_0_T & Get_0()
-//        {
-//            ShrinkToFit();
-//            return container_0;
-//        }
-//
-//        Container_1_T & Get_1()
-//        {
-//            ShrinkToFit();
-//            return container_1;
-//        }
-//        
-//        const Container_1_T & Get_1()
-//        {
-//            ShrinkToFit();
-//            return container_1;
-//        }
-        
         Container_0_T Disband_0()
         {
             ShrinkToFit();
@@ -98,9 +74,19 @@ namespace Tensors
         }
         
         // A bit dangerous, this is. But since we do not use any buffering, this might work.
+        mptr<T_0> data_0()
+        {
+            return container_0.data();
+        }
+        
         cptr<T_0> data_0() const
         {
             return container_0.data();
+        }
+
+        mptr<T_1> data_1()
+        {
+            return container_1.data();
         }
         
         cptr<T_1> data_1() const

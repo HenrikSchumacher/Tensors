@@ -125,20 +125,6 @@ namespace Tensors
                 current_size = 0;
             }
         }
-
-//        Container_0_T & Get()
-//        {
-//            ShrinkToFit();
-//            
-//            return container_0;
-//        }
-
-//        const Container_0_T & Get() const
-//        {
-//            ShrinkToFit();
-//            
-//            return container_0;
-//        }
         
         Container_0_T Disband()
         {
@@ -147,6 +133,11 @@ namespace Tensors
         }
         
         // A bit dangerous, this is. But since we do not use any buffering, this might work.
+        mptr<T_0> data()
+        {
+            return container_0.data();
+        }
+        
         cptr<T_0> data() const
         {
             return container_0.data();
