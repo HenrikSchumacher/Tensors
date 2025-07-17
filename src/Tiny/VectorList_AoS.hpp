@@ -169,6 +169,16 @@ namespace Tensors
                 a.Read(i,b);
             }
             
+            void SetZero()
+            {
+                a.SetZero();
+            }
+            
+            void Fill( cref<Scal> init )
+            {
+                a.Fill(init);
+            }
+            
             TOOLS_FORCE_INLINE Int Dim( const Int i ) const
             {
                 if( i == Int(0) )
