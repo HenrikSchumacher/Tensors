@@ -84,32 +84,32 @@ namespace Tensors
             }
             
             
-            TOOLS_FORCE_INLINE mptr<Int> data()
+            TOOLS_FORCE_INLINE mptr<Scal> data()
             {
                 return a.data();
             }
 
-            TOOLS_FORCE_INLINE cptr<Int> data() const
+            TOOLS_FORCE_INLINE cptr<Scal> data() const
             {
                 return a.data();
             }
             
             template<typename I>
-            TOOLS_FORCE_INLINE mptr<Int> data( const I i )
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i )
             {
                 static_assert(IntQ<I>,"");
                 return &a.data()[mn * i];
             }
             
             template<typename I>
-            TOOLS_FORCE_INLINE cptr<Int> data( const I i ) const
+            TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const
             {
                 static_assert(IntQ<I>,"");
                 return &a.data()[mn * i];
             }
 
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE mptr<Int> data( const I i, const J j )
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j )
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -117,7 +117,7 @@ namespace Tensors
             }
             
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE cptr<Int> data( const I i, const J j ) const
+            TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -125,7 +125,7 @@ namespace Tensors
             }
             
             template<typename I, typename J, typename K>
-            TOOLS_FORCE_INLINE mptr<Int> data( const I i, const J j, const K k)
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j, const K k)
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -134,7 +134,7 @@ namespace Tensors
             }
             
             template<typename I, typename J, typename K>
-            TOOLS_FORCE_INLINE mptr<Int> data( const I i, const J j, const K k) const
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j, const K k) const
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -143,7 +143,7 @@ namespace Tensors
             }
             
             template<typename I, typename J, typename K>
-            TOOLS_FORCE_INLINE mref<Int> operator()( const I i, const J j, const K k)
+            TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j, const K k)
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -152,7 +152,7 @@ namespace Tensors
             }
             
             template<typename I, typename J, typename K>
-            TOOLS_FORCE_INLINE cref<Int> operator()( const I i, const J j, const K k) const
+            TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j, const K k) const
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
