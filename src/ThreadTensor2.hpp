@@ -417,7 +417,7 @@ namespace Tensors
         
         const Int size_ = A.Dim(1);
         
-        const Int thread_count = A.Dim(0)
+        const Int thread_count = A.Dim(0);
         
         for( Int thread = 0; thread < thread_count; ++thread )
         {
