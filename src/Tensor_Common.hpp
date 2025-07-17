@@ -145,7 +145,9 @@ public:
 #endif
         bool different_dimsQ = false;
         
-        for( Size_T i = 0; i < ToSize_T(Rank()); ++i )
+        const Size_T i_count = ToSize_T(Rank());
+        
+        for( Size_T i = 0; i < i_count; ++i )
         {
             different_dimsQ = different_dimsQ || std::cmp_not_equal( dims[i], other.Dimensions()[i] );
         }
@@ -157,7 +159,7 @@ public:
 #endif
             n = other.Size();
             
-            for( Size_T i = 0; i < ToSize_T(Rank()); ++i )
+            for( Size_T i = 0; i < i_count; ++i )
             {
                 dims[i] = int_cast<Int>(other.Dimensions()[i]);
             }

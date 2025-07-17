@@ -11,7 +11,10 @@ public:
         {
             #pragma omp single
             {
-                for( Int child = ChildPointer(root); child < ChildPointer(root+1); ++child )
+                const Int child_begin = ChildPointer(root);
+                const Int child_end   = ChildPointer(root+1);
+                
+                for( Int child = child_begin; child < child_end; ++child )
                 {
                     #pragma omp task private(n) untied
                     {
@@ -29,7 +32,10 @@ public:
     template<class Worker_T>
     void Traverse_Children_PostOrdered_OpenMP( std::unique_ptr<Worker_T> * workers, const Int node )
     {
-        for( Int child = ChildPointer(node); child < ChildPointer(node+1); ++child )
+        const Int child_begin = ChildPointer(node);
+        const Int child_end   = ChildPointer(node+1);
+        
+        for( Int child = child_begin; child < child_end; ++child )
         {
             #pragma omp task private(n) untied
             {

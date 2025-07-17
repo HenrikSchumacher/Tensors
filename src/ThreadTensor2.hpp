@@ -417,7 +417,9 @@ namespace Tensors
         
         const Int size_ = A.Dim(1);
         
-        for( Int thread = 0; thread < A.Dim(0); ++thread )
+        const Int thread_count = A.Dim(0)
+        
+        for( Int thread = 0; thread < thread_count; ++thread )
         {
             A[ToSize_T(thread)].Write( &B.data()[size_ * thread] );
         }
@@ -438,9 +440,11 @@ namespace Tensors
         
         const Int size_ = A.Dim(1);
         
-        for( Int i = 0; i < A.Dim(0); ++i )
+        const Int thread_count = A.Dim(0);
+        
+        for( Int thread = 0; thread < thread_count; ++thread )
         {
-            A[ToSize_T(i)].Write( &B.data()[size_ * i] );
+            A[ToSize_T(thread)].Write( &B.data()[size_ * thread] );
         }
         
         return B;

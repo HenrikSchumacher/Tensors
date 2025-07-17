@@ -250,7 +250,10 @@ namespace Tensors
                 str += prefix;
                 str += ToString(list.Sublist(s));
             }
-            for( Int s = 1; s < list.SublistCount(); ++s )
+            
+            const Int s_count = list.SublistCount();
+            
+            for( Int s = 1; s < s_count; ++s )
             {
                 str += ",\n";
                 str += prefix;
@@ -282,12 +285,33 @@ namespace Tensors
         class = typename std::enable_if_t<mma::HasTypeQ<T>>
     >
     inline mma::TensorRef<mma::Type<T>> to_MTensorRef(
-        typename RaggedList<T,Int>::Sublist & sublist
+        const typename RaggedList<T,Int>::Sublist & sublist
     )
     {
         mint d = sublist.Size();
         auto A = mma::makeTensor<mma::Type<T>>( mint(1), &d );
         sublist.Write( A.data() );
+        
+        return A;
+    }
+    
+    template<
+        typename S, typename Int,
+        class = typename std::enable_if_t<mma::HasTypeQ<S>>
+    >
+    inline mma::TensorRef<mma::Type<S>> to_MTensorRef(
+        const RaggedList<S,Int> & a
+    )
+    {
+        using T = mma::Type<S>;
+        
+        mint L = a.SublistCount();
+        mint d = mint(2) + L + a.ElementCount();
+        auto A = mma::makeTensor<T>( mint(1), &d );
+        A.data()[0] = static_cast<T>(L);
+        
+        a.Pointers().Write( &A.data()[mint(1)] );
+        a.Elements().Write( &A.data()[L+mint(2)] );
         
         return A;
     }

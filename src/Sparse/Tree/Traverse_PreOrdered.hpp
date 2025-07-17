@@ -41,7 +41,9 @@ public:
 //        
 //        const Int target_split_level = static_cast<Int>(tree_top_levels.size()-1);
 
-        for( Size_T d = Size_T(1); d < tree_top_levels.size(); ++d )
+        const Size_T d_count = tree_top_levels.size();
+        
+        for( Size_T d = Size_T(1); d < d_count; ++d )
         {
             const Size_T k_begin = 0;
             const Size_T k_end   = tree_top_levels[d].size();
