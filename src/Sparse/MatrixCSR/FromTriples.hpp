@@ -31,7 +31,7 @@ void FromTriples(
     
     LInt triple_count = acc_entry_counts.Last();
     
-    TOOLS_LOGDUMP(triple_count);
+    TOOLS_PDUMP(triple_count);
     
     if( triple_count <= LInt(0) )
     {
@@ -55,7 +55,7 @@ void FromTriples(
         nnz = counters[list_count-Int(1)][m-Int(1)];
     }
     
-    TOOLS_LOGDUMP(nnz);
+    TOOLS_PDUMP(nnz);
     
     if( nnz <= LInt(0) )
     {

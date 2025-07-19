@@ -44,47 +44,6 @@ namespace Tensors
         // Move assignment operator
         Stack & operator=( Stack && other ) = default;
         
-//        // Destructor
-//        ~Stack() = default;
-//        
-//        // Copy constructor
-//        Stack( const Stack & other )
-//        :   a   ( other.a   )
-//        ,   ptr ( other.ptr )
-//        {}
-//
-//        
-//        // Copy-assignment operator
-//        Stack & operator=( Stack other ) noexcept
-//        {
-//            swap(*this, other);
-//            
-//            return *this;
-//        }
-//        
-//        
-//        // Move constructor
-//        Stack( Stack && other ) noexcept
-//        :   Stack()
-//        {
-//            swap(*this, other);
-//        }
-        
-        inline friend void swap( Stack & A, Stack & B) noexcept
-        {
-            using std::swap;
-            
-            if( &A == &B )
-            {
-                wprint( std::string("An object of type ") + ClassName() + " has been swapped to itself.");
-            }
-            else
-            {
-                swap( A.a  , B.a   );
-                swap( A.ptr, B.ptr );
-            }
-        }
-        
         Int Capacity() const
         {
             return a.Size()-Int(1);

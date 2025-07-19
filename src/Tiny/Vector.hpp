@@ -455,18 +455,22 @@ namespace Tensors
                 
             TOOLS_FORCE_INLINE void ElementwiseMin( cref<Vector<n,Scal,Int>> x )
             {
-                for( Int i = 0; i < n; ++i )
-                {
-                    v[i] = Tools::Min(x[i],v[i]);
-                }
+                elementwise_min_update<n>(x.data(),&v[0]);
+                
+//                for( Int i = 0; i < n; ++i )
+//                {
+//                    v[i] = Tools::Min(x[i],v[i]);
+//                }
             }
             
             TOOLS_FORCE_INLINE void ElementwiseMax( cref<Vector<n,Scal,Int>> x )
             {
-                for( Int i = 0; i < n; ++i )
-                {
-                    v[i] = Tools::Max(x[i],v[i]);
-                }
+                elementwise_max_update<n>(x.data(),&v[0]);
+                
+//                for( Int i = 0; i < n; ++i )
+//                {
+//                    v[i] = Tools::Max(x[i],v[i]);
+//                }
             }
             
             

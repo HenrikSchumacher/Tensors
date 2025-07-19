@@ -109,15 +109,15 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
     
     Int row_count = 0;
     line >> row_count;
-    TOOLS_LOGDUMP(row_count);
+    TOOLS_PDUMP(row_count);
     
     Int col_count = 0;
     line >> col_count;
-    TOOLS_LOGDUMP(col_count);
+    TOOLS_PDUMP(col_count);
     
     LInt nonzero_count = 0;
     line >> nonzero_count;
-    TOOLS_LOGDUMP(nonzero_count);
+    TOOLS_PDUMP(nonzero_count);
 
     if(row_count < Int(0))
     {
