@@ -33,16 +33,16 @@ namespace Tensors
             a[0] = Entry_T();
         }
         
-        // Destructor
-        ~Stack() = default;
-        // Copy constructor
-        Stack( const Stack & other ) = default;
-        // Copy assignment operator
-        Stack & operator=( const Stack & other ) = default;
-        // Move constructor
-        Stack( Stack && other ) = default;
-        // Move assignment operator
-        Stack & operator=( Stack && other ) = default;
+//        // Destructor
+//        ~Stack() = default;
+//        // Copy constructor
+//        Stack( const Stack & other ) = default;
+//        // Copy assignment operator
+//        Stack & operator=( const Stack & other ) = default;
+//        // Move constructor
+//        Stack( Stack && other ) = default;
+//        // Move assignment operator
+//        Stack & operator=( Stack && other ) = default;
         
         Int Capacity() const
         {
