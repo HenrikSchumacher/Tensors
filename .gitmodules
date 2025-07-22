@@ -1,6 +1,6 @@
 [submodule "submodules/Tools"]
 	path = submodules/Tools
-	url = https://github.com/HenrikSchumacher/Tools
+	url = git@github.com:HenrikSchumacher/Tools.git
 [submodule "Tools"]
 	path = Tools
 	url = https://github.com/HenrikSchumacher/Tools
