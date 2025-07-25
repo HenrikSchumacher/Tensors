@@ -201,7 +201,6 @@ namespace Tensors
 
             if( !SameQ<R,COIN_Real> )
             {
-                
                 c_         = RArray_T( c     , n );
                 var_lb_    = RArray_T( var_lb, n );
                 var_ub_    = RArray_T( var_ub, n );
@@ -319,7 +318,8 @@ namespace Tensors
             AT.RowCount(), AT.ColCount(),
             c.data(), var_lb.data(), var_ub.data(),
             AT.Outer().data(), AT.Inner().data(), AT.Values().data(),
-            con_lb.data(), con_ub.data()
+            con_lb.data(), con_ub.data(),
+            settings_
         }
         {
             const I n = AT.RowCount();
