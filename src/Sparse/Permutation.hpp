@@ -463,25 +463,36 @@ namespace Tensors
             
             using F_T = Scalar::Flag;
             
-            std::string tag = ClassName()+"::PermuteCombine"
-                + "," + ToString(COLS)
-                + "," + ToString(parQ)
-                + "," + ToString(opx)
-                + "," + ToString(opy)
-                + "," + TypeName<a_T>
-                + "," + TypeName<X_T>
-                + "," + TypeName<b_T>
-                + "," + TypeName<Y_T>
-                + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
-                + ToString(cols) + ")";
-            
-            TOOLS_PTIC(tag);
+            TOOLS_PTIMER(
+                timer,
+                ClassName()+"::PermuteCombine"
+                 + "," + ToString(COLS)
+                 + "," + ToString(parQ)
+                 + "," + ToString(opx)
+                 + "," + ToString(opy)
+                 + "," + TypeName<a_T>
+                 + "," + TypeName<X_T>
+                 + "," + TypeName<b_T>
+                 + "," + TypeName<Y_T>
+                 + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
+                 + ToString(cols) + ")"
+            );
             
             if( cols == Int(0) )
             {
-                wprint( tag + ": cols == 0. Doing nothing." );
+                std::string tag = ClassName()+"::PermuteCombine"
+                    + "," + ToString(COLS)
+                    + "," + ToString(parQ)
+                    + "," + ToString(opx)
+                    + "," + ToString(opy)
+                    + "," + TypeName<a_T>
+                    + "," + TypeName<X_T>
+                    + "," + TypeName<b_T>
+                    + "," + TypeName<Y_T>
+                    + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
+                    + ToString(cols) + ")";
                 
-                TOOLS_PTOC(tag);
+                wprint( tag + ": cols == 0. Doing nothing." );
             }
 
             // TODO: Special case ldX = 1 and ldY = 1
@@ -618,8 +629,6 @@ namespace Tensors
             }
             
             Invert( inverseQ );
-            
-            TOOLS_PTOC(tag);
         }
         
         template<
@@ -635,9 +644,7 @@ namespace Tensors
         {
             // Permute X chunkwise into Y, i.e., Y[ldY*i+k] <- X[ldX*p[i]+k];
             
-            std::string tag = ClassName()+"::Permute<" + TypeName<X_T> + "," + TypeName<Y_T> + ">(" + (inverseQ == Inverse::True ? "inv," : "id," ) + ToString(cols) + ")";
-            
-            TOOLS_PTIC(tag);
+            TOOLS_PTIMER(timer,ClassName()+"::Permute<" + TypeName<X_T> + "," + TypeName<Y_T> + ">(" + (inverseQ == Inverse::True ? "inv," : "id," ) + ToString(cols) + ")");
             
             if( !is_trivial )
             {
@@ -699,8 +706,6 @@ namespace Tensors
                     );
                 }
             }
-            
-            TOOLS_PTOC(tag);
         }
         
         template<
@@ -814,12 +819,9 @@ namespace Tensors
         template<typename J>
         bool PermutationQ( cptr<J> p_ ) const
         {
-            std::string tag = ClassName()+"::PermutationQ";
-            
-            TOOLS_PTIC(tag);
+            TOOLS_PTIMER(timer, MethodName("PermutationQ"));
             if( (n == zero) || (n == one ) )
             {
-                TOOLS_PTOC(tag);
                 return true;
             }
             
@@ -831,8 +833,7 @@ namespace Tensors
                 
                 if( (p_i < zero) || (p_i >= n) )
                 {
-                    wprint(tag + ": Input list p has value p["+ToString(i)+"] = "+ToString(p_i)+" out of range [0,"+ToString(n)+"[!");
-                    TOOLS_PTOC(tag);
+                    wprint(MethodName("PermutationQ") + ": Input list p has value p["+ToString(i)+"] = "+ToString(p_i)+" out of range [0,"+ToString(n)+"[!");
                     return false;
                 }
                 else
@@ -845,15 +846,13 @@ namespace Tensors
 
             if( m_0 != one )
             {
-                eprint(tag + ": Input does not attain all values in range!");
+                eprint(MethodName("PermutationQ") + ": Input does not attain all values in range!");
             }
             
             if( m_1 != one )
             {
-                eprint(tag + ": Input has duplicates!");
+                eprint(MethodName("PermutationQ") + ": Input has duplicates!");
             }
-            
-            TOOLS_PTOC(tag);
             
             return ( m_0 == one ) && ( m_1 );
         }
@@ -868,20 +867,50 @@ namespace Tensors
                 }
                 else
                 {
-                    eprint(ClassName()+"::PermutationQ: field p_inv is not a permutation!");
+                    eprint(MethodName("PermutationQ") + ": field p_inv is not a permutation!");
                     return false;
                 }
             }
             else
             {
-                eprint(ClassName()+"::PermutationQ: field p is not a permutation!");
+                eprint(MethodName("PermutationQ") +": field p is not a permutation!");
                 return false;
             }
         }
+        
+        
+        template<typename ExtInt>
+        static Permutation RandomPermutation(
+            const ExtInt n, const ExtInt thread_count
+        )
+        {
+            static_assert(IntQ<ExtInt>,"");
+            
+            if( n <= ExtInt(0) )
+            {
+                return Permutation();
+            }
+            
+            Tensor1<Int,Int> a(n);
+            a.iota();
+            
+            auto random_engine = InitializedRandomEngine<std::mt19937>();
+            
+            std::uniform_int_distribution<Int>( Int(0), Int(n) - Int(1) );
+            
+            std::shuffle(&a[Int(0)],&a[Int(n) - Int(1)],random_engine);
+            
+            return Permutation( std::move(a), Inverse::False, int_cast<Int>(thread_count) );
+        }
                        
     public:
+
+        static std::string MethodName( const std::string & tag )
+        {
+            return ClassName() + "::" + tag;
+        }
         
-        std::string ClassName() const
+        static std::string ClassName()
         {
             return std::string("Permutation")+"<"+TypeName<Int>+">";
         }
@@ -899,9 +928,7 @@ namespace Tensors
         const LInt nnz
     )
     {
-        std::string tag = std::string("PermutePatternCSR<") + TypeName<LInt> + "," + TypeName<Int> + ">";
-        
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,std::string("PermutePatternCSR<") + TypeName<LInt> + "," + TypeName<Int> + ">");
         
         const Int m = P.Size();
 
@@ -917,7 +944,6 @@ namespace Tensors
 
         if constexpr ( P_TrivialQ && Q_TrivialQ )
         {
-            TOOLS_PTOC(tag);
             perm.iota();
             return perm;
         }
@@ -993,8 +1019,6 @@ namespace Tensors
         
         swap( outer, new_outer );
         swap( inner, new_inner );
-        
-        TOOLS_PTOC(tag);
 
         return perm;
     }
