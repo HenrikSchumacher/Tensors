@@ -1227,7 +1227,7 @@ namespace Tensors
                 RequireJobPtr();
                 
                 ParallelDo(
-                    [&edges,this]( const Int i )
+                    [pos,this]( const Int i )
                     {
                         const LInt k_begin = outer[i    ];
                         const LInt k_end   = outer[i + 1];
@@ -1236,8 +1236,45 @@ namespace Tensors
                         {
                             const Int j = inner[k];
                             
-                            edges(Int(2) * k + Int(0)) = i;
-                            edges(Int(2) * k + Int(1)) = j;
+                            pos(Int(2) * k + Int(0)) = i;
+                            pos(Int(2) * k + Int(1)) = j;
+                        }
+                    },
+                    job_ptr
+                );
+            }
+            
+            template<typename ExtInt>
+            void WriteNonzeroPositions( cptr<ExtInt> idx, cptr<ExtInt> jdx )
+            {
+                static_assert(IntQ<ExtInt>,"");
+                
+                if( !std::in_range<ExtInt>(RowCount()) )
+                {
+                    eprint(MethodName("WriteNonzeroPositions") + ": RowCount() = " + ToString(RowCount()) + " is too large to fit into target type " + TypeName<ExtInt> +". Doing nothing.");
+                    return;
+                }
+                
+                if( !std::in_range<ExtInt>(ColCount()) )
+                {
+                    eprint(MethodName("WriteNonzeroPositions") + ": ColCount() = " + ToString(RowCount()) + " is too large to fit into target type " + TypeName<ExtInt> +". Doing nothing.");
+                    return;
+                }
+                
+                RequireJobPtr();
+                
+                ParallelDo(
+                    [idx,jdx,this]( const Int i )
+                    {
+                        const LInt k_begin = outer[i    ];
+                        const LInt k_end   = outer[i + 1];
+                        
+                        for( LInt k = k_begin; k < k_end; ++k )
+                        {
+                            const Int j = inner[k];
+                            
+                            idx[k] = i;
+                            jdx[k] = j;
                         }
                     },
                     job_ptr
