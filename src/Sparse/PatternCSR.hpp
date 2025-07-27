@@ -1208,7 +1208,7 @@ namespace Tensors
             
             
             template<typename ExtInt>
-            void WriteNonzeroPositions( cptr<ExtInt> pos )
+            void WriteNonzeroPositions( mptr<ExtInt> pos )
             {
                 static_assert(IntQ<ExtInt>,"");
                 
@@ -1236,8 +1236,8 @@ namespace Tensors
                         {
                             const Int j = inner[k];
                             
-                            pos(Int(2) * k + Int(0)) = i;
-                            pos(Int(2) * k + Int(1)) = j;
+                            pos[Int(2) * k + Int(0)] = i;
+                            pos[Int(2) * k + Int(1)] = j;
                         }
                     },
                     job_ptr
@@ -1245,7 +1245,7 @@ namespace Tensors
             }
             
             template<typename ExtInt>
-            void WriteNonzeroPositions( cptr<ExtInt> idx, cptr<ExtInt> jdx )
+            void WriteNonzeroPositions( mptr<ExtInt> idx, mptr<ExtInt> jdx )
             {
                 static_assert(IntQ<ExtInt>,"");
                 
