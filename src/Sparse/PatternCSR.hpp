@@ -1207,6 +1207,43 @@ namespace Tensors
             }
             
             
+            template<typename ExtInt>
+            void WriteNonzeroPositions( cptr<ExtInt> pos )
+            {
+                static_assert(IntQ<ExtInt>,"");
+                
+                if( !std::in_range<ExtInt>(RowCount()) )
+                {
+                    eprint(MethodName("WriteNonzeroPositions") + ": RowCount() = " + ToString(RowCount()) + " is too large to fit into target type " + TypeName<ExtInt> +". Doing nothing.");
+                    return;
+                }
+                
+                if( !std::in_range<ExtInt>(ColCount()) )
+                {
+                    eprint(MethodName("WriteNonzeroPositions") + ": ColCount() = " + ToString(RowCount()) + " is too large to fit into target type " + TypeName<ExtInt> +". Doing nothing.");
+                    return;
+                }
+                
+                RequireJobPtr();
+                
+                ParallelDo(
+                    [&edges,this]( const Int i )
+                    {
+                        const LInt k_begin = outer[i    ];
+                        const LInt k_end   = outer[i + 1];
+                        
+                        for( LInt k = k_begin; k < k_end; ++k )
+                        {
+                            const Int j = inner[k];
+                            
+                            edges(Int(2) * k + Int(0)) = i;
+                            edges(Int(2) * k + Int(1)) = j;
+                        }
+                    },
+                    job_ptr
+                );
+            }
+            
             Tiny::VectorList_AoS<2,Int,LInt> NonzeroPositions_AoS() const
             {
                 Tiny::VectorList_AoS<2,Int,LInt> edges ( NonzeroCount() );
@@ -1276,6 +1313,11 @@ namespace Tensors
 #include "PatternCSR/FromPairs.hpp"
             
         public:
+            
+            static std::string MethodName( const std::string & tag )
+            {
+                return ClassName() + "::" + tag;
+            }
             
             static std::string ClassName()
             {
