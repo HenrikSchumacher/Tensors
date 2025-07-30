@@ -19,7 +19,6 @@ namespace Tensors
         using Tensor_T = Tensor1<Scal,Int,Alignment>;
         
         
-        
     private:
         
         Int n = 0;
@@ -28,9 +27,13 @@ namespace Tensors
         
     public:
         
-        ThreadTensor2( const Int d0, const Int d1 )
-        :   n( d0 * d1 )
-        ,   dims{ d0, d1 }
+        template<
+            typename d0_T, typename d1_T,
+            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
+        >
+        ThreadTensor2( const d0_T d0, const d1_T d1 )
+        :   n    { int_cast<Int>(ToSize_T(d0) * d1_T(d1)) }
+        ,   dims { int_cast<Int>(d0), int_cast<Int>(d1) }
         ,   tensors( std::vector<Tensor_T> ( ToSize_T(d0) ) )
         {
             const Int thread_count = dims[0];
@@ -44,9 +47,13 @@ namespace Tensors
             );
         }
         
-        ThreadTensor2( const Int d0, const Int d1, const Scal init )
-        :   n( d0 * d1 )
-        ,   dims{ d0, d1 }
+        template<
+            typename d0_T, typename d1_T,
+            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
+        >
+        ThreadTensor2( const d0_T d0, const d1_T d1, const Scal init )
+        :   n    { int_cast<Int>(ToSize_T(d0) * d1_T(d1)) }
+        ,   dims { int_cast<Int>(d0), int_cast<Int>(d1) }
         ,   tensors( std::vector<Tensor_T> ( d0 ) )
         {
             const Int thread_count = dims[0];
@@ -60,8 +67,11 @@ namespace Tensors
             );
         }
         
-        template<typename S>
-        ThreadTensor2( const S * a_, const Int d0, const Int d1 )
+        template<
+            typename S, typename d0_T, typename d1_T,
+            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
+        >
+        ThreadTensor2( const S * a_, const d0_T d0, const d1_T d1 )
         :   ThreadTensor2( d0, d1 )
         {
             const Int thread_count = dims[0];

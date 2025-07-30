@@ -6,7 +6,7 @@ namespace Tensors
 #define TENSOR_T Tensor1 
 
     template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
-    class TENSOR_T final
+    class Tensor1 final
     {
         
 #include "Tensor_Common.hpp"
@@ -17,9 +17,13 @@ namespace Tensors
         
     public:
         
-        explicit TENSOR_T( const Int d0 )
-        :   n    { d0 }
-        ,   dims { d0 }
+        template<
+            typename d0_T,
+            class = typename std::enable_if_t<IntQ<d0_T>>
+        >
+        explicit Tensor1( const d0_T d0 )
+        :   n    { int_cast<Int>(d0) }  // Using int_cast to get error messages.
+        ,   dims { int_cast<Int>(d0) }
         {
 #ifdef TENSORS_ALLOCATION_LOGS
             logprint(ClassName() + " constructor (size = " + ToString(Size()) + ")");
@@ -27,15 +31,22 @@ namespace Tensors
             allocate();
         }
         
-        TENSOR_T( const Int d0, cref<Scal> init )
-        :   TENSOR_T( d0 )
+        template<
+            typename d0_T,
+            class = typename std::enable_if_t<IntQ<d0_T>>
+        >
+        Tensor1( const d0_T d0, cref<Scal> init )
+        :   Tensor1( d0 ) // Using int_cast to get error messages.
         {
             Fill( init );
         }
         
-        template<typename S>
-        TENSOR_T( cptr<S> a_, const Int d0 )
-        :   TENSOR_T( d0 )
+        template<
+            typename S, typename d0_T,
+            class = typename std::enable_if_t<IntQ<d0_T>>
+        >
+        Tensor1( cptr<S> a_, const d0_T d0 )
+        :   Tensor1( d0 )
         {
             Read(a_);
         }
@@ -236,28 +247,28 @@ namespace Tensors
         return v;
     }
     
-    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment, typename S>
-    Tensor1<Scal,Int,alignment> ToTensor1( mptr<S> a_, const Int d0 )
-    {
-        Tensor1<Scal,Int,alignment> result (d0);
-
-        result.Read(a_);
-        
-        return result;
-    }
+//    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment, typename S>
+//    Tensor1<Scal,Int,alignment> ToTensor1( mptr<S> a_, const Int d0 )
+//    {
+//        Tensor1<Scal,Int,alignment> result (d0);
+//
+//        result.Read(a_);
+//        
+//        return result;
+//    }
     
 #ifdef LTEMPLATE_H
     
     template<typename Scal, typename Int, Size_T alignment = DefaultAlignment>
     Tensor1<Scal,Int,alignment> from_VectorRef( cref<mma::TensorRef<mreal>> A )
     {
-        return ToTensor1<Scal,Int,alignment>( A.data(), A.dimensions()[0] );
+        return Tensor1<Scal,Int,alignment>( A.data(), A.dimensions()[0] );
     }
     
     template<typename Scal, typename Int, Size_T alignment = DefaultAlignment>
     Tensor1<Scal,Int,alignment> from_VectorRef( cref<mma::TensorRef<mint>> A )
     {
-        return ToTensor1<Scal,Int,alignment>( A.data(), A.dimensions()[0] );
+        return Tensor1<Scal,Int,alignment>( A.data(), A.dimensions()[0] );
     }
     
 #endif

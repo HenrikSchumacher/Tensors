@@ -119,6 +119,21 @@ namespace Tensors
         {
             return container_2.data();
         }
+        
+        cref<Container_0_T> Container_0() const
+        {
+            return container_0;
+        }
+        
+        cref<Container_1_T> Container_1() const
+        {
+            return container_1;
+        }
+        
+        cref<Container_2_T> Container_2() const
+        {
+            return container_2;
+        }
 
     public:
 

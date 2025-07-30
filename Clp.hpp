@@ -237,10 +237,12 @@ namespace Tensors
                 (void)AT_outer_;
             }
             
+            // TODO: Check bounds.
+            
             LP.loadProblem(
                 n, m,
                 SameQ<J,COIN_LInt> ? AT_outer  : AT_outer_.data(),
-                SameQ<I, COIN_Int> ? AT_inner  : AT_inner_.data(),
+                SameQ<I,COIN_Int > ? AT_inner  : AT_inner_.data(),
                 SameQ<R,COIN_Real> ? AT_values : AT_values_.data(),
                 SameQ<R,COIN_Real> ? var_lb    : var_lb_.data(),
                 SameQ<R,COIN_Real> ? var_ub    : var_ub_.data(),
@@ -262,7 +264,7 @@ namespace Tensors
             
             if( !LP.statusOfProblem() )
             {
-                eprint("ClpSimplex::primal reports a problem in the solve phase.  The returned solution may be incorrect.");
+                eprint(ClassName() + "(): ClpSimplex::" + ("settings.dualQ" ? "dual" : "primal") + " reports a problem in the solve phase.  The returned solution may be incorrect.");
 
                 TOOLS_DDUMP(LP.statusOfProblem());
                 TOOLS_DDUMP(LP.getIterationCount());
@@ -335,16 +337,16 @@ namespace Tensors
             }
             if( var_ub.Size() != n )
             {
-                eprint(ClassName()+ "(): argument var_ub has size " + ToString(var_ub.Size()) + ", but should have size " + ToString(n) +".");
+                eprint(ClassName()+ "(): Argument var_ub has size " + ToString(var_ub.Size()) + ", but should have size " + ToString(n) +".");
             }
             
             if( con_lb.Size() != m )
             {
-                eprint(ClassName()+ "(): argument con_lb has size " + ToString(con_lb.Size()) + ", but should have size " + ToString(m) +".");
+                eprint(ClassName()+ "(): Argument con_lb has size " + ToString(con_lb.Size()) + ", but should have size " + ToString(m) +".");
             }
             if( con_ub.Size() != m )
             {
-                eprint(ClassName()+ "(): argument con_ub has size " + ToString(con_ub.Size()) + ", but should have size " + ToString(m) +".");
+                eprint(ClassName()+ "(): Argument con_ub has size " + ToString(con_ub.Size()) + ", but should have size " + ToString(m) +".");
             }
         }
         
@@ -464,15 +466,15 @@ namespace Tensors
 
             if( edge_cost.Size() != n )
             {
-                eprint(ClassName()+ "(): argument edge_cost has size " + ToString(edge_cost.Size()) + ", but should have size " + ToString(n) +".");
+                eprint(ClassName()+ "(): Argument edge_cost has size " + ToString(edge_cost.Size()) + ", but should have size " + ToString(n) +".");
             }
             if( edge_cap_lb.Size() != n )
             {
-                eprint(ClassName()+ "(): argument edge_cap_lb has size " + ToString(edge_cap_lb.Size()) + ", but should have size " + ToString(n) +".");
+                eprint(ClassName()+ "(): Argument edge_cap_lb has size " + ToString(edge_cap_lb.Size()) + ", but should have size " + ToString(n) +".");
             }
             if( edge_cap_ub.Size() != n )
             {
-                eprint(ClassName()+ "(): argument edge_cap_ub has size " + ToString(edge_cap_ub.Size()) + ", but should have size " + ToString(n) +".");
+                eprint(ClassName()+ "(): Argument edge_cap_ub has size " + ToString(edge_cap_ub.Size()) + ", but should have size " + ToString(n) +".");
             }
         }
         
@@ -548,12 +550,10 @@ namespace Tensors
         /*!@brief This does what ClpSimplex::cleanPrimalSolution is supposed to do: Round the solution to nearest integer and recheck feasibility.
          */
         
-        template<typename I = Int>
-        Tensor1<I,Int> IntegralPrimalSolution() const
+        template<typename T = Int>
+        Tensor1<T,Int> IntegralPrimalSolution() const
         {
             TOOLS_MAKE_FP_STRICT();
-            
-            static_assert(IntQ<I>,"");
             
             const COIN_Int n = LP.getNumCols();
             const COIN_Int m = LP.getNumRows();
@@ -593,12 +593,12 @@ namespace Tensors
             
             if( var_lb_infeasible_count > Int(0) )
             {
-                eprint(MethodName("IntegralPrimalSolution") + ": violations for lower box constraints: " + ToString(var_lb_infeasible_count) + ".");
+                eprint(MethodName("IntegralPrimalSolution") + ": Violations for lower box constraints = " + ToString(var_lb_infeasible_count) + ".");
             }
             
             if( var_ub_infeasible_count > Int(0) )
             {
-                eprint(MethodName("IntegralPrimalSolution") + ": violations for upper box constraints: " + ToString(var_ub_infeasible_count) +".");
+                eprint(MethodName("IntegralPrimalSolution") + ": Violations for upper box constraints = " + ToString(var_ub_infeasible_count) +".");
             }
             
             // Using CLP's matrix-vector product so that I do not have to transpose A.
@@ -620,16 +620,16 @@ namespace Tensors
             
             if( con_lb_infeasible_count > Int(0) )
             {
-                eprint(MethodName("IntegralPrimalSolution") + ": violations for lower matrix constraints: " + ToString(con_lb_infeasible_count) + ".");
+                eprint(MethodName("IntegralPrimalSolution") + ": Violations for lower matrix constraints = " + ToString(con_lb_infeasible_count) + ".");
             }
             
             if( con_ub_infeasible_count > Int(0) )
             {
-                eprint(MethodName("IntegralPrimalSolution") + ": violations for upper matrix constraints: " + ToString(con_ub_infeasible_count) + ".");
+                eprint(MethodName("IntegralPrimalSolution") + ": Violations for upper matrix constraints = " + ToString(con_ub_infeasible_count) + ".");
             }
             
             // The integer conversion is safe as we have rounded s correctly already.
-            return Tensor1<I,Int>(s);
+            return Tensor1<T,Int>(s);
         }
 
         static std::string MethodName( const std::string & tag )

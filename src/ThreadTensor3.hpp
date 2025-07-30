@@ -23,9 +23,13 @@ namespace Tensors {
         
     public:
         
-        ThreadTensor3( const Int d0, const Int d1, const Int d2 )
-        :   n( d0 * d1 * d2 )
-        ,   dims{ d0, d1, d2 }
+        template<
+            typename d0_T, typename d1_T, typename d2_T,
+            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
+        >
+        ThreadTensor3( const d0_T d0, const d1_T d1, const d2_T d2 )
+        :   n    { int_cast<Int>(ToSize_T(d0) * ToSize_T(d1) * ToSize_T(d2)) }
+        ,   dims { int_cast<Int>(d0), int_cast<Int>(d1), int_cast<Int>(d2) }
         ,   tensors( std::vector<Tensor_T> ( ToSize_T(d0) ) )
         {
             const Int thread_count = dims[0];
@@ -39,9 +43,15 @@ namespace Tensors {
             );
         }
         
-        ThreadTensor3( const Int d0, const Int d1, const Int d2, cref<Scal> init )
-        :   n( d0 * d1 * d2 )
-        ,   dims{ d0, d1, d2 }
+        template<
+            typename d0_T, typename d1_T, typename d2_T,
+            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
+        >
+        ThreadTensor3(
+            const d0_T d0, const d1_T d1, const d2_T d2, cref<Scal> init
+        )
+        :   n    { int_cast<Int>(ToSize_T(d0) * ToSize_T(d1) * ToSize_T(d2)) }
+        ,   dims { int_cast<Int>(d0), int_cast<Int>(d1), int_cast<Int>(d2) }
         ,   tensors( std::vector<Tensor_T> ( ToSize_T(d0) ) )
         {
             const Int thread_count = dims[0];
@@ -55,8 +65,11 @@ namespace Tensors {
             );
         }
         
-        template<typename S>
-        ThreadTensor3( cptr<S> a_, const Int d0, const Int d1, const Int d2 )
+        template<
+            typename S, typename d0_T, typename d1_T, typename d2_T,
+            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
+        >
+        ThreadTensor3( cptr<S> a_, const d0_T d0, const d1_T d1, const d2_T d2 )
         :   ThreadTensor3( d0, d1, d2 )
         {
             const Int thread_count = dims[0];

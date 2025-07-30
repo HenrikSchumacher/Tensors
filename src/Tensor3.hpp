@@ -17,9 +17,14 @@ namespace Tensors
 
     public:
         
-        TENSOR_T( const Int d0, const Int d1, const Int d2 )
-        :   n    { d0 * d1 * d2 }
-        ,   dims { d0, d1, d2 }
+        
+        template<
+            typename d0_T, typename d1_T, typename d2_T,
+            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
+        >
+        Tensor3( const d0_T d0, const d1_T d1, const d2_T d2 )
+        :   n    { int_cast<Int>(ToSize_T(d0) * ToSize_T(d1) * ToSize_T(d2)) }
+        ,   dims { int_cast<Int>(d0), int_cast<Int>(d1), int_cast<Int>(d2) }
         {
 #ifdef TENSORS_ALLOCATION_LOGS
             logprint(ClassName() + " constructor (size = " + ToString(Size()) + ")");
@@ -27,15 +32,22 @@ namespace Tensors
             allocate();
         }
         
-        TENSOR_T( const Int d0, const Int d1, const Int d2, cref<Scal> init )
-        :   TENSOR_T( d0, d1, d2 )
+        template<
+            typename d0_T, typename d1_T, typename d2_T,
+            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
+        >
+        Tensor3( const d0_T d0, const d1_T d1, const d2_T d2, cref<Scal> init )
+        :   Tensor3( d0, d1, d2 )
         {
             Fill( init );
         }
         
-        template<typename S>
-        TENSOR_T( cptr<S> a_, const Int d0, const Int d1, const Int d2 )
-        :   TENSOR_T( d0, d1, d2 )
+        template<
+            typename S, typename d0_T, typename d1_T, typename d2_T,
+            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
+        >
+        Tensor3( cptr<S> a_, const d0_T d0, const d1_T d1, const d2_T d2 )
+        :   Tensor3( d0, d1, d2 )
         {
             Read(a_);
         }
@@ -209,28 +221,28 @@ namespace Tensors
     }; // Tensor3
     
     
-    template<typename Scal, typename Int, typename S>
-    Tensor3<Scal,Int> ToTensor3( cptr<S> a_, const Int d0, const Int d1, const Int d2 )
-    {
-        Tensor3<Scal,Int> result ( d0, d1, d2 );
-
-        result.Read(a_);
-        
-        return result;
-    }
+//    template<typename Scal, typename Int, typename S>
+//    Tensor3<Scal,Int> ToTensor3( cptr<S> a_, const Int d0, const Int d1, const Int d2 )
+//    {
+//        Tensor3<Scal,Int> result ( d0, d1, d2 );
+//
+//        result.Read(a_);
+//        
+//        return result;
+//    }
     
 #ifdef LTEMPLATE_H
     
     template<typename Scal, typename Int>
     Tensor3<Scal,Int> from_CubeRef( cref<mma::TensorRef<mreal>> A )
     {
-        return ToTensor3<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
+        return Tensor3<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
     }
     
     template<typename Scal, typename Int>
     Tensor3<Scal,Int> from_CubeRef( cref<mma::TensorRef<mint>> A )
     {
-        return ToTensor3<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
+        return Tensor3<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
     }
     
 #endif

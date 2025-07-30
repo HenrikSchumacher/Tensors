@@ -6,7 +6,7 @@ namespace Tensors
 #define TENSOR_T Tensor2
 
     template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
-    class TENSOR_T final
+    class Tensor2 final
     {
 
 #include "Tensor_Common.hpp"
@@ -17,9 +17,13 @@ namespace Tensors
         
     public:
         
-        TENSOR_T( const Int d0, const Int d1)
-        :   n    { d0 * d1 }
-        ,   dims { d0, d1 }
+        template<
+            typename d0_T, typename d1_T,
+            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
+        >
+        Tensor2( const d0_T d0, const d1_T d1)
+        :   n    { int_cast<Int>(ToSize_T(d0) * ToSize_T(d1)) }
+        ,   dims { int_cast<Int>(d0), int_cast<Int>(d1) }
         {
 #ifdef TENSORS_ALLOCATION_LOGS
             logprint(ClassName() + " constructor (size = " + ToString(Size()) + ")");
@@ -27,15 +31,22 @@ namespace Tensors
             allocate();
         }
         
-        TENSOR_T( const Int d0, const Int d1, cref<Scal> init )
-        :   TENSOR_T( d0, d1 )
+        template<
+            typename d0_T, typename d1_T,
+            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
+        >
+        Tensor2( const d0_T d0, const d1_T d1, cref<Scal> init )
+        :   Tensor2( d0, d1 )
         {
             Fill( init );
         }
         
-        template<typename S>
-        TENSOR_T( cptr<S> a_, const Int d0, const Int d1 )
-        :   TENSOR_T( d0, d1 )
+        template<
+            typename S, typename d0_T, typename d1_T,
+            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
+        >
+        Tensor2( cptr<S> a_, const d0_T d0, const d1_T d1 )
+        :   Tensor2( d0, d1 )
         {
             Read(a_);
         }
