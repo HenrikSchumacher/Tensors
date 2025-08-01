@@ -879,9 +879,11 @@ namespace Tensors
         }
         
         
-        template<typename ExtInt>
+        template<typename ExtInt, typename PRNGT_T>
         static Permutation RandomPermutation(
-            const ExtInt n, const ExtInt thread_count
+            const ExtInt n,
+            const ExtInt thread_count,
+            mref<PRNGT_T> random_engine
         )
         {
             static_assert(IntQ<ExtInt>,"");
@@ -894,11 +896,7 @@ namespace Tensors
             Tensor1<Int,Int> a(n);
             a.iota();
             
-            auto random_engine = InitializedRandomEngine<std::mt19937>();
-            
-            std::uniform_int_distribution<Int>( Int(0), Int(n) - Int(1) );
-            
-            std::shuffle(&a[Int(0)],&a[Int(n) - Int(1)],random_engine);
+            std::shuffle(&a[Int(0)],&a[Int(n)],random_engine);
             
             return Permutation( std::move(a), Inverse::False, int_cast<Int>(thread_count) );
         }
