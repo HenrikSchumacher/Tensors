@@ -609,16 +609,16 @@ protected:
             SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
         }
         
-        TOOLS_PDUMP(max_n_0);
-        TOOLS_PDUMP(max_n_1);
+//        TOOLS_PDUMP(max_n_0);
+//        TOOLS_PDUMP(max_n_1);
         
         // Allocating memory for the nonzero values of the factorization.
         
         SN_tri_val = Tensor1<Scal,LInt> (SN_tri_ptr[SN_count]);
         SN_rec_val = Tensor1<Scal,LInt> (SN_rec_ptr[SN_count]);
         
-        pvalprint("triangle_nnz ", SN_tri_val.Size());
-        pvalprint("rectangle_nnz", SN_rec_val.Size());
+//        pvalprint("triangle_nnz ", SN_tri_val.Size());
+//        pvalprint("rectangle_nnz", SN_rec_val.Size());
         
         TOOLS_PTOC(ClassName()+"::AllocateSupernodes");
     }

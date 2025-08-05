@@ -25,7 +25,7 @@ void FromPairs(
     
     LInt pair_count = acc_entry_counts.Last();
     
-    TOOLS_PDUMP(pair_count);
+//    TOOLS_PDUMP(pair_count);
     
     if( pair_count <= LInt(0) )
     {
@@ -49,7 +49,7 @@ void FromPairs(
         nnz = counters[list_count-Int(1)][m-Int(1)];
     }
     
-    TOOLS_PDUMP(nnz);
+//    TOOLS_PDUMP(nnz);
     
     if( nnz <= LInt(0) )
     {

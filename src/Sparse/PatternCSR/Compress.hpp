@@ -14,9 +14,9 @@ void Compress_impl(
         + "," + TypeName<T> + ">"
     );
     
-    TOOLS_PDUMP(A_outer.Size());
-    TOOLS_PDUMP(A_inner.Size());
-    TOOLS_PDUMP(A_values.Size());
+//    TOOLS_PDUMP(A_outer.Size());
+//    TOOLS_PDUMP(A_inner.Size());
+//    TOOLS_PDUMP(A_values.Size());
     
     if( proven_duplicate_freeQ ) { return; }
     
@@ -141,7 +141,7 @@ void Compress_impl(
     C_outer = Tensor1<LInt,LInt>(nnz + LInt(1));
     C_outer[0] = LInt(0);
     
-    TOOLS_PDUMP(C_outer.Size());
+//    TOOLS_PDUMP(C_outer.Size());
     
     {
         cptr<LInt> A_o = A_outer.data();

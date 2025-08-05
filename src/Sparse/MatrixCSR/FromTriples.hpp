@@ -31,7 +31,7 @@ void FromTriples(
     
     LInt triple_count = acc_entry_counts.Last();
     
-    TOOLS_PDUMP(triple_count);
+//    TOOLS_PDUMP(triple_count);
     
     if( triple_count <= LInt(0) )
     {
@@ -55,7 +55,7 @@ void FromTriples(
         nnz = counters[list_count-Int(1)][m-Int(1)];
     }
     
-    TOOLS_PDUMP(nnz);
+//    TOOLS_PDUMP(nnz);
     
     if( nnz <= LInt(0) )
     {
@@ -66,9 +66,9 @@ void FromTriples(
     inner  = Tensor1<Int ,LInt>( nnz );
     values = Tensor1<Scal,LInt>( nnz );
 
-    TOOLS_PDUMP(outer.Size());
-    TOOLS_PDUMP(inner.Size());
-    TOOLS_PDUMP(values.Size());
+//    TOOLS_PDUMP(outer.Size());
+//    TOOLS_PDUMP(inner.Size());
+//    TOOLS_PDUMP(values.Size());
     
     Tensor1<LInt,LInt> from;
     
@@ -84,7 +84,7 @@ void FromTriples(
     
     copy_buffer( counters.data(list_count-Int(1)), &A_o[1], m );
 
-    TOOLS_PDUMP(outer.Last());
+    //TOOLS_PDUMP(outer.Last());
     // The counters array tells each thread where to write.
     // Since we have to decrement entries of counters array, we have to loop in reverse order to make the sort stable in the j-indices.
     
