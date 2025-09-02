@@ -9,7 +9,7 @@ namespace Tensors
         struct Position
         {
             const LInt index;
-            const bool found;
+            const bool foundQ;
         };
         
         template<typename Int, typename LInt> class BinaryMatrixCSR;
@@ -1022,7 +1022,7 @@ namespace Tensors
             
             bool NonzeroPositionQ( const Int i, const Int j ) const
             {
-                return FindNonzeroPosition( i, j ).found;
+                return FindNonzeroPosition( i, j ).foundQ;
             }
             
             Sparse::Position<LInt> FindNonzeroPosition( const Int i, const Int j ) const
@@ -1196,9 +1196,9 @@ namespace Tensors
                         
                         if( i < j )
                         {
-                            const bool found = NonzeroPositionQ(j,i);
+                            const bool foundQ = NonzeroPositionQ(j,i);
                             
-                            unmatched_count += (!found);
+                            unmatched_count += (!foundQ);
                         }
                     }
                 }

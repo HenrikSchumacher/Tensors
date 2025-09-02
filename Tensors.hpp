@@ -29,7 +29,8 @@
 #include "src/Sparse/PatternCSR.hpp"
 #include "src/Sparse/BinaryMatrixCSR.hpp"
 #include "src/Sparse/MatrixCSR.hpp"
-#include "src/Sparse/Dot.hpp"
+#include "src/Sparse/Vector.hpp"
+#include "src/Sparse/Dot.hpp" // Matrix-matrix dot routine for different types.
 #include "src/Sparse/GridLaplacian.hpp"
 
 #include "src/Sparse/KernelMatrixCSR.hpp"

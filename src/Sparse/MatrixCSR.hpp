@@ -393,7 +393,7 @@ namespace Tensors
             {
                 const Sparse::Position<LInt> pos = this->FindNonzeroPosition(i,j);
                 
-                return ( pos.found ) ? values[pos.index] : static_cast<Scal>(0);
+                return ( pos.foundQ ) ? values[pos.index] : static_cast<Scal>(0);
             }
             
             cref<Assembler_T> Assembler() const
@@ -1196,11 +1196,11 @@ namespace Tensors
                             const Scal A_ij = values[k];
                             const Scal A_ji = this->operator()(j,i);
 
-                            const bool found = (A_ij == A_ji);
+                            const bool foundQ = (A_ij == A_ji);
                             
-                            symmetricQ = symmetricQ && found;
+                            symmetricQ = symmetricQ && foundQ;
                             
-                            unmatched_count += (!found);
+                            unmatched_count += (!foundQ);
                         }
                     }
                 }

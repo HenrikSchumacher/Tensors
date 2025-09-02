@@ -3,7 +3,7 @@
 namespace Tensors
 {
     namespace Sparse
-    {
+    { 
         namespace Details
         {
             template<typename Scal>
