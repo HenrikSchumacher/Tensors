@@ -99,7 +99,6 @@ namespace Tensors
                 return 'L';
             }
         }
-        
     }
 }
 
@@ -107,6 +106,7 @@ namespace Tensors
 #include "LAPACK/potrs.hpp"
 
 #include "LAPACK/getrf.hpp"
+#include "LAPACK/getrs.hpp"
 
 #include "LAPACK/hetrf.hpp"
 #include "LAPACK/hetrs.hpp"
