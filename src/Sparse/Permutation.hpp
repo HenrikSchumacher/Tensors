@@ -300,15 +300,12 @@ namespace Tensors
         
         void Invert( const Inverse inverseQ )
         {
-//            TOOLS_PTIC(ClassName()+"::Invert");
             if( inverseQ == Inverse::True )
             {
-                using std::swap;
-                
+                using std::swap; 
                 swap( p, p_inv );
                 swap( p_computed, p_inv_computed );
             }
-//            TOOLS_PTOC(ClassName()+"::Invert");
         }
         
         void RequirePermutation()
@@ -353,7 +350,7 @@ namespace Tensors
         
         void Compose( const Permutation & q, const Compose prepost )
         {
-            TOOLS_PTIC(ClassName()+"::Compose");
+            TOOLS_PTIMER(timer,ClassName()+"::Compose");
             
             if( is_trivial )
             {
@@ -438,7 +435,6 @@ namespace Tensors
                     swap(p_inv,scratch);
                 }
             }
-            TOOLS_PTOC(ClassName()+"::Compose");
         }
 
         template<
@@ -463,35 +459,22 @@ namespace Tensors
             
             using F_T = Scalar::Flag;
             
-            TOOLS_PTIMER(
-                timer,
-                ClassName()+"::PermuteCombine"
-                 + "," + ToString(COLS)
-                 + "," + ToString(parQ)
-                 + "," + ToString(opx)
-                 + "," + ToString(opy)
-                 + "," + TypeName<a_T>
-                 + "," + TypeName<X_T>
-                 + "," + TypeName<b_T>
-                 + "," + TypeName<Y_T>
-                 + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
-                 + ToString(cols) + ")"
-            );
+            std::string tag = ClassName()+"::PermuteCombine"
+                + "," + ToString(COLS)
+                + "," + ToString(parQ)
+                + "," + ToString(opx)
+                + "," + ToString(opy)
+                + "," + TypeName<a_T>
+                + "," + TypeName<X_T>
+                + "," + TypeName<b_T>
+                + "," + TypeName<Y_T>
+                + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
+                + ToString(cols) + ")";
+            
+            TOOLS_PTIMER(timer,tag);
             
             if( cols == Int(0) )
             {
-                std::string tag = ClassName()+"::PermuteCombine"
-                    + "," + ToString(COLS)
-                    + "," + ToString(parQ)
-                    + "," + ToString(opx)
-                    + "," + ToString(opy)
-                    + "," + TypeName<a_T>
-                    + "," + TypeName<X_T>
-                    + "," + TypeName<b_T>
-                    + "," + TypeName<Y_T>
-                    + ">(" + (inverseQ == Inverse::True ? "inv," : "id," )
-                    + ToString(cols) + ")";
-                
                 wprint( tag + ": cols == 0. Doing nothing." );
             }
 

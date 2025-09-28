@@ -1,6 +1,6 @@
 void DotBlocks()
 {
-    TOOLS_PTIC(ClassName()+"::DotBlocks_mat_T");
+    TOOLS_PTIMER(timer,ClassName()+"::DotBlocks_mat_T");
     
     //TODO: Recursive implementation using quadtree for C.
     
@@ -30,7 +30,6 @@ void DotBlocks()
                         copy_buffer<n*k>( BP.data(N_blk,K_blk), get_ptr(b) );
                         
                         c += b * a;
-                        
                     }
                     
                     copy_buffer<n*m>( get_ptr(c), CP.data(M_blk,N_blk) );
@@ -39,6 +38,4 @@ void DotBlocks()
         },
         thread_count
     );
-    
-    TOOLS_PTOC(ClassName()+"::DotBlocks_mat_T");
 }

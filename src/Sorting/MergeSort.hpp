@@ -81,7 +81,6 @@ namespace Tensors
         template<Size_T chunk_size, typename T, typename C = std::less<T>>
         void SortChunks( mptr<T> a, mptr<T> b, C comp = C() )
         {
-//            TOOLS_PTIC(ClassName()+"::SortChunks");
             for( Size_T chunk = 0; chunk < reg_chunk_count; ++chunk )
             {
                 BitonicSort<chunk_size,vector_size,reverseQ>( &a[chunk_size * chunk], comp );
@@ -185,26 +184,18 @@ namespace Tensors
                 }
             }
             
-            TOOLS_PTIC(ClassName()+"::Copy");
-            
             // TODO: This copy can be avoided by sorting the chunks directly into a, b, depending on the parity of the the depth of their leave node.
             
             copy_buffer( a, b, n );
-            
-            TOOLS_PTOC(ClassName()+"::Copy");
-            
-            TOOLS_PTOC(ClassName()+"::SortChunks");
         }
         
         
         template<typename T, typename C = std::less<T>>
         void Merge_DFS( mptr<T> a, mptr<T> b, C comp = C() )
         {
-            TOOLS_PTIC(ClassName()+"::Merge_DFS");
+            TOOLS_PTIMER(timer,ClassName()+"::Merge_DFS");
             
             merge_DFS( 0, b, a, comp );
-            
-            TOOLS_PTOC(ClassName()+"::Merge_DFS");
         }
         
         template<typename T, typename C = std::less<T>>
@@ -230,7 +221,7 @@ namespace Tensors
         
         void PrepareBinaryTree( const Size_T chunk_size )
         {
-            TOOLS_PTIC(ClassName()+"::PrepareBinaryTree");
+            TOOLS_PTIMER(timer,ClassName()+"::PrepareBinaryTree");
             
             node_count          = ( 2 * chunk_count - 1 );
             internal_node_count = node_count - chunk_count;
@@ -268,8 +259,6 @@ namespace Tensors
                 node_begin[N] = node_begin[L];
                 node_end  [N] = node_end  [R];
             }
-            
-            TOOLS_PTOC(ClassName()+"::PrepareBinaryTree");
         }
         
         

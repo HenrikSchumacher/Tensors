@@ -153,12 +153,9 @@ namespace Tensors
         
         void SymbolicFactorization()
         {
-            if( symbolic != nullptr )
-            {
-                return;
-            }
+            if( symbolic != nullptr ) { return; }
             
-            TOOLS_PTIC( ClassName()+"::SymbolicFactorization" );
+            TOOLS_PTIMER(timer,ClassName()+"::SymbolicFactorization" );
             
             const Int m = A.RowCount();
             const Int n = A.ColCount();
@@ -210,8 +207,6 @@ namespace Tensors
                 eprint(ClassName()+"::SymbolicFactorization: Returned error code is " + ToString(symbolic_status) + ". Message: " + SymbolicErrorMessage(symbolic_status)
                 );
             }
-            
-            TOOLS_PTOC( ClassName()+"::SymbolicFactorization" );
         }
         
         std::string SymbolicErrorMessage( int status )
@@ -261,14 +256,13 @@ namespace Tensors
         
         void NumericFactorization()
         {
-            TOOLS_PTIC( ClassName()+"::NumericFactorization" );
+            TOOLS_PTIMER(timer,ClassName()+"::NumericFactorization");
             
             if( symbolic_status != UMFPACK_OK )
             {
                 eprint(ClassName()+"::NumericFactorization:  Called with invalid symbolic factorization. symbolic_status = " + ToString(symbolic_status) + ". Message: " + SymbolicErrorMessage(symbolic_status)
                 );
             }
-            
             
             Int  * Ap = A.Outer().data();
             Int  * Ai = A.Inner().data();
@@ -318,8 +312,6 @@ namespace Tensors
                 eprint(ClassName()+"::NumericFactorization: Returned error code is " + ToString(numeric_status) + ". Message: " + NumericErrorMessage(numeric_status)
                 );
             }
-            
-            TOOLS_PTOC( ClassName()+"::NumericFactorization" );
         }
         
         std::string NumericErrorMessage( int status )
@@ -407,7 +399,7 @@ namespace Tensors
             }
             
             
-            TOOLS_PTIC( ClassName()+"::Solve"
+            TOOLS_PTIMER(timer,ClassName()+"::Solve"
                  + "<" + TypeName<a_T>
                  + "," + TypeName<B_T>
                  + "," + TypeName<b_T>
@@ -502,16 +494,6 @@ namespace Tensors
             >(
                 alpha, x_buffer.data(), beta, X, ColCount()
             );
-            
-            
-            TOOLS_PTOC( ClassName()+"::Solve"
-                 + "<" + TypeName<a_T>
-                 + "," + TypeName<B_T>
-                 + "," + TypeName<b_T>
-                 + "," + TypeName<X_T>
-                 + ">"
-            );
-            
         }
         
         template<Op op = Op::Id, typename B_T, typename X_T>
@@ -523,21 +505,17 @@ namespace Tensors
         
         std::pair<Scal,Real> Determinant()
         {
-            TOOLS_PTIC( ClassName()+"::Determinant" );
+            TOOLS_PTIMER(timer,ClassName()+"::Determinant");
             
             if( numeric == nullptr )
             {
                 eprint( ClassName()+"::Determinant: NumericFactorization has not been called, yet." );
-                
-                TOOLS_PTOC( ClassName()+"::Determinant" );
                 return std::pair<Scal,Real>( 0, 0 );
             }
             
             if( (symbolic_status != 0) || (numeric_status != 0) )
             {
-//                wprint( ClassName()+"::Determinant: Called without valid numeric factorization. numeric_status = " + ToString(numeric_status) + "." );
-                
-                TOOLS_PTOC( ClassName()+"::Determinant" );
+                wprint( ClassName()+"::Determinant: Called without valid numeric factorization. Numeric_status = " + ToString(numeric_status) + "." );
                 return std::pair<Scal,Real>( 0, 0 );
             }
             
@@ -608,8 +586,6 @@ namespace Tensors
                 eprint(ClassName()+"::Determinant: Returned error code is " + ToString(status) + ".");
             }
             
-            TOOLS_PTOC( ClassName()+"::Determinant" );
-            
             return std::pair<Scal,Real>( Mx, Ex );
         }
         
@@ -618,12 +594,9 @@ namespace Tensors
         
         void FreeSymbolic()
         {
-            if( symbolic == nullptr )
-            {
-                return;
-            }
+            if( symbolic == nullptr ) { return; }
             
-            TOOLS_PTIC( ClassName()+"::FreeSymbolic" );
+            TOOLS_PTIMER(timer,ClassName()+"::FreeSymbolic");
             
             if constexpr( SameQ<Int,Int64> )
             {
@@ -665,18 +638,13 @@ namespace Tensors
             }
                 
             symbolic = nullptr;
-            
-            TOOLS_PTOC( ClassName()+"::FreeSymbolic" );
         }
         
         void FreeNumeric()
         {
-            if( numeric == nullptr )
-            {
-                return;
-            }
+            if( numeric == nullptr ) { return; }
             
-            TOOLS_PTIC( ClassName()+"::FreeNumeric" );
+            TOOLS_PTIMER(timer,ClassName()+"::FreeNumeric");
             
             if constexpr( SameQ<Int,Int64> )
             {
@@ -716,8 +684,6 @@ namespace Tensors
                     umfpack_ci_free_numeric(&numeric);
                 }
             }
-            
-            TOOLS_PTOC( ClassName()+"::FreeNumeric" );
         }
         
     public:

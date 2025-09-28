@@ -1,6 +1,6 @@
 void DotBlocks()
 {
-    TOOLS_PTIC(ClassName()+"::DotBlocks_with_pointers");
+    TOOLS_PTIMER(timer,ClassName()+"::DotBlocks_with_pointers");
     
     //TODO: Recursive implementation using quadtree for C.
         
@@ -51,7 +51,5 @@ void DotBlocks()
         },
         thread_count
     );
-    
-    TOOLS_PTOC(ClassName()+"::DotBlocks_with_pointers");
 }
 

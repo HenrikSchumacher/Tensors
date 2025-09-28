@@ -152,7 +152,7 @@ namespace Tensors
             
             std::string tag = ClassName()+"::operator<" + TypeName<B_T> + "," + TypeName<X_T> + ">()";
             
-            TOOLS_PTIC(tag);
+            TOOLS_PTIMER(timer,tag);
             
             relative_tolerance = relative_tolerance_;
             max_restarts       = max_restarts_;
@@ -163,7 +163,7 @@ namespace Tensors
                 wprint( tag + ": use_initial_guessQ == true and b != 0. Typically, this does not make sense." );
             }
             
-            TOOLS_PTIC(ClassName()+": Compute norm of right hand side.");
+            TOOLS_PTIC(tag+": Compute norm of right hand side.");
             
             // Compute norms of b.
             x.Read( B_in, ldB, thread_count );
@@ -184,7 +184,7 @@ namespace Tensors
             
             TOL *= relative_tolerance;
             
-            TOOLS_PTOC(ClassName()+": Compute norm of right hand side.");
+            TOOLS_PTOC(tag+": Compute norm of right hand side.");
             
             iter = 0;
             restarts = 0;
@@ -192,7 +192,7 @@ namespace Tensors
             
             if( b_norms.CountNaNs() > Int(0) )
             {
-                eprint(tag + ": Right-hand side contains NaNs. Doing nothing.");
+                eprint(tag+": Right-hand side contains NaNs. Doing nothing.");
                 
                 succeeded = false;
                 
@@ -205,7 +205,7 @@ namespace Tensors
             
             if( b_norms.Max() <= Real(0) )
             {
-                wprint(tag + ": Right-hand side is 0. Returning scaled X_inout.");
+                wprint(tag+": Right-hand side is 0. Returning scaled X_inout.");
                 
                 logprint( Stats() );
                 
@@ -224,8 +224,6 @@ namespace Tensors
                 }
                
                 succeeded = true;
-                        
-                TOOLS_PTOC(tag);
                 
                 return succeeded;
             }
@@ -258,8 +256,6 @@ namespace Tensors
             
             WriteSolution( a, b, X_inout, ldX );
             
-            TOOLS_PTOC(tag);
-            
             return succeeded;
         }
         
@@ -277,9 +273,9 @@ namespace Tensors
         {
             std::string tag = ClassName()+"::Solve<" + TypeName<B_T> + ">";
             
-//            TOOLS_PTIC(tag);
-            
             h.SetZero();
+            
+//            TOOLS_PTIMER(timer,tag);
             
             // TODO: Remove the redudant computations in the case of a restart.
             
@@ -375,22 +371,18 @@ namespace Tensors
             if( succ )
             {
                 wprint( tag + ": Converged after 0 iterations." );
-                
                 return succ;
             }
             
             while( !succ && iter < max_iter )
             {
                 ArnoldiStep( A, P );
-                
                 ApplyGivensRotations();
-                
                 ++iter;
-                
                 succ = CheckResiduals();
             }
             
-            TOOLS_PTIC(ClassName()+": Solve least squares system.");
+            TOOLS_PTIC(tag+": Solve least squares system.");
             
             Tensor2<Scal,Int> H_mat    (iter,iter);
             Tensor1<Scal,Int> beta_vec (iter);
@@ -419,9 +411,9 @@ namespace Tensors
                 }
             }
             
-            TOOLS_PTOC(ClassName()+": Solve least squares system.");
+            TOOLS_PTOC(tag+": Solve least squares system.");
             
-            TOOLS_PTIC(ClassName()+": Synthesize solution.");
+            TOOLS_PTIC(tag+": Synthesize solution.");
             // z = y * Q;
             z.SetZero();
             
@@ -487,9 +479,7 @@ namespace Tensors
 //                );
             }
             
-            TOOLS_PTOC(ClassName()+": Synthesize solution.");
-            
-//            TOOLS_PTOC(tag);
+            TOOLS_PTOC(tag+": Synthesize solution.");
             
             return succ;
         }

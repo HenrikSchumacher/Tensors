@@ -4,7 +4,7 @@ protected:
 
     void Init()
     {
-        TOOLS_PTIC(ClassName()+"::Init");
+        TOOLS_PTIMER(timer,ClassName()+"::Init");
         
         Int target_split_level = thread_count <= 1 ? 1 : static_cast<Int>( std::ceil(std::log2( static_cast<double>(thread_count) )) + 3 );
         
@@ -164,6 +164,4 @@ protected:
         post.SwapScratch( Inverse::False );
         
         // Now post.GetPermutation() contains the post ordering.
-
-        TOOLS_PTOC(ClassName()+"::Init");
     }

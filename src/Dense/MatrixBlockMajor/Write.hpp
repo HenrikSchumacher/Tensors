@@ -7,7 +7,7 @@ void Write_N(
         mptr<C_T> C, const Int ldC
 ) const
 {
-    TOOLS_PTIC(ClassName()+"::Write_N<" + TypeName<alpha_T> + "," + TypeName<beta_T> + "," + TypeName<C_T> + ">");
+    TOOLS_PTIMER(timer,ClassName()+"::Write_N<" + TypeName<alpha_T> + "," + TypeName<beta_T> + "," + TypeName<C_T> + ">");
 
     //TODO: Handle boundary cases.
     
@@ -36,8 +36,6 @@ void Write_N(
         },
         thread_count
     );
-    
-    TOOLS_PTOC(ClassName()+"::Write_N<" + TypeName<alpha_T> + "," + TypeName<beta_T> + "," + TypeName<C_T> + ">");
 }
     
 template<
@@ -49,7 +47,7 @@ void Write_T(
         mptr<C_T> C, const Int ldC
 ) const
 {
-    TOOLS_PTIC(ClassName()+"::Write_T<" + TypeName<alpha_T> + "," + TypeName<beta_T> + "," + TypeName<C_T> + ">");
+    TOOLS_PTIMER(timer,ClassName()+"::Write_T<" + TypeName<alpha_T> + "," + TypeName<beta_T> + "," + TypeName<C_T> + ">");
     
     //TODO: Handle boundary cases.
     
@@ -80,7 +78,5 @@ void Write_T(
         },
         thread_count
     );
-    
-    TOOLS_PTOC(ClassName()+"::Write_T<" + TypeName<alpha_T> + "," + TypeName<beta_T> + "," + TypeName<C_T> + ">");
 }
 

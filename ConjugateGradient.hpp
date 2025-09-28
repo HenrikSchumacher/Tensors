@@ -398,7 +398,7 @@ namespace Tensors
             mref<RealVector_T> dots
         )
         {
-//            TOOLS_PTIC(ClassName()+ "::ComputeScalarProducts");
+//            TOOLS_PTIMER(timer,ClassName()+ "::ComputeScalarProducts");
             
             ParallelDo(
                 [this,&v,&w]( const Int thread )
@@ -435,8 +435,6 @@ namespace Tensors
             );
             
             reduction_buffer.AddReduce( dots.data(), false );
-            
-//            TOOLS_PTOC(ClassName()+ "::ComputeScalarProducts");
         }
         
     public:

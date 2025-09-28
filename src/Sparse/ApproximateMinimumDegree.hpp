@@ -31,7 +31,7 @@ namespace Tensors
                 mptr<I_1> rp_, mptr<I_2> ci_, const I_3 n_, const I_4 final_thread_count = 1
             )
             {
-                TOOLS_PTIC(ClassName()+": Preprocessing");
+                TOOLS_PTIMER(timer,ClassName()+"::operator()");
                 const Int64 n = n_;
                 
                 Tensor1<Int64,Int64> rp ( rp_, n + 1  );
@@ -43,10 +43,6 @@ namespace Tensors
                 }
                 
                 Tensor1<Int64,Int64> perm = iota<Int64,Int64>(n);
-
-                TOOLS_PTOC(ClassName()+": Preprocessing");
-                
-                TOOLS_PTIC(ClassName()+": amd_l_order");
                 
 //                Tiny::Vector<AMD_CONTROL,double,Int64> control;
 //                Tiny::Vector<AMD_INFO   ,double,Int64> info;
@@ -71,8 +67,6 @@ namespace Tensors
                 {
                     wprint("ApproximateMinimumDegree: Inputs have unordered column indices, but they are otherwise correct.");
                 }
-                
-                TOOLS_PTOC(ClassName()+": amd_l_order");
                 
                 return Permutation<Int>( perm.data(), static_cast<Int>(n), Inverse::False, Int(final_thread_count) );
             }

@@ -10,7 +10,7 @@ void gemm(
           cref<beta_T>  beta,  mptr<C_ExT> C, const I_C ldC
 )
 {
-    TOOLS_PTIC(ClassName()+"::gemm");
+    TOOLS_PTIMER(timer,ClassName()+"::gemm");
     
     AP.Read( A, ldA );
 
@@ -21,8 +21,6 @@ void gemm(
     DotBlocks();
 
     CP.Write( alpha, beta, C, ldC );
-
-    TOOLS_PTOC(ClassName()+"::gemm");
 }
 
 //template<
@@ -37,8 +35,8 @@ void gemm(
 //          cref<beta_T>  beta,  mptr<C_ExT> C, const I_C ldC
 //)
 //{
-//    TOOLS_PTIC(ClassName()+"::gemm_recursive");
-//    
+//    TOOLS_PTIMER(timer,ClassName()+"::gemm_recursive");
+//
 //    AP.Read( A, ldA );
 //
 //    BP.Read( B, ldB );
@@ -48,6 +46,4 @@ void gemm(
 //    DotBlocksRecursive();
 //
 //    CP.Write( alpha, beta, C, ldC );
-//
-//    TOOLS_PTOC(ClassName()+"::gemm_recursive");
 //}

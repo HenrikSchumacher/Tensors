@@ -4,7 +4,7 @@ public:
     {
         if( !SN_initialized )
         {
-            TOOLS_PTIC(ClassName()+"::SymbolicFactorization");
+            TOOLS_PTIMER(timer,ClassName()+"::SymbolicFactorization");
             
             (void)PostOrdering();
 
@@ -41,16 +41,10 @@ public:
             // TODO: Unneccessary copy?
             
             SN_rp   .template Resize<true>( SN_count+1 );
-            
             SN_outer.template Resize<true>( SN_count+1 );
-            
             AllocateSupernodes();
-
             CreateAssemblyTree();
-
             SN_initialized = true;
-            
-            TOOLS_PTOC(ClassName()+"::SymbolicFactorization");
         }
     }
 
@@ -65,7 +59,7 @@ protected:
         
         // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
 
-        TOOLS_PTIC(ClassName()+"::FindAmalgamatedSupernodes");
+        TOOLS_PTIMER(timer,ClassName()+"::FindAmalgamatedSupernodes");
         
         // temporary arrays
     //            Tensor1<Int,Int> prev_row(n);// Array to aggregate column indices of previous row of U.
@@ -242,8 +236,6 @@ protected:
         } // for( Int i = 0; i < n+1; ++i )
         
         SN_inner = std::move(SN_inner_agg.Disband());
-        
-        TOOLS_PTOC(ClassName()+"::FindAmalgamatedSupernodes");
     }
 
     void FindMaximalSupernodes()
@@ -254,7 +246,7 @@ protected:
         
         // We avoid storing the sparsity pattern of U in CSR format. Instead, we remember where we can find U's column indices of the i-th row within the row pointers SN_inner of the supernodes.
 
-        TOOLS_PTIC(ClassName()+"::FindMaximalSupernodes");
+        TOOLS_PTIMER(timer,ClassName()+"::FindMaximalSupernodes");
         
         // temporary arrays
 //            Tensor1<Int,Int> prev_row(n);// Array to aggregate column indices of previous row of U.
@@ -433,13 +425,11 @@ protected:
         } // for( Int i = 0; i < n+1; ++i )
         
         SN_inner = std::move(SN_inner_agg.Disband());
-        
-        TOOLS_PTOC(ClassName()+"::FindMaximalSupernodes");
     }
 
     void FindFundamentalSupernodes()
     {
-        TOOLS_PTIC(ClassName()+"FindFundamentalSupernodes");
+        TOOLS_PTIMER(timer,ClassName()+"FindFundamentalSupernodes");
         // Compute supernodal symbolic factorization with so-called _fundamental supernodes_.
         // See Liu, Ng, Peyton - On Finding Supernodes for Sparse Matrix Computations,
         // https://www.osti.gov/servlets/purl/6756314
@@ -578,13 +568,11 @@ protected:
         } // for( Int i = 0; i < n+1; ++i )
         
         SN_inner = std::move(SN_inner_agg.Disband());
-        
-        TOOLS_PTOC(ClassName()+"FindFundamentalSupernodes");
     }
 
     void AllocateSupernodes()
     {
-        TOOLS_PTIC(ClassName()+"::AllocateSupernodes");
+        TOOLS_PTIMER(timer,ClassName()+"::AllocateSupernodes");
         
         SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
         SN_tri_ptr[0] = 0;
@@ -613,14 +601,11 @@ protected:
 //        TOOLS_PDUMP(max_n_1);
         
         // Allocating memory for the nonzero values of the factorization.
-        
         SN_tri_val = Tensor1<Scal,LInt> (SN_tri_ptr[SN_count]);
         SN_rec_val = Tensor1<Scal,LInt> (SN_rec_ptr[SN_count]);
         
 //        pvalprint("triangle_nnz ", SN_tri_val.Size());
 //        pvalprint("rectangle_nnz", SN_rec_val.Size());
-        
-        TOOLS_PTOC(ClassName()+"::AllocateSupernodes");
     }
     
     bool FundamentalQ( const Int i, mref<Tensor1<Int,Int>> prev_col_nz )
@@ -660,7 +645,7 @@ protected:
 
     bool TestRowToSupernode()
     {
-        TOOLS_PTIC(ClassName()+"TestRowToSupernode");
+        TOOLS_PTIMER(timer,ClassName()+"TestRowToSupernode");
         
         bool succeededQ = true;
         
@@ -679,8 +664,6 @@ protected:
                 }
             }
         }
-        
-        TOOLS_PTOC(ClassName()+"TestRowToSupernode");
         
         return succeededQ;
     }

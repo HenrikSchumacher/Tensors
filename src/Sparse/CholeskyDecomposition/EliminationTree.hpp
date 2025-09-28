@@ -8,7 +8,7 @@ public:
 
         if( ! eTree_initialized )
         {
-            TOOLS_PTIC(ClassName()+"::EliminationTree");
+            TOOLS_PTIMER(timer,ClassName()+"::EliminationTree");
 
             // See Bollhöfer, Schenk, Janalik, Hamm, Gullapalli - State-of-the-Art Sparse Direct Solvers
             // See Scott, Tuma - Algorithms for Sparse Linear Systems, Algorithm 4.2
@@ -63,8 +63,6 @@ public:
             eTree = Tree<Int> ( std::move(parents), thread_count );
 
             eTree_initialized = true;
-
-            TOOLS_PTOC(ClassName()+"::EliminationTree");
         }
 
         return eTree;

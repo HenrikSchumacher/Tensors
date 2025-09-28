@@ -246,11 +246,12 @@ public:
         zerofy_buffer<VarSize,Parallel>( a, n, thread_count );
     }
 
+    // TODO: Have to make the pseudorandom number generate confgurable.
     void Randomize( const Int thread_count = 1 )
     {
         static_assert( Scalar::FloatQ<Scal>, "" );
         
-        TOOLS_PTIC(ClassName()+"::Randomize");
+        TOOLS_PTIMER(timer,ClassName()+"::Randomize");
         // This uses std::mt19937_64.
         // Moreover, the pseudorandom number generators are initilized per call.
         // So this is not very efficient.
@@ -316,8 +317,6 @@ public:
                thread_count
            );
         }
-        
-        TOOLS_PTOC(ClassName()+"::Randomize");
     }
 
 

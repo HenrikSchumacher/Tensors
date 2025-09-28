@@ -85,7 +85,7 @@ public:
 
     bool Traverse_PostOrdered_Test() const
     {
-        TOOLS_PTIC(ClassName()+"::Traverse_PostOrdered_Test");
+        TOOLS_PTIMER(timer,ClassName()+"::Traverse_PostOrdered_Test");
         AllocateCheckList();
 
         std::vector<std::unique_ptr<DebugWorker>> workers ( static_cast<Size_T>(thread_count) );
@@ -111,9 +111,7 @@ public:
         {
             eprint(ClassName()+"::Traverse_PostOrdered_Test failed.");
         }
-        
-        TOOLS_PTOC(ClassName()+"::Traverse_PostOrdered_Test");
-        
+
         return succeededQ;
     }
 
@@ -121,7 +119,7 @@ public:
 
     bool Traverse_PreOrdered_Test() const
     {
-        TOOLS_PTIC(ClassName()+"::Traverse_PreOrdered_Test");
+        TOOLS_PTIMER(timer,ClassName()+"::Traverse_PreOrdered_Test");
         AllocateCheckList();
 
         std::vector<std::unique_ptr<DebugWorker>> workers ( static_cast<Size_T>(thread_count) );
@@ -147,8 +145,6 @@ public:
         {
             eprint(ClassName()+"::Traverse_PreOrdered_Test failed.");
         }
-        
-        TOOLS_PTOC(ClassName()+"::Traverse_PreOrdered_Test");
         
         return succeededQ;
     }

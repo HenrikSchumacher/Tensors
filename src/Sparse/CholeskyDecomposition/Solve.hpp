@@ -4,9 +4,9 @@ public:
 
 // TODO: Overloads for LowerSolve
 
-//####################################################################################
+//###########################################################
 //####          Solve
-//####################################################################################
+//###########################################################
 
 
     // The most general Solve routine that is exposed to the user.
@@ -35,7 +35,7 @@ public:
             Scalar::RealQ<Scal> || op != Op::Trans,
             "Solve with Op::Trans not implemented for scalar of complex type."
         );
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         // No problem if X_out and B overlap, since we load B into X anyways.
         
         if constexpr ( NRHS > VarSize )
@@ -43,7 +43,6 @@ public:
             if( nrhs_ != NRHS )
             {
                 eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
-                TOOLS_PTOC(tag);
                 return;
             }
         }
@@ -74,8 +73,6 @@ public:
         }
 
         WriteSolution<NRHS>( alpha, beta, X_out, ldX );
-
-        TOOLS_PTOC(tag);
     }
 
     // Evaluate X = op(A)^{-1} . B
@@ -165,9 +162,9 @@ public:
     }
 
 
-//####################################################################################
+//###########################################################
 //####          UpperSolve
-//####################################################################################
+//###########################################################
 
     // Evaluate X = alpha * op(U)^{-1} . B + beta * X
     template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
@@ -192,7 +189,7 @@ public:
             Scalar::RealQ<Scal> || op != Op::Trans,
             "UpperSolve with Op::Trans not implemented for scalar of complex type."
         );
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         // No problem if X_out and B overlap, since we load B into X anyways.
         
         if constexpr ( NRHS > VarSize )
@@ -200,7 +197,6 @@ public:
             if( nrhs_ != NRHS )
             {
                 eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
-                TOOLS_PTOC(tag);
                 return;
             }
         }
@@ -231,13 +227,11 @@ public:
         }
 
         WriteSolution<NRHS>( alpha, beta, X_out, ldX );
-
-        TOOLS_PTOC(tag);
     }
 
-//####################################################################################
+//###########################################################
 //####          LowerSolve
-//####################################################################################
+//###########################################################
 
     // Evaluate X = alpha * op(L)^{-1} . B + beta * X
     template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
@@ -262,7 +256,7 @@ public:
             Scalar::RealQ<Scal> || op != Op::Trans,
             "LowerSolve with Op::Trans not implemented for scalar of complex type."
         );
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         // No problem if X_out and B overlap, since we load B into X anyways.
         
@@ -271,7 +265,6 @@ public:
             if( nrhs_ != NRHS )
             {
                 eprint( tag + ": (NRHS > VarSize) && (nrhs_ != NRHS). Aborting.");
-                TOOLS_PTOC(tag);
                 return;
             }
         }
@@ -302,13 +295,11 @@ public:
         }
 
         WriteSolution<NRHS>( alpha, beta, X_out, ldX );
-
-        TOOLS_PTOC(tag);
     }
 
-//####################################################################################
-//####          Supernodal back substitution, both parallel and sequential
-//####################################################################################
+//###########################################################
+//#### Supernodal back substitution, both parallel and sequential
+//###########################################################
 
 protected:
 
@@ -345,21 +336,17 @@ protected:
         
         const std::string tag = ClassName()+"::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         if( !NumericallyFactorizedQ() )
         {
             eprint(tag + ": Nonzero values of matrix have not been passed, yet. Aborting.");
-            
-            TOOLS_PTOC(tag);
             return;
         }
         
         if( !NumericallyGoodQ() )
         {
             eprint(tag + ": Aborting because numerical factorization was not successful.");
-            
-            TOOLS_PTOC(tag);
             return;
         }
         
@@ -377,8 +364,6 @@ protected:
         
         // Parallel traversal in preorder
         aTree.template Traverse_PreOrdered<parQ>( F_list );
-        
-        TOOLS_PTOC(tag);
     }
 
     template<bool mult_rhsQ, Parallel_T parQ = Sequential>
@@ -392,21 +377,17 @@ protected:
         
         const std::string tag = ClassName()+"::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         if( !NumericallyFactorizedQ() )
         {
             eprint(tag+": Nonzero values of matrix have not been passed, yet. Aborting.");
-            
-            TOOLS_PTOC(tag);
             return;
         }
         
         if( !NumericallyGoodQ() )
         {
             eprint(tag + ": Aborting because numerical factorization was not successful.");
-            
-            TOOLS_PTOC(tag);
             return;
         }
         
@@ -424,6 +405,4 @@ protected:
         
         // Parallel traversal in postorder
         aTree.template Traverse_PostOrdered<parQ>( F_list );
-        
-        TOOLS_PTOC(tag);
     }

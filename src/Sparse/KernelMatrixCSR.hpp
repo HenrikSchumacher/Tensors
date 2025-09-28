@@ -62,15 +62,15 @@ namespace Tensors
             }
             
             
-//#####################################################################################
+//###########################################################
 //      Symmetrization
-//#####################################################################################
+//###########################################################
             
         public:
             
             void FillLowerTriangleFromUpperTriangle( mptr<Scal> values ) const
             {
-                TOOLS_PTIC(ClassName()+"::FillLowerTriangleFromUpperTriangle");
+                TOOLS_PTIMER(timer,ClassName()+"::FillLowerTriangleFromUpperTriangle");
                 
                 if( pattern.WellFormedQ() && (pattern.RowCount()>= pattern.ColCount()) )
                 {
@@ -127,8 +127,6 @@ namespace Tensors
                     );
                     
                 }
-                
-                TOOLS_PTOC(ClassName()+"::FillLowerTriangleFromUpperTriangle");
             }
             
             
@@ -157,14 +155,11 @@ namespace Tensors
                 const Int nrhs
             ) const
             {
-                TOOLS_PTIC(ClassName()+"::Dot" );
+                TOOLS_PTIMER(timer,ClassName()+"::Dot" );
                 
-                if( (alpha == static_cast<Scal_out>(0)) || (NonzeroCount() <= 0) )
+                if( (alpha == static_cast<Scal_out>(0)) || (NonzeroCount() <= Int(0)) )
                 {
                     Scale( Y, beta, nrhs );
-                    
-                    TOOLS_PTOC(ClassName()+"::Dot" );
-                    
                     return;
                 }
                 
@@ -180,7 +175,6 @@ namespace Tensors
                         
                         cptr<LInt> rp = pattern.Outer().data();
                         cptr< Int> ci = pattern.Inner().data();
-                        
                         
                         // Kernel is supposed the following rows of pattern:
                         const Int i_begin = job_ptr[thread  ];
@@ -228,8 +222,6 @@ namespace Tensors
                     },
                     thread_count
                 );
-                
-                TOOLS_PTOC(ClassName()+"::Dot" );
             }
             
 //###########################################################

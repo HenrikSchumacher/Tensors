@@ -1,6 +1,6 @@
 void DotBlocks()
 {
-    TOOLS_PTIC(ClassName()+"::DotBlocks");
+    TOOLS_PTIMER(timer,ClassName()+"::DotBlocks");
     
     ParallelDo(
         [=,this]( const Int thread )
@@ -34,20 +34,15 @@ void DotBlocks()
 //
 //                        Dot<AddTo>( a, b, c );
                         
-   
-
                         Tensors::Tiny::fixed_dot_mm<m,n,k,AddTo>(
                             AP.data(M_blk,K_blk), BP.data(N_blk,K_blk), C_ptr
                         );
                     }
 
 //                    c.Write( CP.data(M_blk,N_blk) );
-                    
                 }
             }
         },
         thread_count
     );
-    
-    TOOLS_PTOC(ClassName()+"::DotBlocks");
 }

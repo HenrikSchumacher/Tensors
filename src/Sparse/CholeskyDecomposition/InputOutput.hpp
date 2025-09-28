@@ -1,6 +1,6 @@
-//####################################################################################
+//###########################################################
 //####          IO routines
-//####################################################################################
+//###########################################################
 
 public:
 
@@ -14,7 +14,7 @@ public:
         
         const std::string tag = ClassName()+"::ReadRightHandSide<" + TypeName<B_T> + ">(" + ToString(nrhs)+ ")";
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         LInt full_size = static_cast<LInt>(n) * static_cast<LInt>(nrhs);
         
@@ -33,8 +33,6 @@ public:
             Scalar::Zero<Scal>, X.data(), nrhs,
             Inverse::False, nrhs
         );
-        
-        TOOLS_PTOC(tag);
     }
 
     template<typename X_T>
@@ -42,11 +40,9 @@ public:
     {
         const std::string tag = ClassName()+"::WriteSolution<" + TypeName<X_T> + "> (" + ToString(nrhs)+ ")";
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         perm.Permute( X.data(), nrhs, X_, ldX, Inverse::True, nrhs );
-        
-        TOOLS_PTOC(tag);
     }
 
     template<Size_T NRHS = VarSize, typename a_T, typename b_T, typename Y_T>
@@ -61,7 +57,7 @@ public:
             + "," + TypeName<Y_T>
             + ">(" + ToString(nrhs)+ ")";
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
         if ( nrhs == ione )
         {
@@ -79,14 +75,12 @@ public:
                 Inverse::True, nrhs
             );
         }
-        
-        TOOLS_PTOC(tag);
     }
 
 
-//###################################################################################
+//###########################################################
 //####          Get routines
-//###################################################################################
+//###########################################################
 
     Int ThreadCount() const
     {

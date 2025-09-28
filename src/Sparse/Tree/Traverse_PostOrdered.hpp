@@ -36,7 +36,7 @@ public:
             return;
         }
         
-        TOOLS_PTIC(tag);
+        TOOLS_PTIMER(timer,tag);
         
 //        std::string tag_1 = "Apply worker " + workers[0]->ClassName() + " to level";
 //        
@@ -49,8 +49,6 @@ public:
             const Size_T k_end   = subtrees.size();
             
             const Size_T use_threads = (parQ == Parallel) ? Min( ToSize_T(thread_count), k_end - k_begin ) : Size_T(1);
-            
-//            TOOLS_PTIC(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
             
             ParallelDo_Dynamic(
                 [=,this,&workers]( const Size_T thread, const Size_T k )
@@ -73,8 +71,6 @@ public:
                 },
                 k_begin, k_end, Size_T(1), use_threads
             );
-            
-//            TOOLS_PTOC(tag_1 + " <= "+ToString(target_split_level)+"; using " + ToString(use_threads) + " threads.");
         }
         
 
@@ -84,8 +80,6 @@ public:
             const Size_T k_end   = tree_top_levels[d].size();
 
             const Size_T use_threads = parQ == Parallel ? Min( ToSize_T(thread_count), k_end - k_begin ) : Size_T(1);
-
-//            TOOLS_PTIC(tag_1 + " = " + ToString(d) + "; using " + ToString(use_threads) + " threads.");
             
             ParallelDo_Dynamic(
                 [=,this,&workers]( const Size_T thread, const Size_T k )
@@ -112,6 +106,4 @@ public:
 //            TOOLS_PTOC(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");
 
         } // for( Int d = target_split_level; d --> Scalar::One<Int> ; )
-
-        TOOLS_PTOC(tag);
     }

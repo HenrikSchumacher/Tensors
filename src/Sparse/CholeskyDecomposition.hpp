@@ -237,9 +237,7 @@ namespace Tensors
             :   n               ( Max( izero, perm_.Size() )      )
             ,   thread_count    ( Max( ione, perm_.ThreadCount()) )
             {
-                std::string tag = ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*,  Permutation<" + TypeName<Int>+ "> )";
-                
-                TOOLS_PTIC(tag);
+                TOOLS_PTIMER(timer,ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*,  Permutation<" + TypeName<Int>+ "> )");
                 
                 perm = Permutation_T( std::move( perm_) );
                 
@@ -277,10 +275,7 @@ namespace Tensors
 //                }
                 
                 A_inner_perm = A.Permute( perm, perm );
-                
                 Init();
-                
-                TOOLS_PTOC(tag);
             }
             
             // This is the constructor that will most likely to be used in practice.
@@ -310,9 +305,7 @@ namespace Tensors
             :   n               ( n_                        )
             ,   thread_count    ( Max( ione, thread_count_) )
             {
-                std::string tag = ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*, " + TypeName<Int>+ ", " + TypeName<Int>+ " )";
-                
-                TOOLS_PTIC(tag);
+                TOOLS_PTIMER(timer,ClassName()+"( "+ TypeName<ExtLInt> + "*, "+ TypeName<ExtInt> + "*, " + TypeName<Int>+ ", " + TypeName<Int>+ " )");
                 
                 A = BinaryMatrix_T( A_outer, A_inner, n, n, thread_count );
                 
@@ -355,8 +348,6 @@ namespace Tensors
 //                }
                 
                 Init();
-                
-                TOOLS_PTOC(tag);
             }
 
             // Default constructor
@@ -462,19 +453,14 @@ namespace Tensors
             
             void Init()
             {
-                TOOLS_PTIC(ClassName()+"::Init");
+                TOOLS_PTIMER(timer,ClassName()+"::Init");
                 if( n <= izero )
                 {
                     eprint(ClassName()+": Size n = "+ToString(n)+" of matrix is <= 0.");
                 }
-                                
                 A.RequireDiag();
-                
                 CheckDiagonal();
-                
                 row_mutexes = std::vector<std::mutex> ( static_cast<Size_T>(n) );
-                
-                TOOLS_PTOC(ClassName()+"::Init");
             }
             
             
@@ -482,7 +468,7 @@ namespace Tensors
             
             void CheckDiagonal() const
             {
-                TOOLS_PTIC(ClassName()+"CheckDiagonal()");
+                TOOLS_PTIMER(timer,ClassName()+"CheckDiagonal()");
                 
                 A.RequireDiag();
                 
@@ -499,8 +485,6 @@ namespace Tensors
                     TOOLS_DUMP( A.Diag() );
                     
                 }
-                
-                TOOLS_PTOC(ClassName()+"CheckDiagonal()");
             }
             
         protected:
@@ -511,7 +495,7 @@ namespace Tensors
                 
                 if( !EliminationTree().PostOrderedQ() )
                 {
-                    TOOLS_PTIC(ClassName()+"::PostOrdering");
+                    TOOLS_PTIMER(timer,ClassName()+"::PostOrdering");
                     
                     perm.Compose( post, Compose::Post );
                     
@@ -550,8 +534,6 @@ namespace Tensors
                     // TODO:  Is there a cheaper way to generate the correct tree,
                     // TODO:  e.g., by permuting the old tree?
                     (void)EliminationTree();
-                    
-                    TOOLS_PTOC(ClassName()+"::PostOrdering");
                 }
                 
                 return EliminationTree().PostOrdering().GetPermutation();

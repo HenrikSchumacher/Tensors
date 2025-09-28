@@ -206,14 +206,11 @@ void WriteToMatrixMarket( cref<std::filesystem::path> file )
 {
     std::string tag = ClassName()+"::WriteToMatrixMarket";
     
-    TOOLS_PTIC(tag);
+    TOOLS_PTIMER(timer,tag);
     
     if( !WellFormedQ() )
     {
         eprint( tag + ": Matrix is not well-formed. Doing nothing." );
-        
-        TOOLS_PTOC(tag);
-        
         return;
     }
     
@@ -223,7 +220,6 @@ void WriteToMatrixMarket( cref<std::filesystem::path> file )
     
     if constexpr ( Scalar::ComplexQ<Scal> )
     {
-//                    s << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
         s << "complex";
     }
     else if constexpr ( IntQ<Scal> )
@@ -232,13 +228,10 @@ void WriteToMatrixMarket( cref<std::filesystem::path> file )
     }
     else /*if constexpr ( Scalar::RealQ<Scal> )*/
     {
-//                    s << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scal>::digits10 + 1 );
         s << "real";
     }
     
     s << " " << "general" << "\n";
-    
-    
     s << RowCount() << " " << ColCount() << " " << NonzeroCount() << "\n";
     
     const Int s_thread_count = 4;
@@ -310,28 +303,4 @@ void WriteToMatrixMarket( cref<std::filesystem::path> file )
     
     s << thread_strings[0];
     s << thread_strings[2];
-    
-//                for( Int i = 0; i < m; ++i )
-//                {
-//                    const LInt k_begin = outer[i    ];
-//                    const LInt k_end   = outer[i + 1];
-//
-//                    for( LInt k = k_begin; k < k_end; ++k )
-//                    {
-//                        const Int j = inner[k];
-//
-//                        if constexpr ( Scalar::ComplexQ<Scal> )
-//                        {
-//                            const Scal a = values[k];
-//
-//                            s << (i+1) << " " << (j+1) << " " << Re(a) << " " << Im(a) << "\n";
-//                        }
-//                        else
-//                        {
-//                            s << (i+1) << " " << (j+1) << " " << values[k] << "\n";
-//                        }
-//                    }
-//                }
-
-    TOOLS_PTOC(tag);
 }

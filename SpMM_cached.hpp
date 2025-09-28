@@ -18,7 +18,7 @@ namespace Tensors
     {
         using F_T = Scalar::Flag;
         
-        std::string tag = std::string("SpMM_cached")
+        TOOLS_PTIMER(timer, std::string("SpMM_cached")
             + "<" + ToString(base)
             + "," + TypeName<alpha_T>
             + "," + TypeName<X_T>
@@ -27,9 +27,7 @@ namespace Tensors
             +">(" + ToString(ldX)
             + "," + ToString(ldY)
             + "," + ToString(nrhs)
-            + ")";
-        
-        TOOLS_PTIC(tag);
+            + ")");
         
         using T = typename std::conditional_t<
             Scalar::ComplexQ<a_T> || Scalar::ComplexQ<X_T>,
@@ -68,8 +66,6 @@ namespace Tensors
                     m, job_ptr.Size()
                 );
             }
-
-            TOOLS_PTOC(tag);
             return;
         }
 
@@ -182,9 +178,6 @@ namespace Tensors
             },
             job_ptr.ThreadCount()
         );
-        
-        TOOLS_PTOC(tag);
-        
     }
     
 } // namespace Tensors

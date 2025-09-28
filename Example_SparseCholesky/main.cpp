@@ -22,8 +22,6 @@
 #include "../src/Sparse/ApproximateMinimumDegree.hpp"
 #include "../src/Sparse/Metis.hpp"
 
-#include "../src/CHOLMOD/CholeskyDecomposition.hpp"
-
 using namespace Tools;
 using namespace Tensors;
 
@@ -47,76 +45,7 @@ int main()
     
     
     Int grid_size = 1024 * 2 * 2;
-//    Real mass = 1;
-//    
-//    // Assembling graph Laplacian + mass matrix on grid of size grid_size x grid_size.
-//    TripleAggregator<Int,Int,Real,LInt> triples;
-//
-//    for( Int i = 0; i < grid_size - 1; ++i )
-//    {
-//        for( Int j = 0; j < grid_size - 1; ++j )
-//        {
-//            Int V = grid_size * i + j;
-//            Int L = V + grid_size;
-//            Int R = V + 1;
-//            
-//            triples.Push( V, V,  1 );
-//            triples.Push( V, R, -1 );
-//            triples.Push( R, V, -1 );
-//            triples.Push( R, R,  1 );
-//            
-//            triples.Push( V, V,  1 );
-//            triples.Push( V, L, -1 );
-//            triples.Push( L, V, -1 );
-//            triples.Push( L, L,  1 );
-//        }
-//    }
-//    
-//    for( Int i = 0; i < grid_size - 1; ++i )
-//    {
-//        Int j = grid_size-1;
-//        Int V = grid_size * i + j;
-//        Int L = V + grid_size;
-//        
-//        triples.Push( V, V,  1 );
-//        triples.Push( V, L, -1 );
-//        triples.Push( L, V, -1 );
-//        triples.Push( L, L,  1 );
-//    }
-//    
-//    for( Int j = 0; j < grid_size - 1; ++j )
-//    {
-//        Int i = grid_size - 1;
-//        Int V = grid_size * i + j;
-//        Int R = V + 1;
-//        
-//        triples.Push( V, V,  1 );
-//        triples.Push( V, R, -1 );
-//        triples.Push( R, V, -1 );
-//        triples.Push( R, R,  1 );
-//    }
-//    
-//    for( Int i = 0; i < grid_size; ++i )
-//    {
-//        for( Int j = 0; j < grid_size; ++j )
-//        {
-//            Int V = grid_size * i + j;
-//            triples.Push( V, V, mass );
-//        }
-//    }
-//    
-//    tic("Assemble matrix");
-//    Sparse::MatrixCSR<Scal,Int,LInt> A (
-//        triples,
-//        grid_size * grid_size, grid_size * grid_size,
-//        thread_count, true, false, true
-//    );
-//    toc("Assemble matrix");
-//    
-//    
-//    triples = TripleAggregator<Int,Int,Real,LInt>();
-//    
-//    
+    
     tic("Assemble matrix");
     Sparse::MatrixCSR<Scal,Int,LInt> A = Sparse::GridLaplacian<Scal,Int,LInt>(grid_size,Real(1),thread_count);
     toc("Assemble matrix");
