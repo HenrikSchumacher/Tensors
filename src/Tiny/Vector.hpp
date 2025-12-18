@@ -25,7 +25,7 @@ namespace Tensors
             Vector(std::nullptr_t) = delete;
 
             template<typename S>
-            Vector( cptr<S> vector )
+            explicit Vector( cptr<S> vector )
             {
                 Read( vector );
             }

@@ -202,6 +202,9 @@ namespace Tensors
             const v_Int  v_i_end
         )
         {
+            (void)u_n;
+            (void)v_n;
+            
             if( u_i_begin >= u_i_end ) { return 0; }
             if( v_i_begin >= v_i_end ) { return 0; }
             

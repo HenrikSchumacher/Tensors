@@ -264,8 +264,11 @@ namespace Tensors
             
             if( !LP.statusOfProblem() )
             {
-                eprint(ClassName() + "(): ClpSimplex::" + ("settings.dualQ" ? "dual" : "primal") + " reports a problem in the solve phase.  The returned solution may be incorrect.");
+                wprint(ClassName() + "(): ClpSimplex::" + ("settings.dualQ" ? "dual" : "primal") + " reports a problem in the solve phase.  The returned solution may be incorrect.");
 
+                TOOLS_DDUMP(variable_count);
+                TOOLS_DDUMP(constraint_count);
+                
                 TOOLS_DDUMP(LP.statusOfProblem());
                 TOOLS_DDUMP(LP.getIterationCount());
                 TOOLS_DDUMP(LP.numberPrimalInfeasibilities());
@@ -503,6 +506,27 @@ namespace Tensors
         {
             return Tensor1<Real,Int>( PrimalSolutionPtr(), VariableCount() );
         }
+        
+        Tensor1<Real,Int> PrimalColumnSolution() const
+        {
+            return Tensor1<Real,Int>( LP.primalColumnSolution(), VariableCount() );
+        }
+        
+        Tensor1<Real,Int> PrimalRowSolution() const
+        {
+            return Tensor1<Real,Int>( LP.primalRowSolution(), ConstraintCount() );
+        }
+        
+        Tensor1<Real,Int> DualColumnSolution() const
+        {
+            return Tensor1<Real,Int>( LP.dualColumnSolution(), ConstraintCount() );
+        }
+        
+        Tensor1<Real,Int> DualRowSolution() const
+        {
+            return Tensor1<Real,Int>( LP.dualRowSolution(), VariableCount() );
+        }
+        
         
         cptr<COIN_Real> VariableLowerBoundPtr() const
         {
