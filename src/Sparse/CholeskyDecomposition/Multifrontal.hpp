@@ -47,7 +47,7 @@ namespace Tensors
             cptr<Int>        A_ci;   // column indices of upper triangle of A
             cptr<Scal>       A_val;  // values of upper triangle of A
             
-            Scal             reg;     // Regularization parameter for the diagonal.
+            Scal             reg;    // Regularization parameter for the diagonal.
             
             cptr<Int>        child_ptr;
             cptr<Int>        child_idx;

@@ -26,7 +26,7 @@ namespace Tensors
                  + ">");
 
             // I want to make it possible to use unsigned integer types for Int.
-            // Hence using -1 as "no_element" is not an option.
+            // Hence, using -1 as "no_element" is not an option.
             // We have to use something else instead of 0 to mark empty places.
             const Int no_element = n;
 
@@ -84,7 +84,7 @@ namespace Tensors
             TOOLS_PTIMER(timer,tag);
 
             // I want to make it possible to use unsigned integer types for Int.
-            // Hence using -1 as "no_element" is not an option.
+            // Hence, using -1 as "no_element" is not an option.
             // We have to use something else instead of 0 to mark empty places.
             const Int no_element = n;
 

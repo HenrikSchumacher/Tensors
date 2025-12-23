@@ -360,7 +360,7 @@ namespace Tensors
             );
             
             // UMFPACK works with CSC format; we use CSR format.
-            // Hence we have to make sure that things are correctly transposed.
+            // Hence, we have to make sure that things are correctly transposed.
             
             switch( op )
             {
@@ -408,7 +408,7 @@ namespace Tensors
             );
             
             // UMFPACK works with CSC format; we use CSR format.
-            // Hence we have to make sure that things are correctly transposed.
+            // Hence, we have to make sure that things are correctly transposed.
 
             const int mode = SolveMode<op>();
 

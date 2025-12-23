@@ -54,7 +54,7 @@ void Traverse_PostOrdered_Sequential(
         {
             // Visiting the node for the second time.
             // We are moving in direction towards the root.
-            // Hence all children have already been visited.
+            // Hence, all children have already been visited.
             
             // Popping current node from the stack.
             visited[i--] = false;

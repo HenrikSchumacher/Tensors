@@ -119,7 +119,7 @@ protected:
                 // because that will be the ones belonging to the rectangular part.
 
                 // We know that A.Inner(A.Diag(curr_i_0)) == curr_i_0 < i.
-                // Hence we can start the search here:
+                // Hence, we can start the search here:
                 {
                     LInt k = A.Diag(curr_i_0) + 1;
                     
@@ -306,7 +306,7 @@ protected:
                 // because that will be the ones belonging to the rectangular part.
 
                 // We know that A.Inner(A.Diag(curr_i_0)) == curr_i_0 < i.
-                // Hence we can start the search here:
+                // Hence, we can start the search here:
                 {
                     LInt k = A.Diag(curr_i_0) + 1;
                     
@@ -492,7 +492,7 @@ protected:
                 // because that will be the ones belonging to the rectangular part.
 
                 // We know that A.Inner(A.Diag(curr_i_0)) == curr_i_0 < i.
-                // Hence we can start the search here:
+                // Hence, we can start the search here:
                 {
                     LInt k = A.Diag(curr_i_0) + 1;
                     

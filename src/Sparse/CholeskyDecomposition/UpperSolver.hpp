@@ -125,7 +125,7 @@ namespace Tensors
                             //  X_1 is a matrix of size n_1 x nrhs.
                             //  X_0 is a matrix of size 1 x nrhs; we can interpret it as vector of size nrhs.
 
-                            // Hence we can compute X_0^T -= X_1^T * U_1^T via gemv instead:
+                            // Hence, we can compute X_0^T -= X_1^T * U_1^T via gemv instead:
                             BLAS::gemv<Layout::RowMajor,Op::Trans>(
                                 n_1, nrhs,
                                 -one, X_1, nrhs,
@@ -176,7 +176,7 @@ namespace Tensors
                             //  x_1 is a vector of size n_1.
                             //  x_0 is a matrix of size 1 x 1; we can interpret it as vector of size 1.
 
-                            // Hence we can compute X_0 -= U_1 * X_1 via a simple dot product.
+                            // Hence, we can compute X_0 -= U_1 * X_1 via a simple dot product.
                             // Beware: Scattered read.
                             for( Int j = 0; j < n_1; ++j )
                             {

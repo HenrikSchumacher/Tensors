@@ -166,7 +166,7 @@ namespace Tensors
             // The column indices of rectangular part of the supernodes.
             Tensor1< Int,LInt> SN_inner;
             
-            // Hence k-th supernode has the following column indices:
+            // Hence, the k-th supernode has the following column indices:
             // triangular  part = [ i_begin, i_begin+1,...,i_end [
             // rectangular part = [
             //                      SN_inner[j_begin  ],
@@ -183,7 +183,7 @@ namespace Tensors
             // i-th row of U belongs to supernode row_to_SN[i].
             Tensor1< Int, Int> row_to_SN;
             
-            // Hence the column indices of U for row i can are:
+            // Hence, the column indices of U for row i can are:
             // triangular  part = [ i_begin,i_begin+1,...,i_end [
             // rectangular part = [
             //                      SN_inner[j_begin  ],
