@@ -13,7 +13,9 @@ public:
     // It loads the inputs, runs the actual solver, and writes the outputs.
 
     // Evaluate X = alpha * op(A)^{-1} . B + beta * X
-    template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
+    template<
+        Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id,
+        typename a_T, typename B_T, typename b_T, typename X_T
     >
     void Solve(
         const a_T alpha, cptr<B_T> B,     const Int ldB,
@@ -94,7 +96,9 @@ public:
     }
 
     // Evaluate X = alpha * op(A)^{-1} . B + beta * X
-    template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T,
+    template<
+        Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id,
+        typename a_T, typename B_T, typename b_T, typename X_T,
         typename B_I, typename X_I
     >
     void Solve(
@@ -132,7 +136,9 @@ public:
     }
 
     // Evaluate X = alpha * op(A)^{-1} . B + beta * X
-    template<Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T,
+    template<
+        Parallel_T parQ = Sequential, Op op = Op::Id,
+        typename a_T, typename B_T, typename b_T, typename X_T,
         typename B_I, typename X_I
     >
     void Solve(
@@ -167,7 +173,9 @@ public:
 //###########################################################
 
     // Evaluate X = alpha * op(U)^{-1} . B + beta * X
-    template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
+    template<
+        Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id,
+        typename a_T, typename B_T, typename b_T, typename X_T
     >
     void UpperSolve(
         const a_T alpha, cptr<B_T> B,     const Int ldB,
@@ -234,7 +242,9 @@ public:
 //###########################################################
 
     // Evaluate X = alpha * op(L)^{-1} . B + beta * X
-    template<Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id, typename a_T, typename B_T, typename b_T, typename X_T
+    template<
+        Size_T NRHS = VarSize, Parallel_T parQ = Sequential, Op op = Op::Id,
+        typename a_T, typename B_T, typename b_T, typename X_T
     >
     void LowerSolve(
         const a_T alpha, cptr<B_T> B,     const Int ldB,

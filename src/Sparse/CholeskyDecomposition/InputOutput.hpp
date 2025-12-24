@@ -168,8 +168,8 @@ public:
                     }
                     
                     
-                    cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
-                    cptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
+                    cptr<Scal> U_0 = &SN_data.tri_val[SN_tri_ptr[s]];
+                    cptr<Scal> U_1 = &SN_data.rec_val[SN_rec_ptr[s]];
                     
                     // Copy first row of supernode.
                     copy_buffer( &SN_inner[l_begin], &U_ci[start+n_0], n_1 );
@@ -245,7 +245,7 @@ public:
                 
                 const Int n_0 = i_end - i_begin;
 
-                cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                cptr<Scal> U_0 = &SN_data.tri_val[SN_tri_ptr[s]];
                 
                 for( Int i = i_begin; i < i_end; ++i )
                 {
@@ -275,7 +275,7 @@ public:
 
                     const Int n_0 = i_end - i_begin;
 
-                    cptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
+                    cptr<Scal> U_0 = &SN_data.tri_val[SN_tri_ptr[s]];
 
                     for( Int i = i_begin; i < i_end; ++i )
                     {
@@ -338,7 +338,7 @@ public:
 
     cref<Tensor1<Scal,LInt>> SN_TriangleValues() const
     {
-        return SN_tri_val;
+        return SN_data.tri_val;
     }
 
     cref<Tensor1<LInt,Int>> SN_RectanglePointers() const
@@ -348,7 +348,7 @@ public:
 
     cref<Tensor1<Scal,LInt>> SN_RectangleValues() const
     {
-        return SN_rec_val;
+        return SN_data.rec_val;
     }
 
 //    cref<std::vector<Update_T>> SN_UpdateValues() const
@@ -371,27 +371,39 @@ public:
         if( amalgamation_threshold_ != amalgamation_threshold )
         {
             amalgamation_threshold = amalgamation_threshold_;
-            SN_initialized = false;
-            SN_factorized  = false;
+            SN_initializedQ        = false;
+            SN_data.factorizedQ    = false;
+            SN_data.goodQ          = false;
         }
     }
+
     Int AmalgamationThreshold() const
     {
         return amalgamation_threshold;
     }
 
-
-    void SetSupernodeStrategy( const signed char strategy )
+    void SetSupernodeStrategy( cref<SupernodeStrategy_T> strategy )
     {
         if( strategy != SN_strategy )
         {
-            SN_strategy = strategy;
-            SN_initialized = false;
-            SN_factorized  = false;
+            SN_strategy         = strategy;
+            SN_initializedQ     = false;
+            SN_data.factorizedQ = false;
+            SN_data.goodQ       = false;
         }
     }
 
-    signed char GetSupernodeStrategy() const
+    SupernodeStrategy_T GetSupernodeStrategy() const
     {
         return SN_strategy;
+    }
+
+    void SetFactorizationMethod( cref<FactorizationMethod_T> method )
+    {
+        factorization_method = method;
+    }
+
+    FactorizationMethod_T GetFactorizationMethod() const
+    {
+        return factorization_method;
     }

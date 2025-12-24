@@ -113,6 +113,89 @@ namespace Tensors
             friend class LowerSolver<true, true, Scal,Int,LInt>;
             
             using VectorContainer_T = Tensor1<Scal,LInt>;
+
+            enum struct SupernodeStrategy_T : Int8
+            {
+                Maximal     = 0,
+                Fundamental = 1,
+                Amalgamated = 2
+            };
+            
+            enum struct FactorizationMethod_T : Int8
+            {
+                Multifrontal = 0,
+                LeftLooking  = 1
+            };
+            
+            class NumericalFactorization_T
+            {
+            public:
+                
+                friend class CholeskyDecomposition<Scal,Int,LInt>;
+                friend class UpperSolver<false,Scal,Int,LInt>;
+                friend class UpperSolver<true, Scal,Int,LInt>;
+                friend class LowerSolver<false,false,Scal,Int,LInt>;
+                friend class LowerSolver<true, false,Scal,Int,LInt>;
+                friend class LowerSolver<false,true, Scal,Int,LInt>;
+                friend class LowerSolver<true, true, Scal,Int,LInt>;
+                friend class CholeskyFactorizer_LeftLooking<Scal,Int,LInt>;
+                friend class CholeskyFactorizer_Multifrontal<Scal,Int,LInt>;
+                
+            private:
+                
+                Tensor1<Scal,LInt> tri_val;
+                Tensor1<Scal,LInt> rec_val;
+
+                bool factorizedQ = false;
+                bool goodQ       = false;
+                
+            public:
+                
+                NumericalFactorization_T() = default;
+                
+                NumericalFactorization_T(
+                    const LInt tri_size, const LInt rec_size
+                )
+                :   tri_val ( tri_size )
+                ,   rec_val ( rec_size )
+                {}
+                
+                bool NumericallyFactorizedQ() const
+                {
+                    return factorizedQ;
+                }
+                
+                bool NumericallyGoodQ() const
+                {
+                    return goodQ;
+                }
+                
+                LInt TriangularValueSize() const
+                {
+                    return tri_val.Size();
+                }
+                
+                LInt RectangularValueSize() const
+                {
+                    return rec_val.Size();
+                }
+                
+                friend void swap(
+                    NumericalFactorization_T && A_,
+                    NumericalFactorization_T && B_
+                ) noexcept
+                {
+                    swap( A_.tri_val,       B_.tri_val      );
+                    swap( A_.rec_val,       B_.rec_val      );
+                    swap( A_.factorizedQ,   B_.factorizedQ  );
+                    swap( A_.goodQ,         B_.goodQ        );
+                }
+                
+                Size_T AllocatedByteCount() const
+                {
+                    return sizeof(Scal) * ToSize_T(tri_val.Size() + rec_val.Size());
+                }
+            };
             
         protected:
             
@@ -125,7 +208,7 @@ namespace Tensors
             Int n = 0;
             Int thread_count = 1;
             
-            Permutation_T perm;          // row and column permutation of the nonzeros of the matrix.
+            Permutation_T perm; // row and column permutation of the nonzeros of the matrix.
             
             BinaryMatrix_T A;
             
@@ -138,7 +221,7 @@ namespace Tensors
 //            Matrix_T U;
             
             // elimination tree
-            bool eTree_initialized = false;
+            bool eTree_initializedQ = false;
             Tree_T eTree;
             
             // assembly tree
@@ -147,14 +230,9 @@ namespace Tensors
             // Supernode data:
             
             Int  amalgamation_threshold = 4;
-            bool SN_initialized       = false;
-            bool SN_factorized        = false;
-            bool SN_numerically_goodQ = false;
+            bool SN_initializedQ        = false;
             
-            signed char SN_strategy = 0;
-            
-
-            
+            SupernodeStrategy_T SN_strategy = SupernodeStrategy_T::Maximal;
             // Number of supernodes.
             Int SN_count = 0;
             
@@ -198,14 +276,17 @@ namespace Tensors
             //       j_end   = SN_outer[row_to_SN[i]+1].
             
             // Values of triangular part of s-th supernode is stored in
-            // [ SN_tri_val[SN_tri_ptr[s]],...,SN_tri_val[SN_tri_ptr[s]+1] [
+            // [ SN_data.tri_val[SN_tri_ptr[s]],...,SN_data.tri_val[SN_tri_ptr[s]+1] [
             Tensor1<LInt, Int> SN_tri_ptr;
-            Tensor1<Scal,LInt> SN_tri_val;
             
             // Values of rectangular part of s-th supernode is stored in
-            // [ SN_rec_val[SN_rec_ptr[s]],...,SN_rec_val[SN_rec_ptr[s]+1] [
+            // [ SN_data.rec_val[SN_rec_ptr[s]],...,SN_data.rec_val[SN_rec_ptr[s]+1] [,
             Tensor1<LInt, Int> SN_rec_ptr;
-            Tensor1<Scal,LInt> SN_rec_val;
+            
+            NumericalFactorization_T SN_data;
+            
+            FactorizationMethod_T factorization_method = FactorizationMethod_T::Multifrontal;
+
             
             std::vector<Update_T> SN_updates;
             
@@ -245,35 +326,6 @@ namespace Tensors
                 
                 A_val = Tensor1<Scal,LInt>( A.NonzeroCount() );
                 
-                
-                // The matrix reordering is parallelized.
-                // But when run single-threaded, it is better to avoid it.
-                
-//                if( thread_count == 1 )
-//                {
-//                    Tensor1<Int,Int> parents ( n );
-//                    
-//                    (void)PermutedEliminationTreeParents(
-//                        n, A_outer, A_inner,
-//                        perm.GetPermutation().data(),
-//                        perm.GetInversePermutation().data(),
-//                        parents.data()
-//                    );
-//                    
-//                    eTree = Tree<Int>( std::move(parents), thread_count );
-//                    
-//                    if( eTree.PostOrderedQ() )
-//                    {
-//                        eTree_initialized = true;
-//                    }
-//                    else
-//                    {
-//                        perm.Compose( eTree.PostOrdering(), Compose::Post );
-//                        
-//                        eTree = Tree<Int>();
-//                    }
-//                }
-                
                 A_inner_perm = A.Permute( perm, perm );
                 Init();
             }
@@ -291,8 +343,6 @@ namespace Tensors
                     A_outer, A_inner, Permutation_T( p, n_, Inverse::False, thread_count_ )
                 )
             {}
-
-            
             
             // Constructor if the user has applied a fill-in
             // reducing permutation to the matrix already.
@@ -310,43 +360,13 @@ namespace Tensors
                 A = BinaryMatrix_T( A_outer, A_inner, n, n, thread_count );
                 
                 A_val = Tensor1<Scal,LInt>( A.NonzeroCount() );
-                
-//                if( thread_count > Int(1) )
-//                {
-                    perm = Permutation_T( n_, thread_count ); // use identity permutation
-                        
-                    A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
 
-                    A_inner_perm.iota( thread_count );
-//                }
-//                else
-//                {
-//                    Tensor1<Int,Int> parents ( n );
-//                    
-//                    (void)EliminationTreeParents( n, A_outer, A_inner, parents.data() );
-//                    
-//                    eTree = Tree<Int>( std::move(parents), thread_count );
-//                    
-//                    if( eTree.PostOrderedQ() )
-//                    {
-//                        perm = Permutation_T( n_, thread_count ); // use identity permutation
-//                        
-//                        A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
-//                        
-//                        A_inner_perm.iota( thread_count );
-//                        
-//                        eTree_initialized = true;
-//                    }
-//                    else
-//                    {
-//                        perm = eTree.PostOrdering();
-//                        
-//                        A_inner_perm = A.Permute( perm, perm );
-//                        
-//                        eTree = Tree<Int>();
-//                    }
-//                }
-                
+                perm = Permutation_T( n_, thread_count ); // use identity permutation
+                    
+                A_inner_perm = Tensor1<LInt,LInt>( A.NonzeroCount() );
+
+                A_inner_perm.iota( thread_count );
+
                 Init();
             }
 
@@ -362,92 +382,7 @@ namespace Tensors
             CholeskyDecomposition( CholeskyDecomposition && other ) = default;
             // Move assignment operator
             CholeskyDecomposition & operator=( CholeskyDecomposition && other ) = default;
-            
-//            /* Copy constructor */
-//            CholeskyDecomposition( const CholeskyDecomposition & other )
-//            :   CachedObject        ( other                     )
-//            ,   n                   ( other.n                   )
-//            ,   thread_count        ( other.thread_count        )
-//            ,   perm                ( other.perm                )
-//            ,   A                   ( other.A                   )
-//            ,   A_inner_perm        ( other.A_inner_perm        )
-//            ,   A_val               ( other.A_val               )
-//            ,   eTree_initialized   ( other.eTree_initialized   )
-//            ,   eTree               ( other.eTree               )
-//            ,   aTree               ( other.aTree               )
-//            ,   SN_initialized      ( other.SN_initialized      )
-//            ,   SN_count            ( other.SN_count            )
-//            ,   SN_rp               ( other.SN_rp               )
-//            ,   SN_outer            ( other.SN_outer            )
-//            ,   SN_inner            ( other.SN_inner            )
-//            ,   row_to_SN           ( other.row_to_SN           )
-//            ,   SN_tri_ptr          ( other.SN_tri_ptr          )
-//            ,   SN_tri_val          ( other.SN_tri_val          )
-//            ,   SN_rec_ptr          ( other.SN_rec_ptr          )
-//            ,   SN_rec_val          ( other.SN_rec_val          )
-//            ,   SN_updates          ( other.SN_updates          )
-//            ,   max_n_0             ( other.max_n_0             )
-//            ,   max_n_1             ( other.max_n_1             )
-//            ,   nrhs                ( other.nrhs                )
-//            ,   X                   ( other.X                   )
-//            ,   X_scratch           ( other.X_scratch           )
-//            ,   row_mutexes         ( n                         )
-//            {
-//                Init();
-//            }
-            
-//            // Swap function
-//            friend void swap (CholeskyDecomposition & A_, CholeskyDecomposition & B_ ) noexcept
-//            {
-//                // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-//                using std::swap;
-//                
-//                swap( static_cast<CachedObject&>(A_), static_cast<CachedObject&>(B_) );
-//                
-//                swap( A_.n,                  B_.n                     );
-//                swap( A_.thread_count,       B_.thread_count          );
-//                swap( A_.A,                  B_.A                     );
-//                swap( A_.A_inner_perm,       B_.A_inner_perm          );
-//                swap( A_.A_val,              B_.A_val                 );
-//                swap( A_.eTree_initialized,  B_.eTree_initialized     );
-//                swap( A_.eTree,              B_.eTree                 );
-//                swap( A_.aTree,              B_.aTree                 );
-//                swap( A_.SN_initialized,     B_.SN_initialized        );
-//                swap( A_.SN_count,           B_.SN_count              );
-//                swap( A_.SN_rp,              B_.SN_rp                 );
-//                swap( A_.SN_outer,           B_.SN_outer              );
-//                swap( A_.SN_inner,           B_.SN_inner              );
-//                swap( A_.row_to_SN,          B_.row_to_SN             );
-//                swap( A_.SN_tri_ptr,         B_.SN_tri_ptr            );
-//                swap( A_.SN_tri_val,         B_.SN_tri_val            );
-//                swap( A_.SN_rec_ptr,         B_.SN_rec_ptr            );
-//                swap( A_.SN_rec_val,         B_.SN_rec_val            );
-//                swap( A_.SN_updates,         B_.SN_updates            );
-//                swap( A_.max_n_0,            B_.max_n_0               );
-//                swap( A_.max_n_1,            B_.max_n_1               );
-//                swap( A_.nrhs,               B_.nrhs                  );
-//                swap( A_.X,                  B_.X                     );
-//                swap( A_.X_scratch,          B_.X_scratch             );
-//                swap( A_.row_mutexes,        B_.row_mutexes           );
-//            }
-//            
-//            
-//            // Copy assignment operator
-//            CholeskyDecomposition & operator=( CholeskyDecomposition other )
-//            {
-//                // copy-and-swap idiom
-//                // see https://stackoverflow.com/a/3279550/8248900 for details
-//                swap(*this, other);
-//
-//                return *this;
-//            }
-//            
-//            // Move constructor
-//            CholeskyDecomposition( CholeskyDecomposition && other ) noexcept
-//            {
-//                swap(*this, other);
-//            }
-            
+
             
         protected:
             
@@ -527,9 +462,10 @@ namespace Tensors
                     
                     CheckDiagonal();
                     
-                    eTree_initialized = false;
-                    SN_initialized    = false;
-                    SN_factorized     = false;
+                    eTree_initializedQ  = false;
+                    SN_initializedQ     = false;
+                    SN_data.factorizedQ = false;
+                    SN_data.goodQ       = false;
                     
                     // TODO:  Is there a cheaper way to generate the correct tree,
                     // TODO:  e.g., by permuting the old tree?
@@ -548,17 +484,12 @@ namespace Tensors
     
         public:
             
-            bool NumericallyFactorizedQ() const
+            static std::string MethodName( const std::string & tag )
             {
-                return SN_factorized;
+                return ClassName() + "::" + tag;
             }
             
-            bool NumericallyGoodQ() const
-            {
-                return SN_numerically_goodQ;
-            }
-            
-            std::string ClassName() const
+            static std::string ClassName()
             {
                 return std::string("Sparse::CholeskyDecomposition")+"<"+TypeName<Scal>+","+TypeName<Int>+","+TypeName<LInt>+">";
             }
@@ -567,6 +498,56 @@ namespace Tensors
         }; // class CholeskyDecomposition
         
     } // namespace Sparse
+    
+//    template<typename Scal, typename Int, typename LInt>
+//    std::string ToString( cref<typename Sparse:: CholeskyDecomposition<Scal,Int,LInt>::SupernodeStrategy_T> s
+//    )
+//    {
+//        using S_T = typename  Sparse::CholeskyDecomposition<Scal,Int,LInt>::SupernodeStrategy_T;
+//        
+//        switch ( s )
+//        {
+//            case S_T::Maximal:
+//            {
+//                return "Maximal";
+//            }
+//            case S_T::Fundamental:
+//            {
+//                return "Fundamental";
+//            }
+//            case S_T::Amalgamated:
+//            {
+//                return "Amalgamated";
+//            }
+//            default:
+//            {
+//                return "Unknown";
+//            }
+//        }
+//    }
+//    
+//    template<typename Scal, typename Int, typename LInt>
+//    std::string ToString( cref<typename Sparse::CholeskyDecomposition<Scal,Int,LInt>::FactorizationMethod_T> m
+//    )
+//    {
+//        using M_T = typename  Sparse::CholeskyDecomposition<Scal,Int,LInt>::FactorizationMethod_T;
+//        
+//        switch ( m )
+//        {
+//            case M_T::Multifrontal:
+//            {
+//                return "Multifrontal";
+//            }
+//            case M_T::LeftLooking:
+//            {
+//                return "LeftLooking";
+//            }
+//            default:
+//            {
+//                return "Unknown";
+//            }
+//        }
+//    }
     
 } // namespace Tensors
 

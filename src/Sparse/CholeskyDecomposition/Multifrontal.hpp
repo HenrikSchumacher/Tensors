@@ -105,9 +105,9 @@ namespace Tensors
             ,   SN_outer        ( chol.SN_outer.data()                          )
             ,   SN_inner        ( chol.SN_inner.data()                          )
             ,   SN_tri_ptr      ( chol.SN_tri_ptr.data()                        )
-            ,   SN_tri_val      ( chol.SN_tri_val.data()                        )
+            ,   SN_tri_val      ( chol.SN_data.tri_val.data()                   )
             ,   SN_rec_ptr      ( chol.SN_rec_ptr.data()                        )
-            ,   SN_rec_val      ( chol.SN_rec_val.data()                        )
+            ,   SN_rec_val      ( chol.SN_data.rec_val.data()                   )
             ,   SN_updates      ( chol.SN_updates                               )
 //            // local data
             ,   idx             ( chol.n                                        )

@@ -42,7 +42,7 @@ namespace Tensors
             cptr<LInt> SN_rec_ptr;
             mptr<Scal> SN_rec_val;
             
-            // On in put: the right hand side; on output: the solution.
+            // On input: the right hand side; on output: the solution.
             mptr<Scal> X;
             
             // Working space for BLAS3 routines.
@@ -75,6 +75,48 @@ namespace Tensors
             LowerSolver & operator=( LowerSolver && other ) = default;
             
             
+//            /*!@brief Initialize solver with external numerical factorization.
+//             */
+//            
+//            LowerSolver(
+//                CholeskyDecomposition<Scal,Int,LInt> & chol,
+//                mptr<Scal> SN_tri_val_,
+//                mptr<Scal> SN_rec_val_,
+//                mptr<Scal> X_,
+//                const Int nrhs_
+//            )
+//            :   nrhs            ( nrhs_                  )
+//            ,   max_n_1         ( chol.max_n_1           )
+//            ,   SN_rp           ( chol.SN_rp.data()      )
+//            ,   SN_outer        ( chol.SN_outer.data()   )
+//            ,   SN_inner        ( chol.SN_inner.data()   )
+//            ,   SN_tri_ptr      ( chol.SN_tri_ptr.data() )
+//            ,   SN_tri_val      ( SN_tri_val_            )
+//            ,   SN_rec_ptr      ( chol.SN_rec_ptr.data() )
+//            ,   SN_rec_val      ( SN_rec_val_            )
+//            ,   X               ( X_                     )
+//            ,   X_1_buffer      ( max_n_1 * nrhs         )
+//            ,   X_1             ( X_1_buffer.data()      )
+//            ,   x_1             ( X_1_buffer.data()      )
+//            ,   Zero_buffer     ( max_n_1 * nrhs, zero   )
+//            ,   Zero            ( Zero_buffer.data()     )
+//            ,   row_mutexes     ( chol.row_mutexes       )
+//            {}
+//            
+//            /*!@brief Initialize solver with internal numerical factorization.
+//             */
+//            
+//            LowerSolver(
+//                CholeskyDecomposition<Scal,Int,LInt> & chol, const Int nrhs_
+//            )
+//            : LowerSolver(
+//                   chol,
+//                   chol.SN_tri_val.data(),
+//                   chol.SN_rec_val.data(),
+//                   chol.X.data()
+//              )
+//            {}
+            
             LowerSolver(
                 CholeskyDecomposition<Scal,Int,LInt> & chol, const Int nrhs_
             )
@@ -84,9 +126,9 @@ namespace Tensors
             ,   SN_outer        ( chol.SN_outer.data()   )
             ,   SN_inner        ( chol.SN_inner.data()   )
             ,   SN_tri_ptr      ( chol.SN_tri_ptr.data() )
-            ,   SN_tri_val      ( chol.SN_tri_val.data() )
+            ,   SN_tri_val      ( chol.SN_data.tri_val.data() )
             ,   SN_rec_ptr      ( chol.SN_rec_ptr.data() )
-            ,   SN_rec_val      ( chol.SN_rec_val.data() )
+            ,   SN_rec_val      ( chol.SN_data.rec_val.data() )
             ,   X               ( chol.X.data()          )
             ,   X_1_buffer      ( max_n_1 * nrhs         )
             ,   X_1             ( X_1_buffer.data()      )

@@ -13,7 +13,6 @@
 		AF8BDDE2295A1FBE001D8CCF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF8BDDE1295A1FBE001D8CCF /* main.cpp */; };
 		AF9A9289298E5BF600242813 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF9A9288298E5BF600242813 /* main.cpp */; };
 		AF9A928D298E5C0000242813 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF1F64E42933800900146E64 /* Accelerate.framework */; };
-		AFB30DCF2B955B320024B251 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFB30DCE2B955B320024B251 /* main.cpp */; };
 		AFB30DD32B955B3D0024B251 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF1F64E42933800900146E64 /* Accelerate.framework */; };
 		AFD4A15A2C58C94300510A91 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFD4A1592C58C94300510A91 /* main.cpp */; };
 		AFD68F4329352CB9001F19D7 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF1F64E42933800900146E64 /* Accelerate.framework */; };
@@ -126,7 +125,6 @@
 		AFAD0F812B8ED004002B7179 /* OpenBLAS.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = OpenBLAS.hpp; sourceTree = "<group>"; };
 		AFAD0F822B8ED004002B7179 /* Accelerate.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Accelerate.hpp; sourceTree = "<group>"; };
 		AFB30DCC2B955B320024B251 /* Example_SparseBlockLU */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Example_SparseBlockLU; sourceTree = BUILT_PRODUCTS_DIR; };
-		AFB30DCE2B955B320024B251 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AFD2569A2B8ED72000245E2B /* Base.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Base.hpp; sourceTree = "<group>"; };
 		AFD2569B2B8ED7EE00245E2B /* MMA.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MMA.hpp; sourceTree = "<group>"; };
 		AFD4A1572C58C94200510A91 /* Experiment_SpMM */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Experiment_SpMM; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -245,14 +243,6 @@
 			path = UnitTests;
 			sourceTree = "<group>";
 		};
-		AFB30DCD2B955B320024B251 /* Example_SparseBlockLU */ = {
-			isa = PBXGroup;
-			children = (
-				AFB30DCE2B955B320024B251 /* main.cpp */,
-			);
-			path = Example_SparseBlockLU;
-			sourceTree = "<group>";
-		};
 		AFD4A1582C58C94300510A91 /* Experiment_SpMM */ = {
 			isa = PBXGroup;
 			children = (
@@ -286,7 +276,6 @@
 				AF4B5C212C5FB5DB0061A826 /* TODO.txt */,
 				AFD9EA0A29337F7E00FC8A85 /* QRAlgorithm */,
 				AF8BDDE0295A1FBE001D8CCF /* Example_SparseCholesky */,
-				AFB30DCD2B955B320024B251 /* Example_SparseBlockLU */,
 				AF9A9287298E5BF600242813 /* UnitTests */,
 				AFFAC625298ECE5900A2CF4B /* Unit_Test_SpMM */,
 				AF5D050C2B52F09000E946CA /* DenseBLAS */,
@@ -475,7 +464,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastUpgradeCheck = 1630;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					AF5D050A2B52F09000E946CA = {
 						CreatedOnToolsVersion = 15.2;
@@ -565,7 +554,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AFB30DCF2B955B320024B251 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -629,7 +617,6 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				LLVM_LTO = NO;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -645,7 +632,6 @@
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				LLVM_LTO = NO;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -711,11 +697,13 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 			};
 			name = Debug;
 		};
@@ -726,11 +714,13 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "-";
 				CODE_SIGN_STYLE = Automatic;
+				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LIBTOOLFLAGS = "";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 			};
 			name = Release;
 		};
@@ -767,7 +757,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -781,7 +770,6 @@
 				CODE_SIGN_STYLE = Automatic;
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 14.5;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -855,7 +843,6 @@
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -869,6 +856,7 @@
 				);
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
@@ -941,7 +929,6 @@
 					/opt/homebrew/lib,
 					/opt/homebrew/opt/openblas/lib,
 				);
-				MACOSX_DEPLOYMENT_TARGET = 14.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				OTHER_CPLUSPLUSFLAGS = (
@@ -954,6 +941,7 @@
 				);
 				OTHER_LDFLAGS = "";
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SYSTEM_HEADER_SEARCH_PATHS = (
 					/opt/homebrew/include,
 					/opt/homebrew/opt/openblas/include,
@@ -993,7 +981,9 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Unit_Test_SpMM/Unit_Test_SpMM.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				ENABLE_APP_SANDBOX = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 			};
 			name = Debug;
 		};
@@ -1002,8 +992,10 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = Unit_Test_SpMM/Unit_Test_SpMM.entitlements;
 				CODE_SIGN_STYLE = Automatic;
+				ENABLE_APP_SANDBOX = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
 			};
 			name = Release;
 		};

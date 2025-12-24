@@ -6,7 +6,7 @@ public:
 
         // TODO: read Kumar, Kumar, Basu - A parallel algorithm for elimination tree computation and symbolic factorization
 
-        if( ! eTree_initialized )
+        if( ! eTree_initializedQ )
         {
             TOOLS_PTIMER(timer,ClassName()+"::EliminationTree");
 
@@ -62,7 +62,7 @@ public:
 
             eTree = Tree<Int> ( std::move(parents), thread_count );
 
-            eTree_initialized = true;
+            eTree_initializedQ = true;
         }
 
         return eTree;

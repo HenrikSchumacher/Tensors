@@ -2,7 +2,7 @@ public:
     
     void SymbolicFactorization()
     {
-        if( !SN_initialized )
+        if( !SN_initializedQ )
         {
             TOOLS_PTIMER(timer,ClassName()+"::SymbolicFactorization");
             
@@ -10,17 +10,17 @@ public:
 
             switch ( SN_strategy )
             {
-                case 0:
+                case SupernodeStrategy_T::Maximal:
                 {
                     FindMaximalSupernodes();
                     break;
                 }
-                case 1:
+                case SupernodeStrategy_T::Fundamental:
                 {
                     FindFundamentalSupernodes();
                     break;
                 }
-                case 2:
+                case SupernodeStrategy_T::Amalgamated:
                 {
                     FindAmalgamatedSupernodes();
                     break;
@@ -32,19 +32,36 @@ public:
                 }
             }
             
-//            TestRowToSupernode();
+            // TODO: Maybe resizing these arrays is unnecessary. But it is quite fast, anyway.
+            SN_rp   .template Resize<true>( SN_count + 1 );
+            SN_outer.template Resize<true>( SN_count + 1 );
             
-//            SN_rp   .template Resize<false>( SN_count+1 );
-//            
-//            SN_outer.template Resize<false>( SN_count+1 );
+            SN_tri_ptr = Tensor1<LInt,Int>( SN_count + 1 );
+            SN_tri_ptr[0] = 0;
             
-            // TODO: Unneccessary copy?
+            SN_rec_ptr = Tensor1<LInt,Int>( SN_count + 1 );
+            SN_rec_ptr[0] = 0;
             
-            SN_rp   .template Resize<true>( SN_count+1 );
-            SN_outer.template Resize<true>( SN_count+1 );
-            AllocateSupernodes();
+            max_n_0 = 0;
+            max_n_1 = 0;
+            
+            for( Int k = 0; k < SN_count; ++k )
+            {
+                // Warning: Taking differences of potentially signed numbers.
+                // Should not be of concern because negative numbers appear here only if something went wrong upstream.
+                const Int n_0 =               SN_rp   [k+1] - SN_rp   [k];
+                const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
+
+                max_n_0 = Max( max_n_0, n_0 );
+                max_n_1 = Max( max_n_1, n_1 );
+
+                SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
+                SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
+            }
+            
             CreateAssemblyTree();
-            SN_initialized = true;
+            
+            SN_initializedQ = true;
         }
     }
 
@@ -568,44 +585,6 @@ protected:
         } // for( Int i = 0; i < n+1; ++i )
         
         SN_inner = std::move(SN_inner_agg.Disband());
-    }
-
-    void AllocateSupernodes()
-    {
-        TOOLS_PTIMER(timer,ClassName()+"::AllocateSupernodes");
-        
-        SN_tri_ptr = Tensor1<LInt,Int> (SN_count+1);
-        SN_tri_ptr[0] = 0;
-        
-        SN_rec_ptr = Tensor1<LInt,Int> (SN_count+1);
-        SN_rec_ptr[0] = 0;
-        
-        max_n_0 = 0;
-        max_n_1 = 0;
-        
-        for( Int k = 0; k < SN_count; ++k )
-        {
-            // Warning: Taking differences of potentially signed numbers.
-            // Should not be of concern because negative numbers appear here only if something went wrong upstream.
-            const Int n_0 =               SN_rp   [k+1] - SN_rp   [k];
-            const Int n_1 = int_cast<Int>(SN_outer[k+1] - SN_outer[k]);
-
-            max_n_0 = Max( max_n_0, n_0 );
-            max_n_1 = Max( max_n_1, n_1 );
-
-            SN_tri_ptr[k+1] = SN_tri_ptr[k] + n_0 * n_0;
-            SN_rec_ptr[k+1] = SN_rec_ptr[k] + n_0 * n_1;
-        }
-        
-//        TOOLS_PDUMP(max_n_0);
-//        TOOLS_PDUMP(max_n_1);
-        
-        // Allocating memory for the nonzero values of the factorization.
-        SN_tri_val = Tensor1<Scal,LInt> (SN_tri_ptr[SN_count]);
-        SN_rec_val = Tensor1<Scal,LInt> (SN_rec_ptr[SN_count]);
-        
-//        pvalprint("triangle_nnz ", SN_tri_val.Size());
-//        pvalprint("rectangle_nnz", SN_rec_val.Size());
     }
     
     bool FundamentalQ( const Int i, mref<Tensor1<Int,Int>> prev_col_nz )
