@@ -13,7 +13,6 @@
 		AF8BDDE2295A1FBE001D8CCF /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF8BDDE1295A1FBE001D8CCF /* main.cpp */; };
 		AF9A9289298E5BF600242813 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AF9A9288298E5BF600242813 /* main.cpp */; };
 		AF9A928D298E5C0000242813 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF1F64E42933800900146E64 /* Accelerate.framework */; };
-		AFB30DD32B955B3D0024B251 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF1F64E42933800900146E64 /* Accelerate.framework */; };
 		AFD4A15A2C58C94300510A91 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFD4A1592C58C94300510A91 /* main.cpp */; };
 		AFD68F4329352CB9001F19D7 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF1F64E42933800900146E64 /* Accelerate.framework */; };
 		AFD9EA0C29337F7E00FC8A85 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AFD9EA0B29337F7E00FC8A85 /* main.cpp */; };
@@ -50,15 +49,6 @@
 			runOnlyForDeploymentPostprocessing = 1;
 		};
 		AF9A9284298E5BF600242813 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		AFB30DCA2B955B320024B251 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = /usr/share/man/man1/;
@@ -124,7 +114,6 @@
 		AF9A928E298E63C500242813 /* UnitTests.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = UnitTests.entitlements; sourceTree = "<group>"; };
 		AFAD0F812B8ED004002B7179 /* OpenBLAS.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = OpenBLAS.hpp; sourceTree = "<group>"; };
 		AFAD0F822B8ED004002B7179 /* Accelerate.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Accelerate.hpp; sourceTree = "<group>"; };
-		AFB30DCC2B955B320024B251 /* Example_SparseBlockLU */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Example_SparseBlockLU; sourceTree = BUILT_PRODUCTS_DIR; };
 		AFD2569A2B8ED72000245E2B /* Base.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Base.hpp; sourceTree = "<group>"; };
 		AFD2569B2B8ED7EE00245E2B /* MMA.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = MMA.hpp; sourceTree = "<group>"; };
 		AFD4A1572C58C94200510A91 /* Experiment_SpMM */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Experiment_SpMM; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -166,14 +155,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				AF9A928D298E5C0000242813 /* Accelerate.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AFB30DC92B955B320024B251 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				AFB30DD32B955B3D0024B251 /* Accelerate.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -294,7 +275,6 @@
 				AF9A9286298E5BF600242813 /* UnitTests */,
 				AFFAC624298ECE5800A2CF4B /* Unit_Test_SpMM */,
 				AF5D050B2B52F09000E946CA /* DenseBLAS */,
-				AFB30DCC2B955B320024B251 /* Example_SparseBlockLU */,
 				AFD4A1572C58C94200510A91 /* Experiment_SpMM */,
 				AF7C6C152C5E903800EA899D /* Scratch */,
 			);
@@ -389,23 +369,6 @@
 			productReference = AF9A9286298E5BF600242813 /* UnitTests */;
 			productType = "com.apple.product-type.tool";
 		};
-		AFB30DCB2B955B320024B251 /* Example_SparseBlockLU */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = AFB30DD02B955B320024B251 /* Build configuration list for PBXNativeTarget "Example_SparseBlockLU" */;
-			buildPhases = (
-				AFB30DC82B955B320024B251 /* Sources */,
-				AFB30DC92B955B320024B251 /* Frameworks */,
-				AFB30DCA2B955B320024B251 /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = Example_SparseBlockLU;
-			productName = SparseBlockLU;
-			productReference = AFB30DCC2B955B320024B251 /* Example_SparseBlockLU */;
-			productType = "com.apple.product-type.tool";
-		};
 		AFD4A1562C58C94200510A91 /* Experiment_SpMM */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AFD4A15B2C58C94300510A91 /* Build configuration list for PBXNativeTarget "Experiment_SpMM" */;
@@ -478,9 +441,6 @@
 					AF9A9285298E5BF600242813 = {
 						CreatedOnToolsVersion = 14.2;
 					};
-					AFB30DCB2B955B320024B251 = {
-						CreatedOnToolsVersion = 15.2;
-					};
 					AFD4A1562C58C94200510A91 = {
 						CreatedOnToolsVersion = 15.4;
 					};
@@ -507,7 +467,6 @@
 			targets = (
 				AFD9EA0829337F7E00FC8A85 /* QRAlgorithm */,
 				AF8BDDDE295A1FBD001D8CCF /* Example_SparseCholesky */,
-				AFB30DCB2B955B320024B251 /* Example_SparseBlockLU */,
 				AF9A9285298E5BF600242813 /* UnitTests */,
 				AFFAC623298ECE5800A2CF4B /* Unit_Test_SpMM */,
 				AF5D050A2B52F09000E946CA /* DenseBLAS */,
@@ -547,13 +506,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				AF9A9289298E5BF600242813 /* main.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		AFB30DC82B955B320024B251 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -647,8 +599,6 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
-					"-lcolamd",
-					"-lcamd",
 					"-lamd",
 					"-lmetis",
 					"-lcholmod",
@@ -674,8 +624,6 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				OTHER_LDFLAGS = (
-					"-lcolamd",
-					"-lcamd",
 					"-lamd",
 					"-lmetis",
 					"-lcholmod",
@@ -721,30 +669,6 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				RUNTIME_EXCEPTION_DISABLE_LIBRARY_VALIDATION = YES;
-			};
-			name = Release;
-		};
-		AFB30DD12B955B320024B251 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_STYLE = Automatic;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		AFB30DD22B955B320024B251 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
-				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
-				CODE_SIGN_STYLE = Automatic;
-				GCC_C_LANGUAGE_STANDARD = gnu17;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
 		};
@@ -1034,15 +958,6 @@
 			buildConfigurations = (
 				AF9A928A298E5BF600242813 /* Debug */,
 				AF9A928B298E5BF600242813 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		AFB30DD02B955B320024B251 /* Build configuration list for PBXNativeTarget "Example_SparseBlockLU" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				AFB30DD12B955B320024B251 /* Debug */,
-				AFB30DD22B955B320024B251 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
