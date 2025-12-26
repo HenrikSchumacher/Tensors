@@ -153,7 +153,7 @@ namespace Tensors
      * @param var_ub The upper bounds on the variables.
      * @param AT_outer The row pointers of the _transpose_ of the constraint matrix`A`.
      * @param AT_inner The column indices of the _transpose_ of the constraint matrix`A`.
-     * @param AT_value The nonzero values of the _transpose_ of the constraint matrix`A`.
+     * @param AT_values The nonzero values of the _transpose_ of the constraint matrix`A`.
      * @param con_ub The lower bounds for the matrix contraints.
      * @param con_lb The upper bounds for the matrix contraints.
      * @param settings_ An instance of `ClpWrapper::Settings_T` to set up parameters.
@@ -264,7 +264,7 @@ namespace Tensors
             
             if( !LP.statusOfProblem() )
             {
-                wprint(ClassName() + "(): ClpSimplex::" + ("settings.dualQ" ? "dual" : "primal") + " reports a problem in the solve phase.  The returned solution may be incorrect.");
+                wprint(ClassName() + "(): ClpSimplex::" + (settings.dualQ ? "dual" : "primal") + " reports a problem in the solve phase.  The returned solution may be incorrect.");
 
                 TOOLS_DDUMP(variable_count);
                 TOOLS_DDUMP(constraint_count);

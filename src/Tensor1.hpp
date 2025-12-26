@@ -53,14 +53,16 @@ namespace Tensors
         
     private:
         
-        void BoundCheck( const Int i ) const
+        template<typename I>
+        void BoundCheck( const I i ) const
         {
+            static_assert(IntQ<I>,"");
 #ifdef TENSORS_BOUND_CHECKS
             if( a == nullptr )
             {
                 eprint(ClassName()+": pointer is nullptr.");
             }
-            if( (i < Int(0)) || (i > dims[0]) )
+            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
@@ -76,43 +78,50 @@ namespace Tensors
             return Int(1);
         }
         
-
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i )
+        template<typename I>
+        TOOLS_FORCE_INLINE mptr<Scal> data( const I i )
+        {
+            static_assert(IntQ<I>,"");
+            
+            BoundCheck(i);
+            
+            return &a[i];
+        }
+        
+        template<typename I>
+        TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const
         {
             BoundCheck(i);
             
             return &a[i];
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const
-        {
-            BoundCheck(i);
-            
-            return &a[i];
-        }
-        
-        TOOLS_FORCE_INLINE mref<Scal> operator()(const Int i)
+        template<typename I>
+        TOOLS_FORCE_INLINE mref<Scal> operator()(const I i)
         {
             BoundCheck(i);
             
             return a[i];
         }
         
-        TOOLS_FORCE_INLINE cref<Scal> operator()(const Int i) const
+        template<typename I>
+        TOOLS_FORCE_INLINE cref<Scal> operator()(const I i) const
         {
             BoundCheck(i);
             
             return a[i];
         }
         
-        TOOLS_FORCE_INLINE mref<Scal> operator[](const Int i)
+        template<typename I>
+        TOOLS_FORCE_INLINE mref<Scal> operator[](const I i)
         {
             BoundCheck(i);
 
             return a[i];
         }
         
-        TOOLS_FORCE_INLINE cref<Scal> operator[](const Int i) const
+        template<typename I>
+        TOOLS_FORCE_INLINE cref<Scal> operator[](const I i) const
         {
             BoundCheck(i);
             
