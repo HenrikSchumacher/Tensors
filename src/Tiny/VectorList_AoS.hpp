@@ -114,7 +114,7 @@ namespace Tensors
             }
             
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const J j ) const
+            TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
