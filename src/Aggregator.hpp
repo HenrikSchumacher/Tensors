@@ -88,7 +88,6 @@ namespace Tensors
         TOOLS_FORCE_INLINE void Push( cref<T_0> a )
         {
             if( current_size >= capacity ) { Expand(); }
-
             container_0[current_size] = a;
             ++current_size;
         }
@@ -96,7 +95,6 @@ namespace Tensors
         TOOLS_FORCE_INLINE void Push( T_0 && a )
         {
             if( current_size >= capacity ) { Expand(); }
-
             container_0[current_size] = std::move(a);
             ++current_size;
         }

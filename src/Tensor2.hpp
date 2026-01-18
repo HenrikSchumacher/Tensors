@@ -314,7 +314,7 @@ namespace Tensors
             {
                 eprint(ClassName() + ": pointer is nullptr.");
             }
-            if( (i < Int(0)) || (i > dims[0]) )
+            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
@@ -330,12 +330,12 @@ namespace Tensors
             {
                 eprint(ClassName() + ": pointer is nullptr.");
             }
-            if( (i < Int(0)) || (i > dims[0]) )
+            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
             
-            if( (j < Int(0)) || (j > dims[1]) )
+            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }

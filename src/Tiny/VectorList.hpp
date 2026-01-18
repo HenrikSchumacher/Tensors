@@ -107,7 +107,7 @@ namespace Tensors
             
             void BoundCheck( const Int i ) const
             {
-                if( (i < Int(0)) || (i > n) )
+                if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,n) )
                 {
                     eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(n) +" [.");
                 }

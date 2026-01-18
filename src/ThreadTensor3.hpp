@@ -178,7 +178,7 @@ namespace Tensors {
         void BoundCheck( const Int i ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
-            if( (i < Int(0)) || (i > dims[0]) )
+            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
@@ -190,12 +190,12 @@ namespace Tensors {
         void BoundCheck( const Int i, const Int j ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
-            if( (i < Int(0)) || (i > dims[0]) )
+            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
             
-            if( (j < Int(0)) || (j > dims[1]) )
+            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
@@ -208,17 +208,17 @@ namespace Tensors {
         void BoundCheck( const Int i, const Int j, const Int k ) const
         {
 #ifdef TENSORS_BOUND_CHECKS
-            if( (i < Int(0)) || (i > dims[0]) )
+            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
             
-            if( (j < Int(0)) || (j > dims[1]) )
+            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
             
-            if( (k < Int(0)) || (k > dims[2]) )
+            if( std::cmp_less(k,Int(0)) || std::cmp_greater(k,dims[2]) )
             {
                 eprint(ClassName()+": third index " + ToString(k) + " is out of bounds [ 0, " + ToString(dims[2]) +" [.");
             }

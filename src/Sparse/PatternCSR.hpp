@@ -993,11 +993,11 @@ namespace Tensors
             
             void BoundCheck( const Int i, const Int j ) const
             {
-                if( (i < Int(0)) || (i > m) )
+                if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,m) )
                 {
                     eprint(ClassName()+": Row index " + ToString(i) + " is out of bounds [ 0, " + ToString(m) +" [.");
                 }
-                if( (j < Int(0)) || (j > n) )
+                if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,n) )
                 {
                     eprint(ClassName()+": Column index " + ToString(j) + " is out of bounds [ 0, " + ToString(n) +" [.");
                 }
