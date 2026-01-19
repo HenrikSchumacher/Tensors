@@ -50,6 +50,7 @@ namespace Tensors
             using Base_T::LowerTriangularJobPtr;
             using Base_T::CreateTransposeCounters;
             using Base_T::WellFormedQ;
+            using Base_T::ToTensor2;
             
             template<typename I_0, typename I_1, typename I_3>
             BinaryMatrixCSR(

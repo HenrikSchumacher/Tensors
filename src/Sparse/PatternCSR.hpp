@@ -962,7 +962,7 @@ namespace Tensors
             }
             
             // Supply an external list of values.
-            template<typename A_T>
+            template<typename A_T = bool>
             Tensor2<A_T,LInt> ToTensor2() const
             {
                 Tensor2<A_T,LInt> A ( m, n );
