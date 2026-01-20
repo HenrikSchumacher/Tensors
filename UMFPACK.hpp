@@ -53,8 +53,8 @@ namespace Tensors
         // Destructor
         ~UMFPACK()
         {
-            FreeSymbolic();
-            FreeNumeric ();
+            this->FreeSymbolic();
+            this->FreeNumeric ();
         }
         // Copy constructor
         UMFPACK( const UMFPACK & other ) = delete;
@@ -74,7 +74,7 @@ namespace Tensors
         ,   x_buffer { A.ColCount()   }
         ,   b_buffer { A.RowCount()   }
         {
-            SymbolicFactorization();
+            this->SymbolicFactorization();
         }
         
         
@@ -85,8 +85,8 @@ namespace Tensors
         )
         :   UMFPACK ( m_, n_, outer_, inner_ )
         {
-            SymbolicFactorization();
-            NumericFactorization(values_);
+            this->SymbolicFactorization();
+            this->NumericFactorization(values_);
         }
         
         
@@ -204,7 +204,7 @@ namespace Tensors
             
             if( symbolic_status != UMFPACK_OK )
             {
-                eprint(ClassName()+"::SymbolicFactorization: Returned error code is " + ToString(symbolic_status) + ". Message: " + SymbolicErrorMessage(symbolic_status)
+                eprint(ClassName()+"::SymbolicFactorization: Returned error code is " + ToString(symbolic_status) + ". Message: " + this->SymbolicErrorMessage(symbolic_status)
                 );
             }
         }
@@ -251,7 +251,7 @@ namespace Tensors
         {
             values.Read(a_);
             
-            NumericFactorization();
+            this->NumericFactorization();
         }
         
         void NumericFactorization()
@@ -260,7 +260,7 @@ namespace Tensors
             
             if( symbolic_status != UMFPACK_OK )
             {
-                eprint(ClassName()+"::NumericFactorization:  Called with invalid symbolic factorization. symbolic_status = " + ToString(symbolic_status) + ". Message: " + SymbolicErrorMessage(symbolic_status)
+                eprint(ClassName()+"::NumericFactorization:  Called with invalid symbolic factorization. symbolic_status = " + ToString(symbolic_status) + ". Message: " + this->SymbolicErrorMessage(symbolic_status)
                 );
             }
             
@@ -309,7 +309,7 @@ namespace Tensors
             
             if( numeric_status != UMFPACK_OK )
             {
-                eprint(ClassName()+"::NumericFactorization: Returned error code is " + ToString(numeric_status) + ". Message: " + NumericErrorMessage(numeric_status)
+                eprint(ClassName()+"::NumericFactorization: Returned error code is " + ToString(numeric_status) + ". Message: " + this->NumericErrorMessage(numeric_status)
                 );
             }
         }
@@ -410,7 +410,7 @@ namespace Tensors
             // UMFPACK works with CSC format; we use CSR format.
             // Hence, we have to make sure that things are correctly transposed.
 
-            const int mode = SolveMode<op>();
+            const int mode = this->template SolveMode<op>();
 
             // We have to conjugate x to emulate the conjugate-transpose solve.
             combine_buffers<
@@ -499,7 +499,7 @@ namespace Tensors
         template<Op op = Op::Id, typename B_T, typename X_T>
         void Solve( cptr<B_T> B, mptr<X_T> X )
         {
-            Solve<op,F_T::Plus,F_T::Zero>( Scal(1), B, Scal(0), X );
+            this->template Solve<op,F_T::Plus,F_T::Zero>( Scal(1), B, Scal(0), X );
         }
         
         
