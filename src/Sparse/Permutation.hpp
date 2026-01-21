@@ -70,7 +70,7 @@ namespace Tensors
             {
                 if( !PermutationQ(p_.data()) )
                 {
-                    eprint(ClassName()+"() input is not a permutation.");
+                    eprint(ClassName()+"(): Input is not a permutation.");
                     is_valid = false;
                     return;
                 }
@@ -84,7 +84,7 @@ namespace Tensors
             {
                 if( !PermutationQ(p_.data()) )
                 {
-                    eprint(ClassName()+"() input is not a permutation.");
+                    eprint(ClassName()+"(): Input is not a permutation.");
                     is_valid = false;
                     return;
                 }
@@ -107,7 +107,7 @@ namespace Tensors
             
             if( !PermutationQ(p_) )
             {
-                eprint(ClassName()+"() input is not a permutation.");
+                eprint(ClassName()+"(): Input is not a permutation.");
                 is_valid = false;
                 return;
             }
