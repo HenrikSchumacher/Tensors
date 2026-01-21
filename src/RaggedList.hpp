@@ -107,6 +107,16 @@ namespace Tensors
                 }
             }
             
+//            mref<T> operator[]( Int i )
+//            {
+//                return sublist_begin[i];
+//            }
+
+            cref<T> operator[]( Int i ) const
+            {
+                return sublist_begin[i];
+            }
+            
             friend std::string ToString( cref<Sublist_T> s )
             {
                 return ArrayToString( s.begin(), {s.Size()} );
@@ -209,6 +219,11 @@ namespace Tensors
             {
                 return Sublist_T( { &elements[0], &elements[0] } );
             }
+        }
+        
+        Sublist_T operator[]( const Int i ) const
+        {
+            return Sublist(i);
         }
         
         std::pair<Tensor1<Int,Int>,Tensor1<T,Int>> Disband()
