@@ -17,12 +17,15 @@ namespace Tensors
         using Int  = Int_;
   
         using F_T = Scalar::Flag;
+  
         
-        static_assert(
-            SameQ<Scal,Real64> || SameQ<Scal,Complex64> ||
-            SameQ<Scal,Real32> || SameQ<Scal,Complex32>,
-            ""
-        );
+//        static_assert(
+//            SameQ<Scal,Real64> || SameQ<Scal,Complex64> ||
+//            SameQ<Scal,Real32> || SameQ<Scal,Complex32>,
+//            ""
+//        );
+        
+        static_assert(SameQ<Scal,Real64> || SameQ<Scal,Complex64>,"");
         
         using Real = Scalar::Real<Scal>;
         
@@ -169,18 +172,18 @@ namespace Tensors
                 {
                     symbolic_status = umfpack_dl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    symbolic_status = umfpack_sl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    symbolic_status = umfpack_sl_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     symbolic_status = umfpack_zl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    symbolic_status = umfpack_cl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    symbolic_status = umfpack_cl_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
+//                }
             }
             else if constexpr( SameQ<Int,Int32> )
             {
@@ -188,18 +191,18 @@ namespace Tensors
                 {
                     symbolic_status = umfpack_di_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    symbolic_status = umfpack_si_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    symbolic_status = umfpack_si_symbolic(m,n,Ap,Ai,null,&symbolic,null,null);
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     symbolic_status = umfpack_zi_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    symbolic_status = umfpack_ci_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    symbolic_status = umfpack_ci_symbolic(m,n,Ap,Ai,null,null,&symbolic,null,null);
+//                }
             }
             
             if( symbolic_status != UMFPACK_OK )
@@ -274,18 +277,18 @@ namespace Tensors
                 {
                     numeric_status = umfpack_dl_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    numeric_status = umfpack_sl_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    numeric_status = umfpack_sl_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     numeric_status = umfpack_zl_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    numeric_status = umfpack_cl_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    numeric_status = umfpack_cl_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
+//                }
             }
             else //  if constexpr( SameQ<Int,Int32> )
             {
@@ -293,18 +296,18 @@ namespace Tensors
                 {
                     numeric_status = umfpack_di_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    numeric_status = umfpack_si_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    numeric_status = umfpack_si_numeric(Ap,Ai,Ax,symbolic,&numeric,null,null);
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     numeric_status = umfpack_zi_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    numeric_status = umfpack_ci_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    numeric_status = umfpack_ci_numeric(Ap,Ai,Ax,null,symbolic,&numeric,null,null);
+//                }
             }
             
             if( numeric_status != UMFPACK_OK )
@@ -435,24 +438,24 @@ namespace Tensors
                         mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
                     );
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    solve_status = umfpack_sl_solve(
-                        mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
-                    );
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    solve_status = umfpack_sl_solve(
+//                        mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
+//                    );
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     solve_status = umfpack_zl_solve(
                         mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
                     );
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    solve_status = umfpack_cl_solve(
-                        mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
-                    );
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    solve_status = umfpack_cl_solve(
+//                        mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
+//                    );
+//                }
             }
             else
             {
@@ -462,24 +465,24 @@ namespace Tensors
                         mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
                     );
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    solve_status = umfpack_si_solve(
-                        mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
-                    );
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    solve_status = umfpack_si_solve(
+//                        mode,Ap,Ai,Ax,x_ptr,b_ptr,numeric,null,null
+//                    );
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     solve_status = umfpack_zi_solve(
                         mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
                     );
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    solve_status = umfpack_ci_solve(
-                        mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
-                    );
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    solve_status = umfpack_ci_solve(
+//                        mode,Ap,Ai,Ax,null,x_ptr,null,b_ptr,null,numeric,null,null
+//                    );
+//                }
             }
             
             if( solve_status != 0 )
@@ -534,24 +537,24 @@ namespace Tensors
                         &Mx,&Ex,numeric,info.data()
                     );
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    status = umfpack_sl_get_determinant(
-                        &Mx,&Ex,numeric,info.data()
-                    );
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    status = umfpack_sl_get_determinant(
+//                        &Mx,&Ex,numeric,info.data()
+//                    );
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     status = umfpack_zl_get_determinant(
                         reinterpret_cast<Real *>(&Mx),null,&Ex,numeric,info.data()
                     );
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    status = umfpack_cl_get_determinant(
-                        reinterpret_cast<Real *>(&Mx),null,&Ex,numeric,info.data()
-                    );
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    status = umfpack_cl_get_determinant(
+//                        reinterpret_cast<Real *>(&Mx),null,&Ex,numeric,info.data()
+//                    );
+//                }
             }
             else if constexpr( SameQ<Int,Int32> )
             {
@@ -561,24 +564,24 @@ namespace Tensors
                         &Mx,&Ex,numeric,info.data()
                     );
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    status = umfpack_si_get_determinant(
-                        &Mx,&Ex,numeric,info.data()
-                    );
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    status = umfpack_si_get_determinant(
+//                        &Mx,&Ex,numeric,info.data()
+//                    );
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     status = umfpack_zi_get_determinant(
                         reinterpret_cast<Real *>(&Mx),null,&Ex,numeric,info.data()
                     );
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    status = umfpack_ci_get_determinant(
-                        reinterpret_cast<Real *>(&Mx),null,&Ex,numeric,info.data()
-                    );
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    status = umfpack_ci_get_determinant(
+//                        reinterpret_cast<Real *>(&Mx),null,&Ex,numeric,info.data()
+//                    );
+//                }
             }
             
             if( status != 0 )
@@ -604,18 +607,18 @@ namespace Tensors
                 {
                     umfpack_dl_free_symbolic(&symbolic);
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    umfpack_sl_free_symbolic(&symbolic);
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    umfpack_sl_free_symbolic(&symbolic);
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     umfpack_zl_free_symbolic(&symbolic);
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    umfpack_cl_free_symbolic(&symbolic);
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    umfpack_cl_free_symbolic(&symbolic);
+//                }
             }
             else // if constexpr( SameQ<Int,Int32> )
             {
@@ -623,18 +626,18 @@ namespace Tensors
                 {
                     umfpack_di_free_symbolic(&symbolic);
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    umfpack_si_free_symbolic(&symbolic);
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    umfpack_si_free_symbolic(&symbolic);
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     umfpack_zi_free_symbolic(&symbolic);
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    umfpack_ci_free_symbolic(&symbolic);
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    umfpack_ci_free_symbolic(&symbolic);
+//                }
             }
                 
             symbolic = nullptr;
@@ -652,18 +655,18 @@ namespace Tensors
                 {
                     umfpack_dl_free_numeric(&numeric);
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    umfpack_sl_free_numeric(&numeric);
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    umfpack_sl_free_numeric(&numeric);
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     umfpack_zl_free_numeric(&numeric);
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    umfpack_cl_free_numeric(&numeric);
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    umfpack_cl_free_numeric(&numeric);
+//                }
             }
             else // if constexpr( SameQ<Int,Int32> )
             {
@@ -671,18 +674,18 @@ namespace Tensors
                 {
                     umfpack_di_free_numeric(&numeric);
                 }
-                else if constexpr( SameQ<Scal,Real32> )
-                {
-                    umfpack_si_free_numeric(&numeric);
-                }
+//                else if constexpr( SameQ<Scal,Real32> )
+//                {
+//                    umfpack_si_free_numeric(&numeric);
+//                }
                 else if constexpr( SameQ<Scal,Complex64> )
                 {
                     umfpack_zi_free_numeric(&numeric);
                 }
-                else if constexpr( SameQ<Scal,Complex32> )
-                {
-                    umfpack_ci_free_numeric(&numeric);
-                }
+//                else if constexpr( SameQ<Scal,Complex32> )
+//                {
+//                    umfpack_ci_free_numeric(&numeric);
+//                }
             }
         }
         
