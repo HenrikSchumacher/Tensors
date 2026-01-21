@@ -951,16 +951,16 @@ namespace Tensors
                     const Scal s = scalar_cast<Scal>(s_);
                     
                     /* Assumes that AbsSquared(c) + AbsSquared(s) == one.
-                    // Assumes that i != j.
-                    // Multiplies matrix with the rotation
-                    //
-                    //    /               \
-                    //    |      c     s  |
-                    //    |  -conj(s)  c  |
-                    //    \               /
-                    //
-                    // in the i-j-plane from the left.
-                    */
+                     * Assumes that i != j.
+                     * Multiplies matrix with the rotation
+                     *
+                     *    /               \
+                     *    |      c     s  |
+                     *    |  -conj(s)  c  |
+                     *    \               /
+                     *
+                     * in the i-j-plane from the left.
+                     */
                     
                     for( Int k = 0; k < n; ++k )
                     {
@@ -982,17 +982,17 @@ namespace Tensors
                     const Scal s = scalar_cast<Scal>(s_);
                     
                     /*
-                    // Assumes that AbsSquared(c) + AbsSquared(s) == one.
-                    // Assumes that i != j.
-                    // Multiplies matrix with rotation
-                    //
-                    //    /               \
-                    //    |      c     s  |
-                    //    |  -conj(s)  c  |
-                    //    \               /
-                    //
-                    // in the i-j-plane from the right.
-                    */
+                     * Assumes that AbsSquared(c) + AbsSquared(s) == one.
+                     * Assumes that i != j.
+                     * Multiplies matrix with rotation
+                     *
+                     *    /               \
+                     *    |      c     s  |
+                     *    |  -conj(s)  c  |
+                     *    \               /
+                     *
+                     * in the i-j-plane from the right.
+                     */
                     
                     for( Int k = 0; k < m; ++k )
                     {
@@ -1197,17 +1197,17 @@ namespace Tensors
                 static_assert(m==n, "SetGivensRotation is only defined for square matrices.");
                 
                 /*
-                // Mostly meant for debugging purposes, thus not extremely optimized.
-                // Assumes that AbsSquared(c) + AbsSquared(s) == one.
-                // Write Givens rotion
-                //
-                //    /              \
-                //    |     c     s  |
-                //    | -conj(s)  c  |
-                //    \              /
-                //
-                // in the i-j-plane into the matrix.
-                */
+                 * Mostly meant for debugging purposes, thus not extremely optimized.
+                 * Assumes that AbsSquared(c) + AbsSquared(s) == one.
+                 * Write Givens rotion
+                 *
+                 *    /              \
+                 *    |     c     s  |
+                 *    | -conj(s)  c  |
+                 *    \              /
+                 *
+                 * in the i-j-plane into the matrix.
+                 */
                 
                 SetIdentity();
                 

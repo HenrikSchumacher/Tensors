@@ -139,25 +139,26 @@ namespace Tensors
                     TOOLS_DUMP(SN_rp[s+1]);
                 }
                 
-                // The layout of the frontal matrix is this:
-                //
-                //    /             \
-                //    |  U_0   U_1  |
-                //    |             |
-                //    |   X     V   |
-                //    \             /
-                //
-                //
-                // where:
-                //
-                // U_0 is an upper triangular matrix of size n_0 x n_0.
-                // U_1 is a  rectangular      matrix of size n_0 x n_1.
-                // V   is a  square           matrix of size n_1 x n_1.
-                //
-                // U_0 and U_1 belong to the supernode s and will persist in the factor U.
-                //
-                // The _update matrix_ V is only temporary. 
-                // The parent of s will deconstruct V has soon as it fetched its update.
+                /* The layout of the frontal matrix is this:
+                 *
+                 *    /             \
+                 *    |  U_0   U_1  |
+                 *    |             |
+                 *    |   X     V   |
+                 *    \             /
+                 *
+                 *
+                 * where:
+                 *
+                 * U_0 is an upper triangular matrix of size n_0 x n_0.
+                 * U_1 is a  rectangular      matrix of size n_0 x n_1.
+                 * V   is a  square           matrix of size n_1 x n_1.
+                 *
+                 * U_0 and U_1 belong to the supernode s and will persist in the factor U.
+                 *
+                 * The _update matrix_ V is only temporary.
+                 * The parent of s will deconstruct V has soon as it fetched its update.
+                 */
                 
                 mptr<Scal> U_0 = &SN_tri_val[SN_tri_ptr[s]];
                 mptr<Scal> U_1 = &SN_rec_val[SN_rec_ptr[s]];
@@ -341,14 +342,14 @@ namespace Tensors
                 cptr<Scal> W = SN_updates[static_cast<Size_T>(t)].data();
 //                cptr<Scal> W = SN_updates[t];
                 
-                // We have to scatter-add W into the frontal matrix of s:
-                //
-                //    /             \
-                //    |  U_0   U_1  |
-                //    |             |
-                //    |   X     V   |
-                //    \             /
-                //
+                /* We have to scatter-add W into the frontal matrix of s:
+                 *
+                 *    /             \
+                 *    |  U_0   U_1  |
+                 *    |             |
+                 *    |   X     V   |
+                 *    \             /
+                 */
                 
                 // Find the first column of the rectangular block of supernode t
                 // that is mapped to reactangular block of supernode s.

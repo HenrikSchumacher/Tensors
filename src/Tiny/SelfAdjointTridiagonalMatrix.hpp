@@ -317,14 +317,14 @@ namespace Tensors
                 const Real b_0 = upper[k  ];
                 
                 /*
-                // Find c, s such that
-                //
-                //    /         \  /            \  /         \
-                //    |  c  -s  |  |  a_0  b_0  |  |   c  s  |
-                //    |  s   c  |  |  b_0  a_1  |  |  -s  c  |
-                //    \         /  \            /  \         /
-                //
-                //  is diagonal.
+                 * Find c, s such that
+                 *
+                 *    /         \  /            \  /         \
+                 *    |  c  -s  |  |  a_0  b_0  |  |   c  s  |
+                 *    |  s   c  |  |  b_0  a_1  |  |  -s  c  |
+                 *    \         /  \            /  \         /
+                 *
+                 *  is diagonal.
                 */
                 
                 if( Abs(b_0) > eps * ( Abs(a_0) + Abs(a_1) ) )
@@ -380,14 +380,14 @@ namespace Tensors
                     const Int k = begin;
 
                     /*
-                    // Find c, s such that
-                    //
-                    //    /         \  /     \   /       \
-                    //    |  c  -s  |  |  x  | = |  rho  |
-                    //    |  s   c  |  |  y  |   |   0   |
-                    //    \         /  \     /   \       /
-                    //
-                    */
+                     * Find c, s such that
+                     *
+                     *    /         \  /     \   /       \
+                     *    |  c  -s  |  |  x  | = |  rho  |
+                     *    |  s   c  |  |  y  |   |   0   |
+                     *    \         /  \     /   \       /
+                     *
+                     */
                     
                     const Real rho = Sqrt(x * x + y * y);
                     
@@ -418,14 +418,14 @@ namespace Tensors
                 for( Int k = begin + 1; k < end-2; ++k )
                 {
                     /*
-                    // Find c, s such that
-                    //
-                    //    /         \  /     \   /       \
-                    //    |  c  -s  |  |  x  | = |  rho  |
-                    //    |  s   c  |  |  y  |   |   0   |
-                    //    \         /  \     /   \       /
-                    //
-                    */
+                     * Find c, s such that
+                     *
+                     *    /         \  /     \   /       \
+                     *    |  c  -s  |  |  x  | = |  rho  |
+                     *    |  s   c  |  |  y  |   |   0   |
+                     *    \         /  \     /   \       /
+                     *
+                     */
                     
                     const Real rho = Sqrt(x * x + y * y);
                     
@@ -459,13 +459,13 @@ namespace Tensors
                     const Int k = end - 2;
                     
                     /*
-                    // Find c, s such that
-                    //
-                    //    /         \  /     \   /       \
-                    //    |  c  -s  |  |  x  | = |  rho  |
-                    //    |  s   c  |  |  y  |   |   0   |
-                    //    \         /  \     /   \       /
-                    */
+                     * Find c, s such that
+                     *
+                     *    /         \  /     \   /       \
+                     *    |  c  -s  |  |  x  | = |  rho  |
+                     *    |  s   c  |  |  y  |   |   0   |
+                     *    \         /  \     /   \       /
+                     */
                     
                     const Real rho = Sqrt(x * x + y * y);
                     
