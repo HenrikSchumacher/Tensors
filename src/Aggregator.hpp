@@ -173,7 +173,7 @@ namespace Tensors
         
         void SetCapacity( const Int new_capacity ) const
         {
-            TOOLS_PTIMER(timer,MethodName("SetCapacity(" + ToString(new_capacity) + ")"));
+            TOOLS_PTIMER(timer,MethodName("SetCapacity"));
             
 #ifdef TENSORS_ALLOCATION_LOGS
             TOOLS_LOGDUMP(capacity);

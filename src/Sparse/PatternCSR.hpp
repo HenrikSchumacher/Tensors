@@ -405,7 +405,7 @@ namespace Tensors
             {
                 if( job_ptr_initialized ) { return; }
                 
-                TOOLS_PTIMER(timer,ClassName()+"::RequireJobPtr");
+//                TOOLS_PTIMER(timer,MethodName("RequireJobPtr"));
                 
                 job_ptr = JobPointers<Int>( m, outer.data(), thread_count, false );
                 
@@ -416,7 +416,7 @@ namespace Tensors
             {
                 if( !proven_inner_sortedQ )
                 {
-                    eprint(ClassName()+"::RequireDiag: Column indices might not be sorted appropriately. Better call SortInner() first.");
+                    eprint(MethodName("CheckOrdering")+": Column indices might not be sorted appropriately. Better call SortInner() first.");
                 }
             }
             
@@ -424,7 +424,7 @@ namespace Tensors
             {
                 if( diag_ptr_initialized ) { return; }
                 
-                TOOLS_PTIMER(timer,ClassName()+"::RequireDiag");
+//                TOOLS_PTIMER(timer,ClassName()+"::RequireDiag");
                 
                 SortInner();
                 
@@ -466,7 +466,7 @@ namespace Tensors
                     return;
                 }
                 
-                TOOLS_PTIMER(timer,ClassName()+"::RequireUpperTriangularJobPtr");
+//                TOOLS_PTIMER(timer,MethodName("RequireUpperTriangularJobPtr"));
                 
                 RequireDiag();
                 
@@ -652,7 +652,7 @@ namespace Tensors
             
             [[nodiscard]] Tensor2<LInt,Int> CreateTransposeCounters() const
             {
-                TOOLS_PTIMER(timer,ClassName()+"::CreateTransposeCounters");
+//                TOOLS_PTIMER(timer,ClassName()+"::CreateTransposeCounters");
                 
                 RequireJobPtr();
                 
@@ -702,7 +702,7 @@ namespace Tensors
                 
                 if( proven_inner_sortedQ ) { return; }
                 
-                TOOLS_PTIMER(timer,ClassName()+"::SortInner");
+                TOOLS_PTIMER(timer,MethodName("SortInner"));
                 
                 if( !WellFormedQ() ) { return; }
                     
@@ -723,7 +723,7 @@ namespace Tensors
         {
             // Removes duplicate {i,j}-pairs.
             
-            TOOLS_PTIMER(timer,ClassName()+"::Compress");
+            TOOLS_PTIMER(timer,MethodName("Compress"));
             
             Tensor1< Int,LInt> values;  // a dummy
             Tensor1<LInt,LInt> C_outer; // a dummy
@@ -742,7 +742,7 @@ namespace Tensors
             
             PatternCSR DotBinary_( cref<PatternCSR> B ) const
             {
-                TOOLS_PTIMER(timer,ClassName()+"::DotBinary_");
+                TOOLS_PTIMER(timer,MethodName("DotBinary_"));
                 
                 if( !WellFormedQ() || !B.WellFormedQ() )
                 {
@@ -1106,7 +1106,7 @@ namespace Tensors
             template<typename S, typename T, typename J>
             void FillLowerTriangleFromUpperTriangle( mref<std::map<S,Tensor1<T,J>>> values )
             {
-                TOOLS_PTIMER(timer,ClassName()+"::FillLowerTriangleFromUpperTriangle");
+                TOOLS_PTIMER(timer,MethodName("FillLowerTriangleFromUpperTriangle"));
                 
                 if( !WellFormedQ() ) { return; }
                 
