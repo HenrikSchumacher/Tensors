@@ -25,7 +25,7 @@ namespace Tensors
             
 //            std::array<std::array<Scal,n>,n> A;
             
-            alignas(DefaultAlignment) Scal A[n][n];
+            Scal A[n][n];
             
             // TODO: Needs swap routine.
 //            Scal A [n][n];

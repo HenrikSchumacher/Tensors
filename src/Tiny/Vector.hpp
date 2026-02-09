@@ -134,7 +134,7 @@ namespace Tensors
             
         protected:
             
-            alignas(DefaultAlignment) Scal v [Tools::Max(Int(1),n)];
+            Scal v [Tools::Max(Int(1),n)];
             
         public:
             

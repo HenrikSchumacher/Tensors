@@ -29,7 +29,7 @@ namespace Tensors
             
         protected:
             
-            alignas(DefaultAlignment) Scal A[Tools::Max(Int(1),m)][Tools::Max(Int(1),n)];
+            Scal A[Tools::Max(Int(1),m)][Tools::Max(Int(1),n)];
             
         public:
             
