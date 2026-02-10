@@ -12,7 +12,6 @@ protected:
 
     Scal * restrict a = nullptr ;
     Int n = 0;
-    std::array<Int,rank> dims = {};     // dimensions visible to user
 
 public:
 
@@ -26,80 +25,6 @@ public:
         logprint(ClassName() + " destructor (size = " + ToString(Size()) + ")");
 #endif
         safe_free(a);
-    }
-
-    // Copy constructor
-    TENSOR_T( const TENSOR_T & other )
-    :   n    ( other.n    )
-    ,   dims ( other.dims )
-    {
-#ifdef TENSORS_ALLOCATION_LOGS
-        logprint(ClassName() + " copy-constructor (size = " + ToString(other.Size()) + ")");
-#endif
-        allocate();
-        Read(other.a);
-    }
-
-    // Copy-cast constructor
-    template<typename S, typename J, Size_T alignment_>
-    explicit TENSOR_T( const TENSOR_T<S,J,alignment_> & other )
-    :   n    ( other.Size()    )
-    {
-        static_assert(IntQ<J>,"");
-        
-        std::copy_n( other.Dimensions(),other.Rank(),&dims[0]);
-        
-#ifdef TENSORS_ALLOCATION_LOGS
-        logprint(ClassName() + " copy-cast constuctor (size = " + ToString(other.Size()) + ")");
-#endif
-        allocate();
-        Read(other.data());
-    }
-
-    inline friend void swap( TENSOR_T & A, TENSOR_T & B) noexcept
-    {
-#ifdef TENSORS_ALLOCATION_LOGS
-        logprint(ClassName() + " swap (sizes = {" + ToString(A.Size()) + "," + ToString(B.Size()) + "})");
-#endif
-        // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-        using std::swap;
-        
-        if( &A == &B )
-        {
-            wprint( std::string("An object of type ") + ClassName() + " has been swapped to itself.");
-        }
-        else
-        {
-            swap( A.dims, B.dims    );
-            swap( A.n   , B.n       );
-            swap( A.a   , B.a       );
-        }
-    }
-
-    // Copy assignment operator
-    // We ship our own because we can do a few optimizations here.
-    mref<TENSOR_T> operator=( const TENSOR_T & other )
-    {
-    #ifdef TENSORS_ALLOCATION_LOGS
-            logprint(ClassName() + " copy-assignment (size = " + ToString(other.Size()) + ")");
-    #endif
-        if( this != &other )
-        {
-            if( dims != other.dims )
-            {
-                n    = other.n;
-                dims = other.dims;
-                
-    #ifdef TENSORS_ALLOCATION_LOGS
-                logprint( ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
-    #endif
-                
-                safe_free(a);
-                allocate();
-            }
-            Read( other.a );
-        }
-        return *this;
     }
 
     // Move constructor
@@ -131,47 +56,6 @@ public:
         return *this;
     }
 
-
-    // Copy-cast-assignment operator
-    template<
-        typename S, typename J, Size_T alignment_,
-        class = std::enable_if_t<(!SameQ<S,Scal>) || (!SameQ<J,Int>) || ( alignment_ != Alignment)>
-    >
-    mref<TENSOR_T> operator=( const TENSOR_T<S,J,alignment_> & other )
-    {
-
-#ifdef TENSORS_ALLOCATION_LOGS
-        logprint(ClassName() + " copy-cast-assignment (size = " + ToString(other.Size()) + ")");
-#endif
-        bool different_dimsQ = false;
-        
-        const Size_T i_count = ToSize_T(Rank());
-        
-        for( Size_T i = 0; i < i_count; ++i )
-        {
-            different_dimsQ = different_dimsQ || std::cmp_not_equal( dims[i], other.Dimensions()[i] );
-        }
-        
-        if( different_dimsQ )
-        {
-#ifdef TENSORS_ALLOCATION_LOGS
-            logprint(ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
-#endif
-            n = other.Size();
-            
-            for( Size_T i = 0; i < i_count; ++i )
-            {
-                dims[i] = int_cast<Int>(other.Dimensions()[i]);
-            }
-            
-            safe_free(a);
-            allocate();
-        }
-        Read( other.data() );
-        
-        return *this;
-    }
-
 public:
 
 
@@ -179,7 +63,6 @@ public:
     {
         return static_cast<Int>(rank);
     }
-
 
     Int Size() const
     {
@@ -362,24 +245,9 @@ public:
         return &a[n];
     }
 
-    //const Int * dimensions() const
-    //{
-    //    return &dims[0];
-    //}
-
-    TOOLS_FORCE_INLINE cptr<Int> Dims() const
-    {
-        return &dims[0];
-    }
-
     TOOLS_FORCE_INLINE cptr<Int> Dimensions() const
     {
         return Dims();
-    }
-
-    TOOLS_FORCE_INLINE Int Dim( const Int i ) const
-    {
-        return ( i < Rank() ) ? dims[ToSize_T(i)] : Scalar::Zero<Int>;
     }
 
     TOOLS_FORCE_INLINE Int Dimension( const Int i ) const
@@ -557,7 +425,7 @@ public:
         cref<TENSOR_T> A, std::string line_prefix = std::string("")
     )
     {
-        return ArrayToString( A.a, A.dims.data(), Rank(), line_prefix );
+        return ArrayToString( A.a, A.Dims(), Rank(), line_prefix );
     }
 
     template<typename F>
@@ -565,7 +433,7 @@ public:
         cref<TENSOR_T> A, F && fun, std::string line_prefix = std::string("")
     )
     {
-        return ArrayToString( A.a, A.dims.data(), Rank(), fun, line_prefix );
+        return ArrayToString( A.a, A.Dims(), Rank(), fun, line_prefix );
     }
 
 //
@@ -584,7 +452,7 @@ public:
 //            s << "\t" << a[i];
 //        }
         
-        s << ArrayToString( a, dims.data(), Rank(), "" );
+        s << ArrayToString( a, Dims(), Rank(), "" );
     }
 
     inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )

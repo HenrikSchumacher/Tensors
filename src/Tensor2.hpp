@@ -13,6 +13,7 @@ namespace Tensors
         static constexpr Int_ rank = 2;
         
 #include "Tensor_Common.hpp"
+#include "Tensor_Common23.hpp"
         
     public:
         

@@ -22,7 +22,6 @@ namespace Tensors
         >
         explicit Tensor1( const d0_T d0 )
         :   n    { int_cast<Int>(d0) }  // Using int_cast to get error messages.
-        ,   dims { int_cast<Int>(d0) }
         {
 #ifdef TENSORS_ALLOCATION_LOGS
             logprint(ClassName() + " constructor (size = " + ToString(Size()) + ")");
@@ -50,6 +49,102 @@ namespace Tensors
             Read(a_);
         }
         
+        // Copy constructor
+        TENSOR_T( const TENSOR_T & other )
+        :   n    ( other.n    )
+        {
+        #ifdef TENSORS_ALLOCATION_LOGS
+            logprint(ClassName() + " copy-constructor (size = " + ToString(other.Size()) + ")");
+        #endif
+            allocate();
+            Read(other.a);
+        }
+
+        // Copy-cast constructor
+        template<typename S, typename J, Size_T alignment_>
+        explicit TENSOR_T( const TENSOR_T<S,J,alignment_> & other )
+        :   n    ( other.Size()    )
+        {
+            static_assert(IntQ<J>,"");
+            
+        #ifdef TENSORS_ALLOCATION_LOGS
+            logprint(ClassName() + " copy-cast constuctor (size = " + ToString(other.Size()) + ")");
+        #endif
+            allocate();
+            Read(other.data());
+        }
+
+        inline friend void swap( TENSOR_T & A, TENSOR_T & B) noexcept
+        {
+        #ifdef TENSORS_ALLOCATION_LOGS
+            logprint(ClassName() + " swap (sizes = {" + ToString(A.Size()) + "," + ToString(B.Size()) + "})");
+        #endif
+            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
+            using std::swap;
+            
+            if( &A == &B )
+            {
+                wprint( std::string("An object of type ") + ClassName() + " has been swapped to itself.");
+            }
+            else
+            {
+                swap( A.a   , B.a       );
+                swap( A.n   , B.n       );
+            }
+        }
+
+        // Copy assignment operator
+        // We ship our own because we can do a few optimizations here.
+        mref<TENSOR_T> operator=( const TENSOR_T & other )
+        {
+        #ifdef TENSORS_ALLOCATION_LOGS
+                logprint(ClassName() + " copy-assignment (size = " + ToString(other.Size()) + ")");
+        #endif
+            if( this != &other )
+            {
+                if( n != other.n )
+                {
+                    n    = other.n;
+
+#ifdef TENSORS_ALLOCATION_LOGS
+                    logprint( ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
+        #endif
+                    
+                    safe_free(a);
+                    allocate();
+                }
+                Read( other.a );
+            }
+            return *this;
+        }
+        
+        
+        // Copy-cast-assignment operator
+        template<
+            typename S, typename J, Size_T alignment_,
+            class = std::enable_if_t<(!SameQ<S,Scal>) || (!SameQ<J,Int>) || ( alignment_ != Alignment)>
+        >
+        mref<TENSOR_T> operator=( const TENSOR_T<S,J,alignment_> & other )
+        {
+
+        #ifdef TENSORS_ALLOCATION_LOGS
+            logprint(ClassName() + " copy-cast-assignment (size = " + ToString(other.Size()) + ")");
+        #endif
+
+            if( std::cmp_not_equal( n, other.n ) )
+            {
+        #ifdef TENSORS_ALLOCATION_LOGS
+                logprint(ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
+        #endif
+                n = other.n;
+                safe_free(a);
+                allocate();
+            }
+            Read( other.data() );
+            
+            return *this;
+        }
+        
     private:
         
         template<typename I>
@@ -61,9 +156,9 @@ namespace Tensors
             {
                 eprint(ClassName()+": pointer is nullptr.");
             }
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
+            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,n) )
             {
-                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
+                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(n) +" [.");
             }
 #else
             (void)i;
@@ -71,6 +166,16 @@ namespace Tensors
         }
         
     public:
+        
+        TOOLS_FORCE_INLINE cptr<Int> Dims() const
+        {
+            return &n;
+        }
+
+        TOOLS_FORCE_INLINE Int Dim( const Int i ) const
+        {
+            return ( i == Int(0) ) ? n : Scalar::Zero<Int>;
+        }
         
         template<typename I>
         TOOLS_FORCE_INLINE mptr<Scal> data( const I i )
