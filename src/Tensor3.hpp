@@ -8,15 +8,13 @@ namespace Tensors
     template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
     class TENSOR_T final
     {
-        
-#include "Tensor_Common.hpp"
-        
-    protected:
-        
-        std::array<Int,3> dims = {0,0,0};     // dimensions visible to user
-
     public:
         
+        static constexpr Int_ rank = 3;
+        
+#include "Tensor_Common.hpp"
+
+    public:
         
         template<
             typename d0_T, typename d1_T, typename d2_T,
@@ -50,11 +48,6 @@ namespace Tensors
         :   Tensor3( d0, d1, d2 )
         {
             Read(a_);
-        }
-        
-        static constexpr Int Rank()
-        {
-            return Int(3);
         }
         
     protected:

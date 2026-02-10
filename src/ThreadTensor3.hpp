@@ -11,6 +11,7 @@ namespace Tensors {
         using Real = typename Scalar::Real<Scal_>;
         using Int  = Int_;
         
+        static constexpr Int    rank      = 3;
         static constexpr Size_T Alignment = alignment;
         
         using Tensor_T = Tensor2<Scal,Int,Alignment>;

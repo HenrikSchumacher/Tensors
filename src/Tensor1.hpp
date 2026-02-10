@@ -8,12 +8,11 @@ namespace Tensors
     template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
     class Tensor1 final
     {
-        
+    public:
+
+        static constexpr Int_ rank = 1;
+    
 #include "Tensor_Common.hpp"
-        
-    private:
-        
-        std::array<Int,1> dims = {0}; // dimensions visible to user
         
     public:
         
@@ -72,11 +71,6 @@ namespace Tensors
         }
         
     public:
-        
-        static constexpr Int Rank()
-        {
-            return Int(1);
-        }
         
         template<typename I>
         TOOLS_FORCE_INLINE mptr<Scal> data( const I i )

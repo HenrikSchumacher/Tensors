@@ -18,26 +18,36 @@ namespace Tensors
             using Scal   = Scal_;
             using Int    = Int_;
             
-            static constexpr Int n = static_cast<Int>(n_);
+            static constexpr Int n    = static_cast<Int>(n_);
+            static constexpr Int rank = 2;
             
             static constexpr Size_T Alignment = alignment;
             
-            using Tensor_T = Tensor2<Scal,Int,Alignment>;
+//            using Tensor_T = Tensor2<Scal,Int,Alignment>;
+            
+            
+            using Tensor_T = Tensor1<Scal,Int,Alignment>;
             
         public:
 
             
-            explicit VectorList_AoS( const Int m_ )
-            :   a(m_,n)
+            explicit VectorList_AoS( const Int vector_count_ )
+//            :   a(m_,n)
+            :   a            { vector_count_ * n }
+            ,   vector_count { vector_count_     }
             {}
             
-            VectorList_AoS( const Int m_, const Scal init )
-            :   a(m_,n,init)
+            VectorList_AoS( const Int vector_count_, const Scal init )
+//            :   a(m_,n,init)
+            :   a            { vector_count_ * n, init }
+            ,   vector_count { vector_count_           }
             {}
             
             template<typename S>
-            VectorList_AoS( cptr<S> a_ptr, const Int m_ )
-            :   a(a_ptr,m_,n)
+            VectorList_AoS( cptr<S> a_ptr, const Int vector_count_ )
+//            :   a(a_ptr,m_,n)
+            :   a            { a_ptr, vector_count_ * n }
+            ,   vector_count { vector_count_            }
             {}
     
             // Default constructor
@@ -57,17 +67,21 @@ namespace Tensors
             template<typename T, typename I, Size_T align>
             VectorList_AoS( const VectorList_AoS<n,T,I,align> & other )
             :   a( other.a )
+            ,   vector_count( other.vector_count )
             {}
             
             friend void swap(VectorList_AoS & A, VectorList_AoS & B ) noexcept
             {
                 using std::swap;
                 swap(A.a, B.a);
+                swap(A.vector_count, B.vector_count);
             }
             
         protected:
             
             Tensor_T a;
+            
+            Int vector_count = 0;
             
         public:
             
@@ -159,14 +173,16 @@ namespace Tensors
             template< typename S>
             void Write( const Int i, mptr<S> b ) const
             {
-                a.Write(i,b);
+//                a.Write(i,b);
+                copy_buffer<n>(this->data(i),b);
             }
             
             // row-wise Read
             template< typename S>
             void Read( const Int i, cptr<S> b )
             {
-                a.Read(i,b);
+//                a.Read(i,b);
+                copy_buffer<n>(b,this->data(i));
             }
             
             void SetZero()
@@ -183,7 +199,8 @@ namespace Tensors
             {
                 if( i == Int(0) )
                 {
-                    return a.Dim(0);
+//                    return a.Dim(0);
+                    return vector_count;
                 }
                 else if( i == Int(1) )
                 {
@@ -217,6 +234,16 @@ namespace Tensors
                 swap( *this, b );
             }
             
+            Int Size() const
+            {
+                return a.Size();
+            }
+            
+            static constexpr Int Rank()
+            {
+                return static_cast<Int>(rank);
+            }
+            
             Size_T AllocatedByteCount() const
             {
                 return a.AllocatedByteCount();
@@ -226,7 +253,9 @@ namespace Tensors
                 cref<VectorList_AoS> A, std::string line_prefix = ""
             )
             {
-                return ToString(A.a,line_prefix);
+//                return ToString(A.a,line_prefix);
+                
+                return ArrayToString( A.a.data(), {A.vector_count,n}, line_prefix );
             }
 
             template<typename F>
@@ -234,26 +263,77 @@ namespace Tensors
                 cref<VectorList_AoS> A, F && fun, std::string line_prefix = ""
             )
             {
-                return ToString(A.a,fun,line_prefix);
+//                return ToString(A.a,fun,line_prefix);
+                
+                return ArrayToString( A.data(), {A.vector_count,n}, std::forward(fun), line_prefix );
             }
             
 #ifdef LTEMPLATE_H
-            template<class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
+//            template<class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
+//            friend mma::TensorRef<mma::Type<Scal>> to_MTensorRef(
+//                cref<VectorList_AoS> A
+//            )
+//            {
+//                return to_MTensorRef(A.a);
+//            }
+            
+            template<bool replace_inftyQ = false, class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
             friend mma::TensorRef<mma::Type<Scal>> to_MTensorRef(
                 cref<VectorList_AoS> A
             )
             {
-                return to_MTensorRef(A.a);
+                using T = mma::Type<Scal>;
+                
+                mint dims [2] = {static_cast<mint>(A.vector_count),static_cast<mint>(n)};
+                
+                auto B = mma::makeTensor<T>( A.Rank(), &dims[0] );
+                
+                if constexpr ( SameQ<T,double> && replace_inftyQ )
+                {
+                    copy_buffer_replace_infty(A.data(),B.data(),A.Size());
+                }
+                else
+                {
+                    A.Write(B.data());
+                }
+                
+                return B;
             }
 #endif
 
 #ifdef MMA_HPP
-            template<class = typename std::enable_if_t<FloatQ<Real>>>
-            inline mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
+//            template<class = typename std::enable_if_t<FloatQ<Real>>>
+//            inline mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
+//                cref<VectorList_AoS> A
+//            )
+//            {
+//                return to_MTensorWrapper(A.a);
+//            }
+            
+            template<bool replace_inftyQ = false, class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
+            friend mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
                 cref<VectorList_AoS> A
             )
             {
-                return to_MTensorWrapper(A.a);
+                // TODO: Change this.
+//                return to_MTensorWrapper(A.a);
+                
+                using T = mma::Type<Scal>;
+                
+                mint dims [2] = {static_cast<mint>(A.vector_count),static_cast<mint>(n)};
+                
+                mma::MTensorWrapper<T> B ( A.Rank(), &dims[0] );
+                
+                if constexpr ( SameQ<T,double> && replace_inftyQ )
+                {
+                    copy_buffer_replace_infty(A.data(),B.data(),A.Size());
+                }
+                else
+                {
+                    A.Write(B.data());
+                }
+                
+                return B;
             }
 #endif
             

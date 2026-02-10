@@ -18,26 +18,34 @@ namespace Tensors
             using Scal = Scal_;
             using Int  = Int_;
             
-            static constexpr Int n  = static_cast<Int>(n_);
-            static constexpr Int m  = static_cast<Int>(m_);
-            static constexpr Int mn = m * n;
-
+            static constexpr Int n    = static_cast<Int>(n_);
+            static constexpr Int m    = static_cast<Int>(m_);
+            static constexpr Int mn   = m * n;
+            static constexpr Int rank = 3;
+            
             static constexpr Size_T Alignment = alignment;
             
-            using Tensor_T = Tensor3<Scal,Int,Alignment>;
+//            using Tensor_T = Tensor3<Scal,Int,Alignment>;
+            using Tensor_T = Tensor1<Scal,Int,Alignment>;
             
         public:
             
-            explicit MatrixList_AoS( const Int k_ )
-            :   a(k_,m,n)
+            explicit MatrixList_AoS( const Int matrix_count_ )
+//            :   a(matrix_count_,m,n)
+            :   a(matrix_count_ * m * n)
+            ,   matrix_count { matrix_count_ }
             {}
             
-            MatrixList_AoS( const Int k_, const Scal init )
-            :   a(k_,m,n,init)
+            MatrixList_AoS( const Int matrix_count_, const Scal init )
+//            :   a(matrix_count_,m,n,init)
+            :   a(matrix_count_ * m * n,init)
+            ,   matrix_count { matrix_count_ }
             {}
             
-            MatrixList_AoS( cptr<Scal> a_, const Int k_ )
-            :   a(a_,k_,m,n)
+            MatrixList_AoS( cptr<Scal> a_, const Int matrix_count_ )
+//            :   a(a_,matrix_count_,m,n)
+            :   a(a_, matrix_count_ * m * n)
+            ,   matrix_count { matrix_count_ }
             {}
             
             // Default constructor
@@ -57,6 +65,7 @@ namespace Tensors
             template<typename T, typename I, Size_T align>
             MatrixList_AoS( const MatrixList_AoS<m,n,T,I,align> & other )
             :   a( other.a )
+            ,   matrix_count( other.matrix_count )
             {}
             
             
@@ -65,11 +74,14 @@ namespace Tensors
                 using std::swap;
                 
                 swap(A.a,B.a);
+                swap(A.matrix_count,B.matrix_count);
             }
             
         protected:
             
             Tensor_T a;
+            
+            Int matrix_count = 0;
             
         public:
             
@@ -175,13 +187,16 @@ namespace Tensors
             template< typename S>
             void Write( const Int i, mptr<S> b ) const
             {
-                a.Write(i,b);
+//                a.Write(i,b);
+                
+                copy_buffer<mn>(this->data(i),b);
             }
             
             template< typename S>
             void Read( const Int i, cptr<S> b )
             {
-                a.Read(i,b);
+//                a.Read(i,b);
+                copy_buffer<mn>(b,this->data(i));
             }
 
             void SetZero()
@@ -198,7 +213,8 @@ namespace Tensors
             {
                 if( i == Int(0) )
                 {
-                    return a.Dim(0);
+//                    return a.Dim(0);
+                    return matrix_count;
                 }
                 else if( i == Int(1) )
                 {
@@ -235,6 +251,16 @@ namespace Tensors
                 
                 swap( *this, b );
             }
+
+            Int Size() const
+            {
+                return a.Size();
+            }
+            
+            static constexpr Int Rank()
+            {
+                return static_cast<Int>(rank);
+            }
             
             Size_T AllocatedByteCount() const
             {
@@ -245,7 +271,9 @@ namespace Tensors
                 cref<MatrixList_AoS> A, std::string line_prefix = ""
             )
             {
-                return ToString(A.a,line_prefix);
+//                return ToString(A.a,line_prefix);
+                
+                return ArrayToString( A.a.data(), {A.matrix_count,m,n}, line_prefix );
             }
 
             template<typename F>
@@ -253,26 +281,70 @@ namespace Tensors
                 cref<MatrixList_AoS> A, F && fun, std::string line_prefix = ""
             )
             {
-                return ToString(A.a,fun,line_prefix);
+//                return ToString(A.a,std::forward(fun),line_prefix);
+                
+                return ArrayToString( A.data(), {A.matrix_count,m,n}, std::forward(fun), line_prefix );
             }
             
 #ifdef LTEMPLATE_H
-            template<class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
+//            template<class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
+//            friend mma::TensorRef<mma::Type<Scal>> to_MTensorRef(
+//                cref<MatrixList_AoS> A
+//            )
+//            {
+//                // TODO: Change this.
+//                return to_MTensorRef(A.a);
+//            }
+            
+            template<bool replace_inftyQ = false, class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
             friend mma::TensorRef<mma::Type<Scal>> to_MTensorRef(
                 cref<MatrixList_AoS> A
             )
             {
-                return to_MTensorRef(A.a);
+                using T = mma::Type<Scal>;
+                
+                mint dims [3] = {static_cast<mint>(A.matrix_count),static_cast<mint>(m),static_cast<mint>(n)};
+                
+                auto B = mma::makeTensor<T>( A.Rank(), &dims[0] );
+                
+                if constexpr ( SameQ<T,double> && replace_inftyQ )
+                {
+                    copy_buffer_replace_infty(A.data(),B.data(),A.Size());
+                }
+                else
+                {
+                    A.Write(B.data());
+                }
+                
+                return B;
             }
 #endif
 
 #ifdef MMA_HPP
-            template<class = typename std::enable_if_t<FloatQ<Real>>>
-            inline mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
+            template<bool replace_inftyQ = false, class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
+            friend mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
                 cref<MatrixList_AoS> A
             )
             {
-                return to_MTensorWrapper(A.a);
+                // TODO: Change this.
+//                return to_MTensorWrapper(A.a);
+                
+                using T = mma::Type<Scal>;
+                
+                mint dims [3] = {static_cast<mint>(A.matrix_count),static_cast<mint>(m),static_cast<mint>(n)};
+                
+                mma::MTensorWrapper<T> B ( A.Rank(), &dims[0] );
+                
+                if constexpr ( SameQ<T,double> && replace_inftyQ )
+                {
+                    copy_buffer_replace_infty(A.data(),B.data(),A.Size());
+                }
+                else
+                {
+                    A.Write(B.data());
+                }
+                
+                return B;
             }
 #endif
             

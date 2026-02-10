@@ -8,12 +8,11 @@ namespace Tensors
     template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
     class Tensor2 final
     {
+    public:
 
+        static constexpr Int_ rank = 2;
+        
 #include "Tensor_Common.hpp"
-        
-    private:
-        
-        std::array<Int,2> dims = {0,0};     // dimensions visible to user
         
     public:
         
@@ -52,12 +51,6 @@ namespace Tensors
         }
         
     public:
-        
-        static constexpr Int Rank()
-        {
-            return Int(2);
-        }
-        
         
         template<bool row_first = false, typename S>
         void WriteTransposed( mptr<S> b )

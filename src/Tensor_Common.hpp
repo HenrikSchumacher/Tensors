@@ -10,9 +10,9 @@ public:
 
 protected:
 
-    Int n = 0;
-
     Scal * restrict a = nullptr ;
+    Int n = 0;
+    std::array<Int,rank> dims = {};     // dimensions visible to user
 
 public:
 
@@ -173,6 +173,13 @@ public:
     }
 
 public:
+
+
+    static constexpr Int Rank()
+    {
+        return static_cast<Int>(rank);
+    }
+
 
     Int Size() const
     {

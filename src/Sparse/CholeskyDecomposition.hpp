@@ -82,7 +82,7 @@ namespace Tensors
     namespace Sparse
     {
         template<typename Scal_, typename Int_, typename LInt_>
-        class alignas( ObjectAlignment ) CholeskyDecomposition final : public CachedObject
+        class alignas( ObjectAlignment ) CholeskyDecomposition final : public CachedObject<1,1,0,0>
         {
         public:
             
