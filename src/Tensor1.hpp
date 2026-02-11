@@ -131,12 +131,12 @@ namespace Tensors
             logprint(ClassName() + " copy-cast-assignment (size = " + ToString(other.Size()) + ")");
         #endif
 
-            if( std::cmp_not_equal( n, other.n ) )
+            if( std::cmp_not_equal( Dim(0), other.Dim(0) ) )
             {
         #ifdef TENSORS_ALLOCATION_LOGS
                 logprint(ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
         #endif
-                n = other.n;
+                n = other.Dim(0);
                 safe_free(a);
                 allocate();
             }

@@ -8,7 +8,7 @@ public:
 
     static constexpr Size_T Alignment = alignment;
 
-protected:
+private:
 
     Scal * restrict a = nullptr ;
     Int n = 0;
@@ -216,7 +216,7 @@ public:
         Randomize(thread_count);
     }
 
-protected:
+private:
 
     TOOLS_FORCE_INLINE void allocate()
     {
