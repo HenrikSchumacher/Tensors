@@ -238,6 +238,30 @@ namespace Tensors
                     }
                 }
             }
+
+            // Reading just the k-th vector from a contiguous buffer.
+            template<typename S, typename I>
+            void Read( mptr<S> a,  const Int k )
+            {
+                static_assert(IntQ<I>,"");
+
+                for( Int i = 0; i < n; ++ i)
+                {
+                    v[i][k] = a[i];
+                }
+            }
+            
+            // Writing just the k-th vector to a contiguous buffer.
+            template<typename S, typename I>
+            void Write( mptr<S> a,  const Int k ) const
+            {
+                static_assert(IntQ<I>,"");
+
+                for( Int i = 0; i < n; ++ i)
+                {
+                    a[i] = v[i][k];
+                }
+            }
             
         public:
             
