@@ -341,42 +341,42 @@ namespace Tensors
         
     public:
 
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i )
+        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i ) noexcept
         {
             BoundCheck(i);
             
             return &a[i * dims[1]];
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const noexcept
         {
             BoundCheck(i);
             
             return &a[i * dims[1]];
         }
         
-        TOOLS_FORCE_INLINE mref<Scal> operator()(const Int i, const Int j)
+        TOOLS_FORCE_INLINE mref<Scal> operator()(const Int i, const Int j) noexcept
         {
             BoundCheck(i,j);
             
             return a[ i * dims[1] + j];
         }
         
-        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j) const
+        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j) const noexcept
         {
             BoundCheck(i,j);
             
             return a[i * dims[1] + j];
         }
         
-        TOOLS_FORCE_INLINE mptr<Scal> operator[](const Int i)
+        TOOLS_FORCE_INLINE mptr<Scal> operator[](const Int i) noexcept
         {
             BoundCheck(i);
             
             return data(i);
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> operator[](const Int i) const
+        TOOLS_FORCE_INLINE cptr<Scal> operator[](const Int i) const noexcept
         {
             BoundCheck(i);
             
@@ -424,7 +424,7 @@ namespace Tensors
         
     public:
         
-        static std::string ClassName()
+        static std::string ClassName() noexcept
         {
             return ct_string("Tensor2")
                 + "<" + TypeName<Scal>

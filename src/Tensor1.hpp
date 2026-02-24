@@ -104,7 +104,7 @@ namespace Tensors
             {
                 if( n != other.n )
                 {
-                    n    = other.n;
+                    n = other.n;
 
 #ifdef TENSORS_ALLOCATION_LOGS
                     logprint( ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
@@ -167,18 +167,18 @@ namespace Tensors
         
     public:
         
-        TOOLS_FORCE_INLINE cptr<Int> Dims() const
+        TOOLS_FORCE_INLINE cptr<Int> Dims() const noexcept
         {
             return &n;
         }
 
-        TOOLS_FORCE_INLINE Int Dim( const Int i ) const
+        TOOLS_FORCE_INLINE Int Dim( const Int i ) const noexcept
         {
             return ( i == Int(0) ) ? n : Scalar::Zero<Int>;
         }
         
         template<typename I>
-        TOOLS_FORCE_INLINE mptr<Scal> data( const I i )
+        TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
         {
             static_assert(IntQ<I>,"");
             
@@ -188,7 +188,7 @@ namespace Tensors
         }
         
         template<typename I>
-        TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
         {
             BoundCheck(i);
             
@@ -196,7 +196,7 @@ namespace Tensors
         }
         
         template<typename I>
-        TOOLS_FORCE_INLINE mref<Scal> operator()(const I i)
+        TOOLS_FORCE_INLINE mref<Scal> operator()(const I i) noexcept
         {
             BoundCheck(i);
             
@@ -204,7 +204,7 @@ namespace Tensors
         }
         
         template<typename I>
-        TOOLS_FORCE_INLINE cref<Scal> operator()(const I i) const
+        TOOLS_FORCE_INLINE cref<Scal> operator()(const I i) const noexcept
         {
             BoundCheck(i);
             
@@ -212,7 +212,7 @@ namespace Tensors
         }
         
         template<typename I>
-        TOOLS_FORCE_INLINE mref<Scal> operator[](const I i)
+        TOOLS_FORCE_INLINE mref<Scal> operator[](const I i) noexcept
         {
             BoundCheck(i);
 
@@ -220,7 +220,7 @@ namespace Tensors
         }
         
         template<typename I>
-        TOOLS_FORCE_INLINE cref<Scal> operator[](const I i) const
+        TOOLS_FORCE_INLINE cref<Scal> operator[](const I i) const noexcept
         {
             BoundCheck(i);
             
@@ -229,22 +229,22 @@ namespace Tensors
         
 
         
-        TOOLS_FORCE_INLINE mref<Scal> First()
+        TOOLS_FORCE_INLINE mref<Scal> First() noexcept
         {
             return a[0];
         }
         
-        TOOLS_FORCE_INLINE cref<Scal> First() const
+        TOOLS_FORCE_INLINE cref<Scal> First() const noexcept
         {
             return a[0];
         }
 
-        TOOLS_FORCE_INLINE mref<Scal> Last()
+        TOOLS_FORCE_INLINE mref<Scal> Last() noexcept
         {
             return a[n-1];
         }
         
-        TOOLS_FORCE_INLINE cref<Scal> Last() const
+        TOOLS_FORCE_INLINE cref<Scal> Last() const noexcept
         {
             return a[n-1];
         }
@@ -334,7 +334,7 @@ namespace Tensors
 
     public:
         
-        static std::string ClassName()
+        static std::string ClassName() noexcept
         {
             return ct_string("Tensor1")
                 + "<" + TypeName<Scal>

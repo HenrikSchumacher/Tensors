@@ -53,7 +53,7 @@ namespace Tensors
             // Default constructor
             VectorList_AoS() = default;
             // Destructor
-            ~VectorList_AoS() = default;
+            ~VectorList_AoS() noexcept = default;
             // Copy constructor
             VectorList_AoS( const VectorList_AoS & other ) = default;
             // Copy assignment operator
@@ -85,42 +85,42 @@ namespace Tensors
             
         public:
             
-            TOOLS_FORCE_INLINE mptr<Tensor_T> Tensor()
+            TOOLS_FORCE_INLINE mptr<Tensor_T> Tensor() noexcept
             {
                 return a;
             }
             
-            TOOLS_FORCE_INLINE cptr<Tensor_T> Tensor() const
+            TOOLS_FORCE_INLINE cptr<Tensor_T> Tensor() const noexcept
             {
                 return a;
             }
             
-            TOOLS_FORCE_INLINE mptr<Scal> data()
+            TOOLS_FORCE_INLINE mptr<Scal> data() noexcept
             {
                 return a.data();
             }
             
-            TOOLS_FORCE_INLINE cptr<Scal> data() const
+            TOOLS_FORCE_INLINE cptr<Scal> data() const noexcept
             {
                 return a.data();
             }
             
             template<typename I>
-            TOOLS_FORCE_INLINE mptr<Scal> data( const I i )
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
             {
                 static_assert(IntQ<I>,"");
                 return &a.data()[n * i];
             }
             
             template<typename I>
-            TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const
+            TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
             {
                 static_assert(IntQ<I>,"");
                 return &a.data()[n * i];
             }
             
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j )
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j ) noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -128,7 +128,7 @@ namespace Tensors
             }
             
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const
+            TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -136,7 +136,7 @@ namespace Tensors
             }
             
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j)
+            TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j) noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -144,7 +144,7 @@ namespace Tensors
             }
             
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j) const
+            TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j) const noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -195,7 +195,7 @@ namespace Tensors
                 a.Fill(init);
             }
             
-            TOOLS_FORCE_INLINE Int Dim( const Int i ) const
+            TOOLS_FORCE_INLINE Int Dim( const Int i ) const noexcept
             {
                 if( i == Int(0) )
                 {
@@ -234,12 +234,12 @@ namespace Tensors
                 swap( *this, b );
             }
             
-            Int Size() const
+            Int Size() const noexcept
             {
                 return a.Size();
             }
             
-            static constexpr Int Rank()
+            static constexpr Int Rank() noexcept
             {
                 return static_cast<Int>(rank);
             }
@@ -339,7 +339,7 @@ namespace Tensors
             
         public:
             
-            static std::string ClassName()
+            static std::string ClassName() noexcept
             {
                 return ct_string("VectorList_AoS")
                     + "<" + to_ct_string(n)

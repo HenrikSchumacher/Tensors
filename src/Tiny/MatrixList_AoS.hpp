@@ -51,7 +51,7 @@ namespace Tensors
             // Default constructor
             MatrixList_AoS() = default;
             // Destructor
-            ~MatrixList_AoS() = default;
+            ~MatrixList_AoS() noexcept = default;
             // Copy constructor
             MatrixList_AoS( const MatrixList_AoS & other ) = default;
             // Copy assignment operator
@@ -96,32 +96,32 @@ namespace Tensors
             }
             
             
-            TOOLS_FORCE_INLINE mptr<Scal> data()
+            TOOLS_FORCE_INLINE mptr<Scal> data() noexcept
             {
                 return a.data();
             }
 
-            TOOLS_FORCE_INLINE cptr<Scal> data() const
+            TOOLS_FORCE_INLINE cptr<Scal> data() const noexcept
             {
                 return a.data();
             }
             
             template<typename I>
-            TOOLS_FORCE_INLINE mptr<Scal> data( const I i )
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
             {
                 static_assert(IntQ<I>,"");
                 return &a.data()[mn * i];
             }
             
             template<typename I>
-            TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const
+            TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
             {
                 static_assert(IntQ<I>,"");
                 return &a.data()[mn * i];
             }
 
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j )
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j ) noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -129,7 +129,7 @@ namespace Tensors
             }
             
             template<typename I, typename J>
-            TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const
+            TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -137,7 +137,7 @@ namespace Tensors
             }
             
             template<typename I, typename J, typename K>
-            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j, const K k)
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j, const K k) noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -146,7 +146,7 @@ namespace Tensors
             }
             
             template<typename I, typename J, typename K>
-            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j, const K k) const
+            TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j, const K k) const noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -155,7 +155,7 @@ namespace Tensors
             }
             
             template<typename I, typename J, typename K>
-            TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j, const K k)
+            TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j, const K k) noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -164,7 +164,7 @@ namespace Tensors
             }
             
             template<typename I, typename J, typename K>
-            TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j, const K k) const
+            TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j, const K k) const noexcept
             {
                 static_assert(IntQ<I>,"");
                 static_assert(IntQ<J>,"");
@@ -209,7 +209,7 @@ namespace Tensors
                 a.Fill(init);
             }
 
-            TOOLS_FORCE_INLINE Int Dim( const Int i ) const
+            TOOLS_FORCE_INLINE Int Dim( const Int i ) const noexcept
             {
                 if( i == Int(0) )
                 {
@@ -252,12 +252,12 @@ namespace Tensors
                 swap( *this, b );
             }
 
-            Int Size() const
+            Int Size() const noexcept
             {
                 return a.Size();
             }
             
-            static constexpr Int Rank()
+            static constexpr Int Rank() noexcept
             {
                 return static_cast<Int>(rank);
             }
@@ -351,7 +351,7 @@ namespace Tensors
             
         public:
             
-            static std::string ClassName()
+            static std::string ClassName() noexcept
             {
                 return ct_string("MatrixList_AoS")
                     + "<" + to_ct_string(m)

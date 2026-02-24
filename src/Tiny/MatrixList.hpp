@@ -30,7 +30,7 @@ namespace Tensors
             MatrixList() = default;
             
             //Destructor
-            ~MatrixList() = default;
+            ~MatrixList() noexcept = default;
             
             explicit MatrixList( const Int length_ )
             :   length(length_)
@@ -104,12 +104,12 @@ namespace Tensors
             
             //  Access routines
             
-            mptr<Scal> data( const Int i, const Int j )
+            mptr<Scal> data( const Int i, const Int j ) noexcept
             {
                 return A[i][j].data();
             }
             
-            cptr<Scal> data( const Int i, const Int j ) const
+            cptr<Scal> data( const Int i, const Int j ) const noexcept
             {
                 return A[i][j].data();
             }
@@ -125,42 +125,42 @@ namespace Tensors
                 }
             }
             
-            mref<Tensor_T> operator()( const Int i, const Int j )
+            mref<Tensor_T> operator()( const Int i, const Int j ) noexcept
             {
                 return A[i][j];
             }
             
-            const Tensor_T & operator()( const Int i, const Int j ) const
+            const Tensor_T & operator()( const Int i, const Int j ) const noexcept
             {
                 return A[i][j];
             }
             
-            mref<Scal> operator()( const Int i, const Int j, const Int k )
+            mref<Scal> operator()( const Int i, const Int j, const Int k ) noexcept
             {
                 return A[i][j][k];
             }
             
-            cref<Scal> operator()( const Int i, const Int j, const Int k ) const
+            cref<Scal> operator()( const Int i, const Int j, const Int k ) const noexcept
             {
                 return A[i][j][k];
             }
             
-//            mref<std::array<Tensor_T,n>> operator[]( const Int i )
+//            mref<std::array<Tensor_T,n>> operator[]( const Int i ) noexcept
 //            {
 //                return A[i];
 //            }
 //            
-//            cref<std::array<Tensor_T,n>> operator[]( const Int i ) const
+//            cref<std::array<Tensor_T,n>> operator[]( const Int i ) const noexcept
 //            {
 //                return A[i];
 //            }
             
-            mptr<Tensor_T> operator[]( const Int i )
+            mptr<Tensor_T> operator[]( const Int i ) noexcept
             {
                 return &A[i];
             }
             
-            cptr<Tensor_T> operator[]( const Int i ) const
+            cptr<Tensor_T> operator[]( const Int i ) const noexcept
             {
                 return &A[i];
             }
@@ -229,12 +229,12 @@ namespace Tensors
             
         public:
             
-            static constexpr Int Rank()
+            static constexpr Int Rank() noexcept
             {
                 return 3;
             }
             
-            Int Dim( const Int k ) const
+            Int Dim( const Int k ) const noexcept
             {
                 switch( k )
                 {
@@ -257,7 +257,7 @@ namespace Tensors
                 }
             }
             
-            Int Dimension( const Int k ) const
+            Int Dimension( const Int k ) const noexcept
             {
                 return Dim(k);
             }
@@ -283,7 +283,7 @@ namespace Tensors
             }
             
             
-            [[nodiscard]] static std::string ClassName()
+            [[nodiscard]] static std::string ClassName() noexcept
             {
                 return ct_string("Tiny::MatrixList")
                 + "<" + to_ct_string(m)

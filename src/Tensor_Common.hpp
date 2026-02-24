@@ -19,12 +19,12 @@ public:
     TENSOR_T() = default;
 
     // Destructor
-    ~TENSOR_T()
+    ~TENSOR_T() noexcept
     {
 #ifdef TENSORS_ALLOCATION_LOGS
         logprint(ClassName() + " destructor (size = " + ToString(Size()) + ")");
 #endif
-        safe_free(a);
+        deallocate();
     }
 
     // Move constructor
@@ -59,12 +59,12 @@ public:
 public:
 
 
-    static constexpr Int Rank()
+    static constexpr Int Rank() noexcept
     {
         return static_cast<Int>(rank);
     }
 
-    Int Size() const
+    Int Size() const noexcept
     {
         return n;
     }
@@ -218,34 +218,46 @@ public:
 
 private:
 
-    TOOLS_FORCE_INLINE void allocate()
+    TOOLS_FORCE_INLINE void allocate() noexcept
     {
         safe_alloc( a, ToSize_T(n), Alignment );
+        
+//        std::allocator<Scal> allocator;
+//        a = allocator.allocate(ToSize_T(n));
     }
+
+    TOOLS_FORCE_INLINE void deallocate() noexcept
+    {
+        safe_free(a);
+
+//        std::allocator<Scal> allocator;
+//        allocator.deallocate(a,ToSize_T(n));
+    }
+
 
 public:
 
-    TOOLS_FORCE_INLINE mptr<Scal> begin()
+    TOOLS_FORCE_INLINE mptr<Scal> begin() noexcept
     {
         return a;
     }
 
-    TOOLS_FORCE_INLINE cptr<Scal> begin() const
+    TOOLS_FORCE_INLINE cptr<Scal> begin() const noexcept
     {
         return a;
     }
 
-    TOOLS_FORCE_INLINE mptr<Scal> end()
+    TOOLS_FORCE_INLINE mptr<Scal> end() noexcept
     {
         return &a[n];
     }
 
-    TOOLS_FORCE_INLINE cptr<Scal> end() const
+    TOOLS_FORCE_INLINE cptr<Scal> end() const noexcept
     {
         return &a[n];
     }
 
-    TOOLS_FORCE_INLINE cptr<Int> Dimensions() const
+    TOOLS_FORCE_INLINE cptr<Int> Dimensions() const noexcept
     {
         return Dims();
     }
@@ -257,12 +269,12 @@ public:
 
 public:
 
-    TOOLS_FORCE_INLINE mptr<Scal> data()
+    TOOLS_FORCE_INLINE mptr<Scal> data() noexcept
     {
         return a;
     }
 
-    TOOLS_FORCE_INLINE cptr<Scal> data() const
+    TOOLS_FORCE_INLINE cptr<Scal> data() const noexcept
     {
         return a;
     }

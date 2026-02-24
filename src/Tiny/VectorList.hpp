@@ -32,7 +32,7 @@ namespace Tensors
             
             VectorList() = default;
             
-            ~VectorList() = default;
+            ~VectorList() noexcept = default;
             
             explicit VectorList( const Int length_ )
             :   length(length_)
@@ -117,7 +117,7 @@ namespace Tensors
             
             //  Access routines
             
-            mptr<Scal> data( const Int i )
+            mptr<Scal> data( const Int i ) noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -125,7 +125,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            cptr<Scal> data( const Int i ) const
+            cptr<Scal> data( const Int i ) const noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -133,7 +133,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            mref<Tensor_T> operator[]( const Int i )
+            mref<Tensor_T> operator[]( const Int i ) noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -141,7 +141,7 @@ namespace Tensors
                 return v[i];
             }
             
-            cref<Tensor_T> operator[]( const Int i ) const
+            cref<Tensor_T> operator[]( const Int i ) const noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -149,7 +149,7 @@ namespace Tensors
                 return v[i];
             }
             
-            mref<Tensor_T> operator()( const Int i )
+            mref<Tensor_T> operator()( const Int i ) noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -157,7 +157,7 @@ namespace Tensors
                 return v[i];
             }
             
-            cref<Tensor_T> operator()( const Int i ) const
+            cref<Tensor_T> operator()( const Int i ) const noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -165,7 +165,7 @@ namespace Tensors
                 return v[i];
             }
             
-            mref<Scal> operator()( const Int i, const Int k )
+            mref<Scal> operator()( const Int i, const Int k ) noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -173,7 +173,7 @@ namespace Tensors
                 return v[i][k];
             }
             
-            cref<Scal> operator()( const Int i, const Int k ) const
+            cref<Scal> operator()( const Int i, const Int k ) const noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -265,12 +265,12 @@ namespace Tensors
             
         public:
             
-            static constexpr Int Rank()
+            static constexpr Int Rank() noexcept
             {
                 return 2;
             }
             
-            Int Dim( const Int k ) const
+            Int Dim( const Int k ) const noexcept
             {
                 switch( k )
                 {
@@ -289,7 +289,7 @@ namespace Tensors
                 }
             }
             
-            Int Dimension( const Int k ) const
+            Int Dimension( const Int k ) const noexcept
             {
                 return Dim(k);
             }
@@ -311,7 +311,7 @@ namespace Tensors
                 return sizeof(VectorList) + AllocatedByteCount();
             }
             
-            static std::string ClassName()
+            static std::string ClassName() noexcept
             {
                 return ct_string("Tiny::VectorList")
                     + "<" + to_ct_string(n)
