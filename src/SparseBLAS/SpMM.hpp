@@ -148,8 +148,10 @@ private:
     {
         using namespace Scalar;
         
-        if constexpr( 
-            (NRHS > VarSize) && ( a_flag == F_T::Zero )
+        // At least with fast-math flag the generic code is exactly as fast as this one.
+        // But this has vectorization guarantees, even without fast-math.
+        if constexpr(
+            (NRHS > VarSize) && ( a_flag != F_T::Zero )
             &&
             VectorizableQ<Y_T>
             &&
@@ -162,254 +164,254 @@ private:
             std::is_same_v<beta_T,Y_T>
         )
         {
-            SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS,base>(rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr);
+            return SpMM_vec<a_flag,alpha_flag,beta_flag,NRHS,base>(
+                rp,ci,a,m,n,alpha,X,ldX,beta,Y,ldY,job_ptr
+           );
         }
-        else
+
+        std::string tag = std::string(ClassName()+"::SpMM_impl")
+            + "<" + ToString(a_flag)
+            + "," + ToString(alpha_flag)
+            + "," + ToString(beta_flag)
+            + "," + (NRHS <= 0 ? std::string("VarSize") : ToString(NRHS) )
+            + "," + ToString(base)
+            + "," + TypeName<alpha_T>
+            + "," + TypeName<X_T>
+            + "," + TypeName<beta_T>
+            + "," + TypeName<Y_T>
+            +">(" + ToString(ldX)
+            + "," + ToString(ldY)
+            + "," + ToString(nrhs)
+            + ")";
+        
+        TOOLS_PTIMER(timer,tag);
+        
+        // TODO: Add better check for pointer overlap.
+        
+        if constexpr ( std::is_same_v<X_T,Y_T> )
         {
-            std::string tag = std::string(ClassName()+"::SpMM_impl")
-                + "<" + ToString(a_flag) 
-                + "," + ToString(alpha_flag)
-                + "," + ToString(beta_flag)
-                + "," + (NRHS <= 0 ? std::string("VarSize") : ToString(NRHS) )
-                + "," + ToString(base)
-                + "," + TypeName<alpha_T>
-                + "," + TypeName<X_T>
-                + "," + TypeName<beta_T>
-                + "," + TypeName<Y_T>
-                +">(" + ToString(ldX)
-                + "," + ToString(ldY) 
-                + "," + ToString(nrhs)
-                + ")";
-            
-            TOOLS_PTIMER(timer,tag);
-            
-            // TODO: Add better check for pointer overlap.
-            
-            if constexpr ( std::is_same_v<X_T,Y_T> )
+            if( X == Y )
             {
-                if( X == Y )
-                {
-                    eprint( tag + ": Input and output pointer coincide. This is not safe. Aborting.");
-                    return;
-                }
+                eprint( tag + ": Input and output pointer coincide. This is not safe. Aborting.");
+                return;
             }
-            
-            
-            // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
-            //  - a_flag     == Generic
-            //  - a_flag     == One
-            //  - alpha_flag == One
-            //  - alpha_flag == Generic
-            //  - beta_flag  == Zero
-            //  - beta_flag  == Plus
-            //  - beta_flag  == Generic
+        }
+        
+        
+        // Only to be called by SpMM which guarantees that the following cases are the only once to occur:
+        //  - a_flag     == Generic
+        //  - a_flag     == One
+        //  - alpha_flag == One
+        //  - alpha_flag == Generic
+        //  - beta_flag  == Zero
+        //  - beta_flag  == Plus
+        //  - beta_flag  == Generic
 
-            // Treats sparse matrix as a binary matrix if a_flag != F_T::Generic.
-            // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
-            
-            // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
+        // Treats sparse matrix as a binary matrix if a_flag != F_T::Generic.
+        // (Then it implicitly assumes that a == nullptr and does not attempt to index into it.)
+        
+        // Uses shortcuts if alpha = 1, beta = 0 or beta = 1.
 
-            if constexpr ( a_flag == F_T::Generic )
+        if constexpr ( a_flag == F_T::Generic )
+        {
+            if ( a == nullptr )
             {
-                if ( a == nullptr )
-                {
-                    eprint( tag + ": a_flag == F_T::Generic, but the pointer a is a nullptr. Aborting.");
-                    return;
-                }
+                eprint( tag + ": a_flag == F_T::Generic, but the pointer a is a nullptr. Aborting.");
+                return;
             }
-            
-            // We have to do z += a * x quite often.
-            // a could be complex or real.
-            // x could be complex or real.
-            // a*x is real only if a_T and X_T are real.
-            //
-            // Which precision to use?
-            // We have the following options:
-            // -- use min( Prec<a_T>, Prec<X_T> );
-            // -- use max( Prec<a_T>, Prec<X_T> );
-            // -- use Prec<a_T>;
-            // -- use Prec<X_T>;
-            
-            // With many right-hand sides, casting x will be more expensive
-            // than casting a.
-            
-            // Make precisions of a and X compatible.
-            // Using precision of X to minimize casting during runtime.
-            using a_T = std::conditional_t<
-                Scalar::ComplexQ<Scal>,
-                Scalar::Complex<X_T>,
-                Scalar::Real<X_T>
-            >;
-            
-            // Define z_T so that it can hold a * x.
-            using z_T = typename std::conditional_t<
-                Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
-                typename Scalar::Complex<X_T>,
-                typename Scalar::Real<X_T>
-            >;
+        }
+        
+        // We have to do z += a * x quite often.
+        // a could be complex or real.
+        // x could be complex or real.
+        // a*x is real only if a_T and X_T are real.
+        //
+        // Which precision to use?
+        // We have the following options:
+        // -- use min( Prec<a_T>, Prec<X_T> );
+        // -- use max( Prec<a_T>, Prec<X_T> );
+        // -- use Prec<a_T>;
+        // -- use Prec<X_T>;
+        
+        // With many right-hand sides, casting x will be more expensive
+        // than casting a.
+        
+        // Make precisions of a and X compatible.
+        // Using precision of X to minimize casting during runtime.
+        using a_T = std::conditional_t<
+            Scalar::ComplexQ<Scal>,
+            Scalar::Complex<X_T>,
+            Scalar::Real<X_T>
+        >;
+        
+        // Define z_T so that it can hold a * x.
+        using z_T = typename std::conditional_t<
+            Scalar::ComplexQ<Scal> || Scalar::ComplexQ<X_T>,
+            typename Scalar::Complex<X_T>,
+            typename Scalar::Real<X_T>
+        >;
 
-            // Check whether z = a * x will work.
+        // Check whether z = a * x will work.
 //            StaticParameterCheck<Scalar::Real<z_T>,z_T,a_T,X_T>();
 
-            // Not as often we have to do y = alpha * z + beta * y;
-            // Nonetheless, we should cast alpha and beta to specific
-            // types to make this efficient.
-            //
-            // The current implementation of combine_scalars computes this
-            // by y = ( alpha * z) + (beta * y);
-            //
-            
-            using alpha_T_ = std::conditional_t<
-                Scalar::ComplexQ<alpha_T>,
-                Scalar::Complex<z_T>,
-                Scalar::Real<z_T>
-            >;
-            
-            using beta_T_ = std::conditional_t<
-                Scalar::ComplexQ<beta_T>,
-                Scalar::Complex<Y_T>,
-                Scalar::Real<Y_T>
-            >;
-            
-            const alpha_T_ alpha_ = static_cast<alpha_T_>(alpha);
-            const beta_T_  beta_  = static_cast<beta_T_ >(beta );
-            
-            
-            // Check whether y = alpha_ * z + beta_ * y will work.
+        // Not as often we have to do y = alpha * z + beta * y;
+        // Nonetheless, we should cast alpha and beta to specific
+        // types to make this efficient.
+        //
+        // The current implementation of combine_scalars computes this
+        // by y = ( alpha * z) + (beta * y);
+        //
+        
+        using alpha_T_ = std::conditional_t<
+            Scalar::ComplexQ<alpha_T>,
+            Scalar::Complex<z_T>,
+            Scalar::Real<z_T>
+        >;
+        
+        using beta_T_ = std::conditional_t<
+            Scalar::ComplexQ<beta_T>,
+            Scalar::Complex<Y_T>,
+            Scalar::Real<Y_T>
+        >;
+        
+        const alpha_T_ alpha_ = static_cast<alpha_T_>(alpha);
+        const beta_T_  beta_  = static_cast<beta_T_ >(beta );
+        
+        
+        // Check whether y = alpha_ * z + beta_ * y will work.
 //            StaticParameterCheck<alpha_T_,z_T,beta_T_,Y_T>();
-            
-            constexpr bool prefetchQ = true;
-            
-            ParallelDo(
-                [&]( const Int thread )
+        
+        constexpr bool prefetchQ = true;
+        
+        ParallelDo(
+            [&]( const Int thread )
+            {
+                std::conditional_t<
+                    NRHS==VarSize,
+                    Tensor1<z_T,Int>,
+                    Tiny::Vector<NRHS,z_T,Int>
+                > z;
+                
+                if constexpr ( NRHS==VarSize )
                 {
-                    std::conditional_t<
-                        NRHS==VarSize,
-                        Tensor1<z_T,Int>,
-                        Tiny::Vector<NRHS,z_T,Int>
-                    > z;
-                    
-                    if constexpr ( NRHS==VarSize )
-                    {
-                        z = Tensor1<z_T,Int>( nrhs );
-                    }
-                    
-                    const Int i_begin = job_ptr[thread  ];
-                    const Int i_end   = job_ptr[thread+1];
-                    
-                    const LInt last_l = rp[i_end];
+                    z = Tensor1<z_T,Int>( nrhs );
+                }
+                
+                const Int i_begin = job_ptr[thread  ];
+                const Int i_end   = job_ptr[thread+1];
+                
+                const LInt last_l = rp[i_end];
 
-                    const LInt look_ahead = static_cast<LInt>(
-                        Tools::Max(
-                            Size_T(1),
-                            CacheLineWidth 
-                            /
-                            (sizeof(X_T) * Tools::Max(static_cast<Size_T>(nrhs),NRHS))
-                        )
-                    );
-                    
-                    for( Int i = i_begin; i < i_end; ++i )
-                    {
-                        const LInt l_begin = rp[i  ];
-                        const LInt l_end   = rp[i+1];
+                const LInt look_ahead = static_cast<LInt>(
+                    Tools::Max(
+                        Size_T(1),
+                        CacheLineWidth
+                        /
+                        (sizeof(X_T) * Tools::Max(static_cast<Size_T>(nrhs),NRHS))
+                    )
+                );
+                
+                for( Int i = i_begin; i < i_end; ++i )
+                {
+                    const LInt l_begin = rp[i  ];
+                    const LInt l_end   = rp[i+1];
 
-                        if( l_end > l_begin )
+                    if( l_end > l_begin )
+                    {
+                        // Overwrite for first element in row.
                         {
-                            // Overwrite for first element in row.
-                            {
-                                const LInt l = l_begin;
-                                const Int  j = ci[l] - base;
+                            const LInt l = l_begin;
+                            const Int  j = ci[l] - base;
 
-                                if constexpr ( prefetchQ )
+                            if constexpr ( prefetchQ )
+                            {
+                                // This prefetch would cause segfaults without the check.
+                                if( l + look_ahead < last_l )
                                 {
-                                    // This prefetch would cause segfaults without the check.
-                                    if( l + look_ahead < last_l )
-                                    {
-                                        prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
-                                    }
-                                }
-                                
-                                // We use this `if constexpr` here so that we do not read from a when it is a nullptr
-                                if constexpr ( a_flag == F_T::Generic )
-                                {
-                                    combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
-                                        static_cast<a_T>(a[l]), &X[ldX * j],
-                                        Scalar::Zero<z_T>,      &z[0],
-                                        nrhs
-                                    );
-                                }
-                                else if constexpr ( a_flag == F_T::Plus )
-                                {
-                                    combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
-                                        Scalar::One <a_T>, &X[ldX * j],
-                                        Scalar::Zero<z_T>, &z[0],
-                                        nrhs
-                                    );
+                                    prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
                                 }
                             }
                             
-                            // Add remaining entries.
-                            for( LInt l = l_begin + LInt(1); l < l_end; ++l )
+                            // We use this `if constexpr` here so that we do not read from a when it is a nullptr
+                            if constexpr ( a_flag == F_T::Generic )
                             {
-                                const Int j = ci[l] - base;
-
-                                if constexpr ( prefetchQ )
-                                {
-                                    // This prefetch would cause segfaults without the check.
-                                    if( l + look_ahead < last_l )
-                                    {
-                                        prefetch( &X[ldX * (ci[l + look_ahead]- base)], 0, 0 );
-                                    }
-                                }
-
-                                // Add-in
-                                if constexpr ( a_flag == F_T::Generic )
-                                {
-                                    combine_buffers<F_T::Generic,F_T::Plus,NRHS,Sequential>(
-                                        static_cast<a_T>(a[l]), &X[ldX * j],
-                                        Scalar::One<z_T>,       &z[0],
-                                        nrhs
-                                    );
-                                }
-                                else if constexpr ( a_flag == F_T::Plus )
-                                {
-                                    // We use if Scalar::One<a_T> here so that we do not read from a when it is a nullptr
-                                    combine_buffers<F_T::Plus,F_T::Plus,NRHS,Sequential>(
-                                        Scalar::One<a_T>, &X[ldX * j],
-                                        Scalar::One<z_T>, &z[0],
-                                        nrhs
-                                    );
-                                }
+                                combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
+                                    static_cast<a_T>(a[l]), &X[ldX * j],
+                                    Scalar::Zero<z_T>,      &z[0],
+                                    nrhs
+                                );
                             }
-                            
-                            // Incorporate the local updates into Y-buffer.
-                            combine_buffers<alpha_flag,beta_flag,NRHS,Seq>(
-                                alpha_, &z[0],
-                                beta_,  &Y[ldY * i],
-                                nrhs
-                            );
+                            else if constexpr ( a_flag == F_T::Plus )
+                            {
+                                combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
+                                    Scalar::One <a_T>, &X[ldX * j],
+                                    Scalar::Zero<z_T>, &z[0],
+                                    nrhs
+                                );
+                            }
                         }
-                        else
+                        
+                        // Add remaining entries.
+                        for( LInt l = l_begin + LInt(1); l < l_end; ++l )
                         {
-                            // Modify the relevant portion of the Y-buffer.
-                            if constexpr( beta_flag == F_T::Zero )
+                            const Int j = ci[l] - base;
+
+                            if constexpr ( prefetchQ )
                             {
-                                zerofy_buffer<NRHS,Sequential>( &Y[ldY * i] );
+                                // This prefetch would cause segfaults without the check.
+                                if( l + look_ahead < last_l )
+                                {
+                                    prefetch( &X[ldX * (ci[l + look_ahead]- base)], 0, 0 );
+                                }
                             }
-                            else if constexpr( beta_flag == F_T::Generic )
+
+                            // Add-in
+                            if constexpr ( a_flag == F_T::Generic )
                             {
-                                scale_buffer<NRHS,Sequential>( beta_, &Y[ldY * i] );
+                                combine_buffers<F_T::Generic,F_T::Plus,NRHS,Sequential>(
+                                    static_cast<a_T>(a[l]), &X[ldX * j],
+                                    Scalar::One<z_T>,       &z[0],
+                                    nrhs
+                                );
                             }
-                            else if constexpr( beta_flag == F_T::Plus )
+                            else if constexpr ( a_flag == F_T::Plus )
                             {
-                                // Do nothing.
+                                // We use if Scalar::One<a_T> here so that we do not read from a when it is a nullptr
+                                combine_buffers<F_T::Plus,F_T::Plus,NRHS,Sequential>(
+                                    Scalar::One<a_T>, &X[ldX * j],
+                                    Scalar::One<z_T>, &z[0],
+                                    nrhs
+                                );
                             }
+                        }
+                        
+                        // Incorporate the local updates into Y-buffer.
+                        combine_buffers<alpha_flag,beta_flag,NRHS,Seq>(
+                            alpha_, &z[0],
+                            beta_,  &Y[ldY * i],
+                            nrhs
+                        );
+                    }
+                    else // if( l_end == l_begin )
+                    {
+                        // Modify the relevant portion of the Y-buffer.
+                        if constexpr( beta_flag == F_T::Zero )
+                        {
+                            zerofy_buffer<NRHS,Sequential>( &Y[ldY * i], nrhs );
+                        }
+                        else if constexpr( beta_flag == F_T::Generic )
+                        {
+                            scale_buffer<NRHS,Sequential>( beta_, &Y[ldY * i], nrhs );
+                        }
+                        else if constexpr( beta_flag == F_T::Plus )
+                        {
+                            // Do nothing.
                         }
                     }
-                },
-                job_ptr.ThreadCount()
-            );
-        }
+                }
+            },
+            job_ptr.ThreadCount()
+        );
     }
 
 #if( __has_attribute(__ext_vector_type__) )
@@ -471,7 +473,6 @@ private:
         >;
         
         using x_T = y_T;
-        
         
         if constexpr ( a_flag == F_T::Generic )
         {
@@ -565,4 +566,4 @@ private:
             job_ptr.ThreadCount()
         );
     }
-#endif
+#endif // ( __has_attribute(__ext_vector_type__) )
