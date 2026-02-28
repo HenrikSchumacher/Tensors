@@ -201,6 +201,21 @@ namespace Tensors
             copy_buffer( b, data(i,j), dims[2] );
         }
         
+        template<typename FillFun_T>
+        void FillByFunction( FillFun_T && f )
+        {
+            for( Int i = 0; i < Dim(0); ++i )
+            {
+                for( Int j = 0; j < Dim(1); ++j )
+                {
+                    for( Int k = 0; k < Dim(2); ++k )
+                    {
+                        this->operator()(i,j,k) = f(i,j,k);
+                    }
+                }
+            }
+        }
+        
     public:
         
         static std::string ClassName() noexcept

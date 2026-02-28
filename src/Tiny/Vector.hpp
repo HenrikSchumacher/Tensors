@@ -452,25 +452,35 @@ namespace Tensors
             {
                 return iamin_buffer<n>(&v[0],n);
             }
-                
-            TOOLS_FORCE_INLINE void ElementwiseMin( cref<Vector<n,Scal,Int>> x )
+            
+            TOOLS_FORCE_INLINE void ElementwiseMin( cptr<Scal> x )
             {
-                elementwise_min_update<n>(x.data(),&v[0]);
+                elementwise_min_update<n>( x, &v[0] );
                 
 //                for( Int i = 0; i < n; ++i )
 //                {
 //                    v[i] = Tools::Min(x[i],v[i]);
 //                }
             }
-            
-            TOOLS_FORCE_INLINE void ElementwiseMax( cref<Vector<n,Scal,Int>> x )
+                
+            TOOLS_FORCE_INLINE void ElementwiseMin( cref<Vector<n,Scal,Int>> x )
             {
-                elementwise_max_update<n>(x.data(),&v[0]);
+                ElementwiseMin(x.data());
+            }
+            
+            TOOLS_FORCE_INLINE void ElementwiseMax( cptr<Scal> x )
+            {
+                elementwise_max_update<n>( x, &v[0] );
                 
 //                for( Int i = 0; i < n; ++i )
 //                {
 //                    v[i] = Tools::Max(x[i],v[i]);
 //                }
+            }
+            
+            TOOLS_FORCE_INLINE void ElementwiseMax( cref<Vector<n,Scal,Int>> x )
+            {
+                ElementwiseMax(x.data());
             }
             
             

@@ -315,6 +315,16 @@ namespace Tensors
             iota_buffer( a, int_cast<Size_T>(n), int_cast<Size_T>(thread_count) );
         }
         
+            
+        template<typename FillFun_T>
+        void FillByFunction( FillFun_T && f )
+        {
+            for( Int i = 0; i < Dim(0); ++i )
+            {
+                this->operator()(i) = f(i);
+            }
+        }
+        
     public:
         
         [[nodiscard]] std::string friend ToString( cref<TENSOR_T> T, const Int i_begin, const Int i_end )
