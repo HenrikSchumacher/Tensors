@@ -294,6 +294,22 @@ namespace Tensors
                 return Dim(k);
             }
             
+            friend std::string ToString( cref<VectorList> v_list )
+            {
+                std::string s ("{\n");
+                
+                s += "\t";
+                s += ToString(v_list.v[0]   );
+                
+                for( Int i = 1; i < n; ++i )
+                {
+                    s += ",\n\t";
+                    s += ToString(v_list.v[i]   );
+                }
+                s+= "\n}";
+                return s;
+            }
+            
             Size_T AllocatedByteCount() const
             {
                 Size_T b = 0;

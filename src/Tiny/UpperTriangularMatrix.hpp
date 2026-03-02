@@ -292,7 +292,7 @@ namespace Tensors
             
             [[nodiscard]] friend std::string ToString( cref<UpperTriangularMatrix> M )
             {
-                return MatrixString<n,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " },", "\n", "\n}");
+                return MatrixString<n,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " }", ",\n", "\n}");
             }
             
             template<typename T = Scal>

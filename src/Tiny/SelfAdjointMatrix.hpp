@@ -837,7 +837,7 @@ namespace Tensors
             
             [[nodiscard]] std::string friend ToString( cref<SelfAdjointMatrix> M )
             {
-                return MatrixString<n,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " },", "\n", "\n}");
+                return MatrixString<n,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " }", ",\n", "\n}");
             }
             
             template<typename T = Scal>
