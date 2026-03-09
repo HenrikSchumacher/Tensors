@@ -4,11 +4,9 @@ namespace Tensors
 {
     // TODO: It could be helpful to track min and max of the two containers as these might be needed for a later assembly.
     
-    template<typename T_0, typename T_1, typename Int>
+    template<typename T_0, typename T_1, IntQ Int>
     class alignas(ObjectAlignment) PairAggregator final
     {
-        static_assert(IntQ<Int>,"");
-
         using Container_0_T = Tensor1<T_0,Int>;
         using Container_1_T = Tensor1<T_1,Int>;
 

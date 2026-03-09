@@ -5,7 +5,7 @@ namespace Tensors
 
 #define TENSOR_T Tensor1 
 
-    template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
+    template <typename Scal_, IntQ Int_, Size_T alignment = DefaultAlignment>
     class Tensor1 final
     {
     public:
@@ -16,10 +16,7 @@ namespace Tensors
         
     public:
         
-        template<
-            typename d0_T,
-            class = typename std::enable_if_t<IntQ<d0_T>>
-        >
+        template<IntQ d0_T>
         explicit Tensor1( const d0_T d0 )
         :   n    { int_cast<Int>(d0) }  // Using int_cast to get error messages.
         {
@@ -29,20 +26,14 @@ namespace Tensors
             allocate();
         }
         
-        template<
-            typename d0_T,
-            class = typename std::enable_if_t<IntQ<d0_T>>
-        >
+        template<IntQ d0_T>
         Tensor1( const d0_T d0, cref<Scal> init )
         :   Tensor1( d0 ) // Using int_cast to get error messages.
         {
             Fill( init );
         }
         
-        template<
-            typename S, typename d0_T,
-            class = typename std::enable_if_t<IntQ<d0_T>>
-        >
+        template<typename S, IntQ d0_T>
         Tensor1( cptr<S> a_, const d0_T d0 )
         :   Tensor1( d0 )
         {
@@ -61,12 +52,10 @@ namespace Tensors
         }
 
         // Copy-cast constructor
-        template<typename S, typename J, Size_T alignment_>
+        template<typename S, IntQ J, Size_T alignment_>
         explicit TENSOR_T( const TENSOR_T<S,J,alignment_> & other )
         :   n    ( other.Size()    )
         {
-            static_assert(IntQ<J>,"");
-            
         #ifdef TENSORS_ALLOCATION_LOGS
             logprint(ClassName() + " copy-cast constuctor (size = " + ToString(other.Size()) + ")");
         #endif
@@ -147,10 +136,9 @@ namespace Tensors
         
     private:
         
-        template<typename I>
+        template<IntQ I>
         void BoundCheck( const I i ) const
         {
-            static_assert(IntQ<I>,"");
 #ifdef TENSORS_BOUND_CHECKS
             if( a == nullptr )
             {
@@ -177,53 +165,45 @@ namespace Tensors
             return ( i == Int(0) ) ? n : Scalar::Zero<Int>;
         }
         
-        template<typename I>
+        template<IntQ I>
         TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
         {
-            static_assert(IntQ<I>,"");
-            
             BoundCheck(i);
-            
             return &a[i];
         }
         
-        template<typename I>
+        template<IntQ I>
         TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
         {
             BoundCheck(i);
-            
             return &a[i];
         }
         
-        template<typename I>
+        template<IntQ I>
         TOOLS_FORCE_INLINE mref<Scal> operator()(const I i) noexcept
         {
             BoundCheck(i);
-            
             return a[i];
         }
         
-        template<typename I>
+        template<IntQ I>
         TOOLS_FORCE_INLINE cref<Scal> operator()(const I i) const noexcept
         {
             BoundCheck(i);
-            
             return a[i];
         }
         
-        template<typename I>
+        template<IntQ I>
         TOOLS_FORCE_INLINE mref<Scal> operator[](const I i) noexcept
         {
             BoundCheck(i);
-
             return a[i];
         }
         
-        template<typename I>
+        template<IntQ I>
         TOOLS_FORCE_INLINE cref<Scal> operator[](const I i) const noexcept
         {
             BoundCheck(i);
-            
             return a[i];
         }
         
@@ -248,6 +228,46 @@ namespace Tensors
         {
             return a[n-1];
         }
+        
+        
+        
+        auto WriteAccess()
+        {
+            return [this]( const Int i ) -> Scal&
+            {
+                BoundCheck(i);
+                return a[i];
+            };
+        }
+        
+        auto ReadAccess() const
+        {
+            return [this]( const Int i ) -> Scal
+            {
+                BoundCheck(i);
+                return a[i];
+            };
+        }
+        
+        inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
+        {
+            return s << OutString(tensor.ReadAccess(), tensor.Dim(0));
+        }
+
+        inline friend std::string ToString( cref<TENSOR_T> tensor )
+        {
+            return OutString(tensor.ReadAccess(), tensor.Dim(0));
+        }
+        
+        inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
+        {
+            return OutString(
+                tensor.ReadAccess(),
+                tensor.Dim(0), line_prefix + "{ ", ", ", " }"
+            );
+        }
+        
+        
         
         template<bool copy>
         void Resize( const Int m_, const Int thread_count = 1 )
@@ -331,14 +351,14 @@ namespace Tensors
         {
             if( (i_begin >= 0) && ( i_end <= T.n) )
             {
-                return ArrayToString(
+                return OutString(
                     &T.a[i_begin],
-                    {Tools::Max(int_cast<Size_T>(0),int_cast<Size_T>(i_end-i_begin))}
+                    Tools::Max(int_cast<Size_T>(0),int_cast<Size_T>(i_end-i_begin))
                 );
             }
             else
             {
-                return ArrayToString(T.a,0);
+                return OutString(T.a,0);
             }
         }
 
@@ -355,7 +375,7 @@ namespace Tensors
         
     }; // Tensor1
     
-    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment>
+    template<typename Scal, IntQ Int, Size_T alignment = DefaultAlignment>
     Tensor1<Scal,Int,alignment> iota( const Int size_ )
     {
         Tensor1<Scal,Int,alignment> v (size_);
@@ -365,7 +385,7 @@ namespace Tensors
         return v;
     }
     
-//    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment, typename S>
+//    template<typename Scal, IntQ Int, Size_T alignment = DefaultAlignment, typename S>
 //    Tensor1<Scal,Int,alignment> ToTensor1( mptr<S> a_, const Int d0 )
 //    {
 //        Tensor1<Scal,Int,alignment> result (d0);
@@ -377,13 +397,13 @@ namespace Tensors
     
 #ifdef LTEMPLATE_H
     
-    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment>
+    template<typename Scal, IntQ Int, Size_T alignment = DefaultAlignment>
     Tensor1<Scal,Int,alignment> from_VectorRef( cref<mma::TensorRef<mreal>> A )
     {
         return Tensor1<Scal,Int,alignment>( A.data(), A.dimensions()[0] );
     }
     
-    template<typename Scal, typename Int, Size_T alignment = DefaultAlignment>
+    template<typename Scal, IntQ Int, Size_T alignment = DefaultAlignment>
     Tensor1<Scal,Int,alignment> from_VectorRef( cref<mma::TensorRef<mint>> A )
     {
         return Tensor1<Scal,Int,alignment>( A.data(), A.dimensions()[0] );

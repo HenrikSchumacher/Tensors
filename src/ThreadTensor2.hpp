@@ -3,13 +3,11 @@
 namespace Tensors
 {
 
-    template <typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
+    template <typename Scal_, IntQ Int_, Size_T alignment = CacheLineWidth>
     class ThreadTensor2 final
     {
     public:
 
-        static_assert(IntQ<Int_>,"");
-        
         using Scal = Scal_;
         using Real = typename Scalar::Real<Scal_>;
         using Int  = Int_;
@@ -29,10 +27,7 @@ namespace Tensors
         
     public:
         
-        template<
-            typename d0_T, typename d1_T,
-            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
-        >
+        template<IntQ d0_T, IntQ d1_T>
         ThreadTensor2( const d0_T d0, const d1_T d1 )
         :   n    { int_cast<Int>(ToSize_T(d0) * d1_T(d1)) }
         ,   dims { int_cast<Int>(d0), int_cast<Int>(d1) }
@@ -49,10 +44,7 @@ namespace Tensors
             );
         }
         
-        template<
-            typename d0_T, typename d1_T,
-            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
-        >
+        template<IntQ d0_T, IntQ d1_T>
         ThreadTensor2( const d0_T d0, const d1_T d1, const Scal init )
         :   n    { int_cast<Int>(ToSize_T(d0) * d1_T(d1)) }
         ,   dims { int_cast<Int>(d0), int_cast<Int>(d1) }
@@ -69,10 +61,7 @@ namespace Tensors
             );
         }
         
-        template<
-            typename S, typename d0_T, typename d1_T,
-            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
-        >
+        template<typename S, IntQ d0_T, IntQ d1_T>
         ThreadTensor2( const S * a_, const d0_T d0, const d1_T d1 )
         :   ThreadTensor2( d0, d1 )
         {
@@ -115,12 +104,10 @@ namespace Tensors
         }
         
         // Copy-cast constructor
-        template<typename S, typename J>
+        template<typename S, IntQ J>
         explicit ThreadTensor2( const ThreadTensor2<S,J> & other )
         :   ThreadTensor2( other.dims[0], other.dims[1] )
         {
-            static_assert(IntQ<J>,"");
-            
             print(ClassName()+" copy constructor");
             
             const Int thread_count = dims[0];
@@ -416,9 +403,7 @@ namespace Tensors
 #ifdef LTEMPLATE_H
 
     
-    template<typename Scal, typename Int,
-        class = typename std::enable_if_t<FloatQ<Scal>>
-    >
+    template<FloatQ Scal, IntQ Int>
     inline mma::TensorRef<mreal> to_MTensorRef( cref<ThreadTensor2<Scal,Int>> A )
     {
         const mint r = A.Rank();
@@ -439,9 +424,7 @@ namespace Tensors
         return B;
     }
     
-    template<typename J, typename Int,
-        class = typename std::enable_if_t<IntQ<J>>
-    >
+    template<IntQ J, IntQ Int>
     inline mma::TensorRef<mint> to_MTensorRef( cref<ThreadTensor2<J,Int>> A )
     {
         const mint r = A.Rank();

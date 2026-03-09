@@ -136,7 +136,7 @@ public:
         zerofy_buffer<VarSize,Parallel>( a, n, thread_count );
     }
 
-    // TODO: Have to make the pseudorandom number generate confgurable.
+    // TODO: Have to make the pseudorandom number generator configurable.
     void Randomize( const Int thread_count = 1 )
     {
         static_assert( Scalar::FloatQ<Scal>, "" );
@@ -433,50 +433,14 @@ public:
         }
     }
 
-    inline friend std::string ToString(
-        cref<TENSOR_T> A, std::string line_prefix = std::string("")
-    )
-    {
-        return ArrayToString( A.a, A.Dims(), Rank(), line_prefix );
-    }
-
-    template<typename F>
-    inline friend std::string ToString(
-        cref<TENSOR_T> A, F && fun, std::string line_prefix = std::string("")
-    )
-    {
-        return ArrayToString( A.a, A.Dims(), Rank(), fun, line_prefix );
-    }
-
-//
     void Write( std::ostream & s ) const
     {
-//        // TODO: Not ideal.
-//        
-//        s << std::scientific << std::uppercase << std::setprecision( std::numeric_limits<Scalar::Real<Scal>>::digits10 + 1 );
-//        
-//        if( n > Int(0) )
-//        {
-//            s << a[0];
-//        }
-//        for( Int i = 1; i < n; ++i )
-//        {
-//            s << "\t" << a[i];
-//        }
-        
-        s << ArrayToString( a, Dims(), Rank(), "" );
-    }
-
-    inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
-    {
-        s << ToString(tensor);
-        return s;
+        s << *this;
     }
 
     void WriteToFile( const std::filesystem::path & filename ) const
     {
         std::ofstream s ( filename );
-        
         s << *this;
     }
 

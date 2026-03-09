@@ -6,7 +6,7 @@ namespace Tensors
     {
         template<
             Layout layout, UpLo uplo,
-            typename Scal, typename I0, typename I1, typename I2, typename I3
+            typename Scal, IntQ I0, IntQ I1, IntQ I2, IntQ I3
         >
         TOOLS_FORCE_INLINE Int hetrs(
             const I0 n_, const I1 nrhs_,
@@ -15,11 +15,6 @@ namespace Tensors
             Scal * B_, const I3 ldB_
         )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            static_assert(IntQ<I2>,"");
-            static_assert(IntQ<I3>,"");
-            
             Int n       = int_cast<Int>(n_);
             Int nrhs    = int_cast<Int>(nrhs_);
             Int ldA     = int_cast<Int>(ldA_);

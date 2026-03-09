@@ -1,6 +1,6 @@
 public:
     
-template<typename ExtScal, typename ExtInt>
+template<typename ExtScal, IntQ ExtInt>
 void FromTriples(
     const ExtInt  * const * const idx,            // list of lists of i-indices
     const ExtInt  * const * const jdx,            // list of lists of j-indices
@@ -171,9 +171,7 @@ void FromTriples(
         {
             Tensor1<LInt,LInt> C_outer;
             
-            this->template Compress_impl<true,true>(
-                outer, inner, values, C_outer
-            );
+            this->template Compress_impl<true,true>( outer, inner, values, C_outer );
 
             assembler = Assembler_T(
                 std::move(C_outer),
@@ -187,9 +185,7 @@ void FromTriples(
         {
             Tensor1<LInt,LInt> C_outer;
             
-            this->template Compress_impl<true,false>(
-                outer, inner, values, C_outer
-            );
+            this->template Compress_impl<true,false>( outer, inner, values, C_outer );
         }
     }
     else

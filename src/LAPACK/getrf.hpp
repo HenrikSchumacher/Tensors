@@ -4,15 +4,11 @@ namespace Tensors
 {
     namespace LAPACK
     {
-        template< Layout layout, typename Scal, typename I0, typename I1, typename I2 >
+        template< Layout layout, typename Scal, IntQ I0, IntQ I1, IntQ I2 >
         TOOLS_FORCE_INLINE Int getrf(
             const I0 m_, const I1 n_, Scal * A_, const I2 ldA_, Int * perm
         )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            static_assert(IntQ<I2>,"");
-            
 //            fill_range_buffer ( perm, 1, n_ );
             
             // We have to swap dimensions because LAPACK uses col-major layout.

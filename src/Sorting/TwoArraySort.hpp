@@ -4,13 +4,11 @@
 
 namespace Tensors
 {
-    template<typename Key_T, typename Val_T, typename Int,
+    template<typename Key_T, typename Val_T, IntQ Int,
         Size_T N = VarSize, typename C = std::less<Key_T>
     >
     class TwoArraySort
     {
-        static_assert(IntQ<Int>,"");
-        
     private:
         
         Tensor1<Int,  Int> perm;

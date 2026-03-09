@@ -8,7 +8,7 @@ namespace Tensors
             Side side, UpLo uplo, Op opA, Diag diag,
             int N, int NRHS,
             Scalar::Flag alpha_flag,
-            typename Scal, typename Int, typename Scal_in
+            typename Scal, IntQ Int, typename Scal_in
         >
         void trsm(
             cref<Scal_in> alpha, cptr<Scal>    A_, const Int ldA,
@@ -32,7 +32,7 @@ namespace Tensors
             Side side, UpLo uplo, Op opA, Diag diag,
             int N, int NRHS,
             Scalar::Flag alpha_flag,
-            typename Scal, typename Int, typename Scal_in
+            typename Scal, IntQ Int, typename Scal_in
         >
         void trsm( cref< Scal_in> alpha, cptr<Scal> A_, mptr<Scal_in> const B_ )
         {

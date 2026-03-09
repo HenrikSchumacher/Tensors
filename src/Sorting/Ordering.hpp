@@ -4,12 +4,10 @@ namespace Tensors
 {
     template<
         Size_T N = VarSize, typename C = std::less<>,
-        typename T, typename Int
+        typename T, IntQ Int
     >
     void Ordering( cptr<T> key, mptr<Int> perm, Int n, C comp = C() )
     {
-        static_assert(IntQ<Int>,"");
-        
         if( n <= Scalar::Zero<Int> )
         {
             return;
@@ -33,12 +31,10 @@ namespace Tensors
     
     template<
         Size_T N = VarSize, typename C = std::less<>,
-        typename T, typename Int
+        typename T, IntQ Int
     >
     void Ordering( cptr<T> key, Int stride, mptr<Int> perm, Int n, C comp = C() )
     {
-        static_assert(IntQ<Int>,"");
-        
         if( n <= Scalar::Zero<Int> )
         {
             return;

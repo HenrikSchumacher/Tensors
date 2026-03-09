@@ -2,11 +2,9 @@
 
 namespace Tensors
 {
-    template<typename Scal, typename Int, typename LInt>
+    template<typename Scal, IntQ Int, IntQ LInt>
     class SparseBLAS
     {
-        static_assert(IntQ<Int>,"");
-
     public:
         
         // Default constructor

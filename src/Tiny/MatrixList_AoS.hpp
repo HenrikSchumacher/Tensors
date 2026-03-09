@@ -7,7 +7,7 @@ namespace Tensors
         // This is basically a Tensor3 whose last two dimension are a compile-time constants. This way we can help the compiler to speed up the indexing operations a little. (The compiler has the discretion to use fused shift-load operations.)
         
         template<
-            int m_, int n_, typename Scal_, typename Int_,
+            int m_, int n_, typename Scal_, IntQ Int_,
             Size_T alignment = DefaultAlignment
         >
         class MatrixList_AoS final
@@ -266,24 +266,20 @@ namespace Tensors
             {
                 return a.AllocatedByteCount();
             }
-            
-            inline friend std::string ToString(
-                cref<MatrixList_AoS> A, std::string line_prefix = ""
-            )
-            {
-//                return ToString(A.a,line_prefix);
-                
-                return ArrayToString( A.a.data(), {A.matrix_count,m,n}, line_prefix );
-            }
 
-            template<typename F>
-            inline friend std::string ToString(
-                cref<MatrixList_AoS> A, F && fun, std::string line_prefix = ""
-            )
+            inline friend std::ostream & operator<<( std::ostream & s, cref<MatrixList_AoS> A )
             {
-//                return ToString(A.a,std::forward(fun),line_prefix);
-                
-                return ArrayToString( A.data(), {A.matrix_count,m,n}, std::forward(fun), line_prefix );
+                return s << A.a;
+            }
+            
+            inline friend std::string ToString( cref<MatrixList_AoS> A )
+            {
+                return ToString( A.a );
+            }
+            
+            inline friend std::string ToString( cref<MatrixList_AoS> A, cref<std::string> line_prefix )
+            {
+                return ToString( A.a, line_prefix );
             }
             
 #ifdef LTEMPLATE_H

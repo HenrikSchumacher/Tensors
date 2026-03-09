@@ -5,7 +5,7 @@ namespace Tensors
 
 #define TENSOR_T Tensor2
 
-    template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
+    template <typename Scal_, IntQ Int_, Size_T alignment = DefaultAlignment>
     class Tensor2 final
     {
     public:
@@ -17,10 +17,7 @@ namespace Tensors
         
     public:
         
-        template<
-            typename d0_T, typename d1_T,
-            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
-        >
+        template<IntQ d0_T, IntQ d1_T>
         Tensor2( const d0_T d0, const d1_T d1)
         :   n    { int_cast<Int>(ToSize_T(d0) * ToSize_T(d1)) }
         ,   dims { int_cast<Int>(d0), int_cast<Int>(d1) }
@@ -31,20 +28,14 @@ namespace Tensors
             allocate();
         }
         
-        template<
-            typename d0_T, typename d1_T,
-            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
-        >
+        template<IntQ d0_T, IntQ d1_T>
         Tensor2( const d0_T d0, const d1_T d1, cref<Scal> init )
         :   Tensor2( d0, d1 )
         {
             Fill( init );
         }
         
-        template<
-            typename S, typename d0_T, typename d1_T,
-            class = typename std::enable_if_t<IntQ<d0_T> && IntQ<d1_T>>
-        >
+        template<typename S, IntQ d0_T, IntQ d1_T>
         Tensor2( cptr<S> a_, const d0_T d0, const d1_T d1 )
         :   Tensor2( d0, d1 )
         {
@@ -355,14 +346,14 @@ namespace Tensors
             return &a[i * dims[1]];
         }
         
-        TOOLS_FORCE_INLINE mref<Scal> operator()(const Int i, const Int j) noexcept
+        TOOLS_FORCE_INLINE mref<Scal> operator()(const Int i, const Int j ) noexcept
         {
             BoundCheck(i,j);
             
             return a[ i * dims[1] + j];
         }
         
-        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j) const noexcept
+        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j ) const noexcept
         {
             BoundCheck(i,j);
             
@@ -381,6 +372,48 @@ namespace Tensors
             BoundCheck(i);
             
             return data(i);
+        }
+        
+        
+        
+        auto WriteAccess()
+        {
+            return [this]( const Int i, const Int j ) -> Scal&
+            {
+                BoundCheck(i,j);
+                
+                return a[i * dims[1] + j];
+            };
+        }
+        
+        auto ReadAccess() const
+        {
+            return [this]( const Int i, const Int j ) -> Scal
+            {
+                BoundCheck(i,j);
+                
+                return a[i * dims[1] + j];
+            };
+        }
+        
+        
+        inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
+        {
+            return s << OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
+        }
+
+        inline friend std::string ToString( cref<TENSOR_T> tensor )
+        {
+            return OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
+        }
+        
+        inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
+        {
+            return OutString(
+                tensor.ReadAccess(),
+                tensor.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
+                tensor.Dim(1), line_prefix + " { ", ", ", " }"
+            );
         }
         
     public:
@@ -447,7 +480,7 @@ namespace Tensors
         
     }; // Tensor2
 
-    template<typename Scal, typename Int, typename S>
+    template<typename Scal, IntQ Int, typename S>
     Tensor2<Scal,Int> ToTensor2( cptr<S> a_, const Int d0, const Int d1, const bool transpose = false )
     {
         Tensor2<Scal,Int> result ( d0, d1 );
@@ -467,20 +500,20 @@ namespace Tensors
 #ifdef LTEMPLATE_H
     
     
-    template<typename Scal, typename Int>
+    template<typename Scal, IntQ Int>
     Tensor2<Scal,Int> from_MatrixRef( cref<mma::TensorRef<mreal>> A )
     {
         return ToTensor2<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1] );
     }
     
-    template<typename Scal, typename Int>
+    template<typename Scal, IntQ Int>
     Tensor2<Scal,Int> from_MatrixRef( cref<mma::TensorRef<mint>> A )
     {
         return ToTensor2<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1] );
     }
     
 
-    template<typename Scal, typename Int, 
+    template<typename Scal, IntQ Int, 
         class = typename std::enable_if_t<FloatQ<Scal>>
     >
     mma::MatrixRef<mreal> to_transposed_MTensorRef( cref<Tensor2<Scal,Int>> B )
@@ -502,11 +535,9 @@ namespace Tensors
         return A;
     }
     
-    template<typename J, typename Int>
+    template<IntQ J, IntQ Int>
     mma::MatrixRef<mint> to_transposed_MTensorRef( cref<Tensor2<J,Int>> B )
     {
-        static_assert(IntQ<J>,"");
-        
         Int rows = B.Dim(0);
         Int cols = B.Dim(1);
         auto A = mma::makeMatrix<mint>( cols, rows );
@@ -528,7 +559,7 @@ namespace Tensors
 #endif
 
     // Should be only a fall-back. BLAS is _much_ faster.
-    template<typename Scal, typename I1, typename I2, typename I3>
+    template<typename Scal, IntQ I1, IntQ I2, IntQ I3>
     void Dot(
         cref<Tensor2<Scal,I1>> A,
         cref<Tensor1<Scal,I2>> x,
@@ -559,7 +590,7 @@ namespace Tensors
     }
     
     // Should be only a fall-back. BLAS is _much_ faster.
-    template<typename Scal, typename I1, typename I2, typename I3>
+    template<typename Scal, IntQ I1, IntQ I2, IntQ I3>
     void Dot(
         cref<Tensor1<Scal,I1>> x,
         cref<Tensor2<Scal,I2>> A,
@@ -567,10 +598,6 @@ namespace Tensors
     )
     {
         // TODO: Use BLAS if available.
-        
-        static_assert(IntQ<I1>,"");
-        static_assert(IntQ<I2>,"");
-        static_assert(IntQ<I3>,"");
         
         I3 m = Min(A.Dim(0),x.Dim(0));
         I3 n = A.Dim(1);
@@ -600,7 +627,7 @@ namespace Tensors
     }
     
     template<
-        typename A_T, typename B_T, typename Int,
+        typename A_T, typename B_T, IntQ Int,
         typename C_T = decltype( A_T(1) * B_T(1))
     >
     Tensor2<C_T,Int> KroneckerProduct(
@@ -642,7 +669,7 @@ namespace Tensors
     }
     
     
-    template<typename Scal, typename Int>
+    template<typename Scal, IntQ Int>
     std::string ToStringTSV( cref<Tensor2<Scal,Int>> X )
     {
         return MatrixStringTSV(

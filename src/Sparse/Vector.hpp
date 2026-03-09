@@ -5,7 +5,7 @@ namespace Tensors
     namespace Sparse
     {
         // TODO: This is a very incomplete class that can only hold sorted indices and values. More work has to be done on this.
-        template<typename Scal_, typename Int_>
+        template<typename Scal_, IntQ Int_>
         class Vector final
         {
             
@@ -376,7 +376,7 @@ namespace Tensors
         
         
         template<
-            typename u_Scal, typename Int, typename Scal = u_Scal
+            typename u_Scal, IntQ Int, typename Scal = u_Scal
         >
         static Scal VectorPartialSum(
             cptr<Int>    u_idx,
@@ -398,7 +398,7 @@ namespace Tensors
         }
         
         template<
-            typename u_Scal, typename Int, typename Scal = u_Scal
+            typename u_Scal, IntQ Int, typename Scal = u_Scal
         >
         static Scal VectorTotal(
             cptr<Int>    u_idx,
@@ -450,7 +450,7 @@ namespace Tensors
     }
     
     template<
-        typename u_Scal, typename Int,
+        typename u_Scal, IntQ Int,
         typename Scal = u_Scal
     >
     Scal PartialSum(
@@ -468,8 +468,8 @@ namespace Tensors
     }
     
     template<
-        typename u_Scal, typename u_Int,
-        typename v_Scal, typename v_Int,
+        typename u_Scal, IntQ u_Int,
+        typename v_Scal, IntQ v_Int,
         typename Scal = decltype( u_Scal(0) * v_Scal(0) )
     >
     Scal Dot(
@@ -490,7 +490,7 @@ namespace Tensors
     }
     
     template<
-        typename u_Scal, typename Int,
+        typename u_Scal, IntQ Int,
         typename Scal = u_Scal
     >
     Scal Total(

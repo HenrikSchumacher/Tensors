@@ -36,12 +36,9 @@ namespace Tensors
             
         public:
             
-            template< typename I0, typename I1>
+            template<IntQ I0, IntQ I1>
             Int Eigenvalues( const I0 n_, mptr<Scal> A_, const I1 ldA_, mptr<Scalar::Real<Scal>> eigs_ )
             {
-                static_assert(IntQ<I0>,"");
-                static_assert(IntQ<I1>,"");
-                
                 n    = int_cast<Int>(n_);
                 ldA  = int_cast<Int>(ldA_);
                 
@@ -54,13 +51,10 @@ namespace Tensors
                 return info;
             }
             
-            template< typename S, typename I0, typename I1, typename I2>
+            template< typename S, IntQ I0, IntQ I1, IntQ I2>
             Int Eigensystem( const I0 n_, mptr<S> A_, const I1 ldA_, mptr<Scalar::Real<S>> eigs_, mptr<S> Q_, const I2 ldQ )
             {
                 // Returns Q and eigs such that ConjugateTranspose(Q) * A * Q == Diagona(eigs);
-                
-                static_assert(IntQ<I0>,"");
-                static_assert(IntQ<I1>,"");
                 
                 n    = int_cast<Int>(n_);
                 ldA  = int_cast<Int>(ldA_);

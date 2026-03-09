@@ -9,7 +9,7 @@ namespace Tensors
             const Op opA, const Op opB,
             int M, int N, int K,
             Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-            typename Scal_A, typename Scal_B, typename Scal_C, typename Int
+            typename Scal_A, typename Scal_B, typename Scal_C, IntQ Int
         >
         void gemm(
             cref<Scal_C> alpha,
@@ -33,7 +33,7 @@ namespace Tensors
             const Op opA, const Op opB,
             int M, int N, int K,
             Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-            typename Scal_A, typename Scal_B, typename Scal_C, typename Int
+            typename Scal_A, typename Scal_B, typename Scal_C, IntQ Int
         >
         void gemm(
             cref<Scal_C> alpha,
@@ -60,7 +60,7 @@ namespace Tensors
             const Op opA, const Op opB,
             int M, int N, int K,
             Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
-            typename Scal_A, typename Scal_B, typename Scal_C, typename Int
+            typename Scal_A, typename Scal_B, typename Scal_C, IntQ Int
         >
         void gemm(
             cref<Scal_A> alpha,

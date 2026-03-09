@@ -8,7 +8,7 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<typename Int, bool base = 0>
+        template<IntQ Int, bool base = 0>
         class ApproximateMinimumDegree final
         {
         public:

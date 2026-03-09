@@ -7,14 +7,11 @@ namespace Tensors
         // TODO: The `LowerSolver` does not seem to work correctly in parallel.
         // TODO: Why is that? Running it single-thread does work!
         
-        template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
+        template<typename Scal_, IntQ Int_, IntQ LInt_> class CholeskyDecomposition;
         
-        template<bool mult_rhs, bool lockedQ, typename Scal_, typename Int_, typename LInt_>
+        template<bool mult_rhs, bool lockedQ, typename Scal_, IntQ Int_, IntQ LInt_>
         class alignas(ObjectAlignment) LowerSolver final
         {
-            static_assert(IntQ<Int_>,"");
-            static_assert(IntQ<LInt_>,"");
-            
         public:
             
             using Scal = Scal_;

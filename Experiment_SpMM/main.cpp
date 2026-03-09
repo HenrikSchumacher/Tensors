@@ -79,22 +79,6 @@ int main(int argc, const char * argv[])
     TOOLS_DUMP( A.NonzeroCount() );
     TOOLS_DUMP( A.ThreadCount() );
     
-//    valprint( "A",
-//        ArrayToString(
-//            A.ToTensor2().data(),
-//            {A.Dim(0),A.Dim(1)},
-//            []( Complex x ){ return ToStringFPGeneral(x); }
-//        )
-//    );
-//    
-//    valprint( "B",
-//        ArrayToString(
-//            B.ToTensor2().data(),
-//            {B.Dim(0),B.Dim(1)},
-//            []( Complex x ){ return ToStringFPGeneral(x); }
-//        )
-//    );
-    
     Sparse::MatrixCSR<Real,Int,LInt> Re_A(
         A.RowCount(), A.ColCount(), A.NonzeroCount(), thread_count
     );

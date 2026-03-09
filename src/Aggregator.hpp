@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename T_0, typename Int>
+    template<typename T_0, IntQ Int>
     class alignas(ObjectAlignment) Aggregator final
     {
         // A dynamically growing version of Tensor1 that allows pushing of several elements at once.
@@ -10,8 +10,6 @@ namespace Tensors
         
         // Setting thread_count higher than 1 can speed up copy operations -- but only if sufficiently many threads are free and only if there is sufficient RAM bandwidth.
         // Better set thread_count = 1 if you want to use more than one Aggregator at a time.
-        
-        static_assert(IntQ<Int>,"");
 
         using Container_0_T = Tensor1<T_0,Int>;
 
@@ -216,11 +214,9 @@ namespace Tensors
         
     public:
         
-        inline friend std::string ToString(
-            cref<Aggregator> A, std::string line_prefix = std::string("")
-        )
+        inline friend std::string ToString( cref<Aggregator> A )
         {
-            return ArrayToString( A.data(), {A.Size()}, line_prefix );
+            return OutString( A.data(), A.Size() );
         }
         
     public:
@@ -240,7 +236,7 @@ namespace Tensors
 #ifdef LTEMPLATE_H
         
     template<
-        typename T, typename Int,
+        typename T, IntQ Int,
         class = typename std::enable_if_t<mma::HasTypeQ<T>>
     >
     inline mma::TensorRef<mma::Type<T>> to_MTensorRef( cref<Aggregator<T,Int>> agg )

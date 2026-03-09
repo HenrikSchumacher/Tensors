@@ -6,11 +6,11 @@ namespace Tensors
 {
     namespace Tiny
     {
-        template< int ROW_COUNT, typename Scal_, typename Int_> class SelfAdjointMatrix;
+        template< int ROW_COUNT, typename Scal_, IntQ Int_> class SelfAdjointMatrix;
         
-        template< int ROW_COUNT, int COL_COUNT, typename Scal_, typename Int_, Size_T alignment> class MatrixList;
+        template< int ROW_COUNT, int COL_COUNT, typename Scal_, IntQ Int_, Size_T alignment> class MatrixList;
         
-        template< int ROW_COUNT, int COL_COUNT, typename Scal_, typename Int_>
+        template< int ROW_COUNT, int COL_COUNT, typename Scal_, IntQ Int_>
         class Matrix final
         {
         public:
@@ -910,19 +910,6 @@ namespace Tensors
                 // TODO: Test whether the following is as fast; if yes, then simply.
 //                norm_2<m*n>(&A[0][0]);
             }
-
-            
-            [[nodiscard]] friend std::string ToString( cref<Matrix> M )
-            {
-                return MatrixString<m,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " }", ",\n", "\n}");
-            }
-        
-            
-            inline friend std::ostream & operator<<( std::ostream & s, cref<Matrix> M )
-            {
-                s << ToString(M);
-                return s;
-            }
             
         public:
             
@@ -1236,6 +1223,25 @@ namespace Tensors
                 return v;
             }
             
+            
+            [[nodiscard]] friend std::string ToString( cref<Class_T> M )
+            {
+                return OutString(
+                    [&M]( const Int i, const Int j ) { return M.A[i][j]; },
+                    m, "{\n", ",\n", "\n}",
+                    n, " { ", ", ", " }"
+                );
+            }
+
+            inline friend std::ostream & operator<<( std::ostream & s, cref<Class_T> M )
+            {
+                return s << OutString(
+                    [&M]( const Int i, const Int j ) { return M.A[i][j]; },
+                    m, "{\n", ",\n", "\n}",
+                    n, " { ", ", ", " }"
+                );
+            }
+            
         public:
 
             static constexpr Int RowCount()
@@ -1281,7 +1287,7 @@ namespace Tensors
         
         
         template<AddTo_T addto,
-            int m, int k, int n, typename X_T, typename Y_T, typename Z_T, typename Int
+            int m, int k, int n, typename X_T, typename Y_T, typename Z_T, IntQ Int
         >
         TOOLS_FORCE_INLINE void
         Dot(
@@ -1293,8 +1299,8 @@ namespace Tensors
             fixed_dot_mm<m,n,k,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
         }
         
-        template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
-        [[nodiscard]] TOOLS_FORCE_INLINE 
+        template<int m, int K, int n, typename X_T, typename Y_T, IntQ Int>
+        [[nodiscard]] TOOLS_FORCE_INLINE
         Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
         Dot(
             cref<Tiny::Matrix<m,K,X_T,Int>> X,
@@ -1308,7 +1314,7 @@ namespace Tensors
             return Z;
         }
         
-        template<int m, int K, int n, typename X_T, typename Y_T, typename Int>
+        template<int m, int K, int n, typename X_T, typename Y_T, IntQ Int>
         [[nodiscard]] TOOLS_FORCE_INLINE
         Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
         operator*(
@@ -1319,7 +1325,7 @@ namespace Tensors
             return Dot(X,Y);
         }
         
-        template<AddTo_T addto, int m, int n, typename A_T, typename x_T, typename y_T, typename Int
+        template<AddTo_T addto, int m, int n, typename A_T, typename x_T, typename y_T, IntQ Int
         >
         TOOLS_FORCE_INLINE void
         Dot(
@@ -1347,7 +1353,7 @@ namespace Tensors
 //            fixed_dot_mm<m,1,n,addto>( &A[0][0], x.data(), y.data() );
         }
         
-        template<int m, int n, typename A_T, typename x_T, typename Int>
+        template<int m, int n, typename A_T, typename x_T, IntQ Int>
         TOOLS_FORCE_INLINE Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
         Dot(
             cref<Tiny::Matrix<m,n,A_T,Int>> A,
@@ -1361,7 +1367,7 @@ namespace Tensors
             return y;
         }
         
-        template<int m, int n, typename A_T, typename x_T, typename Int>
+        template<int m, int n, typename A_T, typename x_T, IntQ Int>
         TOOLS_FORCE_INLINE Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
         operator*(
              cref<Tiny::Matrix<m,n,A_T,Int>> A,
@@ -1373,14 +1379,14 @@ namespace Tensors
         
         
         
-        template<typename Scal, typename Int>
+        template<typename Scal, IntQ Int>
         [[nodiscard]] TOOLS_FORCE_INLINE Scal Det_Kahan( cref<Tiny::Matrix<2,2,Scal,Int>> A )
         {
             return Det2D_Kahan( &A[0][0] );
         }
         
         
-        template<int m, int n, typename Scal, typename Int>
+        template<int m, int n, typename Scal, IntQ Int>
         void OrthogonalizeRows( mref<Tiny::Matrix<m,n,Scal,Int>> A )
         {
             static_assert(m <= n, "");
@@ -1409,7 +1415,7 @@ namespace Tensors
             }
         }
         
-        template<int n, typename Scal, typename Int>
+        template<int n, typename Scal, IntQ Int>
         [[nodiscard]] TOOLS_FORCE_INLINE
         Tiny::Matrix<n,n,Scal,Int> HouseholderReflector( cref<Vector<n,Scal,Int>> u )
         {

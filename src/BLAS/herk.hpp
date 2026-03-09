@@ -7,7 +7,7 @@ namespace Tensors
         
         template<
             Layout layout, UpLo uplo, Op op, typename Scal,
-            typename I0, typename I1, typename I2, typename I3
+            IntQ I0, IntQ I1, IntQ I2, IntQ I3
         >
         TOOLS_FORCE_INLINE void herk(
             const I0 n_, const I1 k_,
@@ -15,11 +15,6 @@ namespace Tensors
             cref<Scalar::Real<Scal>> beta , mptr<Scal> C_, const I3 ldC_
         )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            static_assert(IntQ<I2>,"");
-            static_assert(IntQ<I3>,"");
-            
             Int n    = int_cast<Int>(n_);
             Int k    = int_cast<Int>(k_);
             Int ldA  = int_cast<Int>(ldA_);

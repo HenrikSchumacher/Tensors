@@ -8,7 +8,7 @@ namespace Tensors
          *
          */
         
-        template<typename Scal, typename Int, typename LInt>
+        template<typename Scal, IntQ Int, IntQ LInt>
         MatrixCSR<Scal,Int,LInt> GridLaplacian(
             const Int grid_size, const Scal mass, const Int thread_count
         )
@@ -82,7 +82,7 @@ namespace Tensors
          *
          */
         
-        template<typename Scal, typename Int, typename LInt>
+        template<typename Scal, IntQ Int, IntQ LInt>
         MatrixCSR<Scal,Int,LInt> GridLaplacian_Parallel(
             const Int grid_size, const Scal mass, const Int thread_count
         )

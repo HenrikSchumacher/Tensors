@@ -13,7 +13,7 @@ namespace Tensors
     
     // Scal_ is the floating point type that is used internally.
     
-    template<Size_T NRHS_, typename Scal_, typename Int_,
+    template<Size_T NRHS_, typename Scal_, IntQ Int_,
         bool A_verboseQ = true, bool P_verboseQ = true
     >
     class ConjugateGradient final
@@ -491,7 +491,7 @@ namespace Tensors
             + " relative_tolerance = " + ToString(relative_tolerance) + "\n"
             + " use_initial_guessQ = " + ToString(use_initial_guessQ) + "\n"
             + "\n==== " + ClassName() + " Stats ====\n\n"
-            + " relative residuals = " + ArrayToString( RelativeResiduals().data(), {nrhs} ) + "\n";
+            + " relative residuals = " + OutString( RelativeResiduals().data(), nrhs ) + "\n";
         }
         
         std::string ClassName() const

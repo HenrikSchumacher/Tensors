@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<typename Int, typename Int2, typename LInt>
+        template<IntQ Int, IntQ Int2, IntQ LInt>
         void EliminationTreeParents(
             const Int  n,
             cptr<LInt> A_outer,
@@ -63,7 +63,7 @@ namespace Tensors
         }
         
         
-        template<typename Int, typename Int2, typename LInt, bool checkQ = true>
+        template<IntQ Int, IntQ Int2, IntQ LInt, bool checkQ = true>
         bool PermutedEliminationTreeParents(
             const Int  n,
             cptr<LInt> A_outer,
@@ -173,7 +173,7 @@ namespace Tensors
         }
         
         
-        template<typename Int>
+        template<IntQ Int>
         bool PostOrderedQ(
             const Int n,
             cptr<Int> parents,

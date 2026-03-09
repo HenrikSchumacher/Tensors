@@ -65,4 +65,3 @@ public:
     {
         return &A[i][0];
     }
-

@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Tiny
     {
-        template< int n_, typename Scal_, typename Int_>
+        template<int n_, typename Scal_, IntQ Int_>
         class SelfAdjointMatrix final
         {
             /// This class uses only upper triangle.
@@ -835,11 +835,6 @@ namespace Tensors
                 return Sqrt(AA);
             }
             
-            [[nodiscard]] std::string friend ToString( cref<SelfAdjointMatrix> M )
-            {
-                return MatrixString<n,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " }", ",\n", "\n}");
-            }
-            
             template<typename T = Scal>
             void ToMatrix( Matrix<n,n,T,Int> & B ) const
             {
@@ -877,14 +872,14 @@ namespace Tensors
         };
         
         
-        template<int m_, int n_, typename Scal, typename Int >
+        template<int m_, int n_, typename Scal, IntQ Int >
         [[nodiscard]] TOOLS_FORCE_INLINE const
         SelfAdjointMatrix<n_,Scal,Int> SelfAdjointAHA( const Matrix<m_,n_,Scal,Int> & A )
         {
             return A.template AHA<true>();
         }
         
-        template<int m_, int n_, typename Scal, typename Int >
+        template<int m_, int n_, typename Scal, IntQ Int >
         [[nodiscard]] TOOLS_FORCE_INLINE const
         SelfAdjointMatrix<m_,Scal,Int> SelfAdjointAAH( const Matrix<m_,n_,Scal,Int> & A )
         {

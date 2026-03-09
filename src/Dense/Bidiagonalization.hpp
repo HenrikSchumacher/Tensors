@@ -8,11 +8,9 @@ namespace Tensors
     {
         
         
-        template<typename Scal_, typename Int_, UpLo uplo_>
+        template<typename Scal_, IntQ Int_, UpLo uplo_>
         class BidiagonalMatrix
         {
-            
-            
         public:
             
             using Scal = Scal_;
@@ -66,7 +64,7 @@ namespace Tensors
         }
         
         // Computes the vector v whose Householder reflector maps vector a to vector e_k.
-        template<typename Scal, typename Int>
+        template<typename Scal, IntQ Int>
         void HouseholderVector(
             const Int n, cptr<Scal> x, const Int inc_x, const Int k, mptr<Scal> v
         )
@@ -103,7 +101,7 @@ namespace Tensors
         // Delta is upper bidiagonal if m >= n and lower bidiagonal otherwise.
         // Only the diagonals are returned, not Delta.
         // The input matrix A is overwritten.
-        template<typename Scal, typename Int>
+        template<typename Scal, IntQ Int>
         std::tuple<Tensor2<Scal,Int>,Tensor1<Scal,Int>,Tensor1<Scal,Int>,Tensor2<Scal,Int>>
         Bidiagonalization( mptr<Scal> A, const Int m, const Int n )
         {

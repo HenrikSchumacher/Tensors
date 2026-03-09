@@ -14,7 +14,7 @@
 
 //template<
 //    int ROWS_, int COLS_, int NRHS_, bool fixed,
-//    typename Scal_, typename Int_, typename Scal_in_, typename Scal_out_,
+//    typename Scal_, IntQ Int_, typename Scal_in_, typename Scal_out_,
 //    Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
 //                                              bool a_copy = true,
 //    bool x_RM  = true, bool x_intRM = false,  bool x_copy = true,  bool x_prefetch = true,
@@ -25,7 +25,7 @@ namespace Tensors
     template<
         int ROWS_, int COLS_, int NRHS_, bool fixed,
         typename Scal_, typename Scal_in_, typename Scal_out_,
-        typename Int_, typename LInt_,
+        IntQ Int_, IntQ LInt_,
         Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
                                  bool a_copy,
         bool x_RM, bool x_intRM, bool x_copy, bool x_prefetch,

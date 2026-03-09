@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Dense
     {
-        template<int n, typename Scal, typename Int>
+        template<int n, typename Scal, IntQ Int>
         class CholeskyDecomposition final
         {
         protected:

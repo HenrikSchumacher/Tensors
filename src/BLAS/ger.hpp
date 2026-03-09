@@ -6,7 +6,7 @@ namespace Tensors
     {
         template<
             Layout layout, Op opx, Op opy, typename Scal,
-            typename I0, typename I1, typename I2, typename I3, typename I4
+            IntQ I0, IntQ I1, IntQ I2, IntQ I3, IntQ I4
         >
         TOOLS_FORCE_INLINE void ger(
             const I0 m_, const I1 n_,
@@ -19,13 +19,7 @@ namespace Tensors
             //
             // where {opx,opy} can be {id,id}, {conj,id}, or {id, conj}.
             // Note that {conj, conj} is _not_ allowed (cblas does not allow us to contruct it.
-            
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            static_assert(IntQ<I2>,"");
-            static_assert(IntQ<I3>,"");
-            static_assert(IntQ<I4>,"");
-            
+
             Int m     = int_cast<Int>(m_);
             Int n     = int_cast<Int>(n_);
             Int ldA   = int_cast<Int>(ldA_);

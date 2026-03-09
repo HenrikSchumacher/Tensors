@@ -6,17 +6,13 @@ namespace Tensors
     {
         template<
             Layout layout, UpLo uplo, Op opA, Diag diag, typename Scal,
-            typename I0, typename I1, typename I2
+            IntQ I0, IntQ I1, IntQ I2
         >
         TOOLS_FORCE_INLINE void trsv(
             const I0 n_, cptr<Scal> A_, const I1 ldA_,
                          mptr<Scal> x_, const I2 incx_
         )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            static_assert(IntQ<I2>,"");
-            
             Int n    = int_cast<Int>(n_);
             Int ldA  = int_cast<Int>(ldA_);
             Int incx = int_cast<Int>(incx_);

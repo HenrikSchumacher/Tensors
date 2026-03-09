@@ -109,7 +109,7 @@ namespace Tensors
     
     // TODO: Check input.
     
-    template<typename Real_ = double, typename Int_ = int, typename LInt_ = Int_>
+    template<FloatQ Real_ = double, IntQ Int_ = int, IntQ LInt_ = Int_>
     class ClpWrapper final
     {
     public:
@@ -280,14 +280,6 @@ namespace Tensors
                 TOOLS_DDUMP(LP.sumDualInfeasibilities());
                    
                 TOOLS_DDUMP(LP.objectiveValue());
-                    
-//                logvalprint(
-//                    "solution",
-//                    ArrayToString(
-//                        LP.primalColumnSolution(),{LP.getNumCols()},
-//                        [](double x){ return ToStringFPGeneral(x); }
-//                    )
-//                );
             }
         }
         

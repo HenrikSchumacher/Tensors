@@ -4,16 +4,12 @@ namespace Tensors
 {
     namespace BLAS
     {
-        template<typename Scal, typename I0, typename I1, typename I2>
+        template<typename Scal, IntQ I0, IntQ I1, IntQ I2>
         TOOLS_FORCE_INLINE void copy(
             const I0 n_, cptr<Scal> x_, const I1 inc_x_,
                          mptr<Scal> y_, const I2 inc_y_
         )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            static_assert(IntQ<I2>,"");
-            
             Int n      = int_cast<Int>(n_);
             Int inc_x  = int_cast<Int>(inc_x_);
             Int inc_y  = int_cast<Int>(inc_y_);

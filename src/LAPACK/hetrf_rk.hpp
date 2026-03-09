@@ -6,7 +6,7 @@ namespace Tensors
     {
         template<
             Layout layout, UpLo uplo,
-            typename Scal, typename I1, typename I2, typename I3
+            typename Scal, IntQ I1, IntQ I2, IntQ I3
         >
         TOOLS_FORCE_INLINE Int hetrf_rk(
             const I1 n_, Scal * A_, const I2 ldA_,
@@ -14,11 +14,6 @@ namespace Tensors
             Int * perm
         )
         {
-            static_assert(IntQ<I1>,"");
-            static_assert(IntQ<I2>,"");
-            static_assert(IntQ<I3>,"");
-
-            
             Int n       = int_cast<Int>(n_);
             Int ldA     = int_cast<Int>(ldA_);
             Int lwork   = int_cast<Int>(lwork_);

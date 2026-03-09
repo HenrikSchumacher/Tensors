@@ -3,7 +3,7 @@
 namespace Tensors
 {
     
-    template<typename Int>
+    template<IntQ Int>
     static constexpr Int isqrt( const Int k )
     {
         static_assert(IntQ<Int>,"");
@@ -13,7 +13,7 @@ namespace Tensors
     
     // Indexing into upper triangle _with_ diagonal
     
-    template<Size_T n, typename Int>
+    template<Size_T n, IntQ Int>
     static constexpr Int tri_i( const Int k )
     {
         // https://stackoverflow.com/a/244550/8248900
@@ -25,7 +25,7 @@ namespace Tensors
         return n-1-K;
     }
     
-    template<Size_T n, typename Int>
+    template<Size_T n, IntQ Int>
     static constexpr Int tri_j( const Int k )
     {
         // https://stackoverflow.com/a/244550/8248900
@@ -38,7 +38,7 @@ namespace Tensors
 
     }
     
-    template<Size_T n, typename Int>
+    template<Size_T n, IntQ Int>
     static constexpr Int lin_k( const Int i, const Int j )
     {
         // https://stackoverflow.com/a/244550/8248900
@@ -53,7 +53,7 @@ namespace Tensors
     
     // Indexing into upper triangle _without_ diagonal
     
-    template<Size_T n, typename Int>
+    template<Size_T n, IntQ Int>
     static constexpr Int u_tri_i( const Int k )
     {
         // https://stackoverflow.com/a/244550/8248900
@@ -63,7 +63,7 @@ namespace Tensors
         return n - 2 - static_cast<Int>(std::floor(cSqrt(-8*k + 4*n*(n-1)-7)/2.0 - 0.5));
     }
     
-    template<Size_T n, typename Int>
+    template<Size_T n, IntQ Int>
     static constexpr Int u_tri_j( const Int k )
     {
         // https://stackoverflow.com/a/244550/8248900
@@ -77,7 +77,7 @@ namespace Tensors
     }
     
     
-    template<Size_T n, typename Int>
+    template<Size_T n, IntQ Int>
     static constexpr Int u_lin_k( const Int i, const Int j )
     {
         // https://stackoverflow.com/a/244550/8248900

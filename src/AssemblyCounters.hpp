@@ -1,8 +1,9 @@
 #pragma once
 
-namespace Tensors {
+namespace Tensors
+{
     
-    template<typename LInt, typename Int>
+    template<IntQ LInt, IntQ Int>
     inline void AccumulateAssemblyCounters( mref<Tensor2<LInt,Int>> counters )
     {
         TOOLS_PTIMER(timer, std::string( "AccumulateAssemblyCounters")
@@ -35,7 +36,7 @@ namespace Tensors {
     }
 
 
-    template<typename LInt, typename Int>
+    template<IntQ LInt, IntQ Int>
     inline void AccumulateAssemblyCounters_Parallel( mref<Tensor2<LInt,Int>> counters )
     {
         static_assert(CacheLineWidth % sizeof(LInt) == 0, "sizeof(LInt) is not a divisor of CacheLineWidth.");
@@ -140,7 +141,7 @@ namespace Tensors {
 
 
 
-    template<typename LInt, typename Int>
+    template<IntQ LInt, IntQ Int>
     inline Tensor2<LInt,Int> AssemblyCounters(
         const  Int * const * const idx,
         const  Int * const * const jdx,

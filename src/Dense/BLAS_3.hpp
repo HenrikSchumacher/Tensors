@@ -10,7 +10,7 @@ namespace Tensors
             Size_T M_ct_,      Size_T N_ct_,      Size_T K_ct_,
             Size_T m_default_, Size_T n_default_, Size_T k_default_,
             Op opA, Op opB, Op opC,
-            typename A_T_, typename B_T_, typename C_T_, typename Int_
+            typename A_T_, typename B_T_, typename C_T_, IntQ Int_
         >
         class BLAS_3 final
         {

@@ -2,10 +2,9 @@
 
 namespace Tensors
 {
-    template<typename T_, typename Int_>
+    template<typename T_, IntQ Int_>
     class RaggedList final
     {
-        static_assert(IntQ<Int_>,"");
     public:
         
         using T   = T_;
@@ -119,7 +118,7 @@ namespace Tensors
             
             friend std::string ToString( cref<Sublist_T> s )
             {
-                return ArrayToString( s.begin(), {s.Size()} );
+                return OutString( s.begin(), s.Size() );
             }
             
             std::string ClassName() const
@@ -277,7 +276,7 @@ namespace Tensors
 #ifdef LTEMPLATE_H
         
     template<
-        typename T, typename Int,
+        typename T, IntQ Int,
         class = typename std::enable_if_t<mma::HasTypeQ<T>>
     >
     inline mma::TensorRef<mma::Type<T>> to_MTensorRef(
@@ -292,7 +291,7 @@ namespace Tensors
     }
     
     template<
-        typename S, typename Int,
+        typename S, IntQ Int,
         class = typename std::enable_if_t<mma::HasTypeQ<S>>
     >
     inline mma::TensorRef<mma::Type<S>> to_MTensorRef(

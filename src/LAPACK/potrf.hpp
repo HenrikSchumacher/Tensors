@@ -7,13 +7,10 @@ namespace Tensors
         template<
             Layout layout, UpLo uplo,
             bool verboseQ = true,
-            typename Scal, typename I0, typename I1
+            typename Scal, IntQ I0, IntQ I1
         >
         TOOLS_FORCE_INLINE Int potrf( const I0 n_, Scal * A_, const I1 ldA_ )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            
             Int n    = int_cast<Int>(n_);
             Int ldA  = int_cast<Int>(ldA_);
             Int info = 0;
@@ -86,7 +83,7 @@ namespace Tensors
                         eprint( tag + ": The leading minor of order " + ToString(info) + " is not positive-definite." );
                         if( info <= Int(16) )
                         {
-                            logvalprint("leading minor",  ArrayToString( A_, {info,info} ) );
+                            logvalprint("leading minor",  OutString( A_, info, info ) );
                         }
                     }
                 }
