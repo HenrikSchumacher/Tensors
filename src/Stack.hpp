@@ -3,11 +3,9 @@
 namespace Tensors
 {
     // Some extra care was taken so that Int_ can be an unsigned integer.
-    template<typename Entry_T_, typename Int_>
+    template<typename Entry_T_, IntQ Int_>
     class Stack final
     {
-        static_assert(IntQ<Int_>, "");
-        
     public:
         
         using Entry_T     = Entry_T_;
@@ -161,7 +159,7 @@ namespace Tensors
         
         std::string String() const
         {
-            return ArrayToString( &a[1], {ptr} );
+            return OutString( &a[1], ptr );
         }
         
         friend std::string ToString( const Stack & stack )
@@ -194,10 +192,9 @@ namespace Tensors
     }; // class Stack
     
     
-//    template<Size_T max_element_count_, typename Entry_T_, typename Int_>
+//    template<Size_T max_element_count_, typename Entry_T_, IntQ Int_>
 //    class FixedSizePairStack
 //    {
-//        static_assert(IntQ<Int_>, "");
 //
 //    public:
 //        
@@ -324,7 +321,7 @@ namespace Tensors
 //        
 //        std::string String() const
 //        {
-//            return ArrayToString( &a[1][0], {ptr,2} );
+//            return OutString( &a[1][0], ptr, 2 );
 //        }
 //        
 //        friend std::string ToString( const FixedSizePairStack & stack )

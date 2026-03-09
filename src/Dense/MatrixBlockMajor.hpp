@@ -6,7 +6,7 @@ namespace Tensors
         Size_T rows_ct_,   Size_T cols_ct_,
         Size_T m_default_, Size_T n_default_,
         Op store_op, Op op,
-        typename Scal_, typename Int_
+        typename Scal_, IntQ Int_
     >
     class MatrixBlockMajor final
     {

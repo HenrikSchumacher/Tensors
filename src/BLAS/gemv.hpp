@@ -6,7 +6,7 @@ namespace Tensors
     {
         template<
             Layout layout, Op opA, typename Scal,
-            typename I0, typename I1, typename I2, typename I3, typename I4
+            IntQ I0, IntQ I1, IntQ I2, IntQ I3, IntQ I4
         >
         TOOLS_FORCE_INLINE void gemv(
             const I0 m_, const I1 n_,
@@ -15,12 +15,6 @@ namespace Tensors
             cref<Scal> beta,  mptr<Scal> y_, const I4 incy_
         )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            static_assert(IntQ<I2>,"");
-            static_assert(IntQ<I3>,"");
-            static_assert(IntQ<I4>,"");
-            
             Int m    = int_cast<Int>(m_);
             Int n    = int_cast<Int>(n_);
             Int ldA  = int_cast<Int>(ldA_);

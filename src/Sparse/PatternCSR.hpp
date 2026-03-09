@@ -5,21 +5,18 @@ namespace Tensors
     namespace Sparse
     {
         
-        template<typename LInt>
+        template<IntQ LInt>
         struct Position
         {
             const LInt index;
             const bool foundQ;
         };
         
-        template<typename Int, typename LInt> class BinaryMatrixCSR;
+        template<IntQ Int, IntQ LInt> class BinaryMatrixCSR;
         
-        template<typename Int_, typename LInt_>
+        template<IntQ Int_, IntQ LInt_>
         class PatternCSR
         {
-            static_assert(IntQ<Int_>,"");
-            static_assert(IntQ<LInt_>,"");
-            
             // Int  - an integer type capable of storing both the number of rows and columns
             // LInt - a potentially longer integer type capable of storing the absolute number of nonzeros.
             
@@ -62,44 +59,37 @@ namespace Tensors
             
             friend class BinaryMatrixCSR<Int,LInt>;
             
-            template<typename I_0, typename I_1, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_3>
             PatternCSR(
                 const I_0 m_,
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer       ( int_cast<Int>(m_+1),LInt(0) )
-            ,   m           ( int_cast<Int>(m_)                        )
-            ,   n           ( int_cast<Int>(n_)                        )
-            ,   thread_count( int_cast<Int>(thread_count_)             )
+            :   outer        { int_cast<Int>(m_+1),LInt(0)  }
+            ,   m            { int_cast<Int>(m_)            }
+            ,   n            { int_cast<Int>(n_)            }
+            ,   thread_count { int_cast<Int>(thread_count_) }
             {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
                 outer[0] = LInt(0);
             }
             
-            template<typename I_0, typename I_1, typename I_2, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_2, IntQ I_3>
             PatternCSR(
                 const I_0 m_,
                 const I_1 n_,
                 const I_2 nnz_,
                 const I_3 thread_count_
             )
-            :   outer       ( int_cast<Int>(m_+1), LInt(0) )
-            ,   inner       ( int_cast<LInt>(nnz_)         )
-            ,   m           ( int_cast<Int>(m_)            )
-            ,   n           ( int_cast<Int>(n_)            )
-            ,   thread_count( int_cast<Int>(thread_count_) )
+            :   outer        { int_cast<Int>(m_+1), LInt(0) }
+            ,   inner        { int_cast<LInt>(nnz_)         }
+            ,   m            { int_cast<Int>(m_)            }
+            ,   n            { int_cast<Int>(n_)            }
+            ,   thread_count { int_cast<Int>(thread_count_) }
             {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_2>,"");
-                static_assert(IntQ<I_3>,"");
                 outer[0] = LInt(0);
             }
             
-            template<typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
+            template<IntQ J_0, IntQ J_1, IntQ I_0, IntQ I_1, IntQ I_3>
             PatternCSR(
                 cptr<J_0> outer_,
                 cptr<J_1> inner_,
@@ -107,23 +97,17 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer       ( m_+1                         )
-            ,   inner       ( int_cast<LInt>(outer_[m_])   )
-            ,   m           ( int_cast<Int>(m_)            )
-            ,   n           ( int_cast<Int>(n_)            )
-            ,   thread_count( int_cast<Int>(thread_count_) )
+            :   outer        { m_+1                         }
+            ,   inner        { int_cast<LInt>(outer_[m_])   }
+            ,   m            { int_cast<Int>(m_)            }
+            ,   n            { int_cast<Int>(n_)            }
+            ,   thread_count { int_cast<Int>(thread_count_) }
             {
-                static_assert(IntQ<J_0>,"");
-                static_assert(IntQ<J_1>,"");
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-                
                 outer.Read(outer_);
                 inner.Read(inner_);
             }
             
-            template<typename I_0, typename I_1, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_3>
             PatternCSR(
                 cref<Tensor1<LInt, Int>> outer_,
                 cref<Tensor1< Int,LInt>> inner_,
@@ -131,18 +115,14 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer       ( outer_                       )
-            ,   inner       ( inner_                       )
-            ,   m           ( int_cast<Int>(m_)            )
-            ,   n           ( int_cast<Int>(n_)            )
-            ,   thread_count( int_cast<Int>(thread_count_) )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            :   outer        { outer_                       }
+            ,   inner        { inner_                       }
+            ,   m            { int_cast<Int>(m_)            }
+            ,   n            { int_cast<Int>(n_)            }
+            ,   thread_count { int_cast<Int>(thread_count_) }
+            {}
             
-            template<typename I_0, typename I_1, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_3>
             PatternCSR(
                 Tensor1<LInt, Int> && outer_,
                 Tensor1< Int,LInt> && inner_,
@@ -150,16 +130,12 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer       ( std::move(outer_)            )
-            ,   inner       ( std::move(inner_)            )
-            ,   m           ( int_cast<Int>(m_)            )
-            ,   n           ( int_cast<Int>(n_)            )
-            ,   thread_count( int_cast<Int>(thread_count_) )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            :   outer        { std::move(outer_)            }
+            ,   inner        { std::move(inner_)            }
+            ,   m            { int_cast<Int>(m_)            }
+            ,   n            { int_cast<Int>(n_)            }
+            ,   thread_count { int_cast<Int>(thread_count_) }
+            {}
             
             // Default constructor
             PatternCSR() = default;
@@ -225,7 +201,7 @@ namespace Tensors
                 swap( A.symmetric,      B.symmetric      );
             }
             
-            template<typename ExtInt>
+            template<IntQ ExtInt>
             PatternCSR(
                 const ExtInt * const * const idx,
                 const ExtInt * const * const jdx,
@@ -242,7 +218,7 @@ namespace Tensors
                 FromPairs( idx, jdx, entry_counts, list_count, final_thread_count, compressQ, symmetrizeQ );
             }
             
-            template<typename ExtInt>
+            template<IntQ ExtInt>
             PatternCSR(
                 const LInt nnz_,
                 const ExtInt  * const i,
@@ -272,7 +248,7 @@ namespace Tensors
                 FromPairs( idx.data(), jdx.data(), counts.data(), thread_count, thread_count, compressQ, symmetrizeQ );
             }
             
-            template<typename ExtInt>
+            template<IntQ ExtInt>
             PatternCSR(
                 cref<std::vector<ExtInt>> idx,
                 cref<std::vector<ExtInt>> jdx,
@@ -292,7 +268,7 @@ namespace Tensors
                 FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compressQ, symmetrizeQ );
             }
             
-            template<typename ExtInt>
+            template<IntQ ExtInt>
             PatternCSR(
                 cref<std::vector<std::vector<ExtInt>>> idx,
                 cref<std::vector<std::vector<ExtInt>>> jdx,
@@ -320,7 +296,7 @@ namespace Tensors
                 FromPairs( i.data(), j.data(), entry_counts.data(), list_count, final_thread_count, compressQ, symmetrizeQ );
             }
             
-            template<typename ExtInt>
+            template<IntQ ExtInt>
             PatternCSR(
                 cref<std::vector<PairAggregator<ExtInt,ExtInt,LInt>>> pairs,
                 const Int m_,
@@ -352,7 +328,7 @@ namespace Tensors
                 );
             }
             
-            template<typename ExtInt>
+            template<IntQ ExtInt>
             PatternCSR(
                 cref<PairAggregator<ExtInt,ExtInt,LInt>> pairs,
                 const Int m_,
@@ -709,6 +685,7 @@ namespace Tensors
                 ParallelDo(
                     [this]( const Int i )
                     {
+                        // This sort uses sorting nets for small lists. This increases compile time, but sorts very sparse matrices faster.
                         Sort( &inner[outer[i]], &inner[outer[i+1]], std::less<LInt>() );
                     },
                     JobPtr()
@@ -728,9 +705,7 @@ namespace Tensors
             Tensor1< Int,LInt> values;  // a dummy
             Tensor1<LInt,LInt> C_outer; // a dummy
             
-            this->template Compress_impl<false,false>(
-                outer, inner, values, C_outer
-            );
+            this->template Compress_impl<false,false>( outer, inner, values, C_outer );
         }
 
             
@@ -1207,7 +1182,7 @@ namespace Tensors
             }
             
             
-            template<typename ExtInt>
+            template<IntQ ExtInt>
             void WriteNonzeroPositions( mptr<ExtInt> pos )
             {
                 static_assert(IntQ<ExtInt>,"");
@@ -1244,7 +1219,7 @@ namespace Tensors
                 );
             }
             
-            template<typename ExtInt>
+            template<IntQ ExtInt>
             void WriteNonzeroPositions( mptr<ExtInt> idx, mptr<ExtInt> jdx )
             {
                 static_assert(IntQ<ExtInt>,"");
@@ -1309,9 +1284,7 @@ namespace Tensors
             
         public:
             
-            static PatternCSR IdentityMatrix(
-                const Int n, const Int thread_count = 1
-            )
+            static PatternCSR IdentityMatrix( const Int n, const Int thread_count = 1 )
             {
                 Sparse::PatternCSR<Int,LInt> A ( n, n, n, thread_count );
                 A.Outer().iota();

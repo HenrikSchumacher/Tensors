@@ -31,8 +31,8 @@ using Real   = Scalar::Real<Scal>;
 using LInt   = long;
 using Int    = int32_t;
 
-//constexpr bool use_metisQ = false;
-constexpr bool use_metisQ = true;
+constexpr bool use_metisQ = false;
+//constexpr bool use_metisQ = true;
 
 int main()
 {

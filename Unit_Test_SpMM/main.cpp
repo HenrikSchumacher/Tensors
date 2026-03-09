@@ -16,7 +16,7 @@ int error_count  = 0;
 int ineff_count  = 0;
 int thread_count = 8;
 
-template<typename a_T, typename X_T, typename b_T, typename Y_T, typename Scalar, typename Int, typename LInt>
+template<typename a_T, typename X_T, typename b_T, typename Y_T, typename Scalar, IntQ Int, typename LInt>
     __attribute__((noinline)) void Dot_True(
     cptr<LInt> rp, cptr<Int> ci, cptr<Scalar> a, const Int m, const Int n,
     cref<a_T> alpha, cptr<X_T> X, const Int ldX,
@@ -61,7 +61,7 @@ template<typename a_T, typename X_T, typename b_T, typename Y_T, typename Scalar
 
 template<
     typename a_T, typename X_T, typename b_T, typename Y_T,
-    typename Scal, typename Int,  typename LInt
+    typename Scal, IntQ Int,  IntQ LInt
 >
 void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
 {
@@ -159,7 +159,7 @@ void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
 }
 
 
-template<typename Scal, typename Int, typename LInt>
+template<typename Scal, IntQ Int, IntQ LInt>
 void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
 {
     logprint(std::string("  Test_SpMM")

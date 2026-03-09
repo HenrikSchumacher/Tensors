@@ -6,7 +6,7 @@ namespace Tensors
     
     template<
         bool base = 0,
-        typename a_T, typename alpha_T, typename X_T, typename beta_T, typename Y_T, typename Int, typename LInt
+        typename a_T, typename alpha_T, typename X_T, typename beta_T, typename Y_T, IntQ Int, IntQ LInt
     >
     void SpMM_cached(
         cptr<LInt> rp, cptr<Int> ci, cptr<a_T> a,

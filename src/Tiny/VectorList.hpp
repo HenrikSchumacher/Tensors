@@ -5,7 +5,7 @@ namespace Tensors
     namespace Tiny
     {
         
-        template<int n_, typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
+        template<int n_, typename Scal_, IntQ Int_, Size_T alignment = CacheLineWidth>
         class VectorList final
         {
         public:
@@ -52,7 +52,7 @@ namespace Tensors
                 }
             }
             
-            template< typename ExtScal, typename ExtInt >
+            template< typename ExtScal, IntQ ExtInt >
             explicit VectorList( cptr<ExtScal> a, const ExtInt length_ )
             :   length(length_)
             {
@@ -294,6 +294,22 @@ namespace Tensors
                 return Dim(k);
             }
             
+            friend std::string ToString( cref<VectorList> v_list )
+            {
+                std::string s ("{\n");
+                
+                s += "\t";
+                s += ToString(v_list.v[0]   );
+                
+                for( Int i = 1; i < n; ++i )
+                {
+                    s += ",\n\t";
+                    s += ToString(v_list.v[i]   );
+                }
+                s+= "\n}";
+                return s;
+            }
+            
             Size_T AllocatedByteCount() const
             {
                 Size_T b = 0;
@@ -327,9 +343,7 @@ namespace Tensors
 #ifdef LTEMPLATE_H
         
         
-        template<int n, typename Scal, typename Int,
-            class = typename std::enable_if_t<FloatQ<Scal>>
-        >
+        template<int n, FloatQ Scal, IntQ Int>
         inline mma::TensorRef<mreal> to_MTensorRef( cref<VectorList<n,Scal,Int>> A )
         {
             const mint m = A.Dim(1);
@@ -356,7 +370,7 @@ namespace Tensors
             return B;
         }
         
-        template<int n, typename J, typename Int, 
+        template<int n, IntQ J, IntQ Int, 
             class = typename std::enable_if_t<IntQ<J>>
         >
         inline mma::TensorRef<mint> to_MTensorRef( cref<VectorList<n,J,Int>> A )

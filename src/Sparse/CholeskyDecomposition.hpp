@@ -81,8 +81,8 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<typename Scal_, typename Int_, typename LInt_>
-        class alignas( ObjectAlignment ) CholeskyDecomposition final : public CachedObject<1,1,1,1>
+        template<typename Scal_, IntQ Int_, IntQ LInt_>
+        class alignas( ObjectAlignment ) CholeskyDecomposition final : public CachedObject<1,1,0,0>
         {
         public:
             
@@ -309,7 +309,7 @@ namespace Tensors
             
         public:
             
-            template<typename ExtLInt, typename ExtInt>
+            template<IntQ ExtLInt, IntQ ExtInt>
             CholeskyDecomposition(
                 cptr<ExtLInt> A_outer,
                 cptr<ExtInt>  A_inner,
@@ -332,7 +332,7 @@ namespace Tensors
             
             // This is the constructor that will most likely to be used in practice.
             // p is supposed to be a vector of size n_ containing a fill-in reducing permutation of [0,...,n[.
-            template<typename ExtLInt, typename ExtInt, typename ExtInt2>
+            template<IntQ ExtLInt, IntQ ExtInt, IntQ ExtInt2>
             CholeskyDecomposition(
                 cptr<ExtLInt> A_outer,
                 cptr<ExtInt>  A_inner,
@@ -346,7 +346,7 @@ namespace Tensors
             
             // Constructor if the user has applied a fill-in
             // reducing permutation to the matrix already.
-            template<typename ExtLInt, typename ExtInt>
+            template<IntQ ExtLInt, IntQ ExtInt>
             CholeskyDecomposition(
                 cptr<ExtLInt> A_outer,
                 cptr<ExtInt>  A_inner,
@@ -499,7 +499,7 @@ namespace Tensors
         
     } // namespace Sparse
     
-//    template<typename Scal, typename Int, typename LInt>
+//    template<typename Scal, IntQ Int, IntQ LInt>
 //    std::string ToString( cref<typename Sparse:: CholeskyDecomposition<Scal,Int,LInt>::SupernodeStrategy_T> s
 //    )
 //    {
@@ -526,7 +526,7 @@ namespace Tensors
 //        }
 //    }
 //    
-//    template<typename Scal, typename Int, typename LInt>
+//    template<typename Scal, IntQ Int, IntQ LInt>
 //    std::string ToString( cref<typename Sparse::CholeskyDecomposition<Scal,Int,LInt>::FactorizationMethod_T> m
 //    )
 //    {

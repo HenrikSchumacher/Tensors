@@ -5,14 +5,11 @@ namespace Tensors
 
     namespace BLAS
     {
-        template<typename Scal, typename I0, typename I1>
+        template<typename Scal, IntQ I0, IntQ I1>
         TOOLS_FORCE_INLINE void scal(
             const I0 n_, cref<Scal> alpha, mptr<Scal> x_, const I1 inc_x_
         )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            
             Int n      = int_cast<Int>(n_);
             Int inc_x  = int_cast<Int>(inc_x_);
             

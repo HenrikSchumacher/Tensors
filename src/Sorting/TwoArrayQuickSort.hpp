@@ -2,11 +2,9 @@
 
 namespace Tensors
 {
-    template<typename S, typename T, typename I>
+    template<typename S, typename T, IntQ I>
     class TwoArrayQuickSort
     {
-        static_assert(IntQ<I>,"");
-        
     protected:
         
         Tensor1<I,I> stack;

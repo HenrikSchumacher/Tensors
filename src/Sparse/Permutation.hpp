@@ -15,7 +15,7 @@ namespace Tensors
         False = false
     };
     
-    template<typename Int_>
+    template<IntQ Int_>
     class Permutation final
     {
         static_assert(IntQ<Int_>,"");
@@ -862,7 +862,7 @@ namespace Tensors
         }
         
         
-        template<typename ExtInt, typename PRNGT_T>
+        template<IntQ ExtInt, typename PRNGT_T>
         static Permutation RandomPermutation(
             const ExtInt n,
             const ExtInt thread_count,
@@ -900,7 +900,7 @@ namespace Tensors
     
     
     
-    template<bool P_TrivialQ, bool Q_TrivialQ, bool SortQ, typename LInt, typename Int>
+    template<bool P_TrivialQ, bool Q_TrivialQ, bool SortQ, IntQ LInt, IntQ Int>
     Tensor1<LInt,LInt> permutePatternCSR(
         mref<Tensor1<LInt,Int>> outer,
         mref<Tensor1<Int,LInt>> inner,
@@ -1004,7 +1004,7 @@ namespace Tensors
         return perm;
     }
     
-    template<typename Int, typename LInt>
+    template<IntQ Int, IntQ LInt>
     Tensor1<LInt,LInt> PermutePatternCSR(
         mref<Tensor1<LInt,Int>> outer,
         mref<Tensor1<Int,LInt>> inner,

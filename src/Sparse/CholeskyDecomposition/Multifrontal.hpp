@@ -5,15 +5,12 @@ namespace Tensors
     namespace Sparse
     {
         
-        template<typename Scal_, typename Int_, typename LInt_> class CholeskyDecomposition;
+        template<typename Scal_, IntQ Int_, IntQ LInt_> class CholeskyDecomposition;
         
-        template<typename Scal_, typename Int_, typename LInt_>
+        template<typename Scal_, IntQ Int_, IntQ LInt_>
         class alignas(ObjectAlignment) CholeskyFactorizer_Multifrontal final
         {
             // Performs a left-looking factorization.
-            
-            static_assert(IntQ< Int_>,"");
-            static_assert(IntQ<LInt_>,"");
             
         public:
             

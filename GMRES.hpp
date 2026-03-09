@@ -15,7 +15,7 @@ namespace Tensors
     
     // Scal_ is the floating point type that is used internally.
     
-    template<Size_T NRHS_,typename Scal_,typename Int_,
+    template<Size_T NRHS_,typename Scal_,IntQ Int_,
         Side side = Side::Left, bool A_verboseQ = true, bool P_verboseQ = true
     >
     class GMRES final
@@ -846,6 +846,7 @@ namespace Tensors
         
         std::string Stats() const
         {
+            // TODO: Rewrite this with +=.
             return std::string()
             + "\n==== " + ClassName() + " Stats ====" + "\n\n"
             + " succeeded          = " + ( succeeded ? std::string("true") : std::string("false") ) + "\n"
@@ -859,10 +860,10 @@ namespace Tensors
             + " relative_tolerance = " + ToString(relative_tolerance) + "\n"
             + " use_initial_guessQ = " + ToString(use_initial_guessQ) + "\n"
             + "\n==== " + ClassName() + " Stats ====\n\n"
-            + " beta               = " + ArrayToString( beta.data(), {iter+1,nrhs} ) + "\n";
+            + " beta               = " + std::string(OutString( beta.data(), iter+1, nrhs )) + "\n";
             + " TOL                = " + ToString(TOL) + "\n";
             + " b_norms            = " + ToString(b_norms) + "\n";
-            + " relative residuals = " + ArrayToString( RelativeResiduals().data(), {nrhs} ) + "\n";
+            + " relative residuals = " + std::string(OutString( RelativeResiduals().data(), nrhs )) + "\n";
         }
         
         std::string ClassName() const

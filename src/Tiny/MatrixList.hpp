@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Tiny
     {
-        template< int m_, int n_, typename Scal_, typename Int_, Size_T alignment = CacheLineWidth>
+        template< int m_, int n_, typename Scal_, IntQ Int_, Size_T alignment = CacheLineWidth>
         class MatrixList final
         {
         public:
@@ -283,6 +283,43 @@ namespace Tensors
             }
             
             
+            auto WriteAccess()
+            {
+                return [this]( const Int i, const Int j, const Int k ) -> Scal&
+                {
+                    return A(i,j,k);
+                };
+            }
+            
+            auto ReadAccess() const
+            {
+                return [this]( const Int i, const Int j, const Int k ) -> Scal
+                {
+                    return A(i,j,k);
+                };
+            }
+            
+            inline friend std::ostream & operator<<( std::ostream & s, cref<MatrixList> tensor )
+            {
+                return s << OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
+            }
+            
+            inline friend std::string ToString( cref<MatrixList> tensor )
+            {
+                return OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
+            }
+            
+            inline friend std::string ToString( cref<MatrixList> tensor, cref<std::string> line_prefix )
+            {
+                return OutString(
+                    tensor.ReadAccess(),
+                    tensor.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
+                    tensor.Dim(1), line_prefix + " { ", ", ", " }",
+                    tensor.Dim(2),               "{ ", ", ", " }"
+                );
+            }
+            
+            
             [[nodiscard]] static std::string ClassName() noexcept
             {
                 return ct_string("Tiny::MatrixList")
@@ -299,9 +336,7 @@ namespace Tensors
     #ifdef LTEMPLATE_H
         
         
-        template<int m, int n, typename T, typename I,
-            class = typename std::enable_if_t<FloatQ<T>>
-        >
+        template<int m, int n, std::floating_point T, typename I>
         inline mma::TensorRef<mreal> to_MTensorRef( cref<Tiny::MatrixList<m,n,T,I>> A )
         {
             const mint N = A.Dim(2);
@@ -334,9 +369,7 @@ namespace Tensors
             return B;
         }
         
-        template<int m, int n, typename J, typename I,
-            class = typename std::enable_if_t<IntQ<J>>
-        >
+        template<int m, int n, std::integral J, std::integral I>
         inline mma::TensorRef<mint> to_MTensorRef( cref<Tiny::MatrixList<m,n,J,I>> A )
         {
             const mint N = A.Dim(2);

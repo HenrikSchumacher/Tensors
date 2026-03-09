@@ -5,7 +5,7 @@ namespace Tensors
 
 #define TENSOR_T Tensor3
 
-    template <typename Scal_, typename Int_, Size_T alignment = DefaultAlignment>
+    template <typename Scal_, IntQ Int_, Size_T alignment = DefaultAlignment>
     class TENSOR_T final
     {
     public:
@@ -18,9 +18,7 @@ namespace Tensors
     public:
         
         template<
-            typename d0_T, typename d1_T, typename d2_T,
-            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
-        >
+        IntQ d0_T, IntQ d1_T, IntQ d2_T>
         Tensor3( const d0_T d0, const d1_T d1, const d2_T d2 )
         :   n    { int_cast<Int>(ToSize_T(d0) * ToSize_T(d1) * ToSize_T(d2)) }
         ,   dims { int_cast<Int>(d0), int_cast<Int>(d1), int_cast<Int>(d2) }
@@ -31,20 +29,14 @@ namespace Tensors
             allocate();
         }
         
-        template<
-            typename d0_T, typename d1_T, typename d2_T,
-            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
-        >
+        template<IntQ d0_T, IntQ d1_T, IntQ d2_T>
         Tensor3( const d0_T d0, const d1_T d1, const d2_T d2, cref<Scal> init )
         :   Tensor3( d0, d1, d2 )
         {
             Fill( init );
         }
         
-        template<
-            typename S, typename d0_T, typename d1_T, typename d2_T,
-            class = typename std::enable_if_t<IntQ<d0_T>&&IntQ<d1_T>&&IntQ<d2_T>>
-        >
+        template<typename S, IntQ d0_T, IntQ d1_T, IntQ d2_T>
         Tensor3( cptr<S> a_, const d0_T d0, const d1_T d1, const d2_T d2 )
         :   Tensor3( d0, d1, d2 )
         {
@@ -122,28 +114,24 @@ namespace Tensors
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i ) noexcept
         {
             BoundCheck(i);
-            
             return &a[i * dims[1] * dims[2]];
         }
         
         TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const noexcept
         {
             BoundCheck(i);
-            
             return &a[i * dims[1] * dims[2]];
         }
 
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j ) noexcept
         {
             BoundCheck(i,j);
-            
             return &a[( i * dims[1] + j ) * dims[2]];
         }
         
         TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j ) const noexcept
         {
             BoundCheck(i,j);
-            
             return &a[( i * dims[1] + j ) * dims[2]];
         }
 
@@ -151,7 +139,6 @@ namespace Tensors
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k) noexcept
         {
             BoundCheck(i,j,k);
-            
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
@@ -159,22 +146,37 @@ namespace Tensors
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k) const noexcept
         {
             BoundCheck(i,j,k);
-            
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
         TOOLS_FORCE_INLINE mref<Scal> operator()( const Int i, const Int j, const Int k) noexcept
         {
             BoundCheck(i,j,k);
-            
             return a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
         TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j, const Int k) const noexcept
         {
             BoundCheck(i,j,k);
-            
             return a[( i *  dims[1] + j ) * dims[2] + k];
+        }
+        
+        auto WriteAccess()
+        {
+            return [this]( const Int i, const Int j, const Int k ) -> Scal&
+            {
+                BoundCheck(i,j,k);
+                return a[( i *  dims[1] + j ) * dims[2] + k];
+            };
+        }
+        
+        auto ReadAccess() const
+        {
+            return [this]( const Int i, const Int j, const Int k ) -> Scal
+            {
+                BoundCheck(i,j,k);
+                return a[( i *  dims[1] + j ) * dims[2] + k];
+            };
         }
         
         template< typename S>
@@ -201,6 +203,43 @@ namespace Tensors
             copy_buffer( b, data(i,j), dims[2] );
         }
         
+        template<typename FillFun_T>
+        void FillByFunction( FillFun_T && f )
+        {
+            for( Int i = 0; i < Dim(0); ++i )
+            {
+                for( Int j = 0; j < Dim(1); ++j )
+                {
+                    for( Int k = 0; k < Dim(2); ++k )
+                    {
+                        this->operator()(i,j,k) = f(i,j,k);
+                    }
+                }
+            }
+        }
+        
+        
+    
+        inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
+        {
+            return s << OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
+        }
+
+        inline friend std::string ToString( cref<TENSOR_T> tensor )
+        {
+            return OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
+        }
+        
+        inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
+        {
+            return OutString(
+                tensor.ReadAccess(),
+                tensor.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
+                tensor.Dim(1), line_prefix + " { ", ", ", " }",
+                tensor.Dim(2),               "{ ", ", ", " }"
+            );
+        }
+        
     public:
         
         static std::string ClassName() noexcept
@@ -215,7 +254,7 @@ namespace Tensors
     }; // Tensor3
     
     
-//    template<typename Scal, typename Int, typename S>
+//    template<typename Scal, IntQ Int, typename S>
 //    Tensor3<Scal,Int> ToTensor3( cptr<S> a_, const Int d0, const Int d1, const Int d2 )
 //    {
 //        Tensor3<Scal,Int> result ( d0, d1, d2 );
@@ -227,13 +266,13 @@ namespace Tensors
     
 #ifdef LTEMPLATE_H
     
-    template<typename Scal, typename Int>
+    template<typename Scal, IntQ Int>
     Tensor3<Scal,Int> from_CubeRef( cref<mma::TensorRef<mreal>> A )
     {
         return Tensor3<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );
     }
     
-    template<typename Scal, typename Int>
+    template<typename Scal, IntQ Int>
     Tensor3<Scal,Int> from_CubeRef( cref<mma::TensorRef<mint>> A )
     {
         return Tensor3<Scal,Int>( A.data(), A.dimensions()[0], A.dimensions()[1], A.dimensions()[2] );

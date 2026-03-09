@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename T, typename Int>
+    template<typename T, IntQ Int>
     Int UniteSortedBuffers(
         cptr<T> u, const Int m,
         cptr<T> v, const Int n,

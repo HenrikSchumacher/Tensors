@@ -19,12 +19,10 @@ TENSOR_T( const TENSOR_T & other )
 }
 
 // Copy-cast constructor
-template<typename S, typename J, Size_T alignment_>
+template<typename S, IntQ J, Size_T alignment_>
 explicit TENSOR_T( const TENSOR_T<S,J,alignment_> & other )
 :   n    ( other.Size()    )
 {
-    static_assert(IntQ<J>,"");
-    
     copy_buffer<rank>(other.Dims(),other.Dims());
     
 #ifdef TENSORS_ALLOCATION_LOGS

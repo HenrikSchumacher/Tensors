@@ -149,14 +149,13 @@ namespace Tensors
         {
             template<
                 Op opA, Op opB,
-                typename A_Scal, typename A_Int, typename A_LInt,
-                typename B_Scal, typename B_Int, typename B_LInt,
+                typename A_Scal, IntQ A_Int, IntQ A_LInt,
+                typename B_Scal, IntQ B_Int, IntQ B_LInt,
                 typename Scal = decltype(A_Scal(1) * B_Scal(1)),
-                typename Int  = decltype(A_Int (0) + B_Int (0)),
-                typename LInt = decltype(A_LInt(0) + B_LInt(0))
+                IntQ     Int  = decltype(A_Int (0) + B_Int (0)),
+                IntQ     LInt = decltype(A_LInt(0) + B_LInt(0))
             >
-            MatrixCSR<Scal,Int,LInt>
-            Dot_NN(
+            MatrixCSR<Scal,Int,LInt> Dot_NN(
                 const MatrixCSR<A_Scal,A_Int,A_LInt> & A,
                 const MatrixCSR<B_Scal,B_Int,B_LInt> & B
             )
@@ -280,14 +279,13 @@ namespace Tensors
         
         template<
             Op opA, Op opB,
-            typename A_Scal, typename A_Int, typename A_LInt,
-            typename B_Scal, typename B_Int, typename B_LInt,
+            typename A_Scal, IntQ A_Int, IntQ A_LInt,
+            typename B_Scal, IntQ B_Int, IntQ B_LInt,
             typename Scal = decltype(A_Scal(1) * B_Scal(1)),
-            typename Int  = decltype(A_Int (0) + B_Int (0)),
-            typename LInt = decltype(A_LInt(0) + B_LInt(0))
+            IntQ Int  = decltype(A_Int (0) + B_Int (0)),
+            IntQ LInt = decltype(A_LInt(0) + B_LInt(0))
         >
-        MatrixCSR<Scal,Int,LInt>
-        Dot(
+        MatrixCSR<Scal,Int,LInt> Dot(
             const MatrixCSR<A_Scal,A_Int,A_LInt> & A,
             const MatrixCSR<B_Scal,B_Int,B_LInt> & B
         )
@@ -323,7 +321,7 @@ namespace Tensors
         }
 
         
-//        template<typename Scal, typename Int>
+//        template<typename Scal, IntQ Int>
 //        Scal Dot_BinarySearch(
 //            cptr<Int> u_idx, mptr<Scal> u_val, const Int u_nnz,
 //            cptr<Int> v_idx, mptr<Scal> v_val, const Int v_nnz,

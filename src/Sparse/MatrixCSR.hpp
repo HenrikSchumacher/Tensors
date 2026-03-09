@@ -6,7 +6,7 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<typename Scal_, typename Int_, typename LInt_>
+        template<typename Scal_, IntQ Int_, IntQ LInt_>
         class MatrixCSR : public Sparse::PatternCSR<Int_,LInt_>
         {
         private:
@@ -61,20 +61,16 @@ namespace Tensors
             using Base_T::WellFormedQ;
             using Base_T::Dot_;
             
-            template<typename I_0, typename I_1, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_3>
             MatrixCSR(
                 const I_0 m_,
                 const I_1 n_,
                 const I_3 thread_count_
             )
             :   Base_T( int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
             
-            template<typename I_0, typename I_1, typename I_2, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_2, IntQ I_3>
             MatrixCSR(
                 const I_0 m_,
                 const I_1 n_,
@@ -83,14 +79,9 @@ namespace Tensors
             )
             :   Base_T   ( int_cast<Int>(m_), int_cast<Int>(n_), int_cast<LInt>(nnz_), int_cast<Int>(thread_count_) )
             ,   values ( int_cast<LInt>(nnz_) )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_2>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
             
-            template<typename S, typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
+            template<typename S, IntQ J_0, IntQ J_1, IntQ I_0, IntQ I_1, IntQ I_3>
             MatrixCSR(
                 const J_0 * const outer_,
                 const J_1 * const inner_,
@@ -103,13 +94,10 @@ namespace Tensors
             ,   values  ( values_, outer_[int_cast<Int>(m_)] )
             {
                 static_assert(ArithmeticQ<S>,"");
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
             }
             
             // CAUTION: This reserves memory for the nonzero values, but it does not initialize the nonzero values!
-            template<typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
+            template<IntQ J_0, IntQ J_1, IntQ I_0, IntQ I_1, IntQ I_3>
             MatrixCSR(
                 const J_0 * const outer_,
                 const J_1 * const inner_,
@@ -119,13 +107,9 @@ namespace Tensors
             )
             :   Base_T  ( outer_,  inner_, int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
             ,   values  ( outer_[int_cast<Int>(m_)] )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
             
-            template<typename I_0, typename I_1, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_3>
             MatrixCSR(
                 Tensor1<LInt, Int> && outer_,
                 Tensor1< Int,LInt> && inner_,
@@ -136,11 +120,7 @@ namespace Tensors
             )
             :   Base_T ( std::move(outer_), std::move(inner_), int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
             ,   values ( std::move(values_) )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
 
             // Default constructor
             MatrixCSR() = default;
@@ -194,7 +174,7 @@ namespace Tensors
                 swap( A.assembler,             B.assembler             );
             }
             
-            template<typename ExtScal, typename ExtInt>
+            template<typename ExtScal, IntQ ExtInt>
             MatrixCSR(
                   const ExtInt  * const * const idx,
                   const ExtInt  * const * const jdx,
@@ -217,7 +197,7 @@ namespace Tensors
             }
             
             
-            template<typename ExtInt, typename ExtScal>
+            template<IntQ ExtInt, typename ExtScal>
             MatrixCSR(
                 const LInt nnz_,
                 const ExtInt  * const i,
@@ -251,7 +231,7 @@ namespace Tensors
                 FromTriples( idx.data(), jdx.data(), val.data(), counts.data(), thread_count, thread_count, compressQ, symmetrizeQ, assemblerQ );
             }
             
-            template<typename ExtInt, typename ExtScal>
+            template<IntQ ExtInt, typename ExtScal>
             MatrixCSR(
                   cref<std::vector<std::vector<ExtInt>>>  idx,
                   cref<std::vector<std::vector<ExtInt>>>  jdx,
@@ -285,7 +265,7 @@ namespace Tensors
                 );
             }
             
-            template<typename ExtInt, typename ExtScal>
+            template<IntQ ExtInt, typename ExtScal>
             MatrixCSR(
                   cref<std::vector<TripleAggregator<ExtInt,ExtInt,ExtScal,LInt>>> triples,
                   const Int m_,
@@ -319,7 +299,7 @@ namespace Tensors
                 );
             }
             
-            template<typename ExtInt, typename ExtScal>
+            template<IntQ ExtInt, typename ExtScal>
             MatrixCSR(
                 cref<TripleAggregator<ExtInt,ExtInt,ExtScal,LInt>> triples,
                 const Int m_,
@@ -561,9 +541,7 @@ namespace Tensors
 
                 Tensor1<LInt,LInt> C_outer;
                 
-                this->template Compress_impl<true,false>(
-                    outer,inner,values,C_outer
-                );
+                this->template Compress_impl<true,false>( outer, inner, values, C_outer );
             }
             
         public:
@@ -1213,9 +1191,7 @@ namespace Tensors
                 return symmetricQ;
             }
             
-            static MatrixCSR IdentityMatrix(
-                const Int n, const Int thread_count = 1
-            )
+            static MatrixCSR IdentityMatrix( const Int n, const Int thread_count = 1 )
             {
                 Sparse::MatrixCSR<Scal,Int,LInt> A ( n, n, n, thread_count );
                 A.Outer().iota();

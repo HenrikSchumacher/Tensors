@@ -8,7 +8,7 @@ namespace Tensors
 {
     // TODO: Test whether the code works in the complex case.
     
-    template<typename Scal_, typename Int_>
+    template<typename Scal_, IntQ Int_>
     class UMFPACK final
     {
     public:
@@ -68,7 +68,7 @@ namespace Tensors
 //        // Move assignment operator
 //        UMFPACK & operator=( UMFPACK && other ) = default;
         
-        template<typename ExtInt, typename ExtLInt>
+        template<IntQ ExtInt, IntQ ExtLInt>
         explicit UMFPACK(
             const ExtInt m_, const ExtInt n_, cptr<ExtInt> outer_, cptr<ExtLInt> inner_
         )
@@ -81,7 +81,7 @@ namespace Tensors
         }
         
         
-        template<typename ExtInt, typename ExtLInt, typename ExtScal>
+        template<IntQ ExtInt, IntQ ExtLInt, typename ExtScal>
         explicit UMFPACK(
             const ExtInt m_, const ExtInt n_,
             cptr<ExtInt> outer_, cptr<ExtLInt> inner_, cptr<ExtScal> values_
@@ -93,12 +93,12 @@ namespace Tensors
         }
         
         
-        template<typename ExtScal, typename ExtInt, typename ExtLInt>
+        template<typename ExtScal, IntQ ExtInt, IntQ ExtLInt>
         explicit UMFPACK( cref<Sparse::MatrixCSR<ExtScal,ExtInt,ExtLInt>> A )
         :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner(), A.Values() )
         {}
         
-        template<typename ExtScal, typename ExtInt, typename ExtLInt>
+        template<typename ExtScal, IntQ ExtInt, IntQ ExtLInt>
         explicit UMFPACK( cref<Sparse::BinaryMatrixCSR<ExtScal,ExtInt>> A )
         :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner() )
         {}

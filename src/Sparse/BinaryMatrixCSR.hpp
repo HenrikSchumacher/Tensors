@@ -6,7 +6,7 @@ namespace Tensors
     {
         // TODO: Make permutation matrices more efficient: Add a flag if `outer = iota(m+1)`, avoid storing `outer` and adapt the indexing and `Dot` algorithms. Maybe.
         
-        template<typename Int_, typename LInt_>
+        template<IntQ Int_, IntQ LInt_>
         class BinaryMatrixCSR : public Sparse::PatternCSR<Int_,LInt_>
         {
         private:
@@ -52,20 +52,16 @@ namespace Tensors
             using Base_T::WellFormedQ;
             using Base_T::ToTensor2;
             
-            template<typename I_0, typename I_1, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_3>
             BinaryMatrixCSR(
                 const I_0 m_,
                 const I_1 n_,
                 const I_3 thread_count_
             )
             :   Base_T( int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
             
-            template<typename I_0, typename I_1, typename I_2, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_2, IntQ I_3>
             BinaryMatrixCSR(
                 const I_0 m_,
                 const I_1 n_,
@@ -73,15 +69,10 @@ namespace Tensors
                 const I_3 thread_count_
             )
             :   Base_T( int_cast<Int>(m_), int_cast<Int>(n_), int_cast<LInt>(nnz_), int_cast<Int>(thread_count_) )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_2>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
             
             
-            template<typename J_0, typename J_1, typename I_0, typename I_1, typename I_3>
+            template<IntQ J_0, IntQ J_1, IntQ I_0, IntQ I_1, IntQ I_3>
             BinaryMatrixCSR(
                   const J_0 * const outer_,
                   const J_1 * const inner_,
@@ -90,15 +81,9 @@ namespace Tensors
                   const I_3 thread_count_
             )
             :   Base_T( outer_, inner_, int_cast<Int>(m_), int_cast<Int>(n_), int_cast<Int>(thread_count_) )
-            {
-                static_assert(IntQ<J_0>,"");
-                static_assert(IntQ<J_1>,"");
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
             
-            template<typename I_0, typename I_1, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_3>
             BinaryMatrixCSR(
                   const Tensor1<LInt, Int> & outer_,
                   const Tensor1< Int,LInt> & inner_,
@@ -113,13 +98,9 @@ namespace Tensors
                     int_cast<Int>(n_),
                     int_cast<Int>(thread_count_)
                 )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
             
-            template<typename I_0, typename I_1, typename I_3>
+            template<IntQ I_0, IntQ I_1, IntQ I_3>
             BinaryMatrixCSR(
                   Tensor1<LInt, Int> && outer_,
                   Tensor1< Int,LInt> && inner_,
@@ -134,11 +115,7 @@ namespace Tensors
                     int_cast<Int>(n_),
                     int_cast<Int>(thread_count_)
                 )
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_3>,"");
-            }
+            {}
             
             // Default constructor
             BinaryMatrixCSR() = default;

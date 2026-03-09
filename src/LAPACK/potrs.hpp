@@ -6,13 +6,10 @@ namespace Tensors
     {
         template<
             Layout layout, UpLo uplo, 
-            typename Scal, typename I0, typename I1, typename I2, typename I3
+            typename Scal, IntQ I0, IntQ I1, IntQ I2, IntQ I3
         >
         TOOLS_FORCE_INLINE Int potrs( I0 n_, I1 nrhs_, Scal * A_, I2 ldA_, Scal * B_, I3 ldB_ )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I1>,"");
-            
             Int n    = int_cast<Int>(n_);
             Int nrhs = int_cast<Int>(nrhs_);
             Int ldA  = int_cast<Int>(ldA_);

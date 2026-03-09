@@ -32,7 +32,7 @@ namespace Tensors
             Tools::Layout layout = Tools::Layout::RowMajor;
         };
         
-        template<typename Scal, typename Int>
+        template<typename Scal, IntQ Int>
         class MatrixView_Args
         {
             T * a  = nullptr;
@@ -42,14 +42,12 @@ namespace Tensors
         };
         
         template<
-            typename Scal_, typename Int_,
+            typename Scal_, IntQ Int_,
             MatrixView_TArgs targs = MatrixView_TArgs{}
         >
         {
             class MatrixView final
             {
-                static_assert(IntQ<Int_>,"");
-                
             public:
                 
                 using Real   = Real_;

@@ -7,7 +7,7 @@ namespace Tensors
         
         template<
             Layout layout, UpLo uplo, typename Scal,
-            typename I0, typename I2, typename I3
+            IntQ I0, IntQ I2, IntQ I3
         >
         
         TOOLS_FORCE_INLINE void her(
@@ -16,10 +16,6 @@ namespace Tensors
                                             mptr<Scal> A_, const I3 ldA_
         )
         {
-            static_assert(IntQ<I0>,"");
-            static_assert(IntQ<I2>,"");
-            static_assert(IntQ<I3>,"");
-            
             Int n    = int_cast<Int>(n_);
             Int incx = int_cast<Int>(incx_);
             Int ldA  = int_cast<Int>(ldA_);

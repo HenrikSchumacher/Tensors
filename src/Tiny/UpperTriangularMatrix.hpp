@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Tiny
     {
-        template< int n_, typename Scal_, typename Int_>
+        template<int n_, typename Scal_, IntQ Int_>
         class UpperTriangularMatrix final
         {
             // Allocates a square array, but accesses only upper triangle.
@@ -287,12 +287,6 @@ namespace Tensors
                         }
                     }
                 }
-            }
-
-            
-            [[nodiscard]] friend std::string ToString( cref<UpperTriangularMatrix> M )
-            {
-                return MatrixString<n,n>( &M.A[0][0],n,"{\n", "\t{ ", ", ", " },", "\n", "\n}");
             }
             
             template<typename T = Scal>

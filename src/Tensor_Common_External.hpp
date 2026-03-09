@@ -1,6 +1,6 @@
 #ifdef LTEMPLATE_H
     
-    template<bool replace_inftyQ = false, typename S, typename Int, Size_T alignment,
+    template<bool replace_inftyQ = false, typename S, IntQ Int, Size_T alignment,
         class = typename std::enable_if_t<mma::HasTypeQ<S>>
     >
     inline mma::TensorRef<mma::Type<S>> to_MTensorRef(
@@ -28,7 +28,7 @@
 
 #ifdef MMA_HPP
 
-    template<bool replace_inftyQ = false, typename S, typename Int, Size_T alignment,
+    template<bool replace_inftyQ = false, typename S, IntQ Int, Size_T alignment,
         class = typename std::enable_if_t<mma::HasTypeQ<S>>
     >
     inline mma::MTensorWrapper<mma::Type<S>> to_MTensorWrapper(
@@ -51,7 +51,7 @@
         return B;
     }
 
-//    template<typename Real, typename Int, Size_T alignment,
+//    template<typename Real, IntQ Int, Size_T alignment,
 //        class = typename std::enable_if_t<FloatQ<Real>>
 //    >
 //    inline mma::MTensorWrapper<std::complex<mreal>> to_MTensorWrapper( cref<TENSOR_T<std::complex<Real>,Int,alignment>> A
@@ -62,7 +62,7 @@
 //        return B;
 //    }
 //
-//    template<typename J, typename Int, Size_T alignment,
+//    template<typename J, IntQ Int, Size_T alignment,
 //        class = typename std::enable_if_t<IntQ<J>>
 //    >
 //    inline mma::MTensorWrapper<mint> to_MTensorWrapper(

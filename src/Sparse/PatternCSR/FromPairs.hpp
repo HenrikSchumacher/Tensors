@@ -1,6 +1,6 @@
 protected:
 
-template<typename ExtInt>
+template<IntQ ExtInt>
 void FromPairs(
     const  ExtInt * const * const idx,
     const  ExtInt * const * const jdx,
