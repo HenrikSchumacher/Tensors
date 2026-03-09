@@ -369,7 +369,7 @@ namespace Tensors
             return B;
         }
         
-        template<int m, int n, std::integral J, std::integral I>
+        template<int m, int n, IntQ J, IntQ I>
         inline mma::TensorRef<mint> to_MTensorRef( cref<Tiny::MatrixList<m,n,J,I>> A )
         {
             const mint N = A.Dim(2);
