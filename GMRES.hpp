@@ -846,6 +846,7 @@ namespace Tensors
         
         std::string Stats() const
         {
+            // TODO: Rewrite this with +=.
             return std::string()
             + "\n==== " + ClassName() + " Stats ====" + "\n\n"
             + " succeeded          = " + ( succeeded ? std::string("true") : std::string("false") ) + "\n"
@@ -859,10 +860,10 @@ namespace Tensors
             + " relative_tolerance = " + ToString(relative_tolerance) + "\n"
             + " use_initial_guessQ = " + ToString(use_initial_guessQ) + "\n"
             + "\n==== " + ClassName() + " Stats ====\n\n"
-            + " beta               = " + OutString( beta.data(), iter+1, nrhs ) + "\n";
+            + " beta               = " + std::string(OutString( beta.data(), iter+1, nrhs )) + "\n";
             + " TOL                = " + ToString(TOL) + "\n";
             + " b_norms            = " + ToString(b_norms) + "\n";
-            + " relative residuals = " + OutString( RelativeResiduals().data(), nrhs ) + "\n";
+            + " relative residuals = " + std::string(OutString( RelativeResiduals().data(), nrhs )) + "\n";
         }
         
         std::string ClassName() const

@@ -110,7 +110,7 @@ namespace Tensors
         
         // Copy-cast-assignment operator
         template<
-            typename S, typename J, Size_T alignment_,
+            typename S, IntQ J, Size_T alignment_,
             class = std::enable_if_t<(!SameQ<S,Scal>) || (!SameQ<J,Int>) || ( alignment_ != Alignment)>
         >
         mref<TENSOR_T> operator=( const TENSOR_T<S,J,alignment_> & other )
