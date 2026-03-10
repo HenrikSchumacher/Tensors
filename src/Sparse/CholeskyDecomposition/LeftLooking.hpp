@@ -483,7 +483,7 @@ namespace Tensors
                                 {
                                     // IL_len == ione and JL_len == ione: Use BLAS 1
                                     
-                                    C_1[0] = -dot_buffers<VarSize,Seq,Op::Conj,Op::Id>(
+                                    C_1[0] = -dot_buffers<VarSize,Sequential,Op::Conj,Op::Id>(
                                         B_0, B_1, m_0
                                     );
                                 }

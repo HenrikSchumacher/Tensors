@@ -69,7 +69,7 @@ public:
 //                            " s for the " + ToString(DescendantCount(node)) + " descendants of node " + ToString(node) + "."
 //                    );
                 },
-                k_begin, k_end, Size_T(1), use_threads
+                {k_begin, k_end}, use_threads
             );
         }
         
@@ -100,7 +100,7 @@ public:
 //                            " s for completing node " + ToString(node) + "."
 //                    );
                 },
-                k_begin, k_end, Size_T(1), use_threads
+                {k_begin, k_end}, use_threads
             );
 
 //            TOOLS_PTOC(tag_1 + " = "+ToString(d)+"; using " + ToString(use_threads) + " threads.");

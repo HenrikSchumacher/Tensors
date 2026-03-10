@@ -102,7 +102,6 @@
 		AF7C6BFA2C5E5DC200EA899D /* Library.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Library.hpp; sourceTree = "<group>"; };
 		AF7C6C152C5E903800EA899D /* Scratch */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Scratch; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF7C6C172C5E903800EA899D /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
-		AF7C6C1C2C5F4FC800EA899D /* SpMM_cached.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = SpMM_cached.hpp; sourceTree = "<group>"; };
 		AF8BDDDF295A1FBD001D8CCF /* Example_SparseCholesky */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Example_SparseCholesky; sourceTree = BUILT_PRODUCTS_DIR; };
 		AF8BDDE1295A1FBE001D8CCF /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Tiny.hpp; sourceTree = "<group>"; };
@@ -251,7 +250,6 @@
 				AF8BDDE7295CE2AF001D8CCF /* Tiny.hpp */,
 				AFF805F02D171A9500FECD58 /* MKL.hpp */,
 				AF7C6BF92C5E5DC200EA899D /* BufferCombiner.hpp */,
-				AF7C6C1C2C5F4FC800EA899D /* SpMM_cached.hpp */,
 				AF7C6BFA2C5E5DC200EA899D /* Library.hpp */,
 				AFD2569B2B8ED7EE00245E2B /* MMA.hpp */,
 				AF4B5C212C5FB5DB0061A826 /* TODO.txt */,

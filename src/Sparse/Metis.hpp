@@ -23,7 +23,7 @@ namespace Tensors
             
             
             template<IntQ I_1, IntQ I_2, IntQ I_3, IntQ I_4>
-            Permutation<I_0> operator()(
+            Permutation<Int,parQ> operator()(
                 mptr<I_1> rp_, mptr<I_2> ci_, const I_3 n_, const I_4 final_thread_count = 1
             )
             {

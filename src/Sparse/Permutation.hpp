@@ -187,7 +187,7 @@ namespace Tensors
             // TODO: check p_ for triviality during copy.
             
             is_trivial = DoReduce<parQ>(
-                [=,this]( const Int i ) -> bool
+                [p_,this]( const Int i ) -> bool
                 {
                     const Int p_i = int_cast<Int>(p_[i]);
                     
@@ -197,7 +197,7 @@ namespace Tensors
                     return (p_i == i);
                 },
                 AndReducer(), true,
-                zero, n, thread_count
+                n, thread_count
             );
             
             p_computed     = true;
@@ -218,7 +218,7 @@ namespace Tensors
             // TODO: check p_inv_ for triviality during copy.
 //            p_inv.Read(p_inv_);
 
-            DoReduce<parQ>(
+            bool okayQ = DoReduce<parQ>(
                 [=,this]( const Int i ) -> bool
                 {
                     const Int p_inv_i = static_cast<Int>(p_inv_[i]);
@@ -229,8 +229,13 @@ namespace Tensors
                     return (p_inv_i == i);
                 },
                 AndReducer(), true,
-                zero, n, thread_count
+                n, thread_count
             );
+            
+            if( !okayQ )
+            {
+                eprint(MethodName("SetInversePermutation") + ": Something went wrong here.");
+            }
             
             p_computed     = true;
             p_inv_computed = true;
@@ -265,8 +270,7 @@ namespace Tensors
                 
                 Do<parQ>(
                     [=,this]( const Int i ) { p[p_inv[i]] = i; },
-                    n,
-                    thread_count
+                    n, thread_count
                 );
             }
         }
@@ -284,8 +288,7 @@ namespace Tensors
                     {
                         p_inv[p[i]] = i;
                     },
-                    n,
-                    thread_count
+                    n, thread_count
                 );
             }
         }
@@ -361,7 +364,7 @@ namespace Tensors
                             return (scratch[i] == i);
                         },
                         AndReducer(), true,
-                        zero, n, thread_count
+                        n, thread_count
                     );
                         
                     swap(p,scratch);
@@ -615,15 +618,11 @@ namespace Tensors
             {
                 if( (ldX == cols) && (ldY == cols) )
                 {
-                    copy_buffer<VarSize,parQ>(
-                        X, Y, n*cols, thread_count
-                    );
+                    copy_buffer<VarSize,parQ>( X, Y, n*cols, thread_count );
                 }
                 else
                 {
-                    copy_matrix<VarSize,COLS,parQ>(
-                        X, ldX, Y, ldY, n, cols, thread_count
-                    );
+                    copy_matrix<VarSize,COLS,parQ>( X, ldX, Y, ldY, n, cols, thread_count );
                 }
             }
         }
@@ -707,7 +706,7 @@ namespace Tensors
                         return (p_i == i);
                     },
                     AndReducer(), true,
-                    zero, n, thread_count
+                    n, thread_count
                 );
             }
             else
@@ -724,7 +723,7 @@ namespace Tensors
                         return (p_inv_i == i);
                     },
                     AndReducer(), true,
-                    zero, n, thread_count
+                    n, thread_count
                 );
             }
 
@@ -877,7 +876,7 @@ namespace Tensors
                 m, thread_count
             );
 
-            Acumulate<P_parQ>( new_outer.data(), m+1, thread_count );
+            Accumulate<P_parQ>( new_outer.data(), m+1, thread_count );
         }
         
         mptr<LInt> scratch = perm.data();

@@ -285,8 +285,7 @@ public:
                 
                 return log_det_local;
             },
-            AddReducer<Real,Real>(),
-            Scalar::Zero<Real>,
+            AddReducer<Real,Real>(), Scalar::Zero<Real>,
             thread_count
         );
     }

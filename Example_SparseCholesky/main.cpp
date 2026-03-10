@@ -34,6 +34,8 @@ using Int    = int32_t;
 constexpr bool use_metisQ = false;
 //constexpr bool use_metisQ = true;
 
+constexpr Parallel_T parQ = Parallel;
+
 int main()
 {
     constexpr Int thread_count = 8;
@@ -59,7 +61,7 @@ int main()
     TOOLS_DUMP(use_metisQ);
     
     tic("Assemble matrix");
-    Sparse::MatrixCSR<Scal,Int,LInt,Parallel> A = Sparse::GridLaplacian<Scal,Int,LInt>(grid_size,Real(1),thread_count);
+    Sparse::MatrixCSR<Scal,Int,LInt,parQ> A = Sparse::GridLaplacian<Scal,Int,LInt>(grid_size,Real(1),thread_count);
     toc("Assemble matrix");
     
     TOOLS_DUMP(A.ProvenInnerSortedQ());
@@ -102,7 +104,7 @@ int main()
         if constexpr ( use_metisQ )
         {
             tic("Metis");
-            perm = Sparse::Metis<Int>()(
+            perm = Sparse::Metis<Int,parQ>()(
                 A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
             );
             toc("Metis");
@@ -110,13 +112,13 @@ int main()
         else
         {
             tic("AMD");
-            perm = Sparse::ApproximateMinimumDegree<Int>()(
+            perm = Sparse::ApproximateMinimumDegree<Int,parQ>()(
                 A.Outer().data(), A.Inner().data(), A.RowCount(), thread_count
             );
             toc("AMD");
         }
         
-        using Cholesky_T = Sparse::CholeskyDecomposition<Scal,Int,LInt>;
+        using Cholesky_T = Sparse::CholeskyDecomposition<Scal,Int,LInt,parQ>;
         
         
         tic("Cholesky constructor");

@@ -335,7 +335,7 @@ private:
                             // We use this `if constexpr` here so that we do not read from a when it is a nullptr
                             if constexpr ( a_flag == F_T::Generic )
                             {
-                                combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
+                                combine_buffers<a_flag,F_T::Zero,NRHS,Sequential>(
                                     static_cast<a_T>(a[l]), &X[ldX * j],
                                     Scalar::Zero<z_T>,      &z[0],
                                     nrhs
@@ -343,7 +343,7 @@ private:
                             }
                             else if constexpr ( a_flag == F_T::Plus )
                             {
-                                combine_buffers<a_flag,F_T::Zero,NRHS,Seq>(
+                                combine_buffers<a_flag,F_T::Zero,NRHS,Sequential>(
                                     Scalar::One <a_T>, &X[ldX * j],
                                     Scalar::Zero<z_T>, &z[0],
                                     nrhs
@@ -386,7 +386,7 @@ private:
                         }
                         
                         // Incorporate the local updates into Y-buffer.
-                        combine_buffers<alpha_flag,beta_flag,NRHS,Seq>(
+                        combine_buffers<alpha_flag,beta_flag,NRHS,Sequential>(
                             alpha_, &z[0],
                             beta_,  &Y[ldY * i],
                             nrhs
@@ -550,7 +550,7 @@ private:
                         // Modify the relevant portion of the Y-buffer.
                         if constexpr( beta_flag == F_T::Zero )
                         {
-                            zerofy_buffer<NRHS,Seq>( &Y[ldY * i] );
+                            zerofy_buffer<NRHS,Sequential>( &Y[ldY * i] );
                         }
                         else if constexpr( beta_flag == F_T::Plus )
                         {
@@ -558,7 +558,7 @@ private:
                         }
                         else if constexpr( beta_flag == F_T::Generic )
                         {
-                            scale_buffer<NRHS,Seq>( beta, &Y[ldY * i] );
+                            scale_buffer<NRHS,Sequential>( beta, &Y[ldY * i] );
                         }
                     }
                 }

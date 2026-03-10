@@ -10,7 +10,7 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<IntQ Int, Parallelt_T parQ, bool base = 0>
+        template<IntQ Int, Parallel_T parQ, bool base = 0>
         class ApproximateMinimumDegree final
         {
         public:

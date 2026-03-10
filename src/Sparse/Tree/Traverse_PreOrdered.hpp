@@ -68,7 +68,7 @@ public:
 //                            " s for completing node " + ToString(node) + " and its direct children."
 //                    );
                 },
-                k_begin, k_end, Size_T(1), use_threads
+                {k_begin, k_end}, use_threads
             );
 
         } // for( Int d = target_split_level; d --> Scalar::One<Int> ; )
@@ -101,7 +101,7 @@ public:
 //                            " s for the " + ToString(DescendantCount(node)) + " descendants of node " + ToString(node) + "."
 //                    );
                 },
-                k_begin, k_end, Size_T(1), use_threads
+                {k_begin, k_end}, use_threads
             );
         }
     }

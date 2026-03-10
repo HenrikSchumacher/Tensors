@@ -211,7 +211,7 @@ private:
 
                 if constexpr ( beta_flag == F_T::Zero )
                 {
-                    zerofy_buffer<VarSize,Seq>( &y[i_begin], i_end - i_begin );
+                    zerofy_buffer<VarSize,Sequential>( &y[i_begin], i_end - i_begin );
                 }
                 else if constexpr ( beta_flag == F_T::Plus )
                 {
@@ -219,7 +219,7 @@ private:
                 }
                 else // beta_flag == F_T::Generic or beta_flag == F_T::Minus
                 {
-                    scale_buffer<VarSize,Seq>( beta, &y[i_begin], i_end - i_begin );
+                    scale_buffer<VarSize,Sequential>( beta, &y[i_begin], i_end - i_begin );
                 }
 
                 for( Int j = 0; j < m; ++j )

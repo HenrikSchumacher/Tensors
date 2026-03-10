@@ -265,27 +265,26 @@ namespace Tensors
         {
             // TODO: Is this test good enough to indeed guarantee that the tree is postordered, when passed?
             return DoReduce<parQ>(
-                [=,this]( const Int i ) -> bool
-                {
-                    const Int p_i = parents[i];
-
-//                    // This here would require signed integers.
-//                    return
-//                    (i < p_i)
-//                    &&
-//                    (i - DescendantCount(i) >= p_i - DescendantCount(p_i) );
-                    
-                    // This merely requires that 2 n fits into Int without overflow.
-                    return
-                    (i < p_i)
-                    &&
-                    (i + DescendantCount(p_i) >= p_i + DescendantCount(i) );
-                    
-
-                },
-                AndReducer(),
-                true,
-                zero, Root(), thread_count
+                  [=,this]( const Int i ) -> bool
+                  {
+                      const Int p_i = parents[i];
+                      
+                      //                    // This here would require signed integers.
+                      //                    return
+                      //                    (i < p_i)
+                      //                    &&
+                      //                    (i - DescendantCount(i) >= p_i - DescendantCount(p_i) );
+                      
+                      // This merely requires that 2 n fits into Int without overflow.
+                      return
+                      (i < p_i)
+                      &&
+                      (i + DescendantCount(p_i) >= p_i + DescendantCount(i) );
+                      
+                      
+                  },
+                  AndReducer(), true,
+                  Root(), thread_count
             );
             
             return true;
