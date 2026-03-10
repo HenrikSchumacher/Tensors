@@ -106,85 +106,67 @@ namespace Tensors
                 return a.data();
             }
             
-            template<typename I>
+            template<IntQ I>
             TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
             {
-                static_assert(IntQ<I>,"");
                 return &a.data()[mn * i];
             }
             
-            template<typename I>
+            template<IntQ I>
             TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
             {
-                static_assert(IntQ<I>,"");
                 return &a.data()[mn * i];
             }
 
-            template<typename I, typename J>
+            template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j ) noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
                 return &a.data()[mn * i + n * j];
             }
             
-            template<typename I, typename J>
+            template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
                 return &a.data()[mn * i + m * j];
             }
             
-            template<typename I, typename J, typename K>
+            template<IntQ I, IntQ J, IntQ K>
             TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j, const K k) noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
-                static_assert(IntQ<K>,"");
                 return &a.data()[mn * i + n * j + k];
             }
             
-            template<typename I, typename J, typename K>
+            template<IntQ I, IntQ J, IntQ K>
             TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j, const K k) const noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
-                static_assert(IntQ<K>,"");
                 return &a.data()[mn * i + n * j + k];
             }
             
-            template<typename I, typename J, typename K>
+            template<IntQ I, IntQ J, IntQ K>
             TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j, const K k) noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
-                static_assert(IntQ<K>,"");
                 return a.data()[mn * i + n * j + k];
             }
             
-            template<typename I, typename J, typename K>
+            template<IntQ I, IntQ J, IntQ K>
             TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j, const K k) const noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
-                static_assert(IntQ<K>,"");
                 return a.data()[mn * i + m * j + k];
             }
             
-            template< typename S>
+            template<typename S>
             void Write( mptr<S> b ) const
             {
                 a.Write(b);
             }
             
-            template< typename S>
+            template<typename S>
             void Read( cptr<S> b )
             {
                 a.Read(b);
             }
             
-            template< typename S>
+            template<typename S>
             void Write( const Int i, mptr<S> b ) const
             {
 //                a.Write(i,b);
@@ -192,7 +174,7 @@ namespace Tensors
                 copy_buffer<mn>(this->data(i),b);
             }
             
-            template< typename S>
+            template<typename S>
             void Read( const Int i, cptr<S> b )
             {
 //                a.Read(i,b);

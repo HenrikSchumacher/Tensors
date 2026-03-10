@@ -6,12 +6,12 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<typename Scal_, IntQ Int_, IntQ LInt_>
-        class MatrixCSR : public Sparse::PatternCSR<Int_,LInt_>
+        template<typename Scal_, IntQ Int_, IntQ LInt_, Parallel_T parQ_/* = Parallel*/>
+        class MatrixCSR : public Sparse::PatternCSR<Int_,LInt_,parQ_>
         {
         private:
             
-            using Base_T = Sparse::PatternCSR<Int_,LInt_>;
+            using Base_T = Sparse::PatternCSR<Int_,LInt_,parQ_>;
             
         public:
             
@@ -19,8 +19,11 @@ namespace Tensors
             using Int  = Int_;
             using LInt = LInt_;
             
-            using Assembler_T = Sparse::BinaryMatrixCSR<LInt,LInt>;
+            static constexpr Parallel_T parQ = parQ_;
             
+            using BinaryMatrix_T = Sparse::BinaryMatrixCSR<LInt,LInt,parQ>;
+            using Assembler_T    = Sparse::BinaryMatrixCSR<LInt,LInt,parQ>;
+        
         protected:
             
             using Base_T::m;
@@ -394,7 +397,7 @@ namespace Tensors
                     Scal
                 >
             >
-            MatrixCSR<Return_T,Int,LInt> Op() const
+            MatrixCSR<Return_T,Int,LInt,parQ> Op() const
             {
                 std::string tag = ClassName()+"::Op"
                     + "<" + ToString(op)
@@ -405,7 +408,7 @@ namespace Tensors
                 
                 if( !this->WellFormedQ() )
                 {
-                    return MatrixCSR<Return_T,Int,LInt> ( m, n, 0, 1 );
+                    return MatrixCSR<Return_T,Int,LInt,parQ> ( m, n, 0, 1 );
                 }
                 
                 if constexpr (
@@ -414,22 +417,22 @@ namespace Tensors
                     (Scalar::RealQ<Scal> && ( (op == Op::Conj) || (op == Op::Re) ) )
                 )
                 {
-                    return MatrixCSR<Return_T,Int,LInt>( *this );
+                    return MatrixCSR<Return_T,Int,LInt,parQ>( *this );
                 }
                 else if constexpr ( Scalar::RealQ<Scal> && (op == Op::Im) )
                 {
                     if constexpr ( NotTransposedQ(op) )
                     {
-                        return MatrixCSR<Return_T,Int,LInt> ( m, n, 0, 1 );
+                        return MatrixCSR<Return_T,Int,LInt,parQ> ( m, n, 0, 1 );
                     }
                     else
                     {
-                        return MatrixCSR<Return_T,Int,LInt> ( n, m, 0, 1 );
+                        return MatrixCSR<Return_T,Int,LInt,parQ> ( n, m, 0, 1 );
                     }
                 }
                 else if constexpr ( NotTransposedQ(op) )
                 {
-                    MatrixCSR<Return_T,Int,LInt> B ( m, n, outer[m], thread_count );
+                    MatrixCSR<Return_T,Int,LInt,parQ> B ( m, n, outer[m], thread_count );
                     
                     B.Outer().Read( outer.data(), thread_count );
                     B.Inner().Read( inner.data(), thread_count );
@@ -437,7 +440,7 @@ namespace Tensors
                     cptr<Return_T> A_v = values;
                     mptr<Return_T> B_v = B.Values();
                     
-                    ParallelDo(
+                    Do<parQ>(
                         [A_v,B_v,this]( LInt k )
                         {
                             B_v[k] = Scalar::Op<op>(A_v[k]);
@@ -453,11 +456,11 @@ namespace Tensors
                     
                     Tensor2<LInt,Int> counters = CreateTransposeCounters();
                     
-                    MatrixCSR<Return_T,Int,LInt> B ( n, m, outer[m], thread_count );
+                    MatrixCSR<Return_T,Int,LInt,parQ> B ( n, m, outer[m], thread_count );
 
                     copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
 
-                    ParallelDo(
+                    Do<parQ>(
                         [&,this]( const Int thread )
                         {
                             const Int i_begin = job_ptr[thread  ];
@@ -646,7 +649,7 @@ namespace Tensors
                     
                     B_o[0] = 0;
                     
-                    ParallelDo(
+                    Do<parQ>(
                         [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
@@ -658,6 +661,8 @@ namespace Tensors
                     );
                 }
                 
+                // TODO: Check what works better.
+//                B.Outer().template Accumulate<parQ>( thread_count );
                 B.Outer().Accumulate();
                 
                 {
@@ -671,7 +676,7 @@ namespace Tensors
                     mptr<Int > B_i = B.Inner().data();
                     mptr<Scal> B_v = B.Values().data();
                     
-                    ParallelDo(
+                    Do<parQ>(
                         [=,this,&B]( const Int i )
                         {
                             const Int  p_i = p[i];
@@ -699,7 +704,7 @@ namespace Tensors
                 
                 mptr<Int> q_inv = q_inv_buffer.data();
                 
-                ParallelDo(
+                Do<parQ>(
                     [=,this]( const Int j )
                     {
                         q_inv[q[j]] = j;
@@ -710,7 +715,7 @@ namespace Tensors
                 
                 copy_buffer( outer.data(), B.Outer().data(), m+1 );
                 
-                ParallelDo(
+                Do<parQ>(
                     [=,this,&B]( const Int thread )
                     {
                         TwoArraySort<Int,Scal,LInt> S;
@@ -760,7 +765,7 @@ namespace Tensors
                 Tensor1<Int,Int> q_inv_buffer ( ColCount() );
                 mptr<Int> q_inv = q_inv_buffer.data();
                 
-                ParallelDo(
+                Do<parQ>(
                     [=,this]( const Int j )
                     {
                         q_inv[q[j]] = j;
@@ -775,7 +780,7 @@ namespace Tensors
                     
                     B_o[0] = 0;
                     
-                    ParallelDo(
+                    Do<parQ>(
                         [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
@@ -786,9 +791,11 @@ namespace Tensors
                     );
                 }
                 
+                // TODO: Check what works better.
+//                B.Outer().template Accumulate<parQ>( thread_count );
                 B.Outer().Accumulate();
                 
-                ParallelDo(
+                Do<parQ>(
                     [=,this,&B]( const Int thread )
                     {
                         cptr<LInt> A_o = outer.data();
@@ -853,7 +860,7 @@ namespace Tensors
                 // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                 // https://en.wikipedia.org/wiki/Counting_sort
                 
-                ParallelDo(
+                Do<parQ>(
                     [=,this,&B,&counters]( const Int thread )
                     {
                         const Int i_begin = job_ptr[thread  ];
@@ -886,7 +893,7 @@ namespace Tensors
                     thread_count
                 );
                 
-                AccumulateAssemblyCounters_Parallel( counters );
+                AccumulateAssemblyCounters<parQ>( counters );
                 
                 const LInt nnz = counters.data(thread_count-1)[m-1];
                 
@@ -894,7 +901,7 @@ namespace Tensors
                 
                 copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
                 
-                ParallelDo(
+                Do<parQ>(
                     [&,this]( const Int thread )
                     {
                         const Int i_begin   = job_ptr[thread  ];
@@ -947,9 +954,9 @@ namespace Tensors
                 return C;
             }
             
-            Sparse::BinaryMatrixCSR<Int,LInt> DotBinary( const MatrixCSR & B ) const
+            BinaryMatrix_T DotBinary( const MatrixCSR & B ) const
             {
-                Sparse::BinaryMatrixCSR<Int,LInt> result;
+                BinaryMatrix_T result;
                 
                 Base_T C = this->DotBinary_(B);
                 
@@ -1127,7 +1134,7 @@ namespace Tensors
                 s >> n;
                 s >> nnz;
                 
-                MatrixCSR<Scal,Int,LInt> A( m, n, nnz, thread_count_ );
+                MatrixCSR A( m, n, nnz, thread_count_ );
                 
                 mptr<LInt> rp = A.Outer().data();
                 for( Int i = 0; i < n+1; ++i )
@@ -1193,7 +1200,7 @@ namespace Tensors
             
             static MatrixCSR IdentityMatrix( const Int n, const Int thread_count = 1 )
             {
-                Sparse::MatrixCSR<Scal,Int,LInt> A ( n, n, n, thread_count );
+                MatrixCSR A ( n, n, n, thread_count );
                 A.Outer().iota();
                 A.Inner().iota();
                 A.Value().Fill(Scal(1));
@@ -1233,6 +1240,7 @@ namespace Tensors
                     + "<" + TypeName<Scal>
                     + "," + TypeName<Int>
                     + "," + TypeName<LInt>
+                    + "," + ToString(parQ)
                     + ">";
             }
             

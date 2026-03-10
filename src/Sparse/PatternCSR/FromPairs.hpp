@@ -33,7 +33,7 @@ void FromPairs(
         return;
     }
     
-    Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
+    Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int,parQ>(
         idx, jdx, entry_counts, list_count, m, symmetrizeQ
     );
     
@@ -70,7 +70,7 @@ void FromPairs(
 
     if( symmetrizeQ != 0 )
     {
-        ParallelDo(
+        Do<parQ>(
             [A_i,&counters,&entry_counts,&idx,&jdx]( const Int thread )
             {
                 const LInt entry_count = entry_counts[thread];
@@ -101,7 +101,7 @@ void FromPairs(
     }
     else
     {
-        ParallelDo(
+        Do<parQ>(
             [A_i,&counters,&entry_counts,&idx,&jdx](
                 const Int thread
             )

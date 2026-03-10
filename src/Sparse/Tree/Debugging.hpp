@@ -4,9 +4,9 @@ public:
     {
     public:
      
-        cref<Tree<Int>> tree = nullptr;
+        cref<Tree> tree = nullptr;
         
-        DebugWorker( const Tree<Int> & tree_ )
+        DebugWorker( const Tree & tree_ )
         :   tree( tree_ )
         {}
         
@@ -90,7 +90,7 @@ public:
 
         std::vector<std::unique_ptr<DebugWorker>> workers ( static_cast<Size_T>(thread_count) );
         
-        ParallelDo(
+        Do<parQ>(
             [this,&workers]( const Size_T thread )
             {
                 workers[thread] = std::make_unique<DebugWorker>( *this );
@@ -124,7 +124,7 @@ public:
 
         std::vector<std::unique_ptr<DebugWorker>> workers ( static_cast<Size_T>(thread_count) );
         
-        ParallelDo(
+        Do<parQ>(
             [this,&workers]( const Size_T thread )
             {
                 workers[thread] = std::make_unique<DebugWorker>( *this );

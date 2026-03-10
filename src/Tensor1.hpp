@@ -299,14 +299,16 @@ namespace Tensors
                 Resize<copy>( m, thread_count );
             }
         }
-        
-        void Accumulate( const Int thread_count = 1 )
+
+        void Accumulate()
         {
-//            for( Int i = 1; i < n; ++i )
-//            {
-//                a[i] += a[i-1];
-//            }
-            parallel_accumulate(a, n, thread_count );
+            Tools::Accumulate<Sequential>(a, n);
+        }
+        
+        template<Parallel_T parQ>
+        void Accumulate( const Int thread_count )
+        {
+            Tools::Accumulate<parQ>(a, n, thread_count);
         }
         
         Scal Total(const Int thread_count = 1) const

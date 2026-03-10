@@ -9,7 +9,7 @@ protected:
         Int target_split_level = thread_count <= 1 ? 1 : static_cast<Int>( std::ceil(std::log2( static_cast<double>(thread_count) )) + 3 );
         
         // First we build the adjacency matrix A of the tree.
-        post = Permutation<Int> ( n-1, thread_count );
+        post = Permutation_T( n-1, thread_count );
         
         {
             Int list_count       = 1;
@@ -18,7 +18,7 @@ protected:
             const Int * idx_data = parents.data();
             const Int * jdx_data = post.GetPermutation().data(); // This is a iota.
             
-            A = Sparse::BinaryMatrixCSR<Int,Int> (
+            A = BinaryMatrix_T(
                 &idx_data,
                 &jdx_data,
                 &entry_counts[0],
@@ -152,7 +152,7 @@ protected:
             const Int * idx_data = node_to_level.data();
             const Int * jdx_data = post.GetPermutation().data(); // This is still a iota.
 
-            levels = Sparse::BinaryMatrixCSR<Int,Int>(
+            levels = BinaryMatrix_T(
                 &idx_data,
                 &jdx_data,
                 &entry_counts[0],

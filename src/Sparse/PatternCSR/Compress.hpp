@@ -44,7 +44,7 @@ void Compress_impl(
         mptr<LInt> c_c = contraction_counts.data();
         
         
-        ParallelDo(
+        Do<parQ>(
             [A_o,A_i,A_v,B_o,c_c,this]( const Int thread )
             {
                 if constexpr( !valuesQ )
@@ -128,8 +128,12 @@ void Compress_impl(
         );
     }
 
-    // This is the new array of outer indices.
-    B_outer.Accumulate( thread_count );
+    // TODO: Test what works better.
+//    B_outer.template Accumulate<parQ>( thread_count );
+    B_outer.Accumulate(); // I think I prefer the sequential code here.
+    
+    // Now B_outer is the new array of outer indices.
+    
     const LInt nnz = B_outer[m];
     
     // Now we create new arrays for B_inner and B_values.
@@ -156,7 +160,7 @@ void Compress_impl(
         mptr<LInt> C_o = C_outer.data();
         
         //TODO: Parallelization might be a bad idea here.
-        ParallelDo(
+        Do<parQ>(
             [A_o,A_i,A_v,B_o,B_i,B_v,c_c,C_o,this]( const Int thread )
             {
                 if constexpr( !valuesQ )
@@ -199,7 +203,9 @@ void Compress_impl(
     }
     if constexpr( assemblerQ )
     {
-        C_outer.Accumulate(thread_count);
+        // TODO: Test what works better.
+//        C_outer.template Accumulate<parQ>(thread_count);
+        C_outer.Accumulate(); // I think I prefer the sequential code here.
     }
 
     job_ptr = JobPointers<Int>();

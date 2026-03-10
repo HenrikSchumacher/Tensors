@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<typename Kernel_T>
+        template<typename Kernel_T, Parallel_T parQ_>
         class KernelMatrixCSR final
         {
         public:
@@ -15,7 +15,9 @@ namespace Tensors
             using Scal_in  = typename Kernel_T::Scal_in;
             using Scal_out = typename Kernel_T::Scal_out;
             
-            using Pattern_T = Sparse::PatternCSR<Int,LInt>;
+            static constexpr Parallel_T parQ = parQ_;
+            
+            using Pattern_T = Sparse::PatternCSR<Int,LInt,parQ>;
             
             //        KernelMatrixCSR()
             //        :   kernel { nullptr, 0, nullptr, 0, nullptr, Kernel_T::MAX_NRHS }
@@ -82,7 +84,7 @@ namespace Tensors
                     
                     const Int thread_count = job_ptr.ThreadCount();
                     
-                    ParallelDo(
+                    Do<parQ>(
                         [&job_ptr,outer,inner,values,diag]( const Int thread )
                         {
                             Kernel_T ker ( values );
@@ -167,7 +169,7 @@ namespace Tensors
                 
                 const Int thread_count = job_ptr.ThreadCount();
                 
-                ParallelDo(
+                Do<parQ>(
                     [=, &job_ptr, this]( const Int thread )
                     {
                         // Initialize local kernel and feed it all the information that is going to be constant along its life time.
@@ -253,7 +255,7 @@ namespace Tensors
 //                    mptr<Scal> v = this->values.data();
 //                    Tensor1<Scal,LInt> new_values ( nnz );
 //                    
-//                    ParallelDo(
+//                    Do<parQ>(
 //                        [&]( const Int i ) { v[i] = u[perm[i]]; },
 //                        nnz, this->ThreadCount()
 //                    );
@@ -275,7 +277,10 @@ namespace Tensors
             
             [[nodiscard]] std::string ClassName() const
             {
-                return "Sparse::KernelMatrixCSR<"+kernel.ClassName()+">";
+                return std::string("Sparse::KernelMatrixCSR")
+                + "<" + kernel.ClassName()
+                + "," + ToString(parQ)
+                + ">";
             }
             
         }; // class KernelMatrixCSR

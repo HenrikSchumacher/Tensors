@@ -18,6 +18,7 @@ namespace Tensors
   
         using F_T = Scalar::Flag;
   
+        using Pattern_T = Sparse::BinaryMatrixCSR<Int,Int,Sequential>;
         
 //        static_assert(
 //            SameQ<Scal,Real64> || SameQ<Scal,Complex64> ||
@@ -38,7 +39,7 @@ namespace Tensors
         
         Real * null     = nullptr;
         
-        Sparse::BinaryMatrixCSR<Int,Int> A;
+        Pattern_T pattern;
         Tensor1<Scal,Int> values;
         
         Tensor1<Scal,Int> x_buffer;
@@ -72,10 +73,10 @@ namespace Tensors
         explicit UMFPACK(
             const ExtInt m_, const ExtInt n_, cptr<ExtInt> outer_, cptr<ExtLInt> inner_
         )
-        :   A        { outer_, inner_, int_cast<Int>(m_), int_cast<Int>(n_), Int(1) }
-        ,   values   { NonzeroCount() }
-        ,   x_buffer { A.ColCount()   }
-        ,   b_buffer { A.RowCount()   }
+        :   pattern  { outer_, inner_, int_cast<Int>(m_), int_cast<Int>(n_), Int(1) }
+        ,   values   { NonzeroCount()     }
+        ,   x_buffer { pattern.ColCount() }
+        ,   b_buffer { pattern.RowCount() }
         {
             this->SymbolicFactorization();
         }
@@ -93,14 +94,14 @@ namespace Tensors
         }
         
         
-        template<typename ExtScal, IntQ ExtInt, IntQ ExtLInt>
-        explicit UMFPACK( cref<Sparse::MatrixCSR<ExtScal,ExtInt,ExtLInt>> A )
-        :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner(), A.Values() )
+        template<typename ExtScal, IntQ ExtInt, IntQ ExtLInt, Parallel_T ExtparQ>
+        explicit UMFPACK( cref<Sparse::MatrixCSR<ExtScal,ExtInt,ExtLInt,ExtparQ>> A )
+        :   UMFPACK( pattern.RowCount(), pattern.ColCount(), pattern.Outer(), pattern.Inner(), pattern.Values() )
         {}
         
-        template<typename ExtScal, IntQ ExtInt, IntQ ExtLInt>
-        explicit UMFPACK( cref<Sparse::BinaryMatrixCSR<ExtScal,ExtInt>> A )
-        :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner() )
+        template<typename ExtScal, IntQ ExtInt, IntQ ExtLInt, Parallel_T ExtparQ>
+        explicit UMFPACK( cref<Sparse::BinaryMatrixCSR<ExtScal,ExtInt,ExtparQ>> A )
+        :   UMFPACK( pattern.RowCount(), pattern.ColCount(), pattern.Outer(), pattern.Inner() )
         {}
 
         
@@ -109,22 +110,22 @@ namespace Tensors
         
         Int RowCount() const
         {
-            return A.RowCount();
+            return pattern.RowCount();
         }
         
         Int ColCount() const
         {
-            return A.ColCount();
+            return pattern.ColCount();
         }
         
         Int NonzeroCount() const
         {
-            return A.NonzeroCount();
+            return pattern.NonzeroCount();
         }
         
-        cref<Sparse::BinaryMatrixCSR<Int,Int>> GetA() const
+        cref<Pattern_T> GetPattern() const
         {
-            return A;
+            return pattern;
         }
         
         cref<Tensor1<Scal,Int>> Values() const
@@ -160,11 +161,11 @@ namespace Tensors
             
             TOOLS_PTIMER(timer,ClassName()+"::SymbolicFactorization" );
             
-            const Int m = A.RowCount();
-            const Int n = A.ColCount();
+            const Int m = pattern.RowCount();
+            const Int n = pattern.ColCount();
             
-            Int  * Ap = A.Outer().data();
-            Int  * Ai = A.Inner().data();
+            Int * Ap = pattern.Outer().data();
+            Int * Ai = pattern.Inner().data();
             
             if constexpr( SameQ<Int,Int64> )
             {
@@ -267,8 +268,8 @@ namespace Tensors
                 );
             }
             
-            Int  * Ap = A.Outer().data();
-            Int  * Ai = A.Inner().data();
+            Int  * Ap = pattern.Outer().data();
+            Int  * Ai = pattern.Inner().data();
             Real * Ax = reinterpret_cast<Real *>(values.data());
 
             if constexpr( SameQ<Int,Int64> )
@@ -420,14 +421,14 @@ namespace Tensors
                 F_T::Plus, F_T::Zero, VarSize, Sequential,
                 (op == Op::ConjTrans) ? Op::Conj : Op::Id, Op::Id
             >(
-                Scal(1), B, Scal(0), b_buffer.data(), A.RowCount()
+                Scal(1), B, Scal(0), b_buffer.data(), pattern.RowCount()
             );
 
             Real * x_ptr = reinterpret_cast<Real *>(x_buffer.data());
             Real * b_ptr = reinterpret_cast<Real *>(b_buffer.data());
             
-            Int  * Ap = A.Outer().data();
-            Int  * Ai = A.Inner().data();
+            Int  * Ap = pattern.Outer().data();
+            Int  * Ai = pattern.Inner().data();
             Real * Ax = reinterpret_cast<Real *>(values.data());
             
             if constexpr( SameQ<Int,Int64> )

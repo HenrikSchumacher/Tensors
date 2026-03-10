@@ -12,9 +12,9 @@ namespace Tensors
             const bool foundQ;
         };
         
-        template<IntQ Int, IntQ LInt> class BinaryMatrixCSR;
+        template<IntQ Int, IntQ LInt, Parallel_T parQ> class BinaryMatrixCSR;
         
-        template<IntQ Int_, IntQ LInt_>
+        template<IntQ Int_, IntQ LInt_, Parallel_T parQ_/* = Parallel*/>
         class PatternCSR
         {
             // Int  - an integer type capable of storing both the number of rows and columns
@@ -24,6 +24,8 @@ namespace Tensors
             
             using Int  = Int_;
             using LInt = LInt_;
+            
+            static constexpr Parallel_T parQ = parQ_;
             
         protected:
             
@@ -57,7 +59,11 @@ namespace Tensors
             
         public:
             
-            friend class BinaryMatrixCSR<Int,LInt>;
+            friend class BinaryMatrixCSR<Int,LInt,parQ>;
+            
+            // TODO: Is this a good idea?
+//            friend class BinaryMatrixCSR<Int,LInt,Parallel>;
+//            friend class BinaryMatrixCSR<Int,LInt,Sequential>;
             
             template<IntQ I_0, IntQ I_1, IntQ I_3>
             PatternCSR(
@@ -65,10 +71,10 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer        { int_cast<Int>(m_+1),LInt(0)  }
-            ,   m            { int_cast<Int>(m_)            }
-            ,   n            { int_cast<Int>(n_)            }
-            ,   thread_count { int_cast<Int>(thread_count_) }
+            :   outer        { int_cast<Int>(m_+1),LInt(0)                  }
+            ,   m            { int_cast<Int>(m_)                            }
+            ,   n            { int_cast<Int>(n_)                            }
+            ,   thread_count { TruncateThreadCount<Int,parQ>(thread_count_) }
             {
                 outer[0] = LInt(0);
             }
@@ -80,11 +86,11 @@ namespace Tensors
                 const I_2 nnz_,
                 const I_3 thread_count_
             )
-            :   outer        { int_cast<Int>(m_+1), LInt(0) }
-            ,   inner        { int_cast<LInt>(nnz_)         }
-            ,   m            { int_cast<Int>(m_)            }
-            ,   n            { int_cast<Int>(n_)            }
-            ,   thread_count { int_cast<Int>(thread_count_) }
+            :   outer        { int_cast<Int>(m_+1), LInt(0)                 }
+            ,   inner        { int_cast<LInt>(nnz_)                         }
+            ,   m            { int_cast<Int>(m_)                            }
+            ,   n            { int_cast<Int>(n_)                            }
+            ,   thread_count { TruncateThreadCount<Int,parQ>(thread_count_) }
             {
                 outer[0] = LInt(0);
             }
@@ -97,11 +103,11 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer        { m_+1                         }
-            ,   inner        { int_cast<LInt>(outer_[m_])   }
-            ,   m            { int_cast<Int>(m_)            }
-            ,   n            { int_cast<Int>(n_)            }
-            ,   thread_count { int_cast<Int>(thread_count_) }
+            :   outer        { m_+1                                         }
+            ,   inner        { int_cast<LInt>(outer_[m_])                   }
+            ,   m            { int_cast<Int>(m_)                            }
+            ,   n            { int_cast<Int>(n_)                            }
+            ,   thread_count { TruncateThreadCount<Int,parQ>(thread_count_) }
             {
                 outer.Read(outer_);
                 inner.Read(inner_);
@@ -115,11 +121,11 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer        { outer_                       }
-            ,   inner        { inner_                       }
-            ,   m            { int_cast<Int>(m_)            }
-            ,   n            { int_cast<Int>(n_)            }
-            ,   thread_count { int_cast<Int>(thread_count_) }
+            :   outer        { outer_                                       }
+            ,   inner        { inner_                                       }
+            ,   m            { int_cast<Int>(m_)                            }
+            ,   n            { int_cast<Int>(n_)                            }
+            ,   thread_count { TruncateThreadCount<Int,parQ>(thread_count_) }
             {}
             
             template<IntQ I_0, IntQ I_1, IntQ I_3>
@@ -130,11 +136,11 @@ namespace Tensors
                 const I_1 n_,
                 const I_3 thread_count_
             )
-            :   outer        { std::move(outer_)            }
-            ,   inner        { std::move(inner_)            }
-            ,   m            { int_cast<Int>(m_)            }
-            ,   n            { int_cast<Int>(n_)            }
-            ,   thread_count { int_cast<Int>(thread_count_) }
+            :   outer        { std::move(outer_)                            }
+            ,   inner        { std::move(inner_)                            }
+            ,   m            { int_cast<Int>(m_)                            }
+            ,   n            { int_cast<Int>(n_)                            }
+            ,   thread_count { TruncateThreadCount<Int,parQ>(thread_count_) }
             {}
             
             // Default constructor
@@ -156,7 +162,7 @@ namespace Tensors
 //            ,   inner           ( other.inner           )
 //            ,   m               ( other.m               )
 //            ,   n               ( other.n               )
-//            ,   thread_count    ( other.thread_count    )
+//            ,   thread_count { parQ == Parallel ? int_cast<Int>(thread_count_) : Int(1) }
 //            ,   proven_inner_sortedQ    ( other.proven_inner_sortedQ    )
 //            ,   proven_duplicate_freeQ  ( other.proven_duplicate_freeQ  )
 //            ,   symmetric       ( other.symmetric       )
@@ -215,6 +221,7 @@ namespace Tensors
             )
             :   PatternCSR ( m_, n_, list_count )
             {
+                
                 FromPairs( idx, jdx, entry_counts, list_count, final_thread_count, compressQ, symmetrizeQ );
             }
             
@@ -245,7 +252,7 @@ namespace Tensors
                     counts[thread] = end-begin;
                 }
                 
-                FromPairs( idx.data(), jdx.data(), counts.data(), thread_count, thread_count, compressQ, symmetrizeQ );
+                FromPairs( idx.data(), jdx.data(), counts.data(), Int(1), TruncateThreadCount(thread_count), compressQ, symmetrizeQ );
             }
             
             template<IntQ ExtInt>
@@ -264,8 +271,8 @@ namespace Tensors
                 const ExtInt * j = jdx.data();
                 
                 Tensor1<LInt,Int> entry_counts (1, int_cast<LInt>(idx.size()));
-                
-                FromPairs( &i, &j, entry_counts.data(), 1, final_thread_count, compressQ, symmetrizeQ );
+
+                FromPairs( &i, &j, entry_counts.data(), Int(1), final_thread_count, compressQ, symmetrizeQ );
             }
             
             template<IntQ ExtInt>
@@ -278,6 +285,7 @@ namespace Tensors
                 const bool compressQ = true,
                 const int  symmetrizeQ = 0
             )
+            // TODO: TruncateThreadCount? Or does it break anything?
             :   PatternCSR ( m_, n_, int_cast<Int>(idx.size()) )
             {
                 Int list_count = int_cast<Int>(idx.size());
@@ -305,6 +313,7 @@ namespace Tensors
                 const bool compressQ = true,
                 const int  symmetrizeQ = 0
             )
+            // TODO: TruncateThreadCount? Or does it break anything?
             :   PatternCSR ( m_, n_, static_cast<Int>(pairs.size()) )
             {
                 Int list_count = static_cast<Int>(pairs.size());
@@ -360,7 +369,7 @@ namespace Tensors
             
             void SetThreadCount( const Int thread_count_ )
             {
-                thread_count = Ramp_1(thread_count_);
+                thread_count = TruncateThreadCount<Int,parQ>(thread_count_);
                 
                 job_ptr_initialized = false;
             }
@@ -414,7 +423,7 @@ namespace Tensors
                     
                     diag_ptr = Tensor1<LInt,Int>( m );
                     
-                    ParallelDo(
+                    Do<parQ>(
                         [=,this]( const Int i )
                         {
                             const LInt k_begin = outer[i  ];
@@ -449,7 +458,7 @@ namespace Tensors
                 Tensor1<LInt,Int> costs (m + Int(1));
                 costs[0] = 0;
                 
-                ParallelDo(
+                Do<parQ>(
                     [this,&costs]( const Int i )
                     {
                         costs[i+Int(1)] = outer[i+Int(1)] - diag_ptr[i];
@@ -457,7 +466,9 @@ namespace Tensors
                     job_ptr
                 );
                 
-                costs.Accumulate( thread_count );
+                // TODO: Check what works better.
+//                costs.Accumulate<Parallel>( thread_count );
+                costs.Accumulate(); // I think I prefer the sequential code here.
                 
                 upper_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
                 
@@ -477,7 +488,7 @@ namespace Tensors
                 Tensor1<LInt,Int> costs (m + Int(1));
                 costs[0] = 0;
                 
-                ParallelDo(
+                Do<parQ>(
                     [this,&costs]( const Int i )
                     {
                         costs[i + Int(1)] = diag_ptr[i] - outer[i];
@@ -485,7 +496,9 @@ namespace Tensors
                     job_ptr
                 );
                 
-                costs.Accumulate( thread_count );
+                // TODO: Check what works better.
+//                costs.Accumulate<parQ>( thread_count );
+                costs.Accumulate(); // I think I prefer the sequential code here.
                 
                 lower_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
                 
@@ -642,7 +655,7 @@ namespace Tensors
                 // Use counting sort to sort outer indices of output matrix.
                 // https://en.wikipedia.org/wiki/Counting_sort
                 
-                ParallelDo(
+                Do<parQ>(
                     [&,this]( const Int thread )
                     {
                         const Int i_begin = job_ptr[thread  ];
@@ -665,7 +678,7 @@ namespace Tensors
                     thread_count
                 );
                 
-                AccumulateAssemblyCounters_Parallel<LInt,Int>( counters );
+                AccumulateAssemblyCounters<parQ>( counters );
                 
                 return counters;
             }
@@ -682,7 +695,7 @@ namespace Tensors
                 
                 if( !WellFormedQ() ) { return; }
                     
-                ParallelDo(
+                Do<parQ>(
                     [this]( const Int i )
                     {
                         // This sort uses sorting nets for small lists. This increases compile time, but sorts very sparse matrices faster.
@@ -733,7 +746,7 @@ namespace Tensors
                 // Expansion phase, utilizing counting sort to generate expanded row pointers and column indices.
                 // https://en.wikipedia.org/wiki/Counting_sort
                 
-                ParallelDo(
+                Do<parQ>(
                     [&,this]( const Int thread )
                     {
                         const Int i_begin = job_ptr[thread  ];
@@ -765,7 +778,7 @@ namespace Tensors
                     thread_count
                 );
                 
-                AccumulateAssemblyCounters_Parallel<LInt,Int>(counters);
+                AccumulateAssemblyCounters<parQ>(counters);
                 
                 const LInt nnz = counters[thread_count-1][m-1];
                 
@@ -775,7 +788,7 @@ namespace Tensors
                 
                 // Counting sort.
                 
-                ParallelDo(
+                Do<parQ>(
                     [&,this]( const Int thread )
                     {
                         const Int i_begin = job_ptr[thread  ];
@@ -888,7 +901,7 @@ namespace Tensors
                 cptr<values_T> values, mptr<A_T> A, const Int ldA
             ) const
             {
-                ParallelDo(
+                Do<parQ>(
                     [this,values,A,ldA]( const Int i )
                     {
                         const LInt k_begin = outer[i    ];
@@ -908,7 +921,7 @@ namespace Tensors
             template<typename A_T>
             void WriteDense( mptr<A_T> A, const Int ldA ) const
             {
-                ParallelDo(
+                Do<parQ>(
                     [this,A,ldA]( const Int i )
                     {
                         const LInt k_begin = outer[i    ];
@@ -1091,7 +1104,7 @@ namespace Tensors
                 cptr<LInt> A_outer = Outer().data();
                 cptr<Int>  A_inner = Inner().data();
                 
-                ParallelDo(
+                Do<parQ>(
                     [=,this]( const Int i )
                     {
                         const LInt k_begin = A_outer[i];
@@ -1185,8 +1198,6 @@ namespace Tensors
             template<IntQ ExtInt>
             void WriteNonzeroPositions( mptr<ExtInt> pos )
             {
-                static_assert(IntQ<ExtInt>,"");
-                
                 if( !std::in_range<ExtInt>(RowCount()) )
                 {
                     eprint(MethodName("WriteNonzeroPositions") + ": RowCount() = " + ToString(RowCount()) + " is too large to fit into target type " + TypeName<ExtInt> +". Doing nothing.");
@@ -1201,7 +1212,7 @@ namespace Tensors
                 
                 RequireJobPtr();
                 
-                ParallelDo(
+                Do<parQ>(
                     [pos,this]( const Int i )
                     {
                         const LInt k_begin = outer[i    ];
@@ -1222,8 +1233,6 @@ namespace Tensors
             template<IntQ ExtInt>
             void WriteNonzeroPositions( mptr<ExtInt> idx, mptr<ExtInt> jdx )
             {
-                static_assert(IntQ<ExtInt>,"");
-                
                 if( !std::in_range<ExtInt>(RowCount()) )
                 {
                     eprint(MethodName("WriteNonzeroPositions") + ": RowCount() = " + ToString(RowCount()) + " is too large to fit into target type " + TypeName<ExtInt> +". Doing nothing.");
@@ -1238,7 +1247,7 @@ namespace Tensors
                 
                 RequireJobPtr();
                 
-                ParallelDo(
+                Do<parQ>(
                     [idx,jdx,this]( const Int i )
                     {
                         const LInt k_begin = outer[i    ];
@@ -1262,7 +1271,7 @@ namespace Tensors
 
                 RequireJobPtr();
                 
-                ParallelDo(
+                Do<parQ>(
                     [&edges,this]( const Int i )
                     {
                         const LInt k_begin = outer[i    ];
@@ -1286,7 +1295,7 @@ namespace Tensors
             
             static PatternCSR IdentityMatrix( const Int n, const Int thread_count = 1 )
             {
-                Sparse::PatternCSR<Int,LInt> A ( n, n, n, thread_count );
+                PatternCSR A ( n, n, n, thread_count );
                 A.Outer().iota();
                 A.Inner().iota();
                 
@@ -1331,7 +1340,11 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("PatternCSR<")+TypeName<Int>+","+TypeName<LInt>+">";
+                return std::string("PatternCSR")
+                + "<" + TypeName<Int>
+                + "," + TypeName<LInt>
+                + "," + ToString(parQ)
+                + ">";
             }
             
         }; // PatternCSR

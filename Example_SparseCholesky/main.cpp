@@ -59,7 +59,7 @@ int main()
     TOOLS_DUMP(use_metisQ);
     
     tic("Assemble matrix");
-    Sparse::MatrixCSR<Scal,Int,LInt> A = Sparse::GridLaplacian<Scal,Int,LInt>(grid_size,Real(1),thread_count);
+    Sparse::MatrixCSR<Scal,Int,LInt,Parallel> A = Sparse::GridLaplacian<Scal,Int,LInt>(grid_size,Real(1),thread_count);
     toc("Assemble matrix");
     
     TOOLS_DUMP(A.ProvenInnerSortedQ());
@@ -97,7 +97,7 @@ int main()
     print("== Tensors::Sparse:CholeskyDecomposition == ");
     print("");
     {
-        Permutation<Int> perm;
+        Permutation<Int,Parallel> perm;
         
         if constexpr ( use_metisQ )
         {

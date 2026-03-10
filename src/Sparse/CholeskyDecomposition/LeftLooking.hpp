@@ -7,7 +7,8 @@ namespace Tensors
     namespace Sparse
     {
         
-        template<typename Scal_, IntQ Int_, IntQ LInt_> class CholeskyDecomposition;
+        template<typename Scal_, IntQ Int_, IntQ LInt_, Parallel_T parQ>
+        class CholeskyDecomposition;
         
         template<typename Scal_, IntQ Int_, IntQ LInt_>
         class alignas(ObjectAlignment) CholeskyFactorizer_LeftLooking final
@@ -20,8 +21,6 @@ namespace Tensors
             using Real = typename Scalar::Real<Scal_>;
             using Int  = Int_;
             using LInt = LInt_;
-            
-            using SparseMatrix_T = Sparse::BinaryMatrixCSR<Int,LInt>;
             
         protected:
             
@@ -111,11 +110,6 @@ namespace Tensors
             float fetch_from_A_time          = 0;
             float factorize_supernode_time   = 0;
             
-            
-            
-            
-//            CholeskyDecomposition<Scal,Int,LInt> & C;
-            
         public:
             
             // No default constructor
@@ -132,7 +126,8 @@ namespace Tensors
             CholeskyFactorizer_LeftLooking & operator=( CholeskyFactorizer_LeftLooking && other ) = default;
             
             
-            CholeskyFactorizer_LeftLooking( CholeskyDecomposition<Scal,Int,LInt> & chol )
+            template<Parallel_T parQ>
+            CholeskyFactorizer_LeftLooking( CholeskyDecomposition<Scal,Int,LInt,parQ> & chol )
             // shared data
             :   n               ( chol.n                                        )
             ,   A_diag          ( chol.A.Diag().data()                          )

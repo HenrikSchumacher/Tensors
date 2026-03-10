@@ -16,7 +16,7 @@ void SortInner_impl(
 
     RequireJobPtr();
     
-    ParallelDo(
+    Do<parQ>(
         [=,this]( const Int thread )
         {
             std::conditional_t<assemblerQ,

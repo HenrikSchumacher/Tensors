@@ -24,7 +24,7 @@ namespace Tensors
             
         public:
             
-            template<typename I_0, typename I_1, typename I_2, typename S>
+            template<IntQ I_0, IntQ I_1, IntQ I_2, typename S>
             Vector(
                const I_0 n_,
                const I_1 nnz_,
@@ -36,13 +36,9 @@ namespace Tensors
             ,   val           { int_cast<Int>(nnz_)               }
             ,   thread_count  { int_cast<Int>(thread_count_)      }
             ,   default_value { static_cast<Scal>(default_value_) }
-            {
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_2>,"");
-            }
+            {}
             
-            template<typename S, typename J_0, typename I_0, typename I_1, typename I_2>
+            template<typename S, IntQ J_0, IntQ I_0, IntQ I_1, IntQ I_2>
             Vector(
                 const J_0 * const idx_,  // Needs t be sorted!
                 const S   * const val_,
@@ -58,9 +54,6 @@ namespace Tensors
             ,   default_value { static_cast<Scal>(default_value_) }
             {
                 static_assert(ArithmeticQ<S>,"");
-                static_assert(IntQ<I_0>,"");
-                static_assert(IntQ<I_1>,"");
-                static_assert(IntQ<I_2>,"");
             }
             
             // Default constructor

@@ -6,8 +6,6 @@ namespace Tensors
     template<typename T_0, typename T_1, typename T_2, IntQ Int>
     class alignas(ObjectAlignment) TripleAggregator final
     {
-        static_assert(IntQ<Int>,"");
-        
         // Int -- an integer type capable of storing the number of triples to aggregate.
         
         using Container_0_T = Tensor1<T_0,Int>;

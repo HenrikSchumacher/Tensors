@@ -5,7 +5,7 @@ namespace Tensors
     namespace Sparse
     {
         
-        template<typename Scal_, IntQ Int_, IntQ LInt_> class CholeskyDecomposition;
+        template<typename Scal_, IntQ Int_, IntQ LInt_, Parallel_T parQ> class CholeskyDecomposition;
         
         template<typename Scal_, IntQ Int_, IntQ LInt_>
         class alignas(ObjectAlignment) CholeskyFactorizer_Multifrontal final
@@ -19,11 +19,11 @@ namespace Tensors
             using Int  = Int_;
             using LInt = LInt_;
             
-            using SparseMatrix_T = Sparse::BinaryMatrixCSR<Int,LInt>;
+//            using Chol_T   = CholeskyDecomposition<Scal,Int,LInt>;
             
+//            using Update_T = typename CholeskyDecomposition<Scal,Int,LInt,Sequential>::Update_T;
             
-            using Chol_T   = CholeskyDecomposition<Scal,Int,LInt>;
-            using Update_T = typename Chol_T::Update_T;
+            using Update_T = Tensor2<Scal,LInt>;
             
         protected:
             
@@ -87,7 +87,8 @@ namespace Tensors
 //                TOOLS_DUMP(ComputeUpdateMatrix_time);
             }
             
-            CholeskyFactorizer_Multifrontal( Chol_T & chol )
+            template<Parallel_T parQ>
+            CholeskyFactorizer_Multifrontal( CholeskyDecomposition<Scal,Int,LInt,parQ> & chol )
             // shared data
             :   n               ( chol.n                                        )
             ,   A_diag          ( chol.A.Diag().data()                          )

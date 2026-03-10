@@ -28,7 +28,7 @@ public:
     template<Parallel_T parQ = Parallel, class Worker_T>
     void Traverse_PreOrdered( std::vector<std::unique_ptr<Worker_T>> & workers ) const
     {
-        std::string tag = ClassName()+"::Traverse_PreOrdered<" + (parQ == Parallel ? "Parallel" : "Sequential") + ">";
+        std::string tag = ClassName()+"::Traverse_PreOrdered<" + ToString(parQ) + ">";
         if( !PostOrderedQ() )
         {
             eprint(tag+" requires postordered tree! Doing nothing.");
@@ -50,7 +50,7 @@ public:
 
             const Size_T use_threads = parQ == Parallel ? Min( ToSize_T(thread_count), k_end - k_begin ) : Size_T(1);
             
-            ParallelDo_Dynamic(
+            Do<parQ,Dynamic>(
                 [=,this,&workers]( const Size_T thread, const Size_T k )
                 {
 //                    const Time start_time = Clock::now();
@@ -82,7 +82,7 @@ public:
             
             const Size_T use_threads = (parQ == Parallel) ? Min( ToSize_T(thread_count), k_end - k_begin ) : Size_T(1);
             
-            ParallelDo_Dynamic(
+            Do<parQ,Dynamic>(
                 [=,this,&workers]( const Size_T thread, const Size_T k )
                 {
 //                    const Time start_time = Clock::now();

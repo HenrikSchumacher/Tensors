@@ -81,7 +81,7 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<typename Scal_, IntQ Int_, IntQ LInt_>
+        template<typename Scal_, IntQ Int_, IntQ LInt_, Parallel_T parQ_>
         class alignas( ObjectAlignment ) CholeskyDecomposition final : public CachedObject<1,1,0,0>
         {
         public:
@@ -91,15 +91,17 @@ namespace Tensors
             using Int  = Int_;
             using LInt = LInt_;
             
-            using BinaryMatrix_T     = Sparse::BinaryMatrixCSR<Int,LInt>;
-            using Matrix_T           = Sparse::MatrixCSR<Scal,Int,LInt>;
-            using Tree_T             = Tree<Int>;
-            using Permutation_T      = Permutation<Int>;
-            using Factorizer_LL_T    = CholeskyFactorizer_LeftLooking<Scal,Int,LInt>;
+            static constexpr Parallel_T parQ = parQ_;
             
+            using BinaryMatrix_T     = Sparse::BinaryMatrixCSR<Int,LInt,parQ>;
+            using Matrix_T           = Sparse::MatrixCSR<Scal,Int,LInt,parQ>;
+            using Tree_T             = Tree<Int,parQ>;
+            using Permutation_T      = Permutation<Int,parQ>;
+            
+            using Factorizer_LL_T    = CholeskyFactorizer_LeftLooking<Scal,Int,LInt>;
             using Factorizer_MF_T    = CholeskyFactorizer_Multifrontal<Scal,Int,LInt>;
             
-            using Update_T           = Tensor2<Scal,Int>;
+            using Update_T           = Tensor2<Scal,LInt>;
 //            using Update_T           = Scal *;
             
             friend Factorizer_LL_T;
@@ -131,7 +133,8 @@ namespace Tensors
             {
             public:
                 
-                friend class CholeskyDecomposition<Scal,Int,LInt>;
+                friend class CholeskyDecomposition<Scal,Int,LInt,Parallel>;
+                friend class CholeskyDecomposition<Scal,Int,LInt,Sequential>;
                 friend class UpperSolver<false,Scal,Int,LInt>;
                 friend class UpperSolver<true, Scal,Int,LInt>;
                 friend class LowerSolver<false,false,Scal,Int,LInt>;
@@ -216,9 +219,6 @@ namespace Tensors
             
             Tensor1<Scal,LInt> A_val;
             Scal reg = 0;
-
-//            Matrix_T L;
-//            Matrix_T U;
             
             // elimination tree
             bool eTree_initializedQ = false;
@@ -446,7 +446,7 @@ namespace Tensors
                         cptr<LInt> p = A_inner_perm.data();
                         mptr<LInt> q = inner_perm_perm.data();
                         
-                        ParallelDo(
+                        Do<parQ>(
                             [p,q]( const LInt i )
                             {
                                q[i] = p[q[i]];

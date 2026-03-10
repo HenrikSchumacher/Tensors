@@ -28,7 +28,7 @@ public:
 
 //        perm.Permute( B, ldB, X.data(), nrhs, Inverse::False, nrhs );
         
-        perm.template PermuteCombine<NRHS,Parallel>(
+        perm.template PermuteCombine<NRHS>(
             Scalar::One <Scal>, B,        ldB,
             Scalar::Zero<Scal>, X.data(), nrhs,
             Inverse::False, nrhs
@@ -61,7 +61,7 @@ public:
         
         if ( nrhs == ione )
         {
-            perm.template PermuteCombine<1,Parallel>(
+            perm.template PermuteCombine<1>(
                 alpha, X.data(), nrhs,
                 beta,  Y_,       ldY,
                 Inverse::True, nrhs
@@ -69,7 +69,7 @@ public:
         }
         else
         {
-            perm.template PermuteCombine<NRHS,Parallel>(
+            perm.template PermuteCombine<NRHS>(
                 alpha, X.data(), nrhs,
                 beta,  Y_,       ldY,
                 Inverse::True, nrhs
@@ -146,7 +146,7 @@ public:
             
             JobPointers<LInt> job_ptr ( SN_count, U_rp.data(), thread_count, false );
             
-            ParallelDo(
+            Do<parQ>(
                 [&,this]( const Int s )
                 {
                     const Int i_begin  = SN_rp[s  ];
@@ -237,7 +237,7 @@ public:
 
     void WriteFactorDiagonal( mptr<Real> diag ) const
     {
-        ParallelDo(
+        Do<parQ>(
             [&,this,diag]( const Int s )
             {
                 const Int i_begin  = SN_rp[s  ];
@@ -260,7 +260,7 @@ public:
     {
         const auto & job_ptr = UJobPointers();
         
-        return ParallelDoReduce(
+        return DoReduce<parQ>(
             [&job_ptr,this]( const Int thread )
             {
                 Real log_det_local = 0;

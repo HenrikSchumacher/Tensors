@@ -333,7 +333,7 @@ namespace Tensors
         {
             const Int ldA  = static_cast<Int(ldA_);
             
-            ParallelDo(
+            Do<parQ>(
                 [=,this]( const Int thread )
                 {
                     const Int M_blk_begin = JobPointer( M_BlockCount(), thread_count, thread     );

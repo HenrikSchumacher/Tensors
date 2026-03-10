@@ -386,7 +386,7 @@ namespace Tensors
         {
             //TODO: Handle boundary cases.
 
-            ParallelDo(
+            Do<parQ>(
                 [A,ldA,this]( const Size_T thread )
                 {
                     constexpr Size_T M_step = NotTransposedQ(op) ? m : n;
@@ -423,7 +423,7 @@ namespace Tensors
         {
             //TODO: Handle boundary cases.
 
-            ParallelDo(
+            Do<parQ>(
                 [A,ldA,this]( const Size_T thread )
                 {
                     constexpr Size_T M_step = NotTransposedQ(op) ? m : n;

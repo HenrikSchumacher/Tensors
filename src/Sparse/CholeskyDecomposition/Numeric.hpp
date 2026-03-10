@@ -56,7 +56,7 @@ public:
         
         std::vector<std::unique_ptr<Factorizer_MF_T>> SN_list (use_threads);
         
-        ParallelDo(
+        Do<parQ>(
             [&SN_list,this]( const Size_T thread )
             {
                 SN_list[thread] = std::make_unique<Factorizer_MF_T>(*this);
@@ -66,10 +66,10 @@ public:
         
         Factorizer_MF_T worker(*this);
         
-        // Parallel traversal in postorder
+        // (Parallel) traversal in postorder
         if( thread_count > Int(1) )
         {
-            aTree.template Traverse_PostOrdered<Parallel>( SN_list );
+            aTree.template Traverse_PostOrdered<parQ>( SN_list );
         }
         else
         {
@@ -78,7 +78,7 @@ public:
         
         SN_data.goodQ = true;
         
-        Do(
+        Do<parQ>(
             [&SN_list,this]( const Size_T thread )
             {
                 SN_data.goodQ = SN_data.goodQ && SN_list[thread]->GoodQ();
@@ -120,7 +120,7 @@ public:
         
         std::vector<std::unique_ptr<Factorizer_LL_T>> SN_list (use_threads);
         
-        ParallelDo(
+        Do<parQ>(
             [&SN_list,this]( const Size_T thread )
             {
                 SN_list[thread] = std::make_unique<Factorizer_LL_T>(*this);
@@ -128,10 +128,10 @@ public:
             use_threads
         );
         
-        // Parallel traversal in postorder
+        // (Parallel) traversal in postorder
         if( thread_count > Int(1) )
         {
-            aTree.template Traverse_PostOrdered<Parallel>( SN_list );
+            aTree.template Traverse_PostOrdered<parQ>( SN_list );
         }
         else
         {
@@ -140,7 +140,7 @@ public:
         
         SN_data.goodQ = true;
         
-        Do(
+        Do<parQ>(
             [&SN_list,this]( const Size_T thread )
             {
                 SN_data.goodQ = SN_data.goodQ && SN_list[thread]->GoodQ();
@@ -166,7 +166,7 @@ public:
     {
         TOOLS_PTIMER(timer,ClassName()+"::ReadNonzeroValues<" + TypeName<ExtScal> + ">");
         
-        ParallelDo(
+        Do<parQ>(
             [&]( const LInt i )
             {
                 A_val[i] = static_cast<Scal>(A_val_[A_inner_perm[i]]);

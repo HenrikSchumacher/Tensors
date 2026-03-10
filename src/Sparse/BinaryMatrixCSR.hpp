@@ -6,17 +6,19 @@ namespace Tensors
     {
         // TODO: Make permutation matrices more efficient: Add a flag if `outer = iota(m+1)`, avoid storing `outer` and adapt the indexing and `Dot` algorithms. Maybe.
         
-        template<IntQ Int_, IntQ LInt_>
-        class BinaryMatrixCSR : public Sparse::PatternCSR<Int_,LInt_>
+        template<IntQ Int_, IntQ LInt_, Parallel_T parQ_ /*= Parallel*/>
+        class BinaryMatrixCSR : public Sparse::PatternCSR<Int_,LInt_,parQ_>
         {
         private:
             
-            using Base_T = Sparse::PatternCSR<Int_,LInt_>;
+            using Base_T = Sparse::PatternCSR<Int_,LInt_,parQ_>;
             
         public:
             
             using Int  = Int_;
             using LInt = LInt_;
+            
+            static constexpr Parallel_T parQ = parQ_;
             
         protected:
             
@@ -249,11 +251,11 @@ namespace Tensors
                 
                 Tensor2<LInt,Int> counters = CreateTransposeCounters();
                 
-                BinaryMatrixCSR<Int,LInt> B ( n, m, outer[m], thread_count );
+                BinaryMatrixCSR<Int,LInt,parQ> B ( n, m, outer[m], thread_count );
                 
                 copy_buffer( counters.data(thread_count-1), &B.Outer().data()[1], n );
 
-                ParallelDo(
+                Do<parQ>(
                     [&]( const Int thread )
                     {
                         const Int i_begin = job_ptr[thread  ];
@@ -303,13 +305,26 @@ namespace Tensors
             
         public:
             
+            // TODO: Bad design: non_parallelized permutations may spoil everything.
+            template<Parallel_T p_parQ, Parallel_T q_parQ>
             Tensor1<LInt,LInt> Permute(
-                const Permutation<Int> & p,     // row    permutation
-                const Permutation<Int> & q      // column permutation
+                const Permutation<Int,p_parQ> & p,     // row    permutation
+                const Permutation<Int,q_parQ> & q      // column permutation
             )
             {
                 TOOLS_PTIMER(timer,MethodName("Permute"));
                 // Modifies `inner` and `outer` accordingly; returns the permutation to be applied to the nonzero values.
+                
+                if( (parQ == Parallel) && (p_parQ != Parallel) )
+                {
+                    wprint(MethodName("Permute") + ": Matrix is in parallel mode but permutation p is not.");
+                }
+                
+                if( (parQ == Parallel) && (q_parQ != Parallel) )
+                {
+                    wprint(MethodName("Permute") + ": Matrix is in parallel mode but permutation q is not.");
+                }
+                    
                 
                 this->proven_inner_sortedQ = true;
                 this->diag_ptr_initialized = false;
@@ -330,7 +345,7 @@ namespace Tensors
             
             [[nodiscard]] BinaryMatrixCSR Dot( const BinaryMatrixCSR & B ) const
             {
-                BinaryMatrixCSR<Int,LInt> result;
+                BinaryMatrixCSR result;
                 
                 Base_T C = this->DotBinary_(B);
                 
@@ -466,7 +481,7 @@ namespace Tensors
                 const Int n, const Int thread_count = 1
             )
             {
-                Sparse::BinaryMatrixCSR<Int,LInt> A ( n, n, n, thread_count );
+                BinaryMatrixCSR A ( n, n, n, thread_count );
                 A.Outer().iota();
                 A.Inner().iota();
                 
@@ -483,7 +498,11 @@ namespace Tensors
             
             static std::string ClassName()
             {
-                return std::string("Sparse::BinaryMatrixCSR<")+TypeName<Int>+","+TypeName<LInt>+">";
+                return std::string("Sparse::BinaryMatrixCSR")
+                + "<" + TypeName<Int>
+                + "," + TypeName<LInt>
+                + "," + ToString(parQ)
+                + ">";
             }
             
         }; // BinaryMatrixCSR

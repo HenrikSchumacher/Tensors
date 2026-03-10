@@ -1,6 +1,6 @@
 public:
     
-    const Tree<Int> & AssemblyTree()
+    const Tree_T & AssemblyTree()
     {
         SymbolicFactorization();
         
@@ -57,5 +57,5 @@ protected:
         
         SN_costs[SN_count] = 0.;
 
-        aTree = Tree<Int> ( std::move(SN_parents), std::move(SN_costs), thread_count );
+        aTree = Tree_T ( std::move(SN_parents), std::move(SN_costs), thread_count );
     }

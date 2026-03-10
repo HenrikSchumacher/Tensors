@@ -15,14 +15,14 @@ namespace Tensors
         False = false
     };
     
-    template<IntQ Int_>
+    template<IntQ Int_, Parallel_T parQ_>
     class Permutation final
     {
-        static_assert(IntQ<Int_>,"");
-     
     public:
         
         using Int = Int_;
+        
+        static constexpr Parallel_T parQ = parQ_;
         
     protected:
         
@@ -46,25 +46,25 @@ namespace Tensors
     public:
         
         Permutation( const Int n_, const Int thread_count_ )
-        :   n              ( n_               )
-        ,   p              ( iota<Int,Int>(n) )
-        ,   p_inv          ( iota<Int,Int>(n) )
-        ,   scratch        ( n                )
-        ,   thread_count   ( thread_count_    )
-        ,   is_trivial     ( true             )
-        ,   p_computed     ( true             )
-        ,   p_inv_computed ( true             )
-        ,   is_valid       ( n_ > zero        )
+        :   n              { n_                                           }
+        ,   p              { iota<Int,Int>(n)                             }
+        ,   p_inv          { iota<Int,Int>(n)                             }
+        ,   scratch        { n                                            }
+        ,   thread_count   { TruncateThreadCount<Int,parQ>(thread_count_) }
+        ,   is_trivial     { true                                         }
+        ,   p_computed     { true                                         }
+        ,   p_inv_computed { true                                         }
+        ,   is_valid       { n > Int(0)                                   }
         {}
         
         
         Permutation( Tensor1<Int,Int> && p_, const Inverse inverseQ, const Int thread_count_ )
-        :   n              ( p_.Size()        )
-        ,   scratch        ( n                )
-        ,   thread_count   ( thread_count_    )
-        ,   is_trivial     ( false            )
-        ,   p_computed     ( false            )
-        ,   p_inv_computed ( false            )
+        :   n              { p_.Size()                                    }
+        ,   scratch        { n                                            }
+        ,   thread_count   { TruncateThreadCount<Int,parQ>(thread_count_) }
+        ,   is_trivial     { false                                        }
+        ,   p_computed     { false                                        }
+        ,   p_inv_computed { false                                        }
         {
             if( inverseQ == Inverse::True )
             {
@@ -95,16 +95,14 @@ namespace Tensors
             }
         }
         
-        template<typename J>
+        template<IntQ J>
         Permutation( cptr<J> p_, const Int n_, const Inverse inverseQ, const Int thread_count_ )
-        :   n              ( n_               )
-        ,   p              ( n                )
-        ,   p_inv          ( n                )
-        ,   scratch        ( n                )
-        ,   thread_count   ( thread_count_    )
+        :   n              { n_                                           }
+        ,   p              { n                                            }
+        ,   p_inv          { n                                            }
+        ,   scratch        { n                                            }
+        ,   thread_count   { TruncateThreadCount<Int,parQ>(thread_count_) }
         {
-            static_assert(IntQ<J>,"");
-            
             if( !PermutationQ(p_) )
             {
                 eprint(ClassName()+"(): Input is not a permutation.");
@@ -125,15 +123,15 @@ namespace Tensors
         
         // Default constructor
         Permutation()
-        :   n              ( zero  )
-        ,   p              ( n     )
-        ,   p_inv          ( n     )
-        ,   scratch        ( n     )
-        ,   thread_count   ( one   )
-        ,   is_trivial     ( true  )
-        ,   p_computed     ( true  )
-        ,   p_inv_computed ( true  )
-        ,   is_valid       ( true  )    // Yeah, we say that an empty permutation is valid! ^^
+        :   n              { Int(0) }
+        ,   p              { n      }
+        ,   p_inv          { n      }
+        ,   scratch        { n      }
+        ,   thread_count   { Int(1) }
+        ,   is_trivial     { true   }
+        ,   p_computed     { true   }
+        ,   p_inv_computed { true   }
+        ,   is_valid       { true   }    // Yeah, we say that an empty permutation is valid! ^^
         {}
         
         // Destructor
@@ -146,58 +144,6 @@ namespace Tensors
         Permutation( Permutation && other ) = default;
         // Move assignment operator
         Permutation & operator=( Permutation && other ) = default;
-        
-//        // Destructor
-//        ~Permutation() = default;
-//        
-//        // Copy constructor
-//        Permutation( const Permutation & other )
-//        :   n                 ( other.n                 )
-//        ,   p                 ( other.p                 )
-//        ,   p_inv             ( other.p_inv             )
-//        ,   scratch           ( other.scratch           )
-//        ,   thread_count      ( other.thread_count      )
-//        ,   is_trivial        ( other.is_trivial        )
-//        ,   p_computed        ( other.p_computed        )
-//        ,   p_inv_computed    ( other.p_inv_computed    )
-//        ,   is_valid          ( other.is_valid          )
-//        {}
-//        
-//        // Swap function
-//        friend void swap (Permutation &A, Permutation &B ) noexcept
-//        {
-//            // see https://stackoverflow.com/questions/5695548/public-friend-swap-member-function for details
-//            using std::swap;
-//
-//            swap( A.n,                 B.n                 );
-//            swap( A.p,                 B.p                 );
-//            swap( A.p_inv,             B.p_inv             );
-//            swap( A.scratch,           B.scratch           );
-//            swap( A.thread_count,      B.thread_count      );
-//            swap( A.is_trivial,        B.is_trivial        );
-//            swap( A.p_computed,        B.p_computed        );
-//            swap( A.p_inv_computed,    B.p_inv_computed    );
-//            swap( A.is_valid,          B.is_valid          );
-//        }
-//        
-//        // Copy assignment operator
-//        Permutation & operator=(Permutation other)
-//        {
-//            // copy-and-swap idiom
-//            // see https://stackoverflow.com/a/3279550/8248900 for details
-//
-//            swap(*this, other);
-//
-//            return *this;
-//        }
-//
-//        // Move constructor
-//        Permutation( Permutation && other ) noexcept : Permutation()
-//        {
-//            swap(*this, other);
-//        }
-        
-        
         
     public:
 
@@ -240,7 +186,7 @@ namespace Tensors
         {
             // TODO: check p_ for triviality during copy.
             
-            is_trivial = ParallelDoReduce(
+            is_trivial = DoReduce<parQ>(
                 [=,this]( const Int i ) -> bool
                 {
                     const Int p_i = int_cast<Int>(p_[i]);
@@ -272,7 +218,7 @@ namespace Tensors
             // TODO: check p_inv_ for triviality during copy.
 //            p_inv.Read(p_inv_);
 
-            ParallelDoReduce(
+            DoReduce<parQ>(
                 [=,this]( const Int i ) -> bool
                 {
                     const Int p_inv_i = static_cast<Int>(p_inv_[i]);
@@ -317,11 +263,8 @@ namespace Tensors
                     p = Tensor1<Int,Int>(n);
                 }
                 
-                ParallelDo(
-                    [=,this]( const Int i )
-                    {
-                        p[p_inv[i]] = i;
-                    },
+                Do<parQ>(
+                    [=,this]( const Int i ) { p[p_inv[i]] = i; },
                     n,
                     thread_count
                 );
@@ -336,7 +279,7 @@ namespace Tensors
                 {
                     p_inv = Tensor1<Int,Int>(n);
                 }
-                ParallelDo(
+                Do<parQ>(
                     [=,this]( const Int i )
                     {
                         p_inv[p[i]] = i;
@@ -410,7 +353,7 @@ namespace Tensors
                         b_inv =   GetInversePermutation().data();
                     }
                     
-                    is_trivial = ParallelDoReduce(
+                    is_trivial = DoReduce<parQ>(
                         [=,this]( const Int i ) -> bool
                         {
                             scratch[i] = a[b[i]];
@@ -424,11 +367,8 @@ namespace Tensors
                     swap(p,scratch);
                     
                     //post
-                    ParallelDo(
-                        [=,this]( const Int i )
-                        {
-                            scratch[i] = b_inv[a_inv[i]];
-                        },
+                    Do<parQ>(
+                        [=,this]( const Int i ) { scratch[i] = b_inv[a_inv[i]]; },
                         n, thread_count
                     );
                     
@@ -438,7 +378,7 @@ namespace Tensors
         }
 
         template<
-            Size_T COLS = VarSize, Parallel_T parQ = Sequential,
+            Size_T COLS = VarSize,
             Op opx = Op::Id, Op opy = Op::Id,
             typename a_T, typename X_T, typename b_T, typename Y_T
         >
@@ -490,7 +430,7 @@ namespace Tensors
             {
                 if( !this->is_trivial )
                 {
-                    ParallelDo(
+                    Do<parQ>(
                         [=]( const Int i )
                         {
                             combine_buffers<a_flag,b_flag,COLS,Sequential,opx,opy>
@@ -503,7 +443,7 @@ namespace Tensors
                 }
                 else
                 {
-                    combine_matrices<a_flag,b_flag,VarSize,COLS,Parallel,opx,opy>
+                    combine_matrices<a_flag,b_flag,VarSize,COLS,parQ,opx,opy>
                     (
                         alpha, X, ldX, beta, Y, ldY, n, cols, thread_count
                     );
@@ -614,10 +554,7 @@ namespace Tensors
             Invert( inverseQ );
         }
         
-        template<
-            Size_T COLS = VarSize, Parallel_T parQ = Sequential,
-            typename X_T, typename Y_T
-        >
+        template<Size_T COLS = VarSize, typename X_T, typename Y_T>
         void Permute(
             cptr<X_T> X, const Int ldX,
             mptr<Y_T> Y, const Int ldY,
@@ -642,7 +579,7 @@ namespace Tensors
                     
                     if( (ldX == Scalar::One<Int>) && (ldY == Scalar::One<Int>) )
                     {
-                        ParallelDo(
+                        Do<parQ>(
                             [=,this]( const Int i )
                             {
                                 Y[i] = static_cast<Y_T>(X[r[i]]);
@@ -652,7 +589,7 @@ namespace Tensors
                     }
                     else
                     {
-                        ParallelDo(
+                        Do<parQ>(
                             [=,this]( const Int i )
                             {
                                 Y[ldY * i] = static_cast<Y_T>(X[ldX * r[i]]);
@@ -663,7 +600,7 @@ namespace Tensors
                 }
                 else
                 {
-                    ParallelDo(
+                    Do<parQ>(
                         [=,this]( const Int i )
                         {
                             copy_buffer<COLS>( &X[ldX * r[i]], &Y[ldY * i], cols );
@@ -678,23 +615,20 @@ namespace Tensors
             {
                 if( (ldX == cols) && (ldY == cols) )
                 {
-                    copy_buffer<VarSize,Parallel>( 
+                    copy_buffer<VarSize,parQ>(
                         X, Y, n*cols, thread_count
                     );
                 }
                 else
                 {
-                    copy_matrix<VarSize,COLS,Parallel>(
+                    copy_matrix<VarSize,COLS,parQ>(
                         X, ldX, Y, ldY, n, cols, thread_count
                     );
                 }
             }
         }
         
-        template<
-            Size_T COLS = VarSize, Parallel_T parQ = Sequential,
-            typename X_T, typename Y_T
-        >
+        template<Size_T COLS = VarSize, typename X_T, typename Y_T>
         void Permute(
             cptr<X_T> X,
             mptr<Y_T> Y,
@@ -702,10 +636,10 @@ namespace Tensors
             Int cols = Scalar::One<Int>
         )
         {
-            Permute<COLS,parQ>( X, cols, Y, cols, inverseQ, cols );
+            Permute<COLS>( X, cols, Y, cols, inverseQ, cols );
         }
         
-        template<Parallel_T parQ = Sequential, typename X_T, typename Y_T>
+        template<typename X_T, typename Y_T>
         void Permute( const Tensor1<X_T,Int> & X, Tensor1<Y_T,Int> & Y, const Inverse inverseQ )
         {
             if( X.Size() != n )
@@ -720,10 +654,10 @@ namespace Tensors
                 return;
             }
             
-            Permute<1,parQ>( X.data(), Y.data(), inverseQ, Int(1) );
+            Permute<1>( X.data(), Y.data(), inverseQ, Int(1) );
         }
         
-        template<Parallel_T parQ = Sequential, typename X_T, typename Y_T>
+        template<typename X_T, typename Y_T>
         void Permute( const Tensor2<X_T,Int> & X, Tensor2<Y_T,Int> & Y, const Inverse inverseQ )
         {
             if( X.Size() != n )
@@ -744,7 +678,7 @@ namespace Tensors
                 return;
             }
             
-            Permute<VarSize,parQ>( X.data(), Y.data(), inverseQ, X.Dim(1) );
+            Permute<VarSize>( X.data(), Y.data(), inverseQ, X.Dim(1) );
         }
         
         
@@ -763,7 +697,7 @@ namespace Tensors
             {
                 swap( p, scratch );
                 
-                is_trivial = ParallelDoReduce(
+                is_trivial = DoReduce<parQ>(
                     [=,this]( const Int i ) -> bool
                     {
                         const Int p_i = p[i];
@@ -780,7 +714,7 @@ namespace Tensors
             {
                 swap( p_inv, scratch );
                 
-                is_trivial = ParallelDoReduce(
+                is_trivial = DoReduce<parQ>(
                     [=,this]( const Int i ) -> bool
                     {
                         const Int p_inv_i = p_inv[i];
@@ -869,12 +803,7 @@ namespace Tensors
             mref<PRNGT_T> random_engine
         )
         {
-            static_assert(IntQ<ExtInt>,"");
-            
-            if( n <= ExtInt(0) )
-            {
-                return Permutation();
-            }
+            if( n <= ExtInt(0) ) { return Permutation(); }
             
             Tensor1<Int,Int> a(n);
             a.iota();
@@ -900,12 +829,14 @@ namespace Tensors
     
     
     
-    template<bool P_TrivialQ, bool Q_TrivialQ, bool SortQ, IntQ LInt, IntQ Int>
+    template<bool P_TrivialQ, bool Q_TrivialQ, bool SortQ, IntQ LInt, IntQ Int,
+        Parallel_T P_parQ, Parallel_T Q_parQ
+    >
     Tensor1<LInt,LInt> permutePatternCSR(
         mref<Tensor1<LInt,Int>> outer,
         mref<Tensor1<Int,LInt>> inner,
-        cref<Permutation<Int>>  P,  // row    permutation
-        cref<Permutation<Int>>  Q,  // column permutation
+        cref<Permutation<Int,P_parQ>>  P,  // row    permutation
+        cref<Permutation<Int,Q_parQ>>  Q,  // column permutation
         const LInt nnz
     )
     {
@@ -937,24 +868,23 @@ namespace Tensors
         {
             new_outer[0] = 0;
             
-            ParallelDo(
+            Do<P_parQ>(
                 [&]( const Int i )
                 {
                     const Int p_i = p[i];
-
                     new_outer[i+1] = static_cast<LInt>(outer[p_i+1] - outer[p_i]);
                 },
                 m, thread_count
             );
 
-            parallel_accumulate( new_outer.data(), m+1, thread_count );
+            Acumulate<P_parQ>( new_outer.data(), m+1, thread_count );
         }
         
         mptr<LInt> scratch = perm.data();
 
         JobPointers<Int> job_ptr ( m, new_outer.data(), thread_count );
         
-        ParallelDo(
+        Do<P_parQ>(
             [&,scratch]( const Int thread )
             {
                 TwoArraySort<Int,LInt,Int> S;
@@ -1004,14 +934,14 @@ namespace Tensors
         return perm;
     }
     
-    template<IntQ Int, IntQ LInt>
+    template<IntQ Int, IntQ LInt, Parallel_T P_parQ, Parallel_T Q_parQ>
     Tensor1<LInt,LInt> PermutePatternCSR(
         mref<Tensor1<LInt,Int>> outer,
         mref<Tensor1<Int,LInt>> inner,
-        cref<Permutation<Int>>  P,  // row    permutation
-        cref<Permutation<Int>>  Q,  // column permutation
+        cref<Permutation<Int,P_parQ>>  P,  // row    permutation
+        cref<Permutation<Int,Q_parQ>>  Q,  // column permutation
         const LInt nnz,
-        bool sort = true        // Whether to restore row-wise ordering (as in demanded by CSR).
+        bool sort = true // Whether to restore row-wise ordering (as demanded by CSR).
     )
     {
         // returns

@@ -50,8 +50,9 @@
 
 namespace Tensors
 {
+    template<Parallel_T parQ>
     CoinPackedMatrix MatrixCSR_transpose_to_CoinPackedMatrix(
-        const Sparse::MatrixCSR<double,int,CoinBigIndex> & A
+        const Sparse::MatrixCSR<double,int,CoinBigIndex,parQ> & A
     )
     {
         // https://coin-or.github.io/Clp/Doxygen/classClpPackedMatrix.html
@@ -68,8 +69,9 @@ namespace Tensors
         return B;
     }
     
+    template<Parallel_T parQ>
     CoinPackedMatrix MatrixCSR_to_CoinPackedMatrix(
-        const Sparse::MatrixCSR<double,int,CoinBigIndex> & A
+        const Sparse::MatrixCSR<double,int,CoinBigIndex,parQ> & A
     )
     {
         // https://coin-or.github.io/Clp/Doxygen/classClpPackedMatrix.html
@@ -86,20 +88,21 @@ namespace Tensors
         return B;
     }
 
-    Sparse::MatrixCSR<double,int,CoinBigIndex> MatrixCSR_to_CoinPackedMatrix(
+    template<FloatQ Real, IntQ Int, IntQ LInt, Parallel_T parQ>
+    Sparse::MatrixCSR<Real,IntQ,IntQ,parQ> CoinPackedMatrix_to_MatrixCSR(
         const CoinPackedMatrix & A, int thread_count = 1
     )
     {
         if( A.isColOrdered() )
         {
-            return Sparse::MatrixCSR<double,int,CoinBigIndex>(
+            return Sparse::MatrixCSR<FloatQ,Int,LInt,parQ>(
                 A.getVectorStarts(), A.getIndices(), A.getElements(),
                 A.getNumCols(), A.getNumRows(), thread_count
             ).Transpose();
         }
         else
         {
-            return Sparse::MatrixCSR<double,int,CoinBigIndex>(
+            return Sparse::MatrixCSR<FloatQ,Int,LInt,parQ>(
                 A.getVectorStarts(), A.getIndices(), A.getElements(),
                 A.getNumRows(), A.getNumCols(), thread_count
             );
@@ -301,12 +304,12 @@ namespace Tensors
          * @param settings_ An instance of `ClpWrapper::Settings_T` to set up parameters.
          */
         
-        template<typename R, typename I, typename J>
+        template<typename R, IntQ I, IntQ J, Parallel_T parQ>
         ClpWrapper(
             cref<Tensor1<R,I>> c,
             cref<Tensor1<R,I>> var_lb,
             cref<Tensor1<R,I>> var_ub,
-            cref<Sparse::MatrixCSR<R,I,J>> AT,
+            cref<Sparse::MatrixCSR<R,I,J,parQ>> AT,
             cref<Tensor1<R,I>> con_lb,
             cref<Tensor1<R,I>> con_ub,
             cref<Settings_T> settings_ = ClpWrapper::Settings_T{}

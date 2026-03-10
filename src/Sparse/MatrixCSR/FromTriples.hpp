@@ -39,7 +39,7 @@ void FromTriples(
         return;
     }
     
-    Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int>(
+    Tensor2<LInt,Int> counters = AssemblyCounters<LInt,Int,parQ>(
         idx, jdx, entry_counts, list_count, m, symmetrizeQ
     );
     
@@ -93,7 +93,7 @@ void FromTriples(
     // TODO: False sharing can be prevented by not distributing whole sublists of idx, jdx, val to the threads but by distributing the rows of the final matrix, instead. It's just a bit fiddly, though.
     
     // Writing reordered data.
-    ParallelDo(
+    Do<parQ>(
         [
             assemblerQ,symmetrizeQ,A_i,A_v,A_f,
             &counters,&entry_counts,&acc_entry_counts,&idx,&jdx,&val

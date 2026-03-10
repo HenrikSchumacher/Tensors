@@ -149,15 +149,16 @@ namespace Tensors
         {
             template<
                 Op opA, Op opB,
-                typename A_Scal, IntQ A_Int, IntQ A_LInt,
-                typename B_Scal, IntQ B_Int, IntQ B_LInt,
+                typename A_Scal, IntQ A_Int, IntQ A_LInt, Parallel_T A_parQ,
+                typename B_Scal, IntQ B_Int, IntQ B_LInt, Parallel_T B_parQ,
                 typename Scal = decltype(A_Scal(1) * B_Scal(1)),
                 IntQ     Int  = decltype(A_Int (0) + B_Int (0)),
-                IntQ     LInt = decltype(A_LInt(0) + B_LInt(0))
+                IntQ     LInt = decltype(A_LInt(0) + B_LInt(0)),
+                Parallel_T parQ = ((A_parQ == Parallel) || (B_parQ == Parallel)) ? Parallel : Sequential
             >
-            MatrixCSR<Scal,Int,LInt> Dot_NN(
-                const MatrixCSR<A_Scal,A_Int,A_LInt> & A,
-                const MatrixCSR<B_Scal,B_Int,B_LInt> & B
+            MatrixCSR<Scal,Int,LInt,parQ> Dot_NN(
+                const MatrixCSR<A_Scal,A_Int,A_LInt,A_parQ> & A,
+                const MatrixCSR<B_Scal,B_Int,B_LInt,B_parQ> & B
             )
             {
                 static_assert(NotTransposedQ(opA),"");
@@ -169,7 +170,7 @@ namespace Tensors
                 {
                     eprint("Sparse::Details::Dot_NN: Matrix A is not well-formed.");
                     
-                    return Sparse::MatrixCSR<Scal,Int,LInt>();
+                    return Sparse::MatrixCSR<Scal,Int,LInt,parQ>();
                 }
                 
                 auto job_ptr = A.JobPtr();
@@ -191,7 +192,7 @@ namespace Tensors
                 cptr<A_Int > B_i = B.Inner().data();
                 cptr<A_Scal> B_v = B.Value().data();
                 
-                ParallelDo(
+                Do<parQ>(
                     [=,&job_ptr,&counters]( const Int thread )
                     {
                         const A_Int i_begin = job_ptr[thread  ];
@@ -219,18 +220,18 @@ namespace Tensors
                     thread_count
                 );
                 
-                AccumulateAssemblyCounters_Parallel( counters );
+                AccumulateAssemblyCounters<parQ>( counters );
                 
                 const LInt nnz = counters.data(thread_count-1)[m-1];
                 
-                Sparse::MatrixCSR<Scal,Int,LInt> C ( m, B.ColCount(), nnz, thread_count );
+                Sparse::MatrixCSR<Scal,Int,LInt,parQ> C ( m, B.ColCount(), nnz, thread_count );
                 
                 copy_buffer( counters.data(thread_count-1), &C.Outer().data()[1], m );
 
                 mptr< Int> C_inner  = C.Inner().data();
                 mptr<Scal> C_values = C.Value().data();
                 
-                ParallelDo(
+                Do<parQ>(
                     [=,&job_ptr,&counters]( const Int thread )
                     {
                         const Int i_begin = job_ptr[thread  ];
@@ -279,15 +280,16 @@ namespace Tensors
         
         template<
             Op opA, Op opB,
-            typename A_Scal, IntQ A_Int, IntQ A_LInt,
-            typename B_Scal, IntQ B_Int, IntQ B_LInt,
+            typename A_Scal, IntQ A_Int, IntQ A_LInt, Parallel_T A_parQ,
+            typename B_Scal, IntQ B_Int, IntQ B_LInt, Parallel_T B_parQ,
             typename Scal = decltype(A_Scal(1) * B_Scal(1)),
             IntQ Int  = decltype(A_Int (0) + B_Int (0)),
-            IntQ LInt = decltype(A_LInt(0) + B_LInt(0))
+            IntQ LInt = decltype(A_LInt(0) + B_LInt(0)),
+            Parallel_T parQ = ((A_parQ == Parallel) || (B_parQ == Parallel)) ? Parallel : Sequential
         >
-        MatrixCSR<Scal,Int,LInt> Dot(
-            const MatrixCSR<A_Scal,A_Int,A_LInt> & A,
-            const MatrixCSR<B_Scal,B_Int,B_LInt> & B
+        MatrixCSR<Scal,Int,LInt,parQ> Dot(
+            const MatrixCSR<A_Scal,A_Int,A_LInt,A_parQ> & A,
+            const MatrixCSR<B_Scal,B_Int,B_LInt,A_parQ> & B
         )
         {
             if constexpr( NotTransposedQ(opA) )

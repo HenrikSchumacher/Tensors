@@ -1,5 +1,7 @@
 #pragma once
 
+// TODO: Wrap in name space.
+
 #include <amd.h>
 
 #define TENSORS_HAS_AMD
@@ -8,7 +10,7 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<IntQ Int, bool base = 0>
+        template<IntQ Int, Parallelt_T parQ, bool base = 0>
         class ApproximateMinimumDegree final
         {
         public:
@@ -26,8 +28,8 @@ namespace Tensors
             // Move assignment operator
             ApproximateMinimumDegree & operator=( ApproximateMinimumDegree && other ) = default;
                         
-            template<typename I_1, typename I_2, typename I_3, typename I_4>
-            Permutation<Int> operator()(
+            template<IntQ I_1, IntQ I_2, IntQ I_3, IntQ I_4>
+            Permutation<Int,parQ> operator()(
                 mptr<I_1> rp_, mptr<I_2> ci_, const I_3 n_, const I_4 final_thread_count = 1
             )
             {
@@ -68,7 +70,7 @@ namespace Tensors
                     wprint("ApproximateMinimumDegree: Inputs have unordered column indices, but they are otherwise correct.");
                 }
                 
-                return Permutation<Int>( perm.data(), static_cast<Int>(n), Inverse::False, Int(final_thread_count) );
+                return Permutation<Int,parQ>( perm.data(), int_cast<Int>(n), Inverse::False, int_cast<Int>(final_thread_count) );
             }
             
         public:

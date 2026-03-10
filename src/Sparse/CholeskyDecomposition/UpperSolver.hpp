@@ -3,7 +3,8 @@ namespace Tensors
     namespace Sparse
     {
         
-        template<typename Scal_, IntQ Int_, IntQ LInt_> class CholeskyDecomposition;
+        template<typename Scal_, IntQ Int_, IntQ LInt_, Parallel_T parQ>
+        class CholeskyDecomposition;
         
         template<bool mult_rhs, typename Scal_, IntQ Int_, IntQ LInt_>
         class alignas(ObjectAlignment) UpperSolver final
@@ -101,8 +102,9 @@ namespace Tensors
 //              )
 //            {}
             
+            template<Parallel_T parQ>
             UpperSolver(
-                CholeskyDecomposition<Scal,Int,LInt> & chol, const Int nrhs_
+                CholeskyDecomposition<Scal,Int,LInt,parQ> & chol, const Int nrhs_
             )
             :   nrhs            ( nrhs_                         )
             ,   max_n_1         ( chol.max_n_1                  )

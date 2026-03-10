@@ -1,5 +1,3 @@
-static_assert(IntQ<Int_>,"");
-
 public:
 
     using Scal    = Scal_;

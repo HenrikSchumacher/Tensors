@@ -1,6 +1,6 @@
 public:
 
-    const Tree<Int> & EliminationTree()
+    const Tree_T & EliminationTree()
     {
         // TODO: How can this be parallelized?
 
@@ -60,7 +60,7 @@ public:
                 n, A.Outer().data(), A.Inner().data(), parents.data()
             );
 
-            eTree = Tree<Int> ( std::move(parents), thread_count );
+            eTree = Tree_T( std::move(parents), thread_count );
 
             eTree_initializedQ = true;
         }

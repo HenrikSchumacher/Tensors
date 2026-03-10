@@ -13,11 +13,18 @@
 
 namespace Tensors
 {
-    template<IntQ Int>
+    template<SignedIntQ Int_, Parallel_T parQ_>
     class Tree final
     {
-        static_assert(SignedIntQ<Int>,"");
-
+    public:
+        
+        using Int = Int_;
+        
+        static constexpr Parallel_T parQ = parQ_;
+        
+        using Permutation_T  = Permutation<Int,parQ>;
+        using BinaryMatrix_T = Sparse::BinaryMatrixCSR<Int,Int,parQ>;
+        
     protected:
         
         Int n; // The number of vertices, _including_ the virtual root vertex.
@@ -31,13 +38,13 @@ namespace Tensors
         Tensor1<double,Int> costs;
         Tensor1<double,Int> desc_costs;
         
-        Sparse::BinaryMatrixCSR<Int,Int> A;       // The adjacency matrix of the directed graph.
+        BinaryMatrix_T A;      // The adjacency matrix of the directed graph.
         
         Tensor1<Int,Int> desc_counts;
         
-        Permutation<Int> post;                  // To store the postordering.
+        Permutation<Int,parQ> post;                   // To store the postordering.
         
-        Sparse::BinaryMatrixCSR<Int,Int> levels;       // The adjacency matrix of the directed graph.
+        BinaryMatrix_T levels; // The adjacency matrix of the directed graph.
 
         static constexpr Int zero = 0;
         static constexpr Int one  = 1;
@@ -161,7 +168,7 @@ namespace Tensors
             return parents;
         }
         
-        cref<Permutation<Int>> PostOrdering() const
+        cref<Permutation_T> PostOrdering() const
         {
             return post;
         }
@@ -257,7 +264,7 @@ namespace Tensors
         bool PostOrderedQ() const
         {
             // TODO: Is this test good enough to indeed guarantee that the tree is postordered, when passed?
-            return ParallelDoReduce(
+            return DoReduce<parQ>(
                 [=,this]( const Int i ) -> bool
                 {
                     const Int p_i = parents[i];

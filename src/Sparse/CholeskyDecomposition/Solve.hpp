@@ -1,5 +1,7 @@
 public:
 
+// TODO: Collision of these temporary parQ with the class's parQ.
+
 // TODO: Overloads for UpperSolve
 
 // TODO: Overloads for LowerSolve
@@ -344,7 +346,7 @@ protected:
         
         using Solver_T = UpperSolver<mult_rhsQ,Scal,Int,LInt>;
         
-        const std::string tag = ClassName()+"::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName()+"::SN_UpperSolve<" + ToString(mult_rhsQ) + "," + ToString(parQ) + "> ( " + ToString(nrhs)+ " )";
         
         TOOLS_PTIMER(timer,tag);
         
@@ -364,7 +366,7 @@ protected:
         
         std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
         
-        Do<VarSize,parQ>(
+        Do<parQ>(
             [&F_list,this]( const Size_T thread )
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );
@@ -385,7 +387,7 @@ protected:
         // Use locks if run in parallel.
         using Solver_T = LowerSolver<mult_rhsQ,( parQ == Parallel ? true : false),Scal,Int,LInt>;
         
-        const std::string tag = ClassName()+"::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + (parQ == Parallel ? "Parallel" : "Sequential") + "> ( " + ToString(nrhs)+ " )";
+        const std::string tag = ClassName()+"::SN_LowerSolve<" + ToString(mult_rhsQ) + "," + ToString(parQ) + "> ( " + ToString(nrhs)+ " )";
         
         TOOLS_PTIMER(timer,tag);
         
@@ -401,11 +403,11 @@ protected:
             return;
         }
         
-        const Size_T use_threads = ( parQ == Parallel) ? static_cast<Size_T>(thread_count) : Size_T(1);
+        const Size_T use_threads = (parQ == Parallel) ? static_cast<Size_T>(thread_count) : Size_T(1);
         
         std::vector<std::unique_ptr<Solver_T>> F_list ( use_threads );
         
-        Do<VarSize,parQ>(
+        Do<parQ>(
             [&F_list,this]( const Size_T thread )
             {
                 F_list[thread] = std::make_unique<Solver_T>(*this, nrhs );

@@ -8,8 +8,8 @@ namespace Tensors
          *
          */
         
-        template<typename Scal, IntQ Int, IntQ LInt>
-        MatrixCSR<Scal,Int,LInt> GridLaplacian(
+        template<typename Scal, IntQ Int, IntQ LInt, Parallel_T parQ = Parallel>
+        MatrixCSR<Scal,Int,LInt,parQ> GridLaplacian(
             const Int grid_size, const Scal mass, const Int thread_count
         )
         {
@@ -69,7 +69,7 @@ namespace Tensors
                 }
             }
             
-            return Sparse::MatrixCSR<Scal,Int,LInt>(
+            return Sparse::MatrixCSR<Scal,Int,LInt,parQ>(
                 triples,
                 grid_size * grid_size, grid_size * grid_size,
                 thread_count, true, false, false
@@ -82,8 +82,8 @@ namespace Tensors
          *
          */
         
-        template<typename Scal, IntQ Int, IntQ LInt>
-        MatrixCSR<Scal,Int,LInt> GridLaplacian_Parallel(
+        template<typename Scal, IntQ Int, IntQ LInt,Parallel_T parQ = Parallel>
+        MatrixCSR<Scal,Int,LInt,parQ> GridLaplacian_Parallel(
             const Int grid_size, const Scal mass, const Int thread_count
         )
         {
@@ -91,7 +91,7 @@ namespace Tensors
             
             std::vector<TripleAggregator<Int,Int,Scal,LInt>> thread_triples ( Max(Size_T(1), ToSize_T(thread_count)) );
 
-            ParallelDo(
+            Do<parQ>(
                 [&thread_triples,thread_count,grid_size,mass]( const Int thread )
                 {
                     auto & triples = thread_triples[ToSize_T(thread)];
@@ -150,7 +150,7 @@ namespace Tensors
                 thread_count
             );
             
-            return Sparse::MatrixCSR<Scal,Int,LInt>(
+            return Sparse::MatrixCSR<Scal,Int,LInt,parQ>(
                 thread_triples,
                 grid_size * grid_size, grid_size * grid_size,
                 thread_count, true, true

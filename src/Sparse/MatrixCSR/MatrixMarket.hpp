@@ -192,7 +192,7 @@ void LoadFromMatrixMarket( cref<std::filesystem::path> file, Int thread_count_ )
         }
     }
     
-    MatrixCSR<Scal,Int,LInt> A (
+    MatrixCSR A (
         nonzero_count,
         i_list.data(), j_list.data(), a_list.data(),
         row_count, col_count, thread_count_, true, symmetrizeQ
@@ -240,7 +240,7 @@ void WriteToMatrixMarket( cref<std::filesystem::path> file )
     
     auto s_job_ptr = JobPointers<Int>( m, outer.data(), s_thread_count, false );
     
-    ParallelDo(
+    Do<parQ>(
         [&,this]( const Int thread )
         {
             const Int i_begin = s_job_ptr[thread+0];
@@ -293,7 +293,7 @@ void WriteToMatrixMarket( cref<std::filesystem::path> file )
         s_thread_count
     );
     
-    ParallelDo(
+    Do<parQ>(
         [&,this]( const Int thread )
         {
             thread_strings[2 * thread] += thread_strings[2 * thread + 2];

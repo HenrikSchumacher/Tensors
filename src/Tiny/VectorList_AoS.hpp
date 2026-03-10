@@ -105,49 +105,39 @@ namespace Tensors
                 return a.data();
             }
             
-            template<typename I>
+            template<IntQ I>
             TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
             {
-                static_assert(IntQ<I>,"");
                 return &a.data()[n * i];
             }
             
-            template<typename I>
+            template<IntQ I>
             TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
             {
-                static_assert(IntQ<I>,"");
                 return &a.data()[n * i];
             }
             
-            template<typename I, typename J>
+            template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j ) noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
                 return &a.data()[n * i + j];
             }
             
-            template<typename I, typename J>
+            template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
                 return &a.data()[n * i + j];
             }
             
-            template<typename I, typename J>
+            template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j) noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
                 return a.data()[n * i + j];
             }
             
-            template<typename I, typename J>
+            template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j) const noexcept
             {
-                static_assert(IntQ<I>,"");
-                static_assert(IntQ<J>,"");
                 return a.data()[n * i + j];
             }
             

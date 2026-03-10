@@ -44,12 +44,12 @@ int main(int argc, const char * argv[])
     const Int repetitions = 20;
     
     tic("Sequential assembly of matrix");
-    Sparse::MatrixCSR<Complex,Int,LInt> A
+    Sparse::MatrixCSR<Complex,Int,LInt,Parallel> A
     = Sparse::GridLaplacian_Parallel<Complex,Int,LInt>(grid_size,Complex(0,1),thread_count);
     toc("Sequential assembly of matrix");
     
     tic("Parallel assembly of matrix");
-    Sparse::MatrixCSR<Complex,Int,LInt> B
+    Sparse::MatrixCSR<Complex,Int,LInt,Parallel> B
     = Sparse::GridLaplacian<Complex,Int,LInt>(grid_size,Complex(0,1),thread_count);
     toc("Parallel assembly of matrix");
     
@@ -79,11 +79,11 @@ int main(int argc, const char * argv[])
     TOOLS_DUMP( A.NonzeroCount() );
     TOOLS_DUMP( A.ThreadCount() );
     
-    Sparse::MatrixCSR<Real,Int,LInt> Re_A(
+    Sparse::MatrixCSR<Real,Int,LInt,Parallel> Re_A(
         A.RowCount(), A.ColCount(), A.NonzeroCount(), thread_count
     );
     
-    Sparse::MatrixCSR<Real,Int,LInt> Im_A(
+    Sparse::MatrixCSR<Real,Int,LInt,Parallel> Im_A(
         A.RowCount(), A.ColCount(), A.NonzeroCount(), thread_count
     );
     
