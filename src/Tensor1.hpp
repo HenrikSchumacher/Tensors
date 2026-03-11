@@ -305,7 +305,7 @@ namespace Tensors
             Tools::Accumulate<Sequential>(a, n);
         }
         
-        template<Parallel_T parQ>
+        template<Parallel_T parQ = Parallel>
         void Accumulate( const Int thread_count )
         {
             Tools::Accumulate<parQ>(a, n, thread_count);

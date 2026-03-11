@@ -417,7 +417,7 @@ namespace Tensors
             // z = y * Q;
             z.SetZero();
             
-            ParallelDo(
+            Do<Parallel>(
                 [&]( const Int i )
                 {
                     mptr<Scal> z_i = z.data(i);
@@ -568,7 +568,7 @@ namespace Tensors
                     }
                     
                     // Q[iter+1] -= Q[i] * h;
-                    ParallelDo(
+                    Do<Parallel>(
                         [this,q_i,q_p]( const Int j )
                         {
                             for( Int k = 0; k < ((NRHS>VarSize) ? NRHS : nrhs); ++k )

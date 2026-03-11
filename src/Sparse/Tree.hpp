@@ -280,10 +280,8 @@ namespace Tensors
                       (i < p_i)
                       &&
                       (i + DescendantCount(p_i) >= p_i + DescendantCount(i) );
-                      
-                      
                   },
-                  AndReducer(), true,
+                  []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
                   Root(), thread_count
             );
             

@@ -42,7 +42,7 @@ void SortInner_impl(
                 }
             }
         },
-        thread_count
+        thread_count, thread_count
     );
     
     proven_inner_sortedQ = true;

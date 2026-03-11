@@ -260,7 +260,7 @@ public:
     {
         const auto & job_ptr = UJobPointers();
         
-        return DoReduce<parQ>(
+        return ParallelDoReduce(
             [&job_ptr,this]( const Int thread )
             {
                 Real log_det_local = 0;
@@ -285,7 +285,8 @@ public:
                 
                 return log_det_local;
             },
-            AddReducer<Real,Real>(), Scalar::Zero<Real>,
+            []( Real v, Real & r ) { r += v; },
+            Scalar::Zero<Real>,
             thread_count
         );
     }

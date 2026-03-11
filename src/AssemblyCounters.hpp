@@ -118,7 +118,7 @@ namespace Tensors
                         S[thread+1] = LInt(0);
                     }
                 },
-                thread_count
+                thread_count, thread_count
             );
 
             // scan through the last results of each chunk
@@ -131,7 +131,7 @@ namespace Tensors
                 }
             }
 
-            ParallelDo(
+            Do<parQ>(
                 [=,&counters]( const Int thread )
                 {
                     // each thread adds-in its correction
@@ -151,7 +151,7 @@ namespace Tensors
                         }
                     }
                 },
-                thread_count
+                thread_count, thread_count
             );
         }
     }
@@ -214,7 +214,7 @@ namespace Tensors
                     }
                 }
             },
-            list_count
+            list_count, list_count
         );
         
     //        print(counters.ToString());

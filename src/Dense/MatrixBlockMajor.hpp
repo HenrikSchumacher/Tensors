@@ -351,7 +351,7 @@ namespace Tensors
                         }
                     }
                 },
-                thread_count
+                thread_count, thread_count
             );
         }
             

@@ -145,7 +145,7 @@ void FromTriples(
                 }
             }
         },
-        list_count
+        list_count, list_count
     );
     
     

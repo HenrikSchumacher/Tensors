@@ -147,7 +147,7 @@ namespace Tensors
                         }
                     }
                 },
-                thread_count
+                thread_count, thread_count
             );
             
             return Sparse::MatrixCSR<Scal,Int,LInt,parQ>(

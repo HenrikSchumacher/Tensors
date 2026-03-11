@@ -290,7 +290,7 @@ void WriteToMatrixMarket( cref<std::filesystem::path> file )
 
             thread_strings[thread] = std::move(s_loc);
         },
-        s_thread_count
+        s_thread_count, s_thread_count
     );
     
     Do<parQ>(
@@ -298,7 +298,7 @@ void WriteToMatrixMarket( cref<std::filesystem::path> file )
         {
             thread_strings[2 * thread] += thread_strings[2 * thread + 2];
         },
-        2
+        2, 2
     );
     
     s << thread_strings[0];

@@ -61,7 +61,7 @@ public:
             {
                 SN_list[thread] = std::make_unique<Factorizer_MF_T>(*this);
             },
-            use_threads
+            use_threads, use_threads
         );
         
         Factorizer_MF_T worker(*this);
@@ -83,7 +83,7 @@ public:
             {
                 SN_data.goodQ = SN_data.goodQ && SN_list[thread]->GoodQ();
             },
-            use_threads
+            use_threads, use_threads
         );
         
         if( !SN_data.goodQ )
@@ -125,7 +125,7 @@ public:
             {
                 SN_list[thread] = std::make_unique<Factorizer_LL_T>(*this);
             },
-            use_threads
+            use_threads, use_threads
         );
         
         // (Parallel) traversal in postorder
@@ -145,7 +145,7 @@ public:
             {
                 SN_data.goodQ = SN_data.goodQ && SN_list[thread]->GoodQ();
             },
-            use_threads
+            use_threads, use_threads
         );
         
         if( !SN_data.goodQ )

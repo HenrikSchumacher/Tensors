@@ -439,18 +439,14 @@ namespace Tensors
                     // Otherwise, `Factorizer_LL_T` will read the wrong nonzero values.
                     {
                         Tensor1<LInt,LInt> inner_perm_perm = A.Permute( post, post );
-                        
-                        
+                    
                         // A_inner_perm.Compose( std::move(A.Permute( post, post )), Compose::Post );
                         
                         cptr<LInt> p = A_inner_perm.data();
                         mptr<LInt> q = inner_perm_perm.data();
                         
                         Do<parQ>(
-                            [p,q]( const LInt i )
-                            {
-                               q[i] = p[q[i]];
-                            },
+                            [p,q]( const LInt i ) { q[i] = p[q[i]]; },
                             A_inner_perm.Size(), static_cast<LInt>(thread_count)
                         );
                         

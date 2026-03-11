@@ -2,7 +2,7 @@
 
 namespace Tensors
 {
-    template<typename Kernel_T, Parallel_T parQ>
+    template<typename Kernel_T>
     class DiagonalKernelMatrix final
     {
     public:
@@ -108,8 +108,8 @@ namespace Tensors
             
             const auto & job_ptr = JobPointers<Int>(n,thread_count);
             
-            Do<parQ>(
-                [&]( const Int thread)
+            ParallelDo(
+                [&job_ptr,A,alpha,X,beta,Y,nrhs]( const Int thread)
                 {
                     // Initialize local kernel and feed it all the information that is going to be constant along its life time.
                     Kernel_T ker ( A, alpha, X, beta, Y, nrhs );

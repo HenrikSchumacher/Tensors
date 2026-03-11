@@ -4,7 +4,7 @@ namespace Tensors
 {
     namespace Sparse
     {
-        template<typename Kernel_T, Parallel_T parQ_>
+        template<typename Kernel_T>
         class KernelMatrixCSR final
         {
         public:
@@ -15,7 +15,7 @@ namespace Tensors
             using Scal_in  = typename Kernel_T::Scal_in;
             using Scal_out = typename Kernel_T::Scal_out;
             
-            static constexpr Parallel_T parQ = parQ_;
+            static constexpr Parallel_T parQ = Parallel;
             
             using Pattern_T = Sparse::PatternCSR<Int,LInt,parQ>;
             
@@ -84,7 +84,7 @@ namespace Tensors
                     
                     const Int thread_count = job_ptr.ThreadCount();
                     
-                    Do<parQ>(
+                    ParallelDo(
                         [&job_ptr,outer,inner,values,diag]( const Int thread )
                         {
                             Kernel_T ker ( values );
@@ -169,7 +169,7 @@ namespace Tensors
                 
                 const Int thread_count = job_ptr.ThreadCount();
                 
-                Do<parQ>(
+                ParallelDo(
                     [=, &job_ptr, this]( const Int thread )
                     {
                         // Initialize local kernel and feed it all the information that is going to be constant along its life time.

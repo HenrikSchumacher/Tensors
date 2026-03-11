@@ -96,7 +96,7 @@ void FromPairs(
                     A_i[pos] = i;
                 }
             },
-            list_count
+            list_count, list_count
         );
     }
     else
@@ -123,7 +123,7 @@ void FromPairs(
                     }
                 }
             },
-            list_count
+            list_count, list_count
         );
     }
     

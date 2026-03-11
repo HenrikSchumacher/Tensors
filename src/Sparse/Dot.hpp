@@ -217,7 +217,7 @@ namespace Tensors
                             c[i] = c_i;
                         }
                     },
-                    thread_count
+                    thread_count, thread_count
                 );
                 
                 AccumulateAssemblyCounters<parQ>( counters );
@@ -264,7 +264,7 @@ namespace Tensors
                             }
                         }
                     },
-                    thread_count
+                    thread_count, thread_count
                 );
                 
                 // Finished expansion phase (counting sort).

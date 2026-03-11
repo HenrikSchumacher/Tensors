@@ -196,7 +196,7 @@ namespace Tensors
                     
                     return (p_i == i);
                 },
-                AndReducer(), true,
+                []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
                 n, thread_count
             );
             
@@ -228,7 +228,7 @@ namespace Tensors
                     
                     return (p_inv_i == i);
                 },
-                AndReducer(), true,
+                []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
                 n, thread_count
             );
             
@@ -284,10 +284,7 @@ namespace Tensors
                     p_inv = Tensor1<Int,Int>(n);
                 }
                 Do<parQ>(
-                    [=,this]( const Int i )
-                    {
-                        p_inv[p[i]] = i;
-                    },
+                    [this]( const Int i ) { p_inv[p[i]] = i; },
                     n, thread_count
                 );
             }
@@ -363,7 +360,7 @@ namespace Tensors
                             
                             return (scratch[i] == i);
                         },
-                        AndReducer(), true,
+                        []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
                         n, thread_count
                     );
                         
@@ -705,7 +702,7 @@ namespace Tensors
                         
                         return (p_i == i);
                     },
-                    AndReducer(), true,
+                    []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
                     n, thread_count
                 );
             }
@@ -722,7 +719,7 @@ namespace Tensors
                         
                         return (p_inv_i == i);
                     },
-                    AndReducer(), true,
+                    []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
                     n, thread_count
                 );
             }
@@ -924,7 +921,7 @@ namespace Tensors
                     }
                 }
             },
-            thread_count
+            thread_count, thread_count
         );
         
         swap( outer, new_outer );

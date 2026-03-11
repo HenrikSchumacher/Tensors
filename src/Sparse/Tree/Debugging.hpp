@@ -95,7 +95,7 @@ public:
             {
                 workers[thread] = std::make_unique<DebugWorker>( *this );
             },
-            static_cast<Size_T>(thread_count)
+            static_cast<Size_T>(thread_count), static_cast<Size_T>(thread_count)
         );
         
         Traverse_PostOrdered( workers );
@@ -129,7 +129,7 @@ public:
             {
                 workers[thread] = std::make_unique<DebugWorker>( *this );
             },
-            static_cast<Size_T>(thread_count)
+            static_cast<Size_T>(thread_count), static_cast<Size_T>(thread_count)
         );
         
         Traverse_PreOrdered( workers );

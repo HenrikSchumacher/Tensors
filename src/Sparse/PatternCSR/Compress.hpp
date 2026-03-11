@@ -124,13 +124,13 @@ void Compress_impl(
                     B_o[i+1] = row_nonzero_counter;
                 }
             },
-            job_ptr.ThreadCount()
+            job_ptr.ThreadCount(), job_ptr.ThreadCount()
         );
     }
 
     // TODO: Test what works better.
-//    B_outer.template Accumulate<parQ>( thread_count );
-    B_outer.Accumulate(); // I think I prefer the sequential code here.
+    B_outer.template Accumulate<parQ>( thread_count );
+//    B_outer.Accumulate(); // I think I prefer the sequential code here.
     
     // Now B_outer is the new array of outer indices.
     
@@ -191,7 +191,7 @@ void Compress_impl(
                     copy_buffer( &c_c[pos], &C_o[new_pos+LInt(1)], thread_nonzeroes );
                 }
             },
-            job_ptr.ThreadCount()
+            job_ptr.ThreadCount(), job_ptr.ThreadCount()
         );
     }
 
@@ -204,8 +204,8 @@ void Compress_impl(
     if constexpr( assemblerQ )
     {
         // TODO: Test what works better.
-//        C_outer.template Accumulate<parQ>(thread_count);
-        C_outer.Accumulate(); // I think I prefer the sequential code here.
+        C_outer.template Accumulate<parQ>(thread_count);
+//        C_outer.Accumulate(); // I think I prefer the sequential code here.
     }
 
     job_ptr = JobPointers<Int>();

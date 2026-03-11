@@ -124,7 +124,7 @@ namespace Tensors
             
             if constexpr ( op == Op::Id )
             {
-                ParallelDo(
+                Do<Parallel>(
                     [=,this]( const Int i )
                     {
                         copy_buffer( &B[ldB * i], &a[d_1 * i], d_1 );
@@ -215,7 +215,7 @@ namespace Tensors
             
             if constexpr ( op == Op::Id )
             {
-                ParallelDo(
+                Do<Parallel>(
                     [=,this]( const Int i )
                     {
                         copy_buffer( &a[d_1 * i], &B[ldB * i], d_1 );

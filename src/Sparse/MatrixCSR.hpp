@@ -487,7 +487,7 @@ namespace Tensors
                                 }
                             }
                         },
-                        thread_count
+                        thread_count, thread_count
                     );
 
                     // Finished counting sort.
@@ -653,11 +653,9 @@ namespace Tensors
                         [=,this]( const Int i )
                         {
                             const Int p_i = p[i];
-                            
                             B_o[i+1] = A_o[p_i+1] - A_o[p_i];
                         },
-                        m,
-                        ThreadCount()
+                        m, ThreadCount()
                     );
                 }
                 
@@ -705,12 +703,8 @@ namespace Tensors
                 mptr<Int> q_inv = q_inv_buffer.data();
                 
                 Do<parQ>(
-                    [=,this]( const Int j )
-                    {
-                        q_inv[q[j]] = j;
-                    },
-                    n,
-                    ThreadCount()
+                    [q,q_inv]( const Int j ) { q_inv[q[j]] = j; },
+                    n, ThreadCount()
                 );
                 
                 copy_buffer( outer.data(), B.Outer().data(), m+1 );
@@ -752,7 +746,7 @@ namespace Tensors
                             }
                         }
                     },
-                    B.JobPtr().ThreadCount()
+                    B.JobPtr().ThreadCount(), B.JobPtr().ThreadCount()
                 );
                 
                 return B;
@@ -766,12 +760,8 @@ namespace Tensors
                 mptr<Int> q_inv = q_inv_buffer.data();
                 
                 Do<parQ>(
-                    [=,this]( const Int j )
-                    {
-                        q_inv[q[j]] = j;
-                    },
-                    n,
-                    ThreadCount()
+                    [q,q_inv]( const Int j ) { q_inv[q[j]] = j; },
+                    n, ThreadCount()
                 );
                 
                 {
@@ -786,8 +776,7 @@ namespace Tensors
                             const Int p_i = p[i];
                             B_o[i+1] = A_o[p_i+1] - A_o[p_i];
                         },
-                        m,
-                        ThreadCount()
+                        m, ThreadCount()
                     );
                 }
                 
@@ -835,7 +824,7 @@ namespace Tensors
                             }
                         }
                     },
-                    B.JobPtr().ThreadCount()
+                    B.JobPtr().ThreadCount(), B.JobPtr().ThreadCount()
                 );
                 
                 return B;
@@ -890,7 +879,7 @@ namespace Tensors
                             c[i] = c_i;
                         }
                     },
-                    thread_count
+                    thread_count, thread_count
                 );
                 
                 AccumulateAssemblyCounters<parQ>( counters );
@@ -943,7 +932,7 @@ namespace Tensors
                             }
                         }
                     },
-                    thread_count
+                    thread_count, thread_count
                 );
                 
                 // Finished expansion phase (counting sort).
@@ -954,9 +943,9 @@ namespace Tensors
                 return C;
             }
             
-            BinaryMatrix_T DotBinary( const MatrixCSR & B ) const
+            Sparse::BinaryMatrixCSR<Int,LInt,parQ> DotBinary( const MatrixCSR & B ) const
             {
-                BinaryMatrix_T result;
+                Sparse::BinaryMatrixCSR<Int,LInt,parQ> result;
                 
                 Base_T C = this->DotBinary_(B);
                 

@@ -467,8 +467,8 @@ namespace Tensors
                 );
                 
                 // TODO: Check what works better.
-//                costs.Accumulate<Parallel>( thread_count );
-                costs.Accumulate(); // I think I prefer the sequential code here.
+                costs.Accumulate( thread_count );
+//                costs.Accumulate(); // I think I prefer the sequential code here.
                 
                 upper_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
                 
@@ -497,8 +497,8 @@ namespace Tensors
                 );
                 
                 // TODO: Check what works better.
-//                costs.Accumulate<parQ>( thread_count );
-                costs.Accumulate(); // I think I prefer the sequential code here.
+                costs.template Accumulate<parQ>( thread_count );
+//                costs.Accumulate(); // I think I prefer the sequential code here.
                 
                 lower_triangular_job_ptr = JobPointers( m, costs.data(), thread_count, false );
                 
@@ -675,7 +675,7 @@ namespace Tensors
                             }
                         }
                     },
-                    thread_count
+                    thread_count, thread_count
                 );
                 
                 AccumulateAssemblyCounters<parQ>( counters );
@@ -775,7 +775,7 @@ namespace Tensors
                             c[i] = c_i;
                         }
                     },
-                    thread_count
+                    thread_count, thread_count
                 );
                 
                 AccumulateAssemblyCounters<parQ>(counters);
@@ -827,7 +827,7 @@ namespace Tensors
                             }
                         }
                     },
-                    thread_count
+                    thread_count, thread_count
                 );
                 
                 // Finished expansion phase (counting sort).

@@ -414,7 +414,7 @@ namespace Tensors
     //                    }
                     }
                 },
-                thread_count
+                thread_count, thread_count
             );
         }
             
@@ -442,7 +442,7 @@ namespace Tensors
                         }
                     }
                 },
-                thread_count
+                thread_count, thread_count
             );
         }
     

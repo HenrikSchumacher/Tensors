@@ -276,7 +276,7 @@ namespace Tensors
                             }
                         }
                     },
-                    thread_count
+                    thread_count, thread_count
                 );
                 
                 // Finished counting sort.
@@ -324,7 +324,6 @@ namespace Tensors
                 {
                     wprint(MethodName("Permute") + ": Matrix is in parallel mode but permutation q is not.");
                 }
-                    
                 
                 this->proven_inner_sortedQ = true;
                 this->diag_ptr_initialized = false;
@@ -343,9 +342,10 @@ namespace Tensors
             
         public:
             
-            [[nodiscard]] BinaryMatrixCSR Dot( const BinaryMatrixCSR & B ) const
+            
+            [[nodiscard]] Sparse::BinaryMatrixCSR<Int,LInt,parQ> DotBinary( const BinaryMatrixCSR & B ) const
             {
-                BinaryMatrixCSR result;
+                Sparse::BinaryMatrixCSR<Int,LInt,parQ> result;
                 
                 Base_T C = this->DotBinary_(B);
                 
@@ -354,17 +354,12 @@ namespace Tensors
                 return result;
             }
             
-            [[nodiscard]] BinaryMatrixCSR DotBinary( const BinaryMatrixCSR & B ) const
-            {
-                BinaryMatrixCSR result;
-                
-                Base_T C = this->DotBinary_(B);
-                
-                swap(result,C);
-                
-                return result;
-            }
             
+            [[nodiscard]] Sparse::BinaryMatrixCSR<Int,LInt,parQ> Dot( const BinaryMatrixCSR & B ) const
+            {
+                return DotBinary(B);
+            }
+
 //###########################################################
 //####          Matrix Multiplication
 //###########################################################
