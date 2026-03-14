@@ -320,18 +320,14 @@ public:
 
     [[nodiscard]] friend std::string ToString( cref<Class_T> M )
     {
-        return OutString(
-            [&M]( const Int i, const Int j ) { return M.A[i][j]; },
-            n, "{\n", ",\n", "\n}",
-            n, " { ", ", ", " }"
+        return OutString::FromMatrix(
+            [&M]( const Int i, const Int j ) { return M.A[i][j]; }, n, n
         );
     }
 
     inline friend std::ostream & operator<<( std::ostream & s, cref<Class_T> M )
     {
-        return s << OutString(
-            [&M]( const Int i, const Int j ) { return M.A[i][j]; },
-            n, "{\n", ",\n", "\n}",
-            n, " { ", ", ", " }"
+        return OutString::FromMatrix(
+            [&M]( const Int i, const Int j ) { return M.A[i][j]; }, n, n
         );
     }

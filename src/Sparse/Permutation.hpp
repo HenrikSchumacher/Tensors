@@ -196,7 +196,7 @@ namespace Tensors
                     
                     return (p_i == i);
                 },
-                []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
+                []( bool v, mref<bool> r ) { r = r && v; }, true,
                 n, thread_count
             );
             
@@ -219,7 +219,7 @@ namespace Tensors
 //            p_inv.Read(p_inv_);
 
             bool okayQ = DoReduce<parQ>(
-                [=,this]( const Int i ) -> bool
+                [p_inv_,this]( const Int i ) -> bool
                 {
                     const Int p_inv_i = static_cast<Int>(p_inv_[i]);
                     
@@ -228,7 +228,7 @@ namespace Tensors
                     
                     return (p_inv_i == i);
                 },
-                []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
+                []( bool v, mref<bool> r ) { r = r && v; }, true,
                 n, thread_count
             );
             
@@ -354,13 +354,13 @@ namespace Tensors
                     }
                     
                     is_trivial = DoReduce<parQ>(
-                        [=,this]( const Int i ) -> bool
+                        [a,b,this]( const Int i ) -> bool
                         {
                             scratch[i] = a[b[i]];
                             
                             return (scratch[i] == i);
                         },
-                        []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
+                        []( bool v, mref<bool> r ) { r = r && v; }, true,
                         n, thread_count
                     );
                         
@@ -694,7 +694,7 @@ namespace Tensors
                 swap( p, scratch );
                 
                 is_trivial = DoReduce<parQ>(
-                    [=,this]( const Int i ) -> bool
+                    [this]( const Int i ) -> bool
                     {
                         const Int p_i = p[i];
                         
@@ -702,7 +702,7 @@ namespace Tensors
                         
                         return (p_i == i);
                     },
-                    []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
+                    []( bool v, mref<bool> r ) { r = r && v; }, true,
                     n, thread_count
                 );
             }
@@ -719,7 +719,7 @@ namespace Tensors
                         
                         return (p_inv_i == i);
                     },
-                    []( cref<bool> v, mref<bool> r ) { r = r && v; }, true,
+                    []( bool v, mref<bool> r ) { r = r && v; }, true,
                     n, thread_count
                 );
             }

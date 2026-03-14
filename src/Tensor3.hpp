@@ -222,12 +222,12 @@ namespace Tensors
     
         inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
         {
-            return s << OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
+            return s << OutString::FromCube(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
         }
 
         inline friend std::string ToString( cref<TENSOR_T> tensor )
         {
-            return OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
+            return OutString::FromCube(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
         }
         
         inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )

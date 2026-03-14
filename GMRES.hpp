@@ -87,7 +87,7 @@ namespace Tensors
         )
         :   n               ( n_                                    )
         ,   max_iter        ( Min(max_iter_,n+1)                    )
-        ,   nrhs            ( (NRHS > VarSize) ? NRHS : nrhs_       )
+        ,   nrhs            ( (NRHS > VarSize) ? NRHS : int_cast<Int>(nrhs_) )
         ,   thread_count    ( static_cast<Int>(thread_count_)       )
         ,   job_ptr         ( n, thread_count                       )
         ,   Q               ( max_iter + 1, n, nrhs                 )
@@ -860,10 +860,10 @@ namespace Tensors
             + " relative_tolerance = " + ToString(relative_tolerance) + "\n"
             + " use_initial_guessQ = " + ToString(use_initial_guessQ) + "\n"
             + "\n==== " + ClassName() + " Stats ====\n\n"
-            + " beta               = " + std::string(OutString( beta.data(), iter+1, nrhs )) + "\n";
+            + " beta               = " + std::string(OutString::FromMatrix( beta.data(), iter+1, nrhs )) + "\n";
             + " TOL                = " + ToString(TOL) + "\n";
             + " b_norms            = " + ToString(b_norms) + "\n";
-            + " relative residuals = " + std::string(OutString( RelativeResiduals().data(), nrhs )) + "\n";
+            + " relative residuals = " + std::string(OutString::FromVector( RelativeResiduals().data(), nrhs )) + "\n";
         }
         
         std::string ClassName() const

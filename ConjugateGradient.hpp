@@ -491,7 +491,7 @@ namespace Tensors
             + " relative_tolerance = " + ToString(relative_tolerance) + "\n"
             + " use_initial_guessQ = " + ToString(use_initial_guessQ) + "\n"
             + "\n==== " + ClassName() + " Stats ====\n\n"
-            + " relative residuals = " + OutString( RelativeResiduals().data(), nrhs ) + "\n";
+            + " relative residuals = " + OutString::FromVector( RelativeResiduals().data(), nrhs ) + "\n";
         }
         
         std::string ClassName() const

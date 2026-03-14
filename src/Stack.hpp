@@ -159,7 +159,7 @@ namespace Tensors
         
         std::string String() const
         {
-            return OutString( &a[1], ptr );
+            return OutString::FromVector( &a[1], Size() );
         }
         
         friend std::string ToString( const Stack & stack )
@@ -321,7 +321,7 @@ namespace Tensors
 //        
 //        std::string String() const
 //        {
-//            return OutString( &a[1][0], ptr, 2 );
+//            return OutString::FromMatrix( &a[1][0], ptr, 2 );
 //        }
 //        
 //        friend std::string ToString( const FixedSizePairStack & stack )

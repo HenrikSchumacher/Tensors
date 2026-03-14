@@ -517,18 +517,12 @@ namespace Tensors
             
             [[nodiscard]] friend std::string ToString( cref<Vector> x )
             {
-                return OutString(
-                    [&x]( const Int i ) { return x.v[i]; },
-                    n, "{ ", ", ", "}"
-                );
+                return OutString::FromVector( [&x]( const Int i ) { return x.v[i]; }, n );
             }
 
             inline friend std::ostream & operator<<( std::ostream & s, cref<Vector> x )
             {
-                return s << OutString(
-                    [&x]( const Int i ) { return x.v[i]; },
-                    n, " { ", ", ", " }"
-                );
+                return s << OutString::FromVector( [&x]( const Int i ) { return x.v[i]; }, n );
             }
             
         public:

@@ -399,12 +399,12 @@ namespace Tensors
         
         inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
         {
-            return s << OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
+            return s << OutString::FromMatrix(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
         }
 
         inline friend std::string ToString( cref<TENSOR_T> tensor )
         {
-            return OutString(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
+            return OutString::FromMatrix(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
         }
         
         inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )

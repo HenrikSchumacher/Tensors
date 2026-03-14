@@ -83,7 +83,7 @@ namespace Tensors
                         eprint( tag + ": The leading minor of order " + ToString(info) + " is not positive-definite." );
                         if( info <= Int(16) )
                         {
-                            logvalprint("leading minor",  OutString( A_, info, info ) );
+                            logvalprint("leading minor", OutString::FromMatrix(A_, info, info) );
                         }
                     }
                 }

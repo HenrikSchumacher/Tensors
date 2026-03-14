@@ -216,7 +216,7 @@ namespace Tensors
         
         inline friend std::string ToString( cref<Aggregator> A )
         {
-            return OutString( A.data(), A.Size() );
+            return OutString::FromVector( A.data(), A.Size() );
         }
         
     public:

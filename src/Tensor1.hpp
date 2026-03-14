@@ -251,12 +251,12 @@ namespace Tensors
         
         inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
         {
-            return s << OutString(tensor.ReadAccess(), tensor.Dim(0));
+            return s << OutString::FromVector(tensor.ReadAccess(), tensor.Dim(0));
         }
 
         inline friend std::string ToString( cref<TENSOR_T> tensor )
         {
-            return OutString(tensor.ReadAccess(), tensor.Dim(0));
+            return OutString::FromVector(tensor.ReadAccess(), tensor.Dim(0));
         }
         
         inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
@@ -353,14 +353,14 @@ namespace Tensors
         {
             if( (i_begin >= 0) && ( i_end <= T.n) )
             {
-                return OutString(
+                return OutString::FromVector(
                     &T.a[i_begin],
                     Tools::Max(int_cast<Size_T>(0),int_cast<Size_T>(i_end-i_begin))
                 );
             }
             else
             {
-                return OutString(T.a,0);
+                return OutString::FromVector(T.a,0);
             }
         }
 

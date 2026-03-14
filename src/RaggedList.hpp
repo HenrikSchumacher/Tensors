@@ -118,7 +118,7 @@ namespace Tensors
             
             friend std::string ToString( cref<Sublist_T> s )
             {
-                return OutString( s.begin(), s.Size() );
+                return OutString::FromVector( s.begin(), s.Size() );
             }
             
             std::string ClassName() const
