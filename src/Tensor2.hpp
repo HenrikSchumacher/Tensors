@@ -409,7 +409,7 @@ namespace Tensors
         
         inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
         {
-            return OutString(
+            return OutString::FromArray(
                 tensor.ReadAccess(),
                 tensor.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
                 tensor.Dim(1), line_prefix + " { ", ", ", " }"
@@ -670,14 +670,11 @@ namespace Tensors
     
     
     template<typename Scal, IntQ Int>
-    std::string ToStringTSV( cref<Tensor2<Scal,Int>> X )
+    OutString ToStringTSV( cref<Tensor2<Scal,Int>> X )
     {
-        return MatrixStringTSV(
-            ToSize_T(X.Dim(0)),
-            ToSize_T(X.Dim(1)),
-            X.data(),
-            ToSize_T(X.Dim(1))
-        );
+//        return MatrixStringTSV( ToSize_T(X.Dim(0)), ToSize_T(X.Dim(1)), X.data(), ToSize_T(X.Dim(1)) );
+        
+        return OutString::FromMatrix<Format::Matrix::TSV>( X.data(), X.Dim(0), X.Dim(1) );
     }
 
 

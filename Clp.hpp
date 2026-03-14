@@ -607,7 +607,7 @@ namespace Tensors
             
             if( diff_max > integer_tol )
             {
-                eprint(MethodName("IntegralPrimalSolution") + ": CLP returned noninteger solution vector. Greatest deviation = " + ToStringFPGeneral(diff_max) + ". Sum of deviations = " + ToString(diff_sum) + "." );
+                eprint(MethodName("IntegralPrimalSolution") + ": CLP returned noninteger solution vector. Greatest deviation = " + ToString(value)(diff_max) + ". Sum of deviations = " + ToString(diff_sum) + "." );
             }
             
             if( var_lb_infeasible_count > Int(0) )

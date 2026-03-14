@@ -302,23 +302,6 @@ namespace Tensors
 #include "Tree/Traverse_PreOrdered.hpp"
 #include "Tree/Traverse_PostOrdered.hpp"
 //#include "Tree/Traverse_PostOrdered_OpenMP.hpp"
-        
-    public:
-    
-//        void PrintLevels()
-//        {
-//            for( Int level = 0; level < levels.RowCount(); ++level )
-//            {
-//                print("Level " + ToString(level) + ":" );
-//
-//
-//                Int row_size = levels.Outer(level+1) - levels.Outer(level);
-//
-//                TOOLS_DUMP(row_size);
-//
-//                print( ArrayToString( levels.Inner().data(levels.Outer(level)), &row_size, 1) );
-//            }
-//        }
                  
     public:
         

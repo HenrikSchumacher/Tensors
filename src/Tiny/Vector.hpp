@@ -510,11 +510,6 @@ namespace Tensors
                 return AngleBetweenUnitVectors(u,w);
             }
 
-//            [[nodiscard]] friend std::string ToString( cref<Vector> x )
-//            {
-//                return VectorString<n>(&x.v[0],"{ ",", "," }");
-//            }
-            
             [[nodiscard]] friend std::string ToString( cref<Vector> x )
             {
                 return OutString::FromVector( [&x]( const Int i ) { return x.v[i]; }, n );

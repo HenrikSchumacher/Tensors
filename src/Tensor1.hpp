@@ -261,7 +261,7 @@ namespace Tensors
         
         inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
         {
-            return OutString(
+            return OutString::FromArray(
                 tensor.ReadAccess(),
                 tensor.Dim(0), line_prefix + "{ ", ", ", " }"
             );

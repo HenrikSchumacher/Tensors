@@ -327,7 +327,7 @@ public:
 
     inline friend std::ostream & operator<<( std::ostream & s, cref<Class_T> M )
     {
-        return OutString::FromMatrix(
+        return s << OutString::FromMatrix(
             [&M]( const Int i, const Int j ) { return M.A[i][j]; }, n, n
         );
     }

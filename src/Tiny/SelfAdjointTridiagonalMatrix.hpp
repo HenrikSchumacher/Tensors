@@ -141,9 +141,9 @@ namespace Tensors
                 
                 s += "{\n";
                 s += "\tdiag  = ";
-                s += VectorString<n  >(&M.diag [0],"{ ",", "," }");
+                s += OutString::FromVector(&M.diag[0],n);
                 s += "\n\tupper = ";
-                s += VectorString<n-1>(&M.upper[0],"{ ",", "," }");
+                s += OutString::FromVector(&M.upper[0],n-1);
                 s += "\n}";
                 
                 return s;
