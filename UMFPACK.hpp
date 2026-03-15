@@ -96,12 +96,12 @@ namespace Tensors
         
         template<typename ExtScal, IntQ ExtInt, IntQ ExtLInt, Parallel_T ExtparQ>
         explicit UMFPACK( cref<Sparse::MatrixCSR<ExtScal,ExtInt,ExtLInt,ExtparQ>> A )
-        :   UMFPACK( pattern.RowCount(), pattern.ColCount(), pattern.Outer(), pattern.Inner(), pattern.Values() )
+        :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner(), A.Values() )
         {}
         
         template<typename ExtScal, IntQ ExtInt, IntQ ExtLInt, Parallel_T ExtparQ>
         explicit UMFPACK( cref<Sparse::BinaryMatrixCSR<ExtScal,ExtInt,ExtparQ>> A )
-        :   UMFPACK( pattern.RowCount(), pattern.ColCount(), pattern.Outer(), pattern.Inner() )
+        :   UMFPACK( A.RowCount(), A.ColCount(), A.Outer(), A.Inner() )
         {}
 
         
