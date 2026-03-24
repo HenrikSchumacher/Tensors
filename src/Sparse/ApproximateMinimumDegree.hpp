@@ -15,6 +15,8 @@ namespace Tensors
         {
         public:
             
+            using Permutation_T = Permutation<Int,parQ>;
+            
             // Default constuctor
             ApproximateMinimumDegree() = default;
             // Destructor
@@ -29,7 +31,7 @@ namespace Tensors
             ApproximateMinimumDegree & operator=( ApproximateMinimumDegree && other ) = default;
                         
             template<IntQ I_1, IntQ I_2, IntQ I_3, IntQ I_4>
-            Permutation<Int,parQ> operator()(
+            Permutation_T operator()(
                 mptr<I_1> rp_, mptr<I_2> ci_, const I_3 n_, const I_4 final_thread_count = 1
             )
             {
@@ -70,7 +72,7 @@ namespace Tensors
                     wprint("ApproximateMinimumDegree: Inputs have unordered column indices, but they are otherwise correct.");
                 }
                 
-                return Permutation<Int,parQ>( perm.data(), int_cast<Int>(n), Inverse::False, int_cast<Int>(final_thread_count) );
+                return Permutation_T( perm.data(), int_cast<Int>(n), Inverse::False, int_cast<Int>(final_thread_count) );
             }
             
         public:

@@ -16,6 +16,8 @@ namespace Tensors
         {
         public:
             
+            using Permutation_T = Permutation<Int,parQ>;
+            
             // Default constructor
             Metis() = default;
             
@@ -23,7 +25,7 @@ namespace Tensors
             
             
             template<IntQ I_1, IntQ I_2, IntQ I_3, IntQ I_4>
-            Permutation<Int,parQ> operator()(
+            Permutation_T operator()(
                 mptr<I_1> rp_, mptr<I_2> ci_, const I_3 n_, const I_4 final_thread_count = 1
             )
             {
@@ -80,7 +82,7 @@ namespace Tensors
                     &n, rp.data(), ci.data(), nullptr, nullptr, perm.data(), iperm.data()
                 );
 
-                return Permutation<Int,parQ>( perm.data(), n, Inverse::False, Int(final_thread_count) );
+                return Permutation_T( perm.data(), n, Inverse::False, Int(final_thread_count) );
             }
             
         public:
