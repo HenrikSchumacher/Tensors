@@ -348,18 +348,6 @@ namespace Tensors
 //                TOOLS_DUMP(sum);
                 
                 const Size_T u_def_pair_count = u_i_count - u_p_count - v_p_unmatched_count;
-//                const Size_T v_def_pair_count = v_i_count - v_p_count - u_p_unmatched_count;
-//                
-//                // DEBUGGING
-//                if( u_def_pair_count != v_def_pair_count )
-//                {
-//                    eprint("u_def_pair_count != v_def_pair_count");
-//                    
-//                    TOOLS_DUMP(u_def_pair_count);
-//                    TOOLS_DUMP(v_def_pair_count);
-//                }
-                
-//                TOOLS_DUMP(u_def_pair_count);
                 
                 sum += u_def * v_def * static_cast<Scal>(u_def_pair_count);
             }

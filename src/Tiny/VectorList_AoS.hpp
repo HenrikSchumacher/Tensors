@@ -141,6 +141,23 @@ namespace Tensors
                 return a.data()[n * i + j];
             }
             
+
+            auto WriteAccess()
+            {
+                return [this]( const Int i, const Int j ) -> Scal&
+                {
+                    return a.data()[n * i + j];
+                };
+            }
+            
+            auto ReadAccess() const
+            {
+                return [this]( const Int i, const Int j ) -> Scal
+                {
+                    return a.data()[n * i + j];
+                };
+            }
+            
 //            template< bool copyQ>
 //            void Resize( const Int d_0_, const Int d_1_, const Int thread_count = 1 ) = delete;
 //            
@@ -234,24 +251,47 @@ namespace Tensors
                 return static_cast<Int>(rank);
             }
             
+//            inline friend std::ostream & operator<<( std::ostream & s, cref<VectorList_AoS> A )
+//            {
+//                return s << A.a;
+//            }
+//            
+//            inline friend std::string ToString( cref<VectorList_AoS> A )
+//            {
+//                return ToString(A.a);
+//            }
+//            
+//            inline friend std::string ToString( cref<VectorList_AoS> A, cref<std::string> line_prefix )
+//            {
+//                return ToString(A.a, line_prefix);
+//            }
+            
+            
+            
+            
+            inline friend std::ostream & operator<<( std::ostream & s, cref<VectorList_AoS> list )
+            {
+                return s << OutString::FromMatrix(list.ReadAccess(), list.Dim(0), n);
+            }
+
+            inline friend std::string ToString( cref<VectorList_AoS> list )
+            {
+                return OutString::FromMatrix(list.ReadAccess(), list.Dim(0), n);
+            }
+            
+            inline friend std::string ToString( cref<VectorList_AoS> list, cref<std::string> line_prefix )
+            {
+                return OutString::FromArray(
+                    list.ReadAccess(),
+                    list.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
+                    n,           line_prefix + " { ", ", ", " }"
+                );
+            }
+            
+            
             Size_T AllocatedByteCount() const
             {
                 return a.AllocatedByteCount();
-            }
-            
-            inline friend std::ostream & operator<<( std::ostream & s, cref<VectorList_AoS> A )
-            {
-                return s << A.a;
-            }
-            
-            inline friend std::string ToString( cref<VectorList_AoS> A )
-            {
-                return ToString(A.a);
-            }
-            
-            inline friend std::string ToString( cref<VectorList_AoS> A, cref<std::string> line_prefix )
-            {
-                return ToString(A.a, line_prefix);
             }
             
 #ifdef LTEMPLATE_H

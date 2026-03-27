@@ -143,15 +143,31 @@ namespace Tensors
             }
             
             template<IntQ I, IntQ J, IntQ K>
-            TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j, const K k) noexcept
+            TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j, const K k ) noexcept
             {
                 return a.data()[mn * i + n * j + k];
             }
             
             template<IntQ I, IntQ J, IntQ K>
-            TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j, const K k) const noexcept
+            TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j, const K k ) const noexcept
             {
                 return a.data()[mn * i + m * j + k];
+            }
+            
+            auto WriteAccess()
+            {
+                return [this]( const Int i, const Int j, const Int k ) -> Scal&
+                {
+                    return a.data()[mn * i + m * j + k];
+                };
+            }
+            
+            auto ReadAccess() const
+            {
+                return [this]( const Int i, const Int j, const Int k ) -> Scal
+                {
+                    return a.data()[mn * i + m * j + k];
+                };
             }
             
             template<typename S>
@@ -243,25 +259,49 @@ namespace Tensors
             {
                 return static_cast<Int>(rank);
             }
+
+//            inline friend std::ostream & operator<<( std::ostream & s, cref<MatrixList_AoS> A )
+//            {
+//                return s << A.a;
+//            }
+//            
+//            inline friend std::string ToString( cref<MatrixList_AoS> A )
+//            {
+//                return ToString( A.a );
+//            }
+//            
+//            inline friend std::string ToString( cref<MatrixList_AoS> A, cref<std::string> line_prefix )
+//            {
+//                return ToString( A.a, line_prefix );
+//            }
+            
+            
+            inline friend std::ostream & operator<<( std::ostream & s, cref<MatrixList_AoS> list )
+            {
+                return s << OutString::FromCube(
+                    list.ReadAccess(), list.Dim(0), m, n
+                );
+            }
+
+            inline friend std::string ToString( cref<MatrixList_AoS> list )
+            {
+                return OutString::FromCube(list.ReadAccess(), list.Dim(0), m, n);
+            }
+            
+            inline friend std::string ToString( cref<MatrixList_AoS> list, cref<std::string> line_prefix )
+            {
+                return OutString::FromArray(
+                    list.ReadAccess(),
+                    list.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
+                    m,           line_prefix + " { ", ", ", " }",
+                    n,                          "{ ", ", ", " }"
+                );
+            }
+            
             
             Size_T AllocatedByteCount() const
             {
                 return a.AllocatedByteCount();
-            }
-
-            inline friend std::ostream & operator<<( std::ostream & s, cref<MatrixList_AoS> A )
-            {
-                return s << A.a;
-            }
-            
-            inline friend std::string ToString( cref<MatrixList_AoS> A )
-            {
-                return ToString( A.a );
-            }
-            
-            inline friend std::string ToString( cref<MatrixList_AoS> A, cref<std::string> line_prefix )
-            {
-                return ToString( A.a, line_prefix );
             }
             
 #ifdef LTEMPLATE_H
