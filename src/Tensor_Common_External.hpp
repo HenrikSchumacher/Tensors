@@ -26,7 +26,7 @@
     
 #endif
 
-#ifdef MMA_HPP
+#ifdef TENSORS_MMA_HPP
 
     template<bool replace_inftyQ = false, typename S, IntQ Int, Size_T alignment,
         class = typename std::enable_if_t<mma::HasTypeQ<S>>
@@ -37,7 +37,7 @@
     {
         using T = mma::Type<S>;
         
-        mma::MTensorWrapper<mreal> B ( A.Rank(), A.Dims() );
+        mma::MTensorWrapper<T> B ( A.Rank(), A.Dims() );
         
         if constexpr ( SameQ<T,double> && replace_inftyQ )
         {

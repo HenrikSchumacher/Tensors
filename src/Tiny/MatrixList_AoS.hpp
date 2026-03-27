@@ -298,7 +298,7 @@ namespace Tensors
             }
 #endif
 
-#ifdef MMA_HPP
+#ifdef TENSORS_MMA_HPP
             template<bool replace_inftyQ = false, class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
             friend mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
                 cref<MatrixList_AoS> A

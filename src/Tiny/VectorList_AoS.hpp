@@ -287,7 +287,7 @@ namespace Tensors
             }
 #endif
 
-#ifdef MMA_HPP
+#ifdef TENSORS_MMA_HPP
 //            template<class = typename std::enable_if_t<FloatQ<Real>>>
 //            inline mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
 //                cref<VectorList_AoS> A
