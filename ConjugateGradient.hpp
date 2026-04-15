@@ -221,7 +221,7 @@ namespace Tensors
                 ApplyOperator(A,x,u);
     
                 // r = b - A.x
-                ParallelDo(
+                Do<Parallel>(
                     [this]( const Int i )
                     {
                         mptr<Scal> r_i = r.data(i);
@@ -264,7 +264,7 @@ namespace Tensors
                     // x = 0 + alpha p;
                     // r = r - alpha u;
                     
-                    ParallelDo(
+                    Do<Parallel>(
                         [this]( const Int i )
                         {
                             mptr<Scal> x_i = x.data(i);
@@ -284,7 +284,7 @@ namespace Tensors
                 }
                 else
                 {
-                    ParallelDo(
+                    Do<Parallel>(
                         [this]( const Int i )
                         {
                             mptr<Scal> x_i = x.data(i);
@@ -320,7 +320,7 @@ namespace Tensors
                 
                 // TODO: Put this at the start of the while loop, and only for iter > 0?
                 // p = z + beta p;
-                ParallelDo(
+                Do<Parallel>(
                     [this]( const Int i )
                     {
                         mptr<Scal> p_i = p.data(i);
