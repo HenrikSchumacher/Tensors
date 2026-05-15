@@ -825,7 +825,7 @@ namespace Tensors
     
     
     
-    template<bool P_TrivialQ, bool Q_TrivialQ, bool SortQ, IntQ LInt, IntQ Int,
+    template<bool P_TrivialQ, bool Q_TrivialQ, bool SortQ, IntQ Int, IntQ LInt,
         Parallel_T P_parQ, Parallel_T Q_parQ
     >
     Tensor1<LInt,LInt> permutePatternCSR(
@@ -836,7 +836,7 @@ namespace Tensors
         const LInt nnz
     )
     {
-        TOOLS_PTIMER(timer,std::string("PermutePatternCSR<") + TypeName<LInt> + "," + TypeName<Int> + ">");
+        TOOLS_PTIMER(timer,std::string("PermutePatternCSR<") + TypeName<Int> + "," + TypeName<LInt> + ">");
         
         const Int m = P.Size();
 
@@ -855,7 +855,7 @@ namespace Tensors
             perm.iota();
             return perm;
         }
-            
+        
         if constexpr ( P_TrivialQ )
         {
             swap( outer, new_outer );
@@ -868,12 +868,12 @@ namespace Tensors
                 [&]( const Int i )
                 {
                     const Int p_i = p[i];
-                    new_outer[i+1] = static_cast<LInt>(outer[p_i+1] - outer[p_i]);
+                    new_outer[i+1] = static_cast<LInt>(outer[p_i+Int(1)] - outer[p_i]);
                 },
                 m, thread_count
             );
 
-            Accumulate<P_parQ>( new_outer.data(), m+1, thread_count );
+            Accumulate<P_parQ>( new_outer.data(), m + Int(1), thread_count );
         }
         
         mptr<LInt> scratch = perm.data();
@@ -947,11 +947,11 @@ namespace Tensors
         
         if( sort )
         {
-            return permutePatternCSR<false,false,true,LInt,Int>(outer,inner,P,Q,nnz);
+            return permutePatternCSR<false,false,true>(outer,inner,P,Q,nnz);
         }
         else
         {
-            return permutePatternCSR<false,false,false,LInt,Int>(outer,inner,P,Q,nnz);
+            return permutePatternCSR<false,false,false>(outer,inner,P,Q,nnz);
         }
     }
     

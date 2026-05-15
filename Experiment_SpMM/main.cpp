@@ -5,8 +5,7 @@
 //#define TOOLS_AGGRESSIVE_INLINING
 
 #ifdef __APPLE__
-/// Use these while on a mac. Don't forget to issue the compiler flag `-framework Accelerate`.
-///
+/// Use this when on a mac. Don't forget to issue the compiler flag `-framework Accelerate`.
     #include "Accelerate.hpp"
 #else
 /// This should work for OpenBLAS.
