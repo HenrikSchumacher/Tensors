@@ -37,6 +37,7 @@
 #include <ostream>
 #include <sstream>
 #include <complex>
+#include <algorithm>
 
 #include "mathlink.h"
 #include "WolframLibrary.h"
