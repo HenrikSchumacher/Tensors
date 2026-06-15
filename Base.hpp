@@ -14,12 +14,6 @@ namespace Tensors
     using namespace Tools;
 }
 
-#ifdef LTEMPLATE_H
-
-#include "src/MathematicaTypes.hpp"
-
-#endif
-
 #include "src/Tensor1.hpp"
 #include "src/Tensor2.hpp"
 #include "src/Tensor3.hpp"
