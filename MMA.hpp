@@ -46,7 +46,9 @@ using Real    = mreal;
 using Complex = std::complex<Real>;
 using Int     = mint;
 
-#include "src/MathematicaTypes.hpp"
+#include "submodules/Tools/src/MathematicaTypes.hpp"
+#include <type_traits>
+
 
 namespace mma
 {
