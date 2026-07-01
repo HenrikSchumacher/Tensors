@@ -267,7 +267,7 @@ private:
                         // This prefetch would cause segfaults without the check.
                         if( l + look_ahead < last_l )
                         {
-                            prefetch( &x[ci[l + look_ahead] - base], 0, 0 );
+                            TOOLS_PREFETCH( &x[ci[l + look_ahead] - base], 0, 0 );
                         }
     
                         if constexpr ( a_flag == F_T::Generic )

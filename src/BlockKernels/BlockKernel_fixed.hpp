@@ -42,8 +42,8 @@ namespace Tensors
         mptr<Scal_out> Y       = nullptr;
 
         
-        const Scal_in  * restrict x_from = nullptr;
-//              Scal_out * restrict y_to   = nullptr;
+        const Scal_in  * TOOLS_RESTRICT x_from = nullptr;
+//              Scal_out * TOOLS_RESTRICT y_to   = nullptr;
         
         
         Tiny::Matrix<x_intRM ? COLS : NRHS, x_intRM ? NRHS : COLS, Scal,Int> x;

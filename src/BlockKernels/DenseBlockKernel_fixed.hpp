@@ -77,7 +77,7 @@ namespace Tensors
         using BASE::get_y;
         using BASE::nrhs;
         
-        const Scal * restrict a_from = nullptr;
+        const Scal * TOOLS_RESTRICT a_from = nullptr;
         
 //        alignas(ALIGNMENT) Scal a [(a_intRM)?ROWS:COLS][(a_intRM)?COLS:ROWS];
         

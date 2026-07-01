@@ -328,7 +328,7 @@ private:
                                 // This prefetch would cause segfaults without the check.
                                 if( l + look_ahead < last_l )
                                 {
-                                    prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
+                                    TOOLS_PREFETCH( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
                                 }
                             }
                             
@@ -361,7 +361,7 @@ private:
                                 // This prefetch would cause segfaults without the check.
                                 if( l + look_ahead < last_l )
                                 {
-                                    prefetch( &X[ldX * (ci[l + look_ahead]- base)], 0, 0 );
+                                    TOOLS_PREFETCH( &X[ldX * (ci[l + look_ahead]- base)], 0, 0 );
                                 }
                             }
 
@@ -523,7 +523,7 @@ private:
                                 // This prefetch would cause segfaults without the check.
                                 if( l + look_ahead < last_l )
                                 {
-                                    prefetch( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
+                                    TOOLS_PREFETCH( &X[ldX * (ci[l + look_ahead] - base)], 0, 0 );
                                 }
                             }
                             

@@ -70,7 +70,7 @@ namespace Tensors
         using Base_T::get_y;
         using Base_T::nrhs;
         
-        const Scal * restrict a_from = nullptr;
+        const Scal * TOOLS_RESTRICT a_from = nullptr;
         
         Tiny::Vector<BLOCK_NNZ,Scal,Int> a;
         

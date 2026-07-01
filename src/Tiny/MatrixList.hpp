@@ -341,7 +341,7 @@ namespace Tensors
         {
             const mint N = A.Dim(2);
             
-            const T * restrict p [m][n];
+            const T * TOOLS_RESTRICT p [m][n];
             
             for( mint i = 0; i < m; ++i )
             {
@@ -374,7 +374,7 @@ namespace Tensors
         {
             const mint N = A.Dim(2);
             
-            const J * restrict p [m][n];
+            const J * TOOLS_RESTRICT p [m][n];
             
             for( mint i = 0; i < m; ++i )
             {

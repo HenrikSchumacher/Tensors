@@ -8,7 +8,7 @@ public:
 
 private:
 
-    Scal * restrict a = nullptr ;
+    Scal * TOOLS_RESTRICT a = nullptr ;
     Int n = 0;
 
 public:

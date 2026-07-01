@@ -327,10 +327,10 @@ namespace Tensors
 //                    cptr<Int> q_    = q.GetPermutation().data();
 //                    cptr<Int> q_inv = q.GetInversePermutation().data();
                     
-                    const Int * restrict a     = nullptr;
-                    const Int * restrict b     = nullptr;
-                    const Int * restrict a_inv = nullptr;
-                    const Int * restrict b_inv = nullptr;
+                    const Int * TOOLS_RESTRICT a     = nullptr;
+                    const Int * TOOLS_RESTRICT b     = nullptr;
+                    const Int * TOOLS_RESTRICT a_inv = nullptr;
+                    const Int * TOOLS_RESTRICT b_inv = nullptr;
                     
                     if( prepost == Compose::Post )
                     {

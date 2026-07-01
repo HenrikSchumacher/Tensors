@@ -71,7 +71,7 @@ namespace Tensors
         
         using BASE::ReadX;
         
-//        const Scal * restrict a_from = nullptr;
+//        const Scal * TOOLS_RESTRICT a_from = nullptr;
         
 //        Tiny::Matrix<(a_intRM)?ROWS:COLS,(a_intRM)?COLS:ROWS,Scal,Int> a;
         

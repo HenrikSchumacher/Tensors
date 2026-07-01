@@ -191,7 +191,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Read( const S * restrict const * restrict const a )
+            void Read( const S * TOOLS_RESTRICT const * TOOLS_RESTRICT const a )
             {
                 //Assuming that a is a list of n pointers pointing to memory of at least size Dim(1).
                 for( Int i = 0; i < n; ++i )
@@ -201,7 +201,7 @@ namespace Tensors
             }
             
             template<typename S>
-            void Write( S * restrict const * restrict const a ) const
+            void Write( S * TOOLS_RESTRICT const * TOOLS_RESTRICT const a ) const
             {
                 //Assuming that a is a list of n pointers pointing to memory of at least size Dim(1).
                 for( Int i = 0; i < n; ++i )
@@ -372,7 +372,7 @@ namespace Tensors
         {
             const mint m = A.Dim(1);
             
-            const J * restrict p [n];
+            const J * TOOLS_RESTRICT p [n];
             
             for( mint j = 0; j < n; ++j )
             {
