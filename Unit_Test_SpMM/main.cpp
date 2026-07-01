@@ -63,7 +63,7 @@ template<
     typename a_T, typename X_T, typename b_T, typename Y_T,
     typename Scal, IntQ Int,  IntQ LInt
 >
-void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt> & A, Int cols )
+void test_SpMM( Sparse::MatrixCSR<Scal,Int,LInt,Parallel> & A, Int cols )
 {
     
     const Int  m   = A.RowCount();
@@ -198,7 +198,7 @@ void Test_SpMM( Int m, Int n, LInt nnz, Int cols )
                     
     a.Random( thread_count );
     
-    Sparse::MatrixCSR<Scal,Int,LInt> A( nnz, idx.data(), jdx.data(), a.data(), m, n, thread_count );
+    Sparse::MatrixCSR<Scal,Int,LInt,Parallel> A( nnz, idx.data(), jdx.data(), a.data(), m, n, thread_count );
 
     if constexpr ( Scalar::Prec<Scal> == 32 )
     {
@@ -236,7 +236,7 @@ int main( int argc, const char * argv[] )
     
     const Int  m            = 600000;
     const Int  n            = 600000;
-    const LInt nnz          = int_cast<LInt>(
+    const LInt nnz          = static_cast<LInt>(
         (static_cast<double>(m) * static_cast<double>(m)) * 0.0001
     );
 
