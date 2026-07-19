@@ -110,7 +110,16 @@ namespace Tensors
                 
                 if( n_ == 1 )
                 {
-                    const Scal value = scalar_cast<Scal>(w_[0]);
+                    Scal value;
+                    
+                    if constexpr ( std::is_same_v<S,Scal> )
+                    {
+                        value = w_[0];
+                    }
+                    else
+                    {
+                        value = scalar_cast<Scal>(w_[0]);
+                    }
                     
                     for( Int i = 0; i < n; ++i )
                     {
@@ -121,12 +130,19 @@ namespace Tensors
                 {
                     for( Int i = 0; i < n_; ++i )
                     {
-                        v[i] = scalar_cast<Scal>(w_[i]);
+                        if constexpr ( std::is_same_v<S,Scal> )
+                        {
+                            v[i] = w_[i];
+                        }
+                        else
+                        {
+                            v[i] = scalar_cast<Scal>(w_[i]);
+                        }
                     }
                     
                     for( Int i = n_; i < n; ++i )
                     {
-                        v[i] = Scalar::Zero<Scal>;
+                        v[i] = Scal{0};
                     }
                 }
             }
