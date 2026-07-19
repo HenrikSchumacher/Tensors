@@ -169,7 +169,7 @@ namespace Tensors
         
         
         
-        /*!@brief This effectively reads odd the portions of the sparse vectors `u` and `v` given by `{u_i_begin,...,u_i_end-1}` and `{ v_i_begin,...,v_i_end-1}` and computes their dot product without doing any actual copy.
+        /*!@brief This effectively reads off the portions of the sparse vectors `u` and `v` given by `{u_i_begin,...,u_i_end-1}` and `{ v_i_begin,...,v_i_end-1}` and computes their dot product without doing any actual copy.
          * Binary search (`FindRange`) is used to find the range in `u_idx` and `v_idx` that correspond to the indices `{u_i_begin,...,u_i_end-1}` and `{v_i_begin,...,v_i_end-1}`, so `u_idx` and `v_idx` are required to be sorted.
          */
         
