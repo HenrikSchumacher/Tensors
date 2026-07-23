@@ -125,7 +125,7 @@ namespace Tensors
         #ifdef TENSORS_ALLOCATION_LOGS
                 logprint(ClassName() + " reallocation (size = " + ToString(other.Size()) + ")");
         #endif
-                n = other.Dim(0);
+                n = int_cast<Int>(other.Dim(0));
                 safe_free(a);
                 allocate();
             }
