@@ -5,6 +5,7 @@ namespace Tensors
 
 #define TENSOR_T Tensor1 
 
+    /*!@brief A generic, heap-allocated container that mostly behaves like a vector of size `Dim(0)`.*/
     template <typename Scal_, IntQ Int_, Size_T alignment = DefaultAlignment>
     class Tensor1 final
     {
@@ -160,11 +161,13 @@ namespace Tensors
             return &n;
         }
 
+        /*!@brief Return size in dimension `i`.*/
         TOOLS_FORCE_INLINE Int Dim( const Int i ) const noexcept
         {
             return ( i == Int(0) ) ? n : Scalar::Zero<Int>;
         }
         
+        /*!@brief Return mutable pointer to element at position `i`.*/
         template<IntQ I>
         TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
         {
@@ -172,6 +175,7 @@ namespace Tensors
             return &a[i];
         }
         
+        /*!@brief Return immutable pointer to element at position `i`.*/
         template<IntQ I>
         TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
         {
@@ -179,6 +183,7 @@ namespace Tensors
             return &a[i];
         }
         
+        /*!@brief Access element at position `i`.*/
         template<IntQ I>
         TOOLS_FORCE_INLINE mref<Scal> operator()(const I i) noexcept
         {
@@ -186,6 +191,7 @@ namespace Tensors
             return a[i];
         }
         
+        /*!@brief Access element at position `i`, read only.*/
         template<IntQ I>
         TOOLS_FORCE_INLINE cref<Scal> operator()(const I i) const noexcept
         {

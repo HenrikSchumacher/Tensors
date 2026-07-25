@@ -23,12 +23,6 @@
 
 namespace Tensors
 {
-    /// I picked the default values from benchmarks for
-    /// ROWS_ = 4, COLS_ = 4, NRHS_ = 3, alpha_flag = 1, beta_flag = 0, and doubles for all floating point types.
-    
-    /// Note: We use the template parameters a_intRM and a_copy only for backwards 
-    /// compatibility! The implementation uses internally row-major and copies the
-    /// a-block in any case.
     template<
         int ROWS_, int COLS_, int NRHS_,
         typename Scal_, typename Scal_in_, typename Scal_out_,
@@ -41,6 +35,12 @@ namespace Tensors
     class CLASS : public BASE
     {
     public:
+        /// I picked the default values from benchmarks for
+        /// ROWS_ = 4, COLS_ = 4, NRHS_ = 3, alpha_flag = 1, beta_flag = 0, and doubles for all floating point types.
+        
+        /// Note: We use the template parameters a_intRM and a_copy only for backwards
+        /// compatibility! The implementation uses internally row-major and copies the
+        /// a-block in any case.
 
         using Scal     = Scal_;
         using Scal_out = Scal_out_;

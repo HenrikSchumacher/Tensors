@@ -10,6 +10,19 @@ namespace Tensors
         
         template< int ROW_COUNT, int COL_COUNT, typename Scal_, IntQ Int_, Size_T alignment> class MatrixList;
         
+        /*!@brief A class for matrices whose size is a compile-time constant.
+         *
+         * The compiler can use many tricks if it knows the dimension at compile time.
+         *
+         * @tparam ROW_COUNT The number of rows of the matrix.
+         *
+         * @tparam COL_COUNT The number of columns of the matrix.
+         *
+         * @tparam Scal_ The type for the entries of the matrix.
+         *
+         * @tparam Int_ The integral type used for indexing.
+         *
+         */
         template< int ROW_COUNT, int COL_COUNT, typename Scal_, IntQ Int_>
         class Matrix final
         {
@@ -19,7 +32,9 @@ namespace Tensors
             
 #include "Tiny_Constants.hpp"
             
+            /*!@brief The number of rows of the matrix.*/
             static constexpr Int m = ROW_COUNT;
+            /*!@brief The number of columns of the matrix.*/
             static constexpr Int n = COL_COUNT;
             
             using ColVector_T = Vector<m,Scal,Int>;
@@ -35,15 +50,18 @@ namespace Tensors
             
             Matrix(std::nullptr_t) = delete;
 
+            /*!@brief Initialize from buffer.*/
             explicit Matrix( const Scal * a )
             {
                 Read(a);
             }
             
+            /*!@brief Initialize by value `init`.*/
             explicit Matrix( cref<Scal> init )
             :   A {{{init}}}
             {}
             
+            /*!@brief Initialize by `std::initializer_list`.*/
             template<typename S>
             constexpr Matrix( const std::initializer_list<S[n]> list )
             {
@@ -68,19 +86,19 @@ namespace Tensors
                 }
             }
             
-            // Default constructor
+            /*!@brief Default constructor. Beware, entries are not initialized.*/
             Matrix() = default;
             
-            // Destructor
+            /*!@brief Destructor.*/
             ~Matrix() = default;
             
-            // Copy constructor
+            /*!@brief Copy constructor.*/
             Matrix( const Matrix & other ) noexcept
             {
                 Read( &other.A[0][0] );
             }
 
-            // Copy assignment operator
+            /*!@brief Copy assignment operator.*/
             Matrix & operator=( const Matrix & other ) noexcept
             {
                 Read( &other.A[0][0] );
@@ -88,51 +106,44 @@ namespace Tensors
                 return *this;
             }
             
-            // Move constructor
+            /*!@brief Move constructor. */
             Matrix( Matrix && other ) noexcept
             {
-//                swap(*this, other);
                 Read( &other.A[0][0] );
             }
             
-            // Move assignment operator
+            /*!@brief Move assignment operator.*/
             Matrix & operator=( Matrix && other ) noexcept
             {
                 Read( &other.A[0][0] );
                 return *this;
             }
 
-            
+            /*!@brief Initialize by `k`-th element in `MatrixList`.*/
             template<typename S, Size_T alignment>
             Matrix( cref<MatrixList<m,n,S,Int,alignment>> m_list, const Int k )
             {
                 Read(m_list, k);
             }
             
+            /*!@brief Initialize by `k`-th slice in `Tensor3`.*/
             template<typename S>
             Matrix( cref<Tensor3<S,Int>> tensor, const Int k )
             {
                 Read(tensor.data(k));
             }
 
-            
-//######################################################
-//##                     Access                       ##
-//######################################################
-
 #include "Tiny_Matrix_Common.hpp"
-            
-///######################################################
-///##                     Memory                       ##
-///######################################################
                 
         public:
 
+            /*!@brief Fill with zeroes.*/
             void SetZero()
             {
                 zerofy_buffer<m*n>( &A[0][0] );
             }
             
+            /*!@brief Fill with value `init`.*/
             template<typename T>
             void Fill( cref<T> init )
             {
@@ -140,18 +151,20 @@ namespace Tensors
             }
 
 
+            /*!@brief Add `buffer`.*/
             template<typename B_T>
             void AddTo( mptr<B_T> B ) const
             {
                 add_to_buffer<m*n>( &A[0][0], B );
             }
                 
-            
+            /*!@brief Write `i`-th row to vector.*/
             void WriteRow( mref<RowVector_T> u, const Int i )
             {
                 u.Read( &A[i] );
             }
             
+            /*!@brief Write `j`-th column to vector.*/
             void WriteCol( mref<ColVector_T> v, const Int j )
             {
                 for( Int i = 0; i < n; ++i )
@@ -159,14 +172,9 @@ namespace Tensors
                     v[i] = A[i][j];
                 }
             }
-            
-            
-///######################################################
-///##             Reading from raw buffers             ##
-///######################################################
 
-            /// BLAS-like read-modify method _with stride_.
-            /// Reads the full matrix.
+            
+            /*!@brief BLAS-like read-modify method _with stride_. Reads the full matrix.*/
             template<
                 Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
                 Op opA = Op::Id, Op opB = Op::Id,
@@ -209,7 +217,7 @@ namespace Tensors
                 }
             }
 
-            /// BLAS-like read-modify method _without stride_.
+            /*!@brief BLAS-like read-modify method _without stride_.*/
             template<
                 Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
                 Op opA = Op::Id, Op opB = Op::Id,
@@ -248,7 +256,7 @@ namespace Tensors
                 }
             }
 
-            /// BLAS-like read-modify method _without stride_.
+            /*!@brief BLAS-like read-modify method _without stride_.*/
             template<Op opB = Op::Id, typename B_T>
             void Read( cptr<B_T> B )
             {
@@ -259,7 +267,7 @@ namespace Tensors
                 );
             }
 
-            /// BLAS-like read-modify method _with stride_.
+            /*!@brief BLAS-like read-modify method _with stride_.*/
             template<Op opB = Op::Id, typename B_T>
             void Read( cptr<B_T> B, const Int ldB )
             {
@@ -271,9 +279,9 @@ namespace Tensors
             }
 
 
-            /// BLAS-like read-modify method _with stride_.
-            /// Reads only the top left portion.
-            /// It is meant to read from the right and bottom boundaries of a large matrix.
+            /*!@brief BLAS-like read-modify method _with stride_.
+             * Reads only the top left portion.
+             * It is meant to read from the right and bottom boundaries of a large matrix.*/
             template<
                 bool chop_m_Q, bool chop_n_Q,
                 Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
@@ -366,11 +374,8 @@ namespace Tensors
         //        }
         //    }
 
-        ///######################################################
-        ///##              Writing to raw buffers              ##
-        ///######################################################
 
-            /// BLAS-like write-modify method _with stride_.
+            /*!@brief BLAS-like write-modify method _with stride_.*/
             template<
                 Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
                 Op opA = Op::Id, Op opB = Op::Id,
@@ -413,7 +418,7 @@ namespace Tensors
 
 
 
-            /// BLAS-like write-modify method _without stride_.
+            /*!@brief BLAS-like write-modify method _without stride_.*/
             template<
                 Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
                 Op opA = Op::Id, Op opB = Op::Id,
@@ -461,7 +466,7 @@ namespace Tensors
             }
 
 
-            /// BLAS-like write-modify method _with stride_.
+            /*!@brief BLAS-like write-modify method _with stride_.*/
             template<Op opA = Op::Id, typename B_T>
             void Write( mptr<B_T> B, const Int ldB ) const
             {
@@ -472,7 +477,7 @@ namespace Tensors
                 );
             }
 
-            /// BLAS-like write-modify method _without stride_.
+            /*!@brief BLAS-like write-modify method _without stride_.*/
             template<Op op, typename B_T>
             void Write( mptr<B_T> B ) const
             {
@@ -482,7 +487,7 @@ namespace Tensors
                 );
             }
             
-            /// Simple copy routine. (Need, e.g. for integer types.)
+            /*!@brief Simple copy routine. (Needed, e.g. for integer types.) */
             template<typename B_T>
             void Write( mptr<B_T> B ) const
             {
@@ -508,9 +513,9 @@ namespace Tensors
         //        }
         //    }
 
-            /// BLAS-like write-modify method _with stride_.
-            /// Writes only the top left portion.
-            /// It is meant to write to the right and bottom boundaries of a large matrix.
+            /*!@brief BLAS-like write-modify method _with stride_.
+             * Writes only the top left portion.
+             * It is meant to write to the right and bottom boundaries of a large matrix.*/
             template<
                 bool chop_m_Q, bool chop_n_Q,
                 Scalar::Flag alpha_flag, Scalar::Flag beta_flag,
@@ -555,13 +560,11 @@ namespace Tensors
                     }
                 }
             }
-            
-///######################################################
-///##             Arithmetic with scalars              ##
-///######################################################
          
         public:
             
+            
+            /*!@brief Add constant `lambda`.*/
             template<class T>
             TOOLS_FORCE_INLINE mref<Matrix> operator+=( const T lambda_ )
             {
@@ -578,6 +581,7 @@ namespace Tensors
                 return *this;
             }
 
+            /*!@brief Subtract constant `lambda`.*/
             template<class T>
             TOOLS_FORCE_INLINE mref<Matrix> operator-=( const T lambda_ )
             {
@@ -594,6 +598,7 @@ namespace Tensors
                 return *this;
             }
             
+            /*!@brief Multiply by constant `lambda`.*/
             template<class T>
             TOOLS_FORCE_INLINE mref<Matrix> operator*=( const T lambda_ )
             {
@@ -610,16 +615,15 @@ namespace Tensors
                 return *this;
             }
 
+            /*!@brief Divide by constant `lambda`.*/
             template<class T>
             TOOLS_FORCE_INLINE mref<Matrix> operator/=( const T lambda )
             {
                 return (*this) *= ( scalar_cast<Scal>(Inv<T>(lambda)) );
             }
-            
-///######################################################
-///##                   Arithmetic                     ##
-///######################################################
 
+
+            /*!@brief Test for equality.*/
             TOOLS_FORCE_INLINE friend bool operator==(
                 cref<Matrix> x, cref<Matrix> y
             )
@@ -627,8 +631,10 @@ namespace Tensors
                 return buffers_equalQ<m * n>(x.data(), y.data());
             }
             
+            
             // TODO: Make this more type flexible.
-            // TODO: Also, where is Minus?
+            
+            /*!@brief Add `x` and `y` and store result  in `z`.*/
             TOOLS_FORCE_INLINE friend void Plus( const Matrix & x, const Matrix & y, const Matrix & z )
             {
                 for( Int i = 0; i < m; ++i )
@@ -640,8 +646,22 @@ namespace Tensors
                 }
             }
             
+            /*!@brief Subtract`y` from `y` and store result in `z`.*/
+            TOOLS_FORCE_INLINE friend void Subtract( const Matrix & x, const Matrix & y, const Matrix & z )
+            {
+                for( Int i = 0; i < m; ++i )
+                {
+                    for( Int j = 0; j < n; ++j )
+                    {
+                        z.A[i][j] = x.A[i][j] - y.A[i][j];
+                    }
+                }
+            }
+            
+            
             // TODO: Make this more type flexible.
-            // TODO: Also, where is operator-?
+
+            /*!@brief Add `x` and `y` and return result as new `Matrix`.*/
             [[nodiscard]] TOOLS_FORCE_INLINE friend const Matrix operator+( const Matrix & x, const Matrix & y )
             {
                 Matrix z;
@@ -651,8 +671,19 @@ namespace Tensors
                 return z;
             }
             
+            /*!@brief Subtract `y` from `z` and return result as new `Matrix`.*/
+            [[nodiscard]] TOOLS_FORCE_INLINE friend const Matrix operator-( const Matrix & x, const Matrix & y )
+            {
+                Matrix z;
+                
+                Subtract( x, y, z);
+                
+                return z;
+            }
+            
             template<class T>
             TOOLS_FORCE_INLINE
+            /*!@brief Add `B`.*/
             mref<Matrix> operator+=( cref<Tiny::Matrix<m,n,T,Int>> B )
             {
                 for( Int i = 0; i < m; ++i )
@@ -666,6 +697,7 @@ namespace Tensors
                 return *this;
             }
             
+            /*!@brief Subtract `B`.*/
             template<class T>
             TOOLS_FORCE_INLINE
             mref<Matrix> operator-=( cref<Tiny::Matrix<m,n,T,Int>> B )
@@ -811,7 +843,7 @@ namespace Tensors
 
         public:
             
-            
+            /*!@brief Conjugate all entries in-place.*/
             TOOLS_FORCE_INLINE void Conjugate( Matrix & B ) const
             {
                 for( Int i = 0; i < m; ++i )
@@ -823,6 +855,7 @@ namespace Tensors
                 }
             }
 
+            /*!@brief Conjugate all entries and return the result as a new `Matrix`.*/
             [[nodiscard]] TOOLS_FORCE_INLINE Matrix Conjugate() const
             {
                 Matrix B;
@@ -834,6 +867,7 @@ namespace Tensors
             
         public:
             
+            /*!@brief Transpose in-place.*/
             TOOLS_FORCE_INLINE void Transpose( mref<Matrix<n,m,Scal,Int>> B ) const
             {
                 for( Int j = 0; j < n; ++j )
@@ -848,6 +882,7 @@ namespace Tensors
 //                Write<Op::Trans,Op::Id>( &B[0][0] );
             }
             
+            /*!@brief Transpose and return the result as a new `Matrix`.*/
             [[nodiscard]] TOOLS_FORCE_INLINE Matrix<n,m,Scal,Int> Transpose() const
             {
                 Matrix<n,m,Scal,Int> B;
@@ -857,6 +892,7 @@ namespace Tensors
                 return B;
             }
 
+            /*!@brief Conjugate-transpose in-place.*/
             TOOLS_FORCE_INLINE void ConjugateTranspose( mref<Matrix<n,m,Scal,Int>> B ) const
             {
                 for( Int j = 0; j < n; ++j )
@@ -872,6 +908,7 @@ namespace Tensors
 //                Write<Op::ConjTrans,Op::Id>( &B[0][0] );
             }
 
+            /*!@brief Conjugate-transpose and return the result as a new `Matrix`.*/
             [[nodiscard]] TOOLS_FORCE_INLINE Matrix<n,m,Scal,Int> ConjugateTranspose() const
             {
                 Matrix<n,m,Scal,Int> B;
@@ -882,17 +919,19 @@ namespace Tensors
             }
             
             
-            
+            /*!@brief Compute maximum modulus of all entries.*/
             [[nodiscard]] TOOLS_FORCE_INLINE Real MaxNorm() const
             {
                 return norm_max<m*n>( &A[0][0] );
             }
             
+            /*!@brief Compute sum of moduli of all entries.*/
             [[nodiscard]] TOOLS_FORCE_INLINE Real AbsTotal() const
             {
                 return norm_1<m*n>( &A[0][0] );
             }
             
+            /*!@brief Compute Frobenius norm.*/
             [[nodiscard]] TOOLS_FORCE_INLINE Real FrobeniusNorm() const
             {
                 Real AA = 0;
@@ -913,6 +952,7 @@ namespace Tensors
             
         public:
             
+            /*!@brief Set all values with modulus `threshold` or less to `0`.*/
             void Threshold( const Real threshold )
             {
                 for( Int i = 0; i < m; ++i )
@@ -996,6 +1036,7 @@ namespace Tensors
             
         public:
            
+            /*!@brief Fill by identity matrix.*/
             constexpr TOOLS_FORCE_INLINE void SetIdentity()
             {
                 static_assert(m==n, "SetIdentity is only defined for square matrices.");
@@ -1009,6 +1050,7 @@ namespace Tensors
                 }
             }
             
+            /*!@brief Set all entries but the diagonal to `0`.*/
             TOOLS_FORCE_INLINE void MakeDiagonal( const Tensors::Tiny::Vector<n,Scal,Int> & v )
             {
                 static_assert(m==n, "MakeDiagonal is only defined for square matrices.");
@@ -1022,6 +1064,7 @@ namespace Tensors
                 }
             }
             
+            /*!@brief Write `v` to the diagonal.*/
             TOOLS_FORCE_INLINE void SetDiagonal( const Tensors::Tiny::Vector<n,Scal,Int> & v )
             {
                 static_assert(m==n, "SetDiagonal is only defined for square matrices.");
@@ -1032,6 +1075,7 @@ namespace Tensors
                 }
             }
             
+            /*!@brief Compute determinant.*/
             [[nodiscard]] Scal Det() const
             {
 //                Scal M [n][n];
@@ -1204,7 +1248,8 @@ namespace Tensors
                 A[j][j] = c;
             }
             
-            void Diagonal( Vector<n,Scal,Int> & v ) const
+            /*!@brief Write diagonal to `v`.*/
+            void WriteDiagonal( Vector<n,Scal,Int> & v ) const
             {
                 static_assert(m==n, "Diagonal is only defined for square matrices.");
                 
@@ -1214,6 +1259,7 @@ namespace Tensors
                 }
             }
             
+            /*!@brief Return a `Vector` containing the diagonal entries.*/
             [[nodiscard]] Vector<n,Scal,Int>  Diagonal() const
             {
                 static_assert(m==n, "Diagonal is only defined for square matrices.");
@@ -1223,7 +1269,7 @@ namespace Tensors
                 return v;
             }
             
-            
+            /*!@brief Convert to `std::string`.*/
             [[nodiscard]] friend std::string ToString( cref<Class_T> M )
             {
                 return OutString::FromMatrix(
@@ -1231,6 +1277,7 @@ namespace Tensors
                 );
             }
 
+            /*!@brief Stream to `std::ostream`.*/
             inline friend std::ostream & operator<<( std::ostream & s, cref<Class_T> M )
             {
                 return s << OutString::FromMatrix(
@@ -1240,16 +1287,19 @@ namespace Tensors
             
         public:
 
+            /*!@brief Return number of rows.*/
             static constexpr Int RowCount()
             {
                 return m;
             }
             
+            /*!@brief Return number of columns.*/
             static constexpr Int ColCount()
             {
                 return n;
             }
             
+            /*!@brief Return size in dimension `i`.*/
             static constexpr Int Dim( const Int i )
             {
                 if( i == 0 )
@@ -1263,6 +1313,7 @@ namespace Tensors
                 return Int(0);
             }
             
+            /*!@brief Return size in dimension `i`.*/
             static constexpr Int Dimension( const Int i )
             {
                 return Dim(i);
@@ -1281,7 +1332,7 @@ namespace Tensors
         }; // Tiny::Matrix
                 
         
-        
+        /*!@brief Compute matrix-matrix of `X` and `Y` and store the result in `Y`.*/
         template<AddTo_T addto,
             int m, int k, int n, typename X_T, typename Y_T, typename Z_T, IntQ Int
         >
@@ -1295,6 +1346,7 @@ namespace Tensors
             fixed_dot_mm<m,n,k,addto>( &X[0][0], &Y[0][0], &Z[0][0] );
         }
         
+        /*!@brief Compute matrix-matrix of `X` and `Y` and return the result as a new `Matrix`.*/
         template<int m, int K, int n, typename X_T, typename Y_T, IntQ Int>
         [[nodiscard]] TOOLS_FORCE_INLINE
         Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
@@ -1310,6 +1362,7 @@ namespace Tensors
             return Z;
         }
         
+        /*!@brief Compute matrix-matrix of `X` and `Y` and return the result as a new `Matrix`.*/
         template<int m, int K, int n, typename X_T, typename Y_T, IntQ Int>
         [[nodiscard]] TOOLS_FORCE_INLINE
         Tiny::Matrix<m,n,decltype( X_T(1) * Y_T(1) ),Int>
@@ -1321,6 +1374,7 @@ namespace Tensors
             return Dot(X,Y);
         }
         
+        /*!@brief Compute matrix-vector of `A` and `x` and store the result in `y`.*/
         template<AddTo_T addto, int m, int n, typename A_T, typename x_T, typename y_T, IntQ Int
         >
         TOOLS_FORCE_INLINE void
@@ -1349,6 +1403,7 @@ namespace Tensors
 //            fixed_dot_mm<m,1,n,addto>( &A[0][0], x.data(), y.data() );
         }
         
+        /*!@brief Compute matrix-vector of `A` and `x` and return the result as a new `Vector`.*/
         template<int m, int n, typename A_T, typename x_T, IntQ Int>
         TOOLS_FORCE_INLINE Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
         Dot(
@@ -1363,6 +1418,7 @@ namespace Tensors
             return y;
         }
         
+        /*!@brief Compute matrix-vector of `A` and `x` and return the result as a new `Vector`.*/
         template<int m, int n, typename A_T, typename x_T, IntQ Int>
         TOOLS_FORCE_INLINE Tiny::Vector<m,decltype(A_T(1) * x_T(1)),Int>
         operator*(
@@ -1374,14 +1430,14 @@ namespace Tensors
         }
         
         
-        
+        /*!@brief Compute cross product with higher accuracy using fma instructions.*/
         template<typename Scal, IntQ Int>
         [[nodiscard]] TOOLS_FORCE_INLINE Scal Det_Kahan( cref<Tiny::Matrix<2,2,Scal,Int>> A )
         {
             return Det2D_Kahan( &A[0][0] );
         }
         
-        
+        /*!@brief Run the Gram-Schmidt algorith to make the rows orthogonal.*/
         template<int m, int n, typename Scal, IntQ Int>
         void OrthogonalizeRows( mref<Tiny::Matrix<m,n,Scal,Int>> A )
         {
@@ -1411,6 +1467,7 @@ namespace Tensors
             }
         }
         
+        /*!@brief Create Householder reflector of vector `u`.*/
         template<int n, typename Scal, IntQ Int>
         [[nodiscard]] TOOLS_FORCE_INLINE
         Tiny::Matrix<n,n,Scal,Int> HouseholderReflector( cref<Vector<n,Scal,Int>> u )

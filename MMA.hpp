@@ -370,6 +370,7 @@ namespace mma
             return Dims();
         }
         
+        /*!@brief Return size in dimension `i`.*/
         Int Dim( const Int i ) const
         {
             return libData->MTensor_getDimensions(tensor)[i];

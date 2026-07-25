@@ -1304,6 +1304,7 @@ namespace Tensors
             
         public:
             
+            /*!@brief Return size in dimension `i`.*/
             virtual Int Dim( const bool dim )
             {
                 return dim ? n : m;

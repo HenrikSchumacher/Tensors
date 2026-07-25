@@ -1,8 +1,11 @@
 public:
 
-    using Scal = Scal_;
+    /*!@brief The type used for the entries.*/
+    using Scal   = Scal_;
+    /*!@brief The integral type used for indexing.*/
+    using Int    = Int_;
+    /*!@brief The type used for the real part of entries.*/
     using Real = typename Scalar::Real<Scal_>;
-    using Int  = Int_;
 
     static constexpr Size_T Alignment = alignment;
 

@@ -4,7 +4,14 @@ namespace Tensors
 {
     namespace Tiny
     {
-        // This is basically a Tensor3 whose last two dimension are a compile-time constants. This way we can help the compiler to speed up the indexing operations a little. (The compiler has the discretion to use fused shift-load operations.)
+        /*!@brief Container for storing a list if fixed-size matrices. Designed for interoperability with `Tiny::Matrix`.
+         *
+         * This is basically a `Tensor3` whose last two dimension are compile-time constants. The matrices are stored consecutively in row-major format.
+         *
+         * By making the last dimension compile-time constants, way we can help the compiler to speed up the indexing operations a little. (The compiler has the discretion to use fused shift-load operations if the last two dimensions are powers of 2.)
+         *
+         * The underlying container is a `Tensor1`.
+         */
         
         template<
             int m_, int n_, typename Scal_, IntQ Int_,
@@ -15,8 +22,12 @@ namespace Tensors
             
         public:
             
-            using Scal = Scal_;
-            using Int  = Int_;
+            /*!@brief The type used for the entries.*/
+            using Scal   = Scal_;
+            /*!@brief The integral type used for indexing.*/
+            using Int    = Int_;
+            /*!@brief The type used for the real part of entries.*/
+            using Real = typename Scalar::Real<Scal_>;
             
             static constexpr Int n    = static_cast<Int>(n_);
             static constexpr Int m    = static_cast<Int>(m_);
@@ -30,21 +41,22 @@ namespace Tensors
             
         public:
             
+            /*!@brief Construct a container with number of matrices equal to `matrix_count_`. Beware: The values in this container are not initialized!*/
             explicit MatrixList_AoS( const Int matrix_count_ )
 //            :   a(matrix_count_,m,n)
             :   a(matrix_count_ * m * n)
             ,   matrix_count { matrix_count_ }
             {}
             
+            /*!@brief Construct a container with number of matrices equal to `matrix_count_`, then initialize all values by `init`.*/
             MatrixList_AoS( const Int matrix_count_, const Scal init )
-//            :   a(matrix_count_,m,n,init)
             :   a(matrix_count_ * m * n,init)
             ,   matrix_count { matrix_count_ }
             {}
             
-            MatrixList_AoS( cptr<Scal> a_, const Int matrix_count_ )
-//            :   a(a_,matrix_count_,m,n)
-            :   a(a_, matrix_count_ * m * n)
+            /*!@brief Construct a container with number of matrices equal to `matrix_count_` and read data from the buffer `a_ptr`.*/
+            MatrixList_AoS( cptr<Scal> a_ptr, const Int matrix_count_ )
+            :   a(a_ptr, matrix_count_ * m * n)
             ,   matrix_count { matrix_count_ }
             {}
             
@@ -207,6 +219,7 @@ namespace Tensors
                 a.Fill(init);
             }
 
+            /*!@brief Return size in dimension `i`.*/
             TOOLS_FORCE_INLINE Int Dim( const Int i ) const noexcept
             {
                 if( i == Int(0) )

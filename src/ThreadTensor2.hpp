@@ -312,6 +312,7 @@ namespace Tensors
             return Dims();
         }
         
+        /*!@brief Return size in dimension `i`.*/
         TOOLS_FORCE_INLINE Int Dim( const Int i ) const
         {
             return i < Rank() ? dims[i] : Int(0);

@@ -5,6 +5,7 @@ namespace Tensors
 
 #define TENSOR_T Tensor2
 
+    /*!@brief A generic, heap-allocated container that mostly behaves like a matrix of dimensions `{Dim(0),Dim(1)}`.*/
     template <typename Scal_, IntQ Int_, Size_T alignment = DefaultAlignment>
     class Tensor2 final
     {
@@ -332,6 +333,7 @@ namespace Tensors
         
     public:
 
+        /*!@brief Return mutable pointer to first element in row `i`.*/
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i ) noexcept
         {
             BoundCheck(i);
@@ -339,6 +341,7 @@ namespace Tensors
             return &a[i * dims[1]];
         }
         
+        /*!@brief Return immutable pointer to first element in row `i`.*/
         TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const noexcept
         {
             BoundCheck(i);
@@ -346,6 +349,7 @@ namespace Tensors
             return &a[i * dims[1]];
         }
         
+        /*!@brief Access element at position `{i,j}`.*/
         TOOLS_FORCE_INLINE mref<Scal> operator()(const Int i, const Int j ) noexcept
         {
             BoundCheck(i,j);
@@ -353,6 +357,7 @@ namespace Tensors
             return a[ i * dims[1] + j];
         }
         
+        /*!@brief Access element at position `{i,j}`, read only.*/
         TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j ) const noexcept
         {
             BoundCheck(i,j);

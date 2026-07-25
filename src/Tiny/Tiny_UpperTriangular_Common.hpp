@@ -11,6 +11,7 @@ public:
         return n;
     }
 
+    /*!@brief Return size in dimension `i`.*/
     static constexpr Int Dim( const Int i )
     {
         if( i == 0 )

@@ -265,6 +265,7 @@ namespace Tensors
                 return 2;
             }
             
+            /*!@brief Return size in dimension `i`.*/
             Int Dim( const Int k ) const noexcept
             {
                 switch( k )

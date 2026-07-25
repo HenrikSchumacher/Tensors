@@ -125,6 +125,7 @@ TOOLS_FORCE_INLINE cptr<Int> Dims() const
     return &dims[0];
 }
 
+/*!@brief Return size in dimension `i`.*/
 TOOLS_FORCE_INLINE Int Dim( const Int i ) const
 {
     return ( i < Rank() ) ? dims[ToSize_T(i)] : Scalar::Zero<Int>;

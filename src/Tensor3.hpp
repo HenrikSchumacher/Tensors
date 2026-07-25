@@ -5,8 +5,10 @@ namespace Tensors
 
 #define TENSOR_T Tensor3
 
+    
+    /*!@brief A generic, heap-allocated container that mostly behaves like a tensor of dimensions `{Dim(0),Dim(1),Dim(2)}`.*/
     template <typename Scal_, IntQ Int_, Size_T alignment = DefaultAlignment>
-    class TENSOR_T final
+    class Tensor3 final
     {
     public:
         
@@ -110,51 +112,56 @@ namespace Tensors
         
     public:
         
-
+        /*!@brief Return mutable pointer to first element in slice `i`.*/
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i ) noexcept
         {
             BoundCheck(i);
             return &a[i * dims[1] * dims[2]];
         }
         
+        /*!@brief Return immutable pointer to first element in slice `i`.*/
         TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const noexcept
         {
             BoundCheck(i);
             return &a[i * dims[1] * dims[2]];
         }
 
+        /*!@brief Return mutable pointer to first element in slice `{i,j}`.*/
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j ) noexcept
         {
             BoundCheck(i,j);
             return &a[( i * dims[1] + j ) * dims[2]];
         }
         
+        /*!@brief Return immutable pointer to first element in slice `{i,j}`.*/
         TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j ) const noexcept
         {
             BoundCheck(i,j);
             return &a[( i * dims[1] + j ) * dims[2]];
         }
 
-        
+        /*!@brief Return mutable pointer to element at position `{i,j,k}`.*/
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k) noexcept
         {
             BoundCheck(i,j,k);
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
-        
+        /*!@brief Return immutable pointer to element at position `{i,j,k}`.*/
         TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k) const noexcept
         {
             BoundCheck(i,j,k);
             return &a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
+        /*!@brief Access element at position `{i,j,k}`.*/
         TOOLS_FORCE_INLINE mref<Scal> operator()( const Int i, const Int j, const Int k) noexcept
         {
             BoundCheck(i,j,k);
             return a[( i *  dims[1] + j ) * dims[2] + k];
         }
         
+        /*!@brief Access element at position `{i,j,k}`, real only.*/
         TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j, const Int k) const noexcept
         {
             BoundCheck(i,j,k);

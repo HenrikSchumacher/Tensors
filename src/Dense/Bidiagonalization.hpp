@@ -21,7 +21,7 @@ namespace Tensors
             
             explicit BidiagonalMatrix( const Int k_ )
             :   k ( k_ )
-            ,   diag { {k}, {k-Int(1)} };
+            ,   diag { {k}, {k-Int(1)} }
             {}
             
         private:

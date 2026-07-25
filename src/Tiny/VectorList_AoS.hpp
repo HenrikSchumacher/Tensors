@@ -4,7 +4,14 @@ namespace Tensors
 {
     namespace Tiny
     {
-        // This is basically a Tensor2 whose last dimension is a compile-time constant. This way we can help the compiler to speed up the indexing operations a little. (The compiler has the discretion to use fused shift-load operations.)
+        /*!@brief Container for storing a list if fixed-size vectors. Designed for interoperability with `Tiny::Vector`.
+         *
+         * This is basically a `Tensor2` whose last dimension is a compile-time constant. Hence, the entries of the vectors are stored contiguously in the rows of the matrix.
+         *
+         * By making the last dimension compile-time constants, we can help the compiler to speed up the indexing operations a little. (The compiler has the discretion to use fused shift-load operations if the last dimension is a powers of 2.)
+         *
+         * The underlying container is a `Tensor1`.
+         */
         
         template<
             int n_, typename Scal_, IntQ Int_,
@@ -15,34 +22,38 @@ namespace Tensors
             
         public:
             
+            /*!@brief The type used for the entries.*/
             using Scal   = Scal_;
+            /*!@brief An integral type used for indexing.*/
             using Int    = Int_;
+            /*!@brief The type used for the real part of entries.*/
+            using Real = typename Scalar::Real<Scal_>;
             
             static constexpr Int n    = static_cast<Int>(n_);
             static constexpr Int rank = 2;
             
             static constexpr Size_T Alignment = alignment;
-            
-//            using Tensor_T = Tensor2<Scal,Int,Alignment>;
-            
-            
+
             using Tensor_T = Tensor1<Scal,Int,Alignment>;
             
         public:
 
             
+            /*!@brief Construct a container with number of vectors equal to `vector_count_`. Beware: The values in this container are not initialized!*/
             explicit VectorList_AoS( const Int vector_count_ )
 //            :   a(m_,n)
             :   a            { vector_count_ * n }
             ,   vector_count { vector_count_     }
             {}
             
+            /*!@brief Construct a container with number of vectors equal to `vector_count_`, then initialize all values by `init`.*/
             VectorList_AoS( const Int vector_count_, const Scal init )
 //            :   a(m_,n,init)
             :   a            { vector_count_ * n, init }
             ,   vector_count { vector_count_           }
             {}
             
+            /*!@brief Construct a container with number of vectors equal to `vector_count_` and read data from the buffer `a_ptr`.*/
             template<typename S>
             VectorList_AoS( cptr<S> a_ptr, const Int vector_count_ )
 //            :   a(a_ptr,m_,n)
@@ -95,46 +106,52 @@ namespace Tensors
                 return a;
             }
             
+            /*!@brief Return mutable pointer to first element of the first vector.*/
             TOOLS_FORCE_INLINE mptr<Scal> data() noexcept
             {
                 return a.data();
             }
             
+            /*!@brief Return immutable pointer to first element of the first vector.*/
             TOOLS_FORCE_INLINE cptr<Scal> data() const noexcept
             {
                 return a.data();
             }
             
+            /*!@brief Return mutable pointer to first element of the `i`-th vector.*/
             template<IntQ I>
             TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
             {
                 return &a.data()[n * i];
             }
-            
+            /*!@brief Return immutable pointer to first element of the `i`-th vector.*/
             template<IntQ I>
             TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
             {
                 return &a.data()[n * i];
             }
             
+            /*!@brief Return mutable pointer to `j`-th element of the `i`-th vector.*/
             template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE mptr<Scal> data( const I i, const J j ) noexcept
             {
                 return &a.data()[n * i + j];
             }
             
+            /*!@brief Return immutable pointer to `j`-th element of the `i`-th vector.*/
             template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE cptr<Scal> data( const I i, const J j ) const noexcept
             {
                 return &a.data()[n * i + j];
             }
-            
+            /*!@brief Access `j`-th element of the `i`-th vector.*/
             template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE mref<Scal> operator()( const I i, const J j) noexcept
             {
                 return a.data()[n * i + j];
             }
             
+            /*!@brief Access `j`-th element of the `i`-th vector, read only.*/
             template<IntQ I, IntQ J>
             TOOLS_FORCE_INLINE cref<Scal> operator()( const I i, const J j) const noexcept
             {
@@ -202,6 +219,7 @@ namespace Tensors
                 a.Fill(init);
             }
             
+            /*!@brief Return size in dimension `i`.*/
             TOOLS_FORCE_INLINE Int Dim( const Int i ) const noexcept
             {
                 if( i == Int(0) )
