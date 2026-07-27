@@ -5,7 +5,7 @@ namespace Tensors
 
 #define TENSOR_T Tensor1 
 
-    /*!@brief A generic, heap-allocated container that mostly behaves like a vector of size `Dim(0)`.*/
+    /*!@brief A generic, contiguous, heap-allocated container that mostly behaves like a vector of size `Dim(0)`.*/
     template <typename Scal_, IntQ Int_, Size_T alignment = DefaultAlignment>
     class Tensor1 final
     {

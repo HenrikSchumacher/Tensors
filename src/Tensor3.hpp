@@ -6,7 +6,7 @@ namespace Tensors
 #define TENSOR_T Tensor3
 
     
-    /*!@brief A generic, heap-allocated container that mostly behaves like a tensor of dimensions `{Dim(0),Dim(1),Dim(2)}`.*/
+    /*!@brief A generic, contiguous, heap-allocated container that mostly behaves like a tensor of dimensions `{Dim(0),Dim(1),Dim(2)}`.*/
     template <typename Scal_, IntQ Int_, Size_T alignment = DefaultAlignment>
     class Tensor3 final
     {
