@@ -208,12 +208,12 @@ namespace Tensors
         
     public:
         
-        static std::string MethodName( const std::string & tag )
+        static constexpr std::string MethodName( const std::string & tag )
         {
             return ClassName() + "::" + tag;
         }
         
-        static std::string ClassName()
+        static constexpr std::string ClassName()
         {
             return std::string("PairAggregator")+"<"+TypeName<T_0>+","+TypeName<T_1>+","+TypeName<LInt>+">";
         }

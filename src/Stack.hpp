@@ -180,7 +180,7 @@ namespace Tensors
         
     public:
         
-        static std::string ClassName()
+        static constexpr std::string ClassName()
         {
             return std::string("Stack")
             + "<" + TypeName<Entry_T>
@@ -343,7 +343,7 @@ namespace Tensors
 //        
 //    public:
 //        
-//        static std::string ClassName()
+//        static constexpr std::string ClassName()
 //        {
 //            return std::string("FixedSizePairStack")
 //            + "<" + TypeName<Entry_T>
