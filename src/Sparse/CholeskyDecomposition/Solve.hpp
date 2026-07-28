@@ -185,7 +185,7 @@ public:
         const Int nrhs_ = ( (NRHS > VarSize) ? NRHS : ione )
     )
     {
-        const std::string tag = ClassName()+"::UpperSolve"
+        const constexpr std::string tag = ClassName()+"::UpperSolve"
             + "<" + ToString(VarSize)
             + "," + ToString(parQ)
             + "," + ToString(op)

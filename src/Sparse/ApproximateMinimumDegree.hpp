@@ -77,9 +77,9 @@ namespace Tensors
             
         public:
             
-            static std::string ClassName()
+            static constexpr std::string ClassName()
             {
-                return std::string("ApproximateMinimumDegree")+ "<" + TypeName<Int> + "," + Tools::ToString(base) + ">";
+                return std::string("ApproximateMinimumDegree")+ "<" + TypeName<Int> + "," + ToString(base) + ">";
             }
             
         }; // class ApproximateMinimumDegree

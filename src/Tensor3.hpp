@@ -251,12 +251,12 @@ namespace Tensors
         
     public:
         
-        static std::string ClassName() noexcept
+        static constexpr std::string ClassName() noexcept
         {
-            return ct_string("Tensor3")
+            return std::string("Tensor3")
                 + "<" + TypeName<Scal>
                 + "," + TypeName<Int>
-                + "," + to_ct_string(alignment)
+                + "," + ToString(alignment)
                 + ">";
         }
         

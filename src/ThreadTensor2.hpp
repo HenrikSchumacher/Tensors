@@ -389,12 +389,12 @@ namespace Tensors
         
     public:
         
-        static std::string ClassName()
+        static constexpr std::string ClassName()
         {
-            return ct_string("ThreadTensor2")
+            return std::string("ThreadTensor2")
                 + "<" + TypeName<Scal>
                 + "," + TypeName<Int>
-                + "," + to_ct_string(Alignment)
+                + "," + ToString(Alignment)
                 + ">";
         }
         

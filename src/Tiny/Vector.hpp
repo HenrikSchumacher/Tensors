@@ -593,10 +593,10 @@ namespace Tensors
                 return n;
             }
             
-            static std::string ClassName()
+            static constexpr std::string ClassName()
             {
-                return ct_string("Tiny::Vector")
-                    + "<" + to_ct_string(n)
+                return std::string("Tiny::Vector")
+                    + "<" + ToString(n)
                     + "," + TypeName<Scal>
                     + "," + TypeName<Int>
                     + ">";

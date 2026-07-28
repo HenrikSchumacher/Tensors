@@ -310,7 +310,7 @@ namespace Tensors
             return node_end[node];
         }
         
-        static std::string ClassName()
+        static constexpr std::string ClassName()
         {
             return std::string("MergeSorter")+"<"+ToString(vector_size)+","+ToString(reverseQ)+">";
         }

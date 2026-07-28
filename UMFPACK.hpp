@@ -692,7 +692,7 @@ namespace Tensors
         
     public:
         
-        static std::string ClassName()
+        static constexpr std::string ClassName()
         {
             return std::string("UMFPACK") + "<" + TypeName<Scal> + ">";
         }

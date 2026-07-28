@@ -382,14 +382,14 @@ namespace Tensors
             
         public:
             
-            static std::string ClassName() noexcept
+            static constexpr std::string ClassName() noexcept
             {
-                return ct_string("MatrixList_AoS")
-                    + "<" + to_ct_string(m)
-                    + "m" + to_ct_string(n)
+                return std::string("MatrixList_AoS")
+                    + "<" + ToString(m)
+                    + "m" + ToString(n)
                     + "," + TypeName<Scal>
                     + "," + TypeName<Int>
-                    + "," + to_ct_string(Alignment) + ">";
+                    + "," + ToString(Alignment) + ">";
             }
             
         }; // class MatrixList_AoS

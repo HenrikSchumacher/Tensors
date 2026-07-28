@@ -1319,11 +1319,11 @@ namespace Tensors
                 return Dim(i);
             }
             
-            [[nodiscard]] static std::string ClassName()
+            [[nodiscard]] static constexpr std::string ClassName()
             {
-                return ct_string("Tiny::Matrix")
-                    + "<" + to_ct_string(m)
-                    + "," + to_ct_string(n)
+                return std::string("Tiny::Matrix")
+                    + "<" + ToString(m)
+                    + "," + ToString(n)
                     + "," + TypeName<Scal>
                     + "," + TypeName<Int>
                     + ">";

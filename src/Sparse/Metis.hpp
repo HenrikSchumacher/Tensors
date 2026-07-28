@@ -87,9 +87,12 @@ namespace Tensors
             
         public:
             
-            static std::string ClassName()
+            static constexpr std::string ClassName()
             {
-                return std::string("Metis")+ "<" + TypeName<Int> + "," + Tools::ToString(base) + ">";
+                return std::string("Metis")
+                    + "<" + TypeName<Int>
+                    + "," + ToString(base)
+                    + ">";
             }
             
         }; // class Metis

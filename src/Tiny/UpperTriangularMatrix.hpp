@@ -313,10 +313,10 @@ namespace Tensors
                 return B;
             }
             
-            static std::string ClassName()
+            static constexpr std::string ClassName()
             {
-                return ct_string("Tiny::UpperTriangularMatrix")
-                    + "<" + to_ct_string(n)
+                return std::string("Tiny::UpperTriangularMatrix")
+                    + "<" + ToString(n)
                     + "," + TypeName<Scal>
                     + "," + TypeName<Int>
                     + ">";

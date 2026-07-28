@@ -321,14 +321,14 @@ namespace Tensors
             }
             
             
-            [[nodiscard]] static std::string ClassName() noexcept
+            [[nodiscard]] static constexpr std::string ClassName() noexcept
             {
-                return ct_string("Tiny::MatrixList")
-                + "<" + to_ct_string(m)
-                + "," + to_ct_string(n)
+                return std::string("Tiny::MatrixList")
+                + "<" + ToString(m)
+                + "," + ToSstring(n)
                 + "," + TypeName<Scal>
                 + "," + TypeName<Int>
-                + "," + to_ct_string(Alignment)
+                + "," + ToString(Alignment)
                 + ">";
             }
         };

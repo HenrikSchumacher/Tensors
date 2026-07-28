@@ -323,13 +323,13 @@ namespace Tensors
                 return sizeof(VectorList) + AllocatedByteCount();
             }
             
-            static std::string ClassName() noexcept
+            static constexpr std::string ClassName() noexcept
             {
-                return ct_string("Tiny::VectorList")
-                    + "<" + to_ct_string(n)
+                return std::string("Tiny::VectorList")
+                    + "<" + ToString(n)
                     + "," + TypeName<Scal>
                     + "," + TypeName<Int>
-                    + "," + to_ct_string(Alignment)
+                    + "," + ToString(Alignment)
                     + ">";
             }
         };

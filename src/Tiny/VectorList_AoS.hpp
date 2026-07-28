@@ -383,13 +383,13 @@ namespace Tensors
             
         public:
             
-            static std::string ClassName() noexcept
+            static constexpr std::string ClassName() noexcept
             {
-                return ct_string("VectorList_AoS")
-                    + "<" + to_ct_string(n)
+                return std::string("VectorList_AoS")
+                    + "<" + ToString(n)
                     + "," + TypeName<Scal>
                     + "," + TypeName<Int>
-                    + "," + to_ct_string(Alignment) + ">";
+                    + "," + ToString(Alignment) + ">";
             }
             
         }; // class VectorList_AoS

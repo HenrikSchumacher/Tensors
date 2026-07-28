@@ -529,10 +529,10 @@ namespace Tensors
                 return n;
             }
             
-            static std::string ClassName()
+            static constexpr std::string ClassName()
             {
-                return ct_string("Tiny::SelfAdjointTridiagonalMatrix")
-                    + "<" + to_ct_string(n)
+                return std::string("Tiny::SelfAdjointTridiagonalMatrix")
+                    + "<" + ToString(n)
                     + "," + TypeName<Scal>
                     + "," + TypeName<Int>
                     + ">";
