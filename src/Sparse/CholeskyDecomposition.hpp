@@ -490,7 +490,7 @@ namespace Tensors
                 return std::string("Sparse::CholeskyDecomposition")
                     + "<" + TypeName<Scal>
                     + "," + TypeName<Int>
-                    + "," +T ypeName<LInt>
+                    + "," + TypeName<LInt>
                     + ">";
             }
 
