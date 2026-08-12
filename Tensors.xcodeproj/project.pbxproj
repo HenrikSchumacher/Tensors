@@ -87,7 +87,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AF07F1FD2957022B00A82341 /* Dense.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Dense.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		AF07F1FD2957022B00A82341 /* Dense.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Dense.hpp; sourceTree = "<group>"; };
 		AF07F1FE2957025400A82341 /* Sparse.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = Sparse.hpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		AF1F64DD29337FEF00146E64 /* Tensors.hpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.h; path = Tensors.hpp; sourceTree = "<group>"; };
 		AF1F64DE29337FEF00146E64 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };

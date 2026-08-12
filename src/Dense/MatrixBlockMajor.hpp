@@ -331,9 +331,9 @@ namespace Tensors
         template<typename A_T, typename A_I>
         void Read_naive( cptr<A_T> A, const A_I ldA_ )
         {
-            const Int ldA  = static_cast<Int(ldA_);
+            const Int ldA  = static_cast<Int>(ldA_);
             
-            Do<parQ>(
+            Do<Parallel>(
                 [=,this]( const Int thread )
                 {
                     const Int M_blk_begin = JobPointer( M_BlockCount(), thread_count, thread     );
