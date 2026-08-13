@@ -666,7 +666,7 @@ namespace Tensors
             {
                 Matrix z;
                 
-                Plus( x, y, z);
+                Plus(x, y, z);
                 
                 return z;
             }
@@ -676,7 +676,7 @@ namespace Tensors
             {
                 Matrix z;
                 
-                Subtract( x, y, z);
+                Subtract(x, y, z);
                 
                 return z;
             }
@@ -1430,11 +1430,71 @@ namespace Tensors
         }
         
         
-        /*!@brief Compute cross product with higher accuracy using fma instructions.*/
+        /*!@brief Compute determinant with higher accuracy using Kahan's implementation via fma instructions.*/
         template<typename Scal, IntQ Int>
         [[nodiscard]] TOOLS_FORCE_INLINE Scal Det_Kahan( cref<Tiny::Matrix<2,2,Scal,Int>> A )
         {
             return Det2D_Kahan( &A[0][0] );
+        }
+        
+        /*!@brief Use Cramer's rule and Kahan's determinant to compute the inverse*/
+        template<typename Scal, IntQ Int>
+        [[nodiscard]] TOOLS_FORCE_INLINE
+        Tiny::Matrix<2,2,Scal,Int> Inverse_Kahan( cref<Tiny::Matrix<2,2,Scal,Int>> A )
+        {
+            const Scal factor = Scal(1) / Det_Kahan(A);
+
+            Tiny::Matrix<2,2,Scal,Int> B;
+            
+            B[0][0] =   A[1][1] * factor;
+            B[0][1] = - A[0][1] * factor;
+            B[1][0] = - A[1][0] * factor;
+            B[1][1] =   A[0][0] * factor;
+            
+            return B;
+        }
+        
+        
+        /*!@brief Compute determinant with higher accuracy using Kahan's implementation via fma instructions. CAUTION: This is not as good as it could be.*/
+        template<typename Scal, IntQ Int>
+        [[nodiscard]] TOOLS_FORCE_INLINE Scal Det_Kahan( cref<Tiny::Matrix<3,3,Scal,Int>> A )
+        {
+            using V_T = Tiny::Vector<3,Scal,Int>;
+            
+            const V_T u ( &A[0][0] );
+            const V_T v ( &A[1][0] );
+            const V_T w ( &A[2][0] );
+            
+            const V_T z = Cross_Kahan(v,w);
+            
+            const Scal a = Dot2D_Kahan( u[0], u[1], z[0], z[1] );
+            // TODO: This last step could use some improvement.
+            const Scal b = std::fma( u[2], z[2], a );
+            return b;
+        }
+        
+        /*!@brief Use Cramer's rule and Kahan's determinant to compute the inverse*/
+        template<typename Scal, IntQ Int>
+        [[nodiscard]] TOOLS_FORCE_INLINE
+        Tiny::Matrix<3,3,Scal,Int> Inverse_Kahan( cref<Tiny::Matrix<3,3,Scal,Int>> A )
+        {
+            const Scal factor = Scal(1) / Det_Kahan(A);
+            
+            Tiny::Matrix<3,3,Scal,Int> B;
+            
+            B[0][0] = Det2D_Kahan(A[1][1], A[1][2], A[2][1], A[2][2]) * factor;
+            B[0][1] = Det2D_Kahan(A[0][2], A[0][1], A[2][2], A[2][1]) * factor;
+            B[0][2] = Det2D_Kahan(A[0][1], A[0][2], A[1][1], A[1][2]) * factor;
+            
+            B[1][0] = Det2D_Kahan(A[1][2], A[1][0], A[2][2], A[2][0]) * factor;
+            B[1][1] = Det2D_Kahan(A[0][0], A[0][2], A[2][0], A[2][2]) * factor;
+            B[1][2] = Det2D_Kahan(A[0][2], A[0][0], A[1][2], A[1][0]) * factor;
+            
+            B[2][0] = Det2D_Kahan(A[1][0], A[1][1], A[2][0], A[2][1]) * factor;
+            B[2][1] = Det2D_Kahan(A[0][1], A[0][0], A[2][1], A[2][0]) * factor;
+            B[2][2] = Det2D_Kahan(A[0][0], A[0][1], A[1][0], A[1][1]) * factor;
+            
+            return B;
         }
         
         /*!@brief Run the Gram-Schmidt algorith to make the rows orthogonal.*/
@@ -1488,6 +1548,9 @@ namespace Tensors
             
             return R;
         }
+        
+        
+        
                 
     } // namespace Tiny
     
