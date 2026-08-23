@@ -93,6 +93,11 @@ namespace Tensors
             ptr = 0;
         }
         
+        void Clear()
+        {
+            Reset();
+        }
+        
         void Push( cref<Entry_T> value )
         {
 #ifdef TENSORS_BOUND_CHECKS
