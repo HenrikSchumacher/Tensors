@@ -246,7 +246,7 @@ namespace Tensors
                 
                 if constexpr ( copy )
                 {
-                    if( new_size <= b.Dim(0) )
+                    if( b.Dim(0) <= Dim(0) )
                     {
                         b.a.ReadParallel(a.data(),thread_count);
                     }
