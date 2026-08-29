@@ -226,28 +226,26 @@ namespace Tensors
         }
         
         
-    
-        inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
+        inline friend OutString & operator<<( OutString & s, cref<TENSOR_T> tensor )
         {
-            return s << OutString::FromCube(
-                tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2)
-            );
+            return s.PutCube(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
         }
-
-        inline friend std::string ToString( cref<TENSOR_T> tensor )
+        
+        inline friend InString & operator>>( InString & s, mref<TENSOR_T> tensor )
         {
-            return OutString::FromCube(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
+            return s.TakeCube(tensor.WriteAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
         }
         
         inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
         {
             return OutString::FromArray(
                 tensor.ReadAccess(),
-                tensor.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
+                tensor.Dim(0), line_prefix + "{\n", ",\n", ("\n" + line_prefix) + "}",
                 tensor.Dim(1), line_prefix + " { ", ", ", " }",
-                tensor.Dim(2),               "{ ", ", ", " }"
+                tensor.Dim(2),                "{ ", ", ", " }"
             );
         }
+
         
     public:
         

@@ -268,41 +268,38 @@ namespace Tensors
             {
                 return static_cast<Int>(rank);
             }
+
             
-//            inline friend std::ostream & operator<<( std::ostream & s, cref<VectorList_AoS> A )
-//            {
-//                return s << A.a;
-//            }
-//            
-//            inline friend std::string ToString( cref<VectorList_AoS> A )
-//            {
-//                return ToString(A.a);
-//            }
-//            
-//            inline friend std::string ToString( cref<VectorList_AoS> A, cref<std::string> line_prefix )
-//            {
-//                return ToString(A.a, line_prefix);
-//            }
-            
-            
-            
-            
-            inline friend std::ostream & operator<<( std::ostream & s, cref<VectorList_AoS> list )
+            inline friend OutString & operator<<( OutString & s, cref<VectorList_AoS> tensor )
             {
-                return s << OutString::FromMatrix(list.ReadAccess(), list.Dim(0), n);
+                return s.PutMatrix(tensor.ReadAccess(), tensor.Dim(0), Int{n});
+            }
+            
+            inline friend InString & operator>>( InString & s, mref<VectorList_AoS> tensor )
+            {
+                return s.TakeMatrix(tensor.WriteAccess(), tensor.Dim(0), tensor.Dim(1));
+            }
+            
+            
+            inline friend std::ostream & operator<<( std::ostream & s, cref<VectorList_AoS>tensor )
+            {
+                OutString s_out;
+                s_out << tensor;
+                return s << s_out;
             }
 
-            inline friend std::string ToString( cref<VectorList_AoS> list )
+            inline friend std::string ToString( cref<VectorList_AoS> tensor )
             {
-                return OutString::FromMatrix(list.ReadAccess(), list.Dim(0), n);
+                OutString s;
+                return (s << tensor);
             }
             
-            inline friend std::string ToString( cref<VectorList_AoS> list, cref<std::string> line_prefix )
+            inline friend std::string ToString( cref<VectorList_AoS> tensor, cref<std::string> line_prefix )
             {
                 return OutString::FromArray(
-                    list.ReadAccess(),
-                    list.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
-                    n,           line_prefix + " { ", ", ", " }"
+                    tensor.ReadAccess(),
+                    tensor.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
+                    n,             line_prefix + " { ", ", ", " }"
                 );
             }
             
@@ -313,13 +310,6 @@ namespace Tensors
             }
             
 #ifdef LTEMPLATE_H
-//            template<class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
-//            friend mma::TensorRef<mma::Type<Scal>> to_MTensorRef(
-//                cref<VectorList_AoS> A
-//            )
-//            {
-//                return to_MTensorRef(A.a);
-//            }
             
             template<bool replace_inftyQ = false, class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
             friend mma::TensorRef<mma::Type<Scal>> to_MTensorRef(
@@ -346,22 +336,12 @@ namespace Tensors
 #endif
 
 #ifdef TENSORS_MMA_HPP
-//            template<class = typename std::enable_if_t<FloatQ<Real>>>
-//            inline mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
-//                cref<VectorList_AoS> A
-//            )
-//            {
-//                return to_MTensorWrapper(A.a);
-//            }
-            
+
             template<bool replace_inftyQ = false, class = typename std::enable_if_t<mma::HasTypeQ<Scal>>>
             friend mma::MTensorWrapper<mma::Type<Scal>> to_MTensorWrapper(
                 cref<VectorList_AoS> A
             )
             {
-                // TODO: Change this.
-//                return to_MTensorWrapper(A.a);
-                
                 using T = mma::Type<Scal>;
                 
                 mint dims [2] = {static_cast<mint>(A.vector_count),static_cast<mint>(n)};

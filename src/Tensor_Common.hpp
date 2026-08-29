@@ -11,7 +11,7 @@ public:
 
 private:
 
-    Scal * TOOLS_RESTRICT a = nullptr ;
+    Scal * a = nullptr ;
     Int n = 0;
 
 public:
@@ -432,6 +432,20 @@ public:
         {
             y_a[k] = alpha * x_a[k];
         }
+    }
+
+
+    inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
+    {
+        OutString s_out;
+        s_out << tensor;
+        return s << s_out;
+    }
+
+    inline friend std::string ToString( cref<TENSOR_T> tensor )
+    {
+        OutString s;
+        return (s << tensor);
     }
 
     void Write( std::ostream & s ) const

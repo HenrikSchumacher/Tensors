@@ -222,16 +222,16 @@ namespace Tensors
             /*!@brief Return size in dimension `i`.*/
             TOOLS_FORCE_INLINE Int Dim( const Int i ) const noexcept
             {
-                if( i == Int(0) )
+                if( i == Int{0} )
                 {
 //                    return a.Dim(0);
                     return matrix_count;
                 }
-                else if( i == Int(1) )
+                else if( i == Int{1} )
                 {
                     return m;
                 }
-                else if( i == Int(2) )
+                else if( i == Int{2} )
                 {
                     return n;
                 }
@@ -272,42 +272,39 @@ namespace Tensors
             {
                 return static_cast<Int>(rank);
             }
-
-//            inline friend std::ostream & operator<<( std::ostream & s, cref<MatrixList_AoS> A )
-//            {
-//                return s << A.a;
-//            }
-//            
-//            inline friend std::string ToString( cref<MatrixList_AoS> A )
-//            {
-//                return ToString( A.a );
-//            }
-//            
-//            inline friend std::string ToString( cref<MatrixList_AoS> A, cref<std::string> line_prefix )
-//            {
-//                return ToString( A.a, line_prefix );
-//            }
             
             
-            inline friend std::ostream & operator<<( std::ostream & s, cref<MatrixList_AoS> list )
+            inline friend OutString & operator<<( OutString & s, cref<MatrixList_AoS> tensor )
             {
-                return s << OutString::FromCube(
-                    list.ReadAccess(), list.Dim(0), m, n
-                );
-            }
-
-            inline friend std::string ToString( cref<MatrixList_AoS> list )
-            {
-                return OutString::FromCube(list.ReadAccess(), list.Dim(0), m, n);
+                return s.PutCube(tensor.ReadAccess(), tensor.Dim(0), m, n);
             }
             
-            inline friend std::string ToString( cref<MatrixList_AoS> list, cref<std::string> line_prefix )
+            inline friend InString & operator>>( InString & s, mref<MatrixList_AoS> tensor )
+            {
+                return s.TakeCube(tensor.WriteAccess(), tensor.Dim(0), tensor.Dim(1), tensor.Dim(2));
+            }
+            
+            
+            inline friend std::ostream & operator<<( std::ostream & s, cref<MatrixList_AoS>tensor )
+            {
+                OutString s_out;
+                s_out << tensor;
+                return s << s_out;
+            }
+
+            inline friend std::string ToString( cref<MatrixList_AoS> tensor )
+            {
+                OutString s;
+                return (s << tensor);
+            }
+            
+            inline friend std::string ToString( cref<MatrixList_AoS> tensor, cref<std::string> line_prefix )
             {
                 return OutString::FromArray(
-                    list.ReadAccess(),
-                    list.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
-                    m,           line_prefix + " { ", ", ", " }",
-                    n,                          "{ ", ", ", " }"
+                    tensor.ReadAccess(),
+                    tensor.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
+                    m,           line_prefix +   " { ", ", ", " }",
+                    n,                            "{ ", ", ", " }"
                 );
             }
             

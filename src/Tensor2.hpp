@@ -401,24 +401,29 @@ namespace Tensors
             };
         }
         
-        
-        inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
+        inline friend OutString & operator<<( OutString & s, cref<TENSOR_T> tensor )
         {
-            return s << OutString::FromMatrix(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
-        }
-
-        inline friend std::string ToString( cref<TENSOR_T> tensor )
-        {
-            return OutString::FromMatrix(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
+            return s.PutMatrix(tensor.ReadAccess(), tensor.Dim(0), tensor.Dim(1));
         }
         
-        inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
+        inline friend InString & operator>>( InString & s, mref<TENSOR_T> tensor )
+        {
+            return s.TakeMatrix(tensor.WriteAccess(), tensor.Dim(0), tensor.Dim(1));
+        }
+        
+        inline friend std::string ToString( cref<TENSOR_T> tensor, std::string_view line_prefix )
         {
             return OutString::FromArray(
                 tensor.ReadAccess(),
-                tensor.Dim(0), line_prefix + "{\n", ",\n", "\n" + line_prefix + "}",
-                tensor.Dim(1), line_prefix + " { ", ", ", " }"
+                tensor.Dim(0), std::string(line_prefix) + "{\n", ",\n", ("\n" + std::string(line_prefix)) + "}",
+                tensor.Dim(1), std::string(line_prefix) + " { ", ", ", " }"
             );
+        }
+
+        template<typename Scal, IntQ Int>
+        std::string ToStringTSV( cref<Tensor2<Scal,Int>> tensor )
+        {
+            return OutString::FromMatrix<Format::Matrix::TSV>( tensor.data(), tensor.Dim(0), tensor.Dim(1) );
         }
         
     public:
@@ -671,15 +676,6 @@ namespace Tensors
         );
                
         return C;
-    }
-    
-    
-    template<typename Scal, IntQ Int>
-    OutString ToStringTSV( cref<Tensor2<Scal,Int>> X )
-    {
-//        return MatrixStringTSV( ToSize_T(X.Dim(0)), ToSize_T(X.Dim(1)), X.data(), ToSize_T(X.Dim(1)) );
-        
-        return OutString::FromMatrix<Format::Matrix::TSV>( X.data(), X.Dim(0), X.Dim(1) );
     }
 
 

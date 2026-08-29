@@ -255,25 +255,24 @@ namespace Tensors
             };
         }
         
-        inline friend std::ostream & operator<<( std::ostream & s, cref<TENSOR_T> tensor )
+        
+        inline friend OutString & operator<<( OutString & s, cref<TENSOR_T> tensor )
         {
-            return s << OutString::FromVector(tensor.ReadAccess(), tensor.Dim(0));
-        }
-
-        inline friend std::string ToString( cref<TENSOR_T> tensor )
-        {
-            return OutString::FromVector(tensor.ReadAccess(), tensor.Dim(0));
+            return s.PutVector(tensor.ReadAccess(), tensor.Dim(0));
         }
         
-        inline friend std::string ToString( cref<TENSOR_T> tensor, cref<std::string> line_prefix )
+        inline friend InString & operator>>( InString & s, mref<TENSOR_T> tensor )
+        {
+            return s.TakeVector(tensor.WriteAccess(), tensor.Dim(0));
+        }
+        
+        inline friend std::string ToString( cref<TENSOR_T> tensor, std::string_view line_prefix )
         {
             return OutString::FromArray(
                 tensor.ReadAccess(),
-                tensor.Dim(0), line_prefix + "{ ", ", ", " }"
+                tensor.Dim(0), std::string(line_prefix) + "{ ", ", ", " }"
             );
         }
-        
-        
         
         template<bool copy>
         void Resize( const Int m_, const Int thread_count = 1 )
