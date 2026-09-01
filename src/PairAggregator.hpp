@@ -151,7 +151,10 @@ namespace Tensors
         
         void Expand() const
         {
-            SetCapacity( Int(2) * capacity );
+//            SetCapacity( Int(2) * capacity );
+            SetCapacity(
+                (capacity <= Int{2}) ? Int{4} : int_cast<Int>((Size_T{3} * ToSize_T(capacity))/Size_T{2})
+            );
         }
         
     public:

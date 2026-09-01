@@ -203,14 +203,24 @@ namespace Tensors
         {
             return container_0[i];
         }
-
+        
+        Size_T AllocatedByteCount() const
+        {
+            return container_0.AllocatedByteCount();
+        }
+        
         
     protected:
         
         void Expand()
         {
-            SetCapacity( Int(2) * capacity );
+//            SetCapacity( Int(2) * capacity );
+            SetCapacity(
+                (capacity <= Int{2}) ? Int{4} : int_cast<Int>((Size_T{3} * ToSize_T(capacity))/Size_T{2})
+            );
         }
+        
+
         
     public:
         
