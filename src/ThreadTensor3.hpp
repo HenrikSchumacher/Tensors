@@ -159,117 +159,145 @@ namespace Tensors {
         
         static constexpr Int Rank()
         {
-            return Int(3);
+            return Int{3};
         }
 
         
-        void BoundCheck( const Int i ) const
+    protected:
+        
+        bool OutOfBounds0Q( IntQ auto i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
-            {
-                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
-            }
-#else
-            (void)i;
-#endif
+            return std::cmp_less(i,Int{0}) || std::cmp_greater(i,dims[0]);
         }
         
-        void BoundCheck( const Int i, const Int j ) const
+        bool OutOfBounds1Q( IntQ auto i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
+            return std::cmp_less(i,Int{0}) || std::cmp_greater(i,dims[1]);
+        }
+        
+        bool OutOfBounds2Q( IntQ auto i ) const
+        {
+            return std::cmp_less(i,Int{0}) || std::cmp_greater(i,dims[2]);
+        }
+        
+    public:
+        
+        bool OutOfBoundsQ( IntQ auto i ) const
+        {
+            return OutOfBounds0Q(i);
+        }
+        
+        bool OutOfBoundsQ( IntQ auto i, IntQ auto j ) const
+        {
+            return OutOfBounds0Q(i) || OutOfBounds1Q(j);
+        }
+        
+        bool OutOfBoundsQ( IntQ auto i, IntQ auto j, IntQ auto k ) const
+        {
+            return OutOfBoundsQ(i,j) || OutOfBounds1Q(j) || OutOfBounds2Q(k);
+        }
+        
+    protected:
+        
+        void BoundCheck( IntQ auto i ) const
+        {
+            if( OutOfBounds0Q(i) )
+            {
+                eprint(ClassName() + ": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
+            }
+        }
+        
+        void BoundCheck( IntQ auto i, IntQ auto j ) const
+        {
+            if( OutOfBounds0Q(i) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-            
-            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
+            if( OutOfBounds1Q(j) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
-#else
-            (void)i;
-            (void)j;
-#endif
         }
         
-        void BoundCheck( const Int i, const Int j, const Int k ) const
+        void BoundCheck( IntQ auto i, IntQ auto j, IntQ auto k ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
+            if( OutOfBounds0Q(i) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-            
-            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
+            if( OutOfBounds1Q(j) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
-            
-            if( std::cmp_less(k,Int(0)) || std::cmp_greater(k,dims[2]) )
+            if( OutOfBounds2Q(k) )
             {
                 eprint(ClassName()+": third index " + ToString(k) + " is out of bounds [ 0, " + ToString(dims[2]) +" [.");
             }
-#else
-            (void)i;
-            (void)j;
-            (void)k;
+        }
+        
+    public:
+        
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i )
+        {
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i);
 #endif
-        }
-        
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i )
-        {
-            BoundCheck(i);
-
             return tensors[ToSize_T(i)].data();
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i ) const
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
-            
+#endif
             return tensors[ToSize_T(i)].data();
         }
 
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j)
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i, IntQ auto j)
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j);
+#endif
             return tensors[ToSize_T(i)].data(j);
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i, IntQ auto j) const
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j);
+#endif
             return tensors[ToSize_T(i)].data(j);
         }
         
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k)
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i, IntQ auto j, IntQ auto k)
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j,k);
+#endif
             return tensors[ToSize_T(i)].data(j,k);
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j, const Int k) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i, IntQ auto j, IntQ auto k) const
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j,k);
+#endif
             return tensors[ToSize_T(i)].data(j,k);
         }
 
-        TOOLS_FORCE_INLINE mref<Scal> operator()( const Int i, const Int j, const Int k)
+        TOOLS_FORCE_INLINE mref<Scal> operator()( IntQ auto i, IntQ auto j, IntQ auto k)
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j,k);
+#endif
             return tensors[ToSize_T(i)](j,k);
         }
     
-        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j, const Int k) const
+        TOOLS_FORCE_INLINE cref<Scal> operator()( IntQ auto i, IntQ auto j, IntQ auto k) const
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j,k);
+#endif
             return tensors[ToSize_T(i)](j,k);
         }
         
@@ -349,13 +377,13 @@ namespace Tensors {
         }
         
         /*!@brief Return size in dimension `i`.*/
-        TOOLS_FORCE_INLINE Int Dim( const Int i ) const
+        TOOLS_FORCE_INLINE Int Dim( IntQ auto i ) const
         {
-            return i < Rank() ? dims[i] : Int(0);
+            return static_cast<Int>(i) < Rank() ? dims[i] : Int(0);
         }
         
         /*!@brief Return size in dimension `i`.*/
-        TOOLS_FORCE_INLINE Int Dimension( const Int i ) const
+        TOOLS_FORCE_INLINE Int Dimension( IntQ auto i ) const
         {
             return Dim(i);
         }

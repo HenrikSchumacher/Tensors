@@ -117,7 +117,7 @@ namespace Tensors
             
             //  Access routines
             
-            mptr<Scal> data( const Int i ) noexcept
+            mptr<Scal> data( IntQ auto i ) noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -125,7 +125,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            cptr<Scal> data( const Int i ) const noexcept
+            cptr<Scal> data( IntQ auto i ) const noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -133,7 +133,7 @@ namespace Tensors
                 return v[i].data();
             }
             
-            mref<Tensor_T> operator[]( const Int i ) noexcept
+            mref<Tensor_T> operator[]( IntQ auto i ) noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -141,7 +141,7 @@ namespace Tensors
                 return v[i];
             }
             
-            cref<Tensor_T> operator[]( const Int i ) const noexcept
+            cref<Tensor_T> operator[]( IntQ auto i ) const noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -149,7 +149,7 @@ namespace Tensors
                 return v[i];
             }
             
-            mref<Tensor_T> operator()( const Int i ) noexcept
+            mref<Tensor_T> operator()( IntQ auto i ) noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -157,7 +157,7 @@ namespace Tensors
                 return v[i];
             }
             
-            cref<Tensor_T> operator()( const Int i ) const noexcept
+            cref<Tensor_T> operator()( IntQ auto i ) const noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -165,7 +165,7 @@ namespace Tensors
                 return v[i];
             }
             
-            mref<Scal> operator()( const Int i, const Int k ) noexcept
+            mref<Scal> operator()( IntQ auto i, IntQ auto k ) noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
@@ -173,7 +173,7 @@ namespace Tensors
                 return v[i][k];
             }
             
-            cref<Scal> operator()( const Int i, const Int k ) const noexcept
+            cref<Scal> operator()( IntQ auto i, IntQ auto k ) const noexcept
             {
 #ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);

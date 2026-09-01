@@ -164,76 +164,100 @@ namespace Tensors
         }
 
         
-        void BoundCheck( const Int i ) const
+    protected:
+        
+        bool OutOfBounds0Q( IntQ auto i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
-            {
-                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
-            }
-#else
-            (void)i;
-#endif
+            return std::cmp_less(i,Int{0}) || std::cmp_greater(i,dims[0]);
         }
         
-        void BoundCheck( const Int i, const Int j ) const
+        bool OutOfBounds1Q( IntQ auto i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
+            return std::cmp_less(i,Int{0}) || std::cmp_greater(i,dims[1]);
+        }
+        
+    public:
+        
+        bool OutOfBoundsQ( IntQ auto i ) const
+        {
+            return OutOfBounds0Q(i);
+        }
+        
+        bool OutOfBoundsQ( IntQ auto i, IntQ auto j ) const
+        {
+            return OutOfBounds0Q(i) || OutOfBounds1Q(j);
+        }
+        
+    protected:
+        
+        void BoundCheck( IntQ auto i ) const
+        {
+            if( OutOfBounds0Q(i) )
+            {
+                eprint(ClassName() + ": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
+            }
+        }
+        
+        void BoundCheck( IntQ auto i, IntQ auto j ) const
+        {
+            if( OutOfBounds0Q(i) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-            
-            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
+            if( OutOfBounds1Q(j) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
-#else
-            (void)i;
-            (void)j;
+        }
+        
+    public:
+        
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i )
+        {
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i);
 #endif
-        }
-        
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i )
-        {
-            BoundCheck(i);
-            
             return tensors[ToSize_T(i)].data();
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i ) const
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
-            
+#endif
             return tensors[ToSize_T(i)].data();
         }
 
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j)
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i, IntQ auto j)
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j);
+#endif
             return tensors[ToSize_T(i)].data(j);
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j) const
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i, IntQ auto j) const
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j);
+#endif
             return tensors[ToSize_T(i)].data(j);
         }
         
 
-        TOOLS_FORCE_INLINE mref<Scal> operator()( const Int i, const Int j )
+        TOOLS_FORCE_INLINE mref<Scal> operator()( IntQ auto i, IntQ auto j )
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j);
+#endif
             return tensors[ToSize_T(i)](j);
         }
     
-        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j) const
+        TOOLS_FORCE_INLINE cref<Scal> operator()( IntQ auto i, IntQ auto j) const
         {
-            BoundCheck(i);
-            
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j);
+#endif
             return tensors[ToSize_T(i)](j);
         }
         

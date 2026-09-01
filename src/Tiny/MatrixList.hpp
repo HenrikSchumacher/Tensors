@@ -294,7 +294,7 @@ namespace Tensors
             
             auto ReadAccess() const
             {
-                return [this]( const Int i, const Int j, const Int k ) -> Scal
+                return [this]( const Int i, const Int j, const Int k ) -> const Scal &
                 {
                     return A(i,j,k);
                 };

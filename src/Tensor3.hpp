@@ -47,142 +47,193 @@ namespace Tensors
         
     protected:
         
-        void BoundCheck( const Int i ) const
+        bool OutOfBounds0Q( IntQ auto i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+            return (a == nullptr) || std::cmp_less(i,Int{0}) || std::cmp_greater(i,dims[0]);
+        }
+        
+        bool OutOfBounds1Q( IntQ auto i ) const
+        {
+            return std::cmp_less(i,Int{0}) || std::cmp_greater(i,dims[1]);
+        }
+        
+        bool OutOfBounds2Q( IntQ auto i ) const
+        {
+            return std::cmp_less(i,Int{0}) || std::cmp_greater(i,dims[2]);
+        }
+        
+    public:
+        
+        bool OutOfBoundsQ( IntQ auto i ) const
+        {
+            return OutOfBounds0Q(i);
+        }
+        
+        bool OutOfBoundsQ( IntQ auto i, IntQ auto j ) const
+        {
+            return OutOfBounds0Q(i) || OutOfBounds1Q(j);
+        }
+        
+        bool OutOfBoundsQ( IntQ auto i, IntQ auto j, IntQ auto k ) const
+        {
+            return OutOfBoundsQ(i,j) || OutOfBounds1Q(j) || OutOfBounds2Q(k);
+        }
+        
+    protected:
+        
+        void BoundCheck( IntQ auto i ) const
+        {
             if( a == nullptr )
             {
                 eprint(ClassName() + ": pointer is nullptr.");
             }
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
+            if( OutOfBounds0Q(i) )
             {
                 eprint(ClassName() + ": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-#else
-            (void)i;
-#endif
         }
         
-        void BoundCheck( const Int i, const Int j ) const
+        void BoundCheck( IntQ auto i, IntQ auto j ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
             if( a == nullptr )
             {
                 eprint(ClassName() + ": pointer is nullptr.");
             }
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
+            if( OutOfBounds0Q(i) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
+            if( OutOfBounds1Q(j) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
-#else
-            (void)i;
-            (void)j;
-#endif
         }
         
-        void BoundCheck( const Int i, const Int j, const Int k ) const
+        void BoundCheck( IntQ auto i, IntQ auto j, IntQ auto k ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
             if( a == nullptr )
             {
                 eprint(ClassName() + ": pointer is nullptr.");
             }
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
+            if( OutOfBounds0Q(i) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
+            if( OutOfBounds1Q(j) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
-            if( std::cmp_less(k,Int(0)) || std::cmp_greater(k,dims[2]) )
+            if( OutOfBounds2Q(k) )
             {
                 eprint(ClassName()+": third index " + ToString(k) + " is out of bounds [ 0, " + ToString(dims[2]) +" [.");
             }
-#else
-            (void)i;
-            (void)j;
-            (void)k;
-#endif
         }
         
     public:
         
         /*!@brief Return mutable pointer to first element in slice `i`.*/
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i ) noexcept
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i ) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
-            return &a[i * dims[1] * dims[2]];
+#endif
+            return &a[static_cast<Int>(i) * dims[1] * dims[2]];
         }
         
         /*!@brief Return immutable pointer to first element in slice `i`.*/
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const noexcept
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i ) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
-            return &a[i * dims[1] * dims[2]];
+#endif
+            return &a[static_cast<Int>(i) * dims[1] * dims[2]];
         }
 
         /*!@brief Return mutable pointer to first element in slice `{i,j}`.*/
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j ) noexcept
+        TOOLS_FORCE_INLINE mptr<Scal> data(
+            IntQ auto i, IntQ auto j
+        ) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
-            return &a[( i * dims[1] + j ) * dims[2]];
+#endif
+            return &a[(static_cast<Int>(i) * dims[1] + static_cast<Int>(j)) * dims[2]];
         }
         
         /*!@brief Return immutable pointer to first element in slice `{i,j}`.*/
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i, const Int j ) const noexcept
+        TOOLS_FORCE_INLINE cptr<Scal> data(
+            IntQ auto i, IntQ auto j
+        ) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
-            return &a[( i * dims[1] + j ) * dims[2]];
+#endif
+            return &a[(static_cast<Int>(i) * dims[1] + static_cast<Int>(j)) * dims[2]];
         }
 
         /*!@brief Return mutable pointer to element at position `{i,j,k}`.*/
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k) noexcept
+        TOOLS_FORCE_INLINE mptr<Scal> data(
+            IntQ auto i, IntQ auto j, IntQ auto k
+        ) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
-            return &a[( i *  dims[1] + j ) * dims[2] + k];
+#endif
+            return &a[(static_cast<Int>(i) *  dims[1] + static_cast<Int>(j)) * dims[2] + static_cast<Int>(k)];
         }
         
         /*!@brief Return immutable pointer to element at position `{i,j,k}`.*/
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i, const Int j, const Int k) const noexcept
+        TOOLS_FORCE_INLINE cptr<Scal> data(
+            IntQ auto i, IntQ auto j, IntQ auto k
+        ) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
-            return &a[( i *  dims[1] + j ) * dims[2] + k];
+#endif
+            return &a[(static_cast<Int>(i) * dims[1] + static_cast<Int>(j)) * dims[2] + static_cast<Int>(k)];
         }
         
         /*!@brief Access element at position `{i,j,k}`.*/
-        TOOLS_FORCE_INLINE mref<Scal> operator()( const Int i, const Int j, const Int k) noexcept
+        TOOLS_FORCE_INLINE mref<Scal> operator()(
+            IntQ auto i, IntQ auto j, IntQ auto k
+        ) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
-            return a[( i *  dims[1] + j ) * dims[2] + k];
+#endif
+            return *data(i,j,k);
         }
         
         /*!@brief Access element at position `{i,j,k}`, real only.*/
-        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j, const Int k) const noexcept
+        TOOLS_FORCE_INLINE cref<Scal> operator()(
+            IntQ auto i, IntQ auto j, IntQ auto k
+        ) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
-            return a[( i *  dims[1] + j ) * dims[2] + k];
+#endif
+            return *data(i,j,k);
         }
         
         auto WriteAccess()
         {
-            return [this]( const Int i, const Int j, const Int k ) -> Scal&
+            return [this]( Int i, Int j, Int k ) -> Scal&
             {
-                BoundCheck(i,j,k);
-                return a[( i *  dims[1] + j ) * dims[2] + k];
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i,j,k);
+#endif
+                return *this->data(i,j,k);
             };
         }
         
         auto ReadAccess() const
         {
-            return [this]( const Int i, const Int j, const Int k ) -> Scal
+            return [this]( Int i, Int j, Int k ) -> const Scal &
             {
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i,j,k);
-                return a[( i *  dims[1] + j ) * dims[2] + k];
+#endif
+                return *this->data(i,j,k);
             };
         }
         

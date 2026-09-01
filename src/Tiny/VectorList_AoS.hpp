@@ -169,7 +169,7 @@ namespace Tensors
             
             auto ReadAccess() const
             {
-                return [this]( const Int i, const Int j ) -> Scal
+                return [this]( const Int i, const Int j ) -> const Scal &
                 {
                     return a.data()[n * i + j];
                 };

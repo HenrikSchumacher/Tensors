@@ -291,91 +291,133 @@ namespace Tensors
             );
         }
 
-    private:
+    protected:
         
-        void BoundCheck( const Int i ) const
+        bool OutOfBounds0Q( IntQ auto i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
-            if( a == nullptr )
-            {
-                eprint(ClassName() + ": pointer is nullptr.");
-            }
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
-            {
-                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
-            }
-#else
-            (void)i;
-#endif
+            return (a == nullptr) || std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]);
         }
         
-        void BoundCheck( const Int i, const Int j ) const
+        bool OutOfBounds1Q( IntQ auto i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+            return std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[1]);
+        }
+        
+    public:
+        
+        bool OutOfBoundsQ( IntQ auto i ) const
+        {
+            return OutOfBounds0Q(i);
+        }
+        
+        bool OutOfBoundsQ( IntQ auto i, IntQ auto j ) const
+        {
+            return OutOfBounds0Q(i) || OutOfBounds1Q(j);
+        }
+        
+    protected:
+        
+        void BoundCheck( IntQ auto i ) const
+        {
             if( a == nullptr )
             {
                 eprint(ClassName() + ": pointer is nullptr.");
             }
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,dims[0]) )
+            if( OutOfBounds0Q(i) )
+            {
+                eprint(ClassName() + ": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
+            }
+        }
+        
+        void BoundCheck( IntQ auto i, IntQ auto j ) const
+        {
+            if( a == nullptr )
+            {
+                eprint(ClassName() + ": pointer is nullptr.");
+            }
+            if( OutOfBounds0Q(i) )
             {
                 eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(dims[0]) +" [.");
             }
-            
-            if( std::cmp_less(j,Int(0)) || std::cmp_greater(j,dims[1]) )
+            if( OutOfBounds1Q(j) )
             {
                 eprint(ClassName()+": second index " + ToString(j) + " is out of bounds [ 0, " + ToString(dims[1]) +" [.");
             }
-#else
-            (void)i;
-            (void)j;
-#endif
         }
         
     public:
 
         /*!@brief Return mutable pointer to first element in row `i`.*/
-        TOOLS_FORCE_INLINE mptr<Scal> data( const Int i ) noexcept
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i ) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
-            
-            return &a[i * dims[1]];
+#endif
+            return &a[static_cast<Int>(i) * dims[1]];
         }
         
         /*!@brief Return immutable pointer to first element in row `i`.*/
-        TOOLS_FORCE_INLINE cptr<Scal> data( const Int i ) const noexcept
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i ) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
-            
-            return &a[i * dims[1]];
+#endif
+            return &a[static_cast<Int>(i) * dims[1]];
+        }
+        
+        /*!@brief Return mutable pointer to `j`-th element in row `i`.*/
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i, IntQ auto j ) noexcept
+        {
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i);
+#endif
+            return &a[static_cast<Int>(i) * dims[1] + static_cast<Int>(j)];
+        }
+        
+        /*!@brief Return immutable pointer to `j`-th element in row `i`.*/
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i, IntQ auto j ) const noexcept
+        {
+#ifdef TENSORS_BOUND_CHECKS
+            BoundCheck(i);
+#endif
+            return &a[static_cast<Int>(i) * dims[1] + static_cast<Int>(j)];
         }
         
         /*!@brief Access element at position `{i,j}`.*/
-        TOOLS_FORCE_INLINE mref<Scal> operator()(const Int i, const Int j ) noexcept
+        TOOLS_FORCE_INLINE mref<Scal> operator()(
+            IntQ auto i, IntQ auto j
+        ) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
-            
-            return a[ i * dims[1] + j];
+#endif
+            return *data(i,j);
         }
         
         /*!@brief Access element at position `{i,j}`, read only.*/
-        TOOLS_FORCE_INLINE cref<Scal> operator()( const Int i, const Int j ) const noexcept
+        TOOLS_FORCE_INLINE cref<Scal> operator()(
+            IntQ auto i, IntQ auto j
+        ) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
-            
-            return a[i * dims[1] + j];
+#endif
+            return *data(i,j);
         }
         
-        TOOLS_FORCE_INLINE mptr<Scal> operator[](const Int i) noexcept
+        TOOLS_FORCE_INLINE mptr<Scal> operator[](IntQ auto i) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
-            
+#endif
             return data(i);
         }
         
-        TOOLS_FORCE_INLINE cptr<Scal> operator[](const Int i) const noexcept
+        TOOLS_FORCE_INLINE cptr<Scal> operator[](IntQ auto i) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
-            
+#endif
             return data(i);
         }
         
@@ -383,21 +425,23 @@ namespace Tensors
         
         auto WriteAccess()
         {
-            return [this]( const Int i, const Int j ) -> Scal&
+            return [this]( Int i, Int j ) -> Scal&
             {
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i,j);
-                
-                return a[i * dims[1] + j];
+#endif
+                return *this->data(i,j);
             };
         }
         
         auto ReadAccess() const
         {
-            return [this]( const Int i, const Int j ) -> Scal
+            return [this]( Int i, Int j ) -> const Scal &
             {
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i,j);
-                
-                return a[i * dims[1] + j];
+#endif
+                return *this->data(i,j);
             };
         }
         

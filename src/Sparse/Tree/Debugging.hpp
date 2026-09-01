@@ -56,21 +56,21 @@ public:
             }
         }
         
-        if( not_visited.size() > Size_T(0) )
+        if( not_visited.size() > Size_T{0} )
         {
             eprint(ClassName()+"::PrintCheckList: There are are " + ToString(not_visited.size()) + " unvisited nodes.");
             
             TOOLS_DUMP(not_visited);
         }
         
-        if( multiply_visited.size() > Size_T(0) )
+        if( multiply_visited.size() > Size_T{0} )
         {
             eprint(ClassName()+"::PrintCheckList: There are are " + ToString(multiply_visited.size()) + " multiply visited nodes.");
             
             TOOLS_DUMP(multiply_visited);
         }
         
-        return (not_visited.size() == Size_T(0)) && (multiply_visited.size() == Size_T(0));
+        return (not_visited.size() == Size_T{0}) && (multiply_visited.size() == Size_T{0});
     }
 
     Tensor1<Int,Int> & CheckList() const

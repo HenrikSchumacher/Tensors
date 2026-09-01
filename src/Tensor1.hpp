@@ -135,23 +135,32 @@ namespace Tensors
             return *this;
         }
         
-    private:
+    protected:
         
-        template<IntQ I>
-        void BoundCheck( const I i ) const
+        bool OutOfBounds0Q( IntQ auto i ) const
         {
-#ifdef TENSORS_BOUND_CHECKS
+            return (a == nullptr) || std::cmp_less(i,Int(0)) || std::cmp_greater(i,n);
+        }
+        
+    public:
+        
+        bool OutOfBoundsQ( IntQ auto i ) const
+        {
+            return OutOfBounds0Q(i);
+        }
+        
+    protected:
+        
+        void BoundCheck( IntQ auto i ) const
+        {
             if( a == nullptr )
             {
-                eprint(ClassName()+": pointer is nullptr.");
+                eprint(ClassName() + ": pointer is nullptr.");
             }
-            if( std::cmp_less(i,Int(0)) || std::cmp_greater(i,n) )
+            if( OutOfBounds0Q(i) )
             {
-                eprint(ClassName()+": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(n) +" [.");
+                eprint(ClassName() + ": first index " + ToString(i) + " is out of bounds [ 0, " + ToString(n) +" [.");
             }
-#else
-            (void)i;
-#endif
         }
         
     public:
@@ -162,54 +171,60 @@ namespace Tensors
         }
 
         /*!@brief Return size in dimension `i`.*/
-        TOOLS_FORCE_INLINE Int Dim( const Int i ) const noexcept
+        TOOLS_FORCE_INLINE Int Dim( IntQ auto i ) const noexcept
         {
-            return ( i == Int(0) ) ? n : Scalar::Zero<Int>;
+            return ( static_cast<Int>(i) == Int(0) ) ? n : Scalar::Zero<Int>;
         }
         
         /*!@brief Return mutable pointer to element at position `i`.*/
-        template<IntQ I>
-        TOOLS_FORCE_INLINE mptr<Scal> data( const I i ) noexcept
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i ) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
+#endif
             return &a[i];
         }
         
         /*!@brief Return immutable pointer to element at position `i`.*/
-        template<IntQ I>
-        TOOLS_FORCE_INLINE cptr<Scal> data( const I i ) const noexcept
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i ) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
+#endif
             return &a[i];
         }
         
         /*!@brief Access element at position `i`.*/
-        template<IntQ I>
-        TOOLS_FORCE_INLINE mref<Scal> operator()(const I i) noexcept
+        TOOLS_FORCE_INLINE mref<Scal> operator()(IntQ auto i) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
+#endif
             return a[i];
         }
         
         /*!@brief Access element at position `i`, read only.*/
-        template<IntQ I>
-        TOOLS_FORCE_INLINE cref<Scal> operator()(const I i) const noexcept
+        TOOLS_FORCE_INLINE cref<Scal> operator()(IntQ auto i) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
+#endif
             return a[i];
         }
         
-        template<IntQ I>
-        TOOLS_FORCE_INLINE mref<Scal> operator[](const I i) noexcept
+        TOOLS_FORCE_INLINE mref<Scal> operator[](IntQ auto i) noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
+#endif
             return a[i];
         }
         
-        template<IntQ I>
-        TOOLS_FORCE_INLINE cref<Scal> operator[](const I i) const noexcept
+        TOOLS_FORCE_INLINE cref<Scal> operator[](IntQ auto i) const noexcept
         {
+#ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i);
+#endif
             return a[i];
         }
         
@@ -239,19 +254,25 @@ namespace Tensors
         
         auto WriteAccess()
         {
-            return [this]( const Int i ) -> Scal&
+            // TODO: Would be cool to allow `IntQ auto i` as well. But curreently, InString does not like it.
+            return [this]( Int i ) -> Scal &
             {
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
-                return a[i];
+#endif
+                return *this->data(i);
             };
         }
         
         auto ReadAccess() const
         {
-            return [this]( const Int i ) -> Scal
+            // TODO: Would be cool to allow `IntQ auto i` as well. But curreently, OutString does not like it.
+            return [this]( Int i ) -> const Scal &
             {
+#ifdef TENSORS_BOUND_CHECKS
                 BoundCheck(i);
-                return a[i];
+#endif
+                return *this->data(i);
             };
         }
         

@@ -251,7 +251,7 @@ namespace Tensors
             }
             
             // Compute range of internal nodes.
-            for( Size_T N = internal_node_count; N --> Size_T(0); )
+            for( Size_T N = internal_node_count; N --> Size_T{0}; )
             {
                 const Size_T L = LeftChild (N);
                 const Size_T R = L + Size_T(1);
@@ -277,7 +277,7 @@ namespace Tensors
         static constexpr Size_T Parent( const Size_T node )
         {
             // TODO: -1 as return value is not meaningful for unsigned type Size_T!
-            return node > Size_T(0) ? (node - Size_T(1)) / Size_T(2) : -1;
+            return node > Size_T{0} ? (node - Size_T(1)) / Size_T(2) : -1;
         }
         
         static constexpr Size_T Depth( const Size_T node )
