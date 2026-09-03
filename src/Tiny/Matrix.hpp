@@ -1269,21 +1269,68 @@ namespace Tensors
                 return v;
             }
             
-            /*!@brief Convert to `std::string`.*/
-            [[nodiscard]] friend std::string ToString( cref<Class_T> M )
+            auto WriteAccess()
             {
-                return OutString::FromMatrix(
-                    [&M]( const Int i, const Int j ) { return M.A[i][j]; }, m, n
-                );
+                return [this]( const Int i, const Int j ) -> Scal&
+                {
+                    return A[i][j];
+                };
+            }
+            
+            auto ReadAccess() const
+            {
+                return [this]( const Int i, const Int j ) -> const Scal &
+                {
+                    return A[i][j];
+                };
+            }
+            
+            friend Size_T CharCount( const Matrix & matrix )
+            {
+                return m * n * CharCount(matrix[0][0]);
+            }
+            
+            inline friend OutString & operator<<( OutString & s, cref<Matrix> matrix )
+            {
+                // TODO: This is not yet optimized for fixed size.
+                return s.PutMatrix(matrix.ReadAccess(), m, n);
+            }
+            
+            inline friend InString & operator>>( InString & s, mref<Matrix> matrix )
+            {
+                // TODO: This is not yet optimized for fixed size.
+                return s.TakeMatrix(matrix.WriteAccess(), m, n);
+            }
+            
+            
+            inline friend std::ostream & operator<<( std::ostream & s, cref<Matrix> matrix )
+            {
+                OutString s_out;
+                s_out << matrix;
+                return s << s_out;
             }
 
-            /*!@brief Stream to `std::ostream`.*/
-            inline friend std::ostream & operator<<( std::ostream & s, cref<Class_T> M )
+            inline friend std::string ToString( cref<Matrix> matrix )
             {
-                return s << OutString::FromMatrix(
-                    [&M]( const Int i, const Int j ) { return M.A[i][j]; }, m, n
-                );
+                OutString s;
+                return (s << matrix);
             }
+            
+//            /*!@brief Convert to `std::string`.*/
+//            [[nodiscard]] friend std::string ToString( cref<Class_T> M )
+//            {
+//                return OutString::FromMatrix(
+//                    [&M]( const Int i, const Int j ) { return M.A[i][j]; }, m, n
+//                );
+//            }
+//
+//            /*!@brief Stream to `std::ostream`.*/
+//            inline friend std::ostream & operator<<( std::ostream & s, cref<Class_T> M )
+//            {
+//                return s << OutString::FromMatrix(
+//                    [&M]( const Int i, const Int j ) { return M.A[i][j]; }, m, n
+//                );
+//            }
             
         public:
 

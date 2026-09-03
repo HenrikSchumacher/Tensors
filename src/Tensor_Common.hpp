@@ -442,6 +442,12 @@ public:
         return s << s_out;
     }
 
+    friend Size_T CharCount( const TENSOR_T & tensor )
+    {
+        using Tools::CharCount;
+        return static_cast<Size_T>(tensor.Size()) * CharCount(*tensor.a);
+    }
+
     inline friend std::string ToString( cref<TENSOR_T> tensor )
     {
         OutString s;

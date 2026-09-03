@@ -576,15 +576,63 @@ namespace Tensors
                 return AngleBetweenUnitVectors(u,w);
             }
 
-            [[nodiscard]] friend std::string ToString( cref<Vector> x )
+            
+            auto WriteAccess()
             {
-                return OutString::FromVector( [&x]( const Int i ) { return x.v[i]; }, n );
+                return [this]( const Int i ) -> Scal&
+                {
+                    return v[i];
+                };
+            }
+            
+            auto ReadAccess() const
+            {
+                return [this]( const Int i ) -> const Scal &
+                {
+                    return v[i];
+                };
+            }
+            
+            friend Size_T CharCount( const Vector & vector )
+            {
+                return n * CharCount(vector[0]);
+            }
+            
+            inline friend OutString & operator<<( OutString & s, cref<Vector> vector )
+            {
+                // TODO: This is not yet optimized for fixed size.
+                return s.PutVector(vector.ReadAccess(), n);
+            }
+            
+            inline friend InString & operator>>( InString & s, mref<Vector> vector )
+            {
+                // TODO: This is not yet optimized for fixed size.
+                return s.TakeVector(vector.WriteAccess(), n);
+            }
+            
+            
+            inline friend std::ostream & operator<<( std::ostream & s, cref<Vector> vector )
+            {
+                OutString s_out;
+                s_out << vector;
+                return s << s_out;
             }
 
-            inline friend std::ostream & operator<<( std::ostream & s, cref<Vector> x )
+            inline friend std::string ToString( cref<Vector> vector )
             {
-                return s << OutString::FromVector( [&x]( const Int i ) { return x.v[i]; }, n );
+                OutString s;
+                return (s << vector);
             }
+            
+//            [[nodiscard]] friend std::string ToString( cref<Vector> x )
+//            {
+//                return OutString::FromVector( [&x]( const Int i ) { return x.v[i]; }, n );
+//            }
+//
+//            inline friend std::ostream & operator<<( std::ostream & s, cref<Vector> x )
+//            {
+//                return s << OutString::FromVector( [&x]( const Int i ) { return x.v[i]; }, n );
+//            }
             
         public:
             

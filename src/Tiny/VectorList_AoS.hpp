@@ -41,7 +41,6 @@ namespace Tensors
             
             /*!@brief Construct a container with number of vectors equal to `vector_count_`. Beware: The values in this container are not initialized!*/
             explicit VectorList_AoS( const Int vector_count_ )
-//            :   a(m_,n)
             :   a            { vector_count_ * n }
             ,   vector_count { vector_count_     }
             {}
@@ -269,6 +268,10 @@ namespace Tensors
                 return static_cast<Int>(rank);
             }
 
+            friend Size_T CharCount( const VectorList_AoS & tensor )
+            {
+                return CharCount(tensor.a);
+            }
             
             inline friend OutString & operator<<( OutString & s, cref<VectorList_AoS> tensor )
             {

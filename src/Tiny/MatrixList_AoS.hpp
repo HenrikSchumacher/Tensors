@@ -273,6 +273,10 @@ namespace Tensors
                 return static_cast<Int>(rank);
             }
             
+            friend Size_T CharCount( const MatrixList_AoS & tensor )
+            {
+                return CharCount(tensor.a);
+            }
             
             inline friend OutString & operator<<( OutString & s, cref<MatrixList_AoS> tensor )
             {
