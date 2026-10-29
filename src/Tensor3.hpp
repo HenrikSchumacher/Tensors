@@ -150,9 +150,7 @@ namespace Tensors
         }
 
         /*!@brief Return mutable pointer to first element in slice `{i,j}`.*/
-        TOOLS_FORCE_INLINE mptr<Scal> data(
-            IntQ auto i, IntQ auto j
-        ) noexcept
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i, IntQ auto j ) noexcept
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -161,9 +159,7 @@ namespace Tensors
         }
         
         /*!@brief Return immutable pointer to first element in slice `{i,j}`.*/
-        TOOLS_FORCE_INLINE cptr<Scal> data(
-            IntQ auto i, IntQ auto j
-        ) const noexcept
+        TOOLS_FORCE_INLINE cptr<Scal> data( IntQ auto i, IntQ auto j ) const noexcept
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j);
@@ -172,9 +168,7 @@ namespace Tensors
         }
 
         /*!@brief Return mutable pointer to element at position `{i,j,k}`.*/
-        TOOLS_FORCE_INLINE mptr<Scal> data(
-            IntQ auto i, IntQ auto j, IntQ auto k
-        ) noexcept
+        TOOLS_FORCE_INLINE mptr<Scal> data( IntQ auto i, IntQ auto j, IntQ auto k ) noexcept
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
@@ -193,10 +187,9 @@ namespace Tensors
             return &a[(static_cast<Int>(i) * dims[1] + static_cast<Int>(j)) * dims[2] + static_cast<Int>(k)];
         }
         
+        
         /*!@brief Access element at position `{i,j,k}`.*/
-        TOOLS_FORCE_INLINE mref<Scal> operator()(
-            IntQ auto i, IntQ auto j, IntQ auto k
-        ) noexcept
+        TOOLS_FORCE_INLINE mref<Scal> operator()( IntQ auto i, IntQ auto j, IntQ auto k ) noexcept
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
@@ -204,10 +197,8 @@ namespace Tensors
             return *data(i,j,k);
         }
         
-        /*!@brief Access element at position `{i,j,k}`, real only.*/
-        TOOLS_FORCE_INLINE cref<Scal> operator()(
-            IntQ auto i, IntQ auto j, IntQ auto k
-        ) noexcept
+        /*!@brief Access element at position `{i,j,k}`, read only.*/
+        TOOLS_FORCE_INLINE cref<Scal> operator()( IntQ auto i, IntQ auto j, IntQ auto k ) const noexcept
         {
 #ifdef TENSORS_BOUND_CHECKS
             BoundCheck(i,j,k);
