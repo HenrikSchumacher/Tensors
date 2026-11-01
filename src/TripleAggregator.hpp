@@ -205,6 +205,54 @@ namespace Tensors
             );
         }
         
+    public:
+        
+        inline friend OutString & operator<<( OutString & s, cref<TripleAggregator> agg )
+        {
+            const Int n = agg.Size();
+            
+            if( n == Int{0} ) { s << "{ }"; }
+            
+            const Size_T size = ToSize_T(n) * ( (ToChars<T_0>::char_count + ToChars<T_1>::char_count + ToChars<T_2>::char_count) + Size_T(10) ) + Size_T(4);
+            
+            s.RequireFreeSpace(size);
+            
+            cptr<T_0> p_0 = agg.data_0();
+            cptr<T_1> p_1 = agg.data_1();
+            cptr<T_2> p_2 = agg.data_2();
+            
+            s.template PutChars<false>("{ ");
+            s.template Put<false>(p_0[0]);
+            s.template PutChars<false>(", ");
+            s.template Put<false>(p_1[0]);
+            s.template PutChars<false>(", ");
+            s.template Put<false>(p_2[0]);
+            s.template PutChars<false>(" }");
+            
+            for( Int i = 1; i < n; ++i )
+            {
+                s.template PutChars<false>(", { ");
+                s.template Put<false>(p_0[i]);
+                s.template PutChars<false>(", ");
+                s.template Put<false>(p_1[i]);
+                s.template PutChars<false>(", ");
+                s.template Put<false>(p_2[i]);
+                s.template PutChars<false>(" }");
+            }
+            s.template PutChars<false>(" }");
+            
+            return s;
+        }
+        
+        inline friend std::string ToString( cref<TripleAggregator> agg )
+        {
+            OutString s;
+            s << agg;
+            return s;
+        }
+
+        
+    public:
         
         static constexpr std::string MethodName( const std::string & tag )
         {
