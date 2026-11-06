@@ -7,9 +7,15 @@ namespace Tensors
     template<typename T_0, typename T_1, IntQ Int>
     class alignas(ObjectAlignment) PairAggregator final
     {
+        
+    public:
+        
+        using Class_T = PairAggregator;
         using Container_0_T = Tensor1<T_0,Int>;
         using Container_1_T = Tensor1<T_1,Int>;
 
+    private:
+        
         mutable Int current_size = Int(0);
         mutable Int capacity     = Int(1);
         
@@ -17,6 +23,7 @@ namespace Tensors
         mutable Container_1_T container_1 {capacity};
 
     public:
+        
 
         explicit PairAggregator( const Int n )
         :   current_size ( Int(0)  )
@@ -200,12 +207,15 @@ namespace Tensors
         
     public:
         
-        static constexpr std::string MethodName( const std::string & tag )
+        using Msgr = Tools::Messenger<Class_T>;
+                
+        template<typename A>
+        static consteval auto MethodName( const A & tag )
         {
-            return ClassName() + "::" + tag;
+            return Msgr::MethodName(tag);
         }
         
-        static constexpr auto ClassName()
+        static consteval auto ClassName()
         {
             return ct_string("PairAggregator")
                 + "<" + TypeName<T_0>
@@ -213,6 +223,7 @@ namespace Tensors
                 + "," + TypeName<Int>
                 + ">";
         }
+        
     };
     
 } // namespace Tensors
