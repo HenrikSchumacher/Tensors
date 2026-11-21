@@ -17,7 +17,8 @@ namespace Tensors
         using Int  = Int_;
   
         using F_T = Scalar::Flag;
-  
+        
+        using Class_T   = UMFPACK;
         using Pattern_T = Sparse::BinaryMatrixCSR<Int,Int,Sequential>;
         
 //        static_assert(
@@ -208,8 +209,7 @@ namespace Tensors
             
             if( symbolic_status != UMFPACK_OK )
             {
-                eprint(ClassName()+"::SymbolicFactorization: Returned error code is " + ToString(symbolic_status) + ". Message: " + this->SymbolicErrorMessage(symbolic_status)
-                );
+                Msgr::eprint("SymbolicFactorization", "Returned error code is ", symbolic_status, ". Message: ", this->SymbolicErrorMessage(symbolic_status));
             }
         }
         
@@ -264,7 +264,7 @@ namespace Tensors
             
             if( symbolic_status != UMFPACK_OK )
             {
-                eprint(ClassName()+"::NumericFactorization:  Called with invalid symbolic factorization. symbolic_status = " + ToString(symbolic_status) + ". Message: " + this->SymbolicErrorMessage(symbolic_status)
+                Msgr::eprint("NumericFactorization","Called with invalid symbolic factorization. symbolic_status = ", symbolic_status, ". Message: ", this->SymbolicErrorMessage(symbolic_status)
                 );
             }
             
@@ -313,8 +313,7 @@ namespace Tensors
             
             if( numeric_status != UMFPACK_OK )
             {
-                eprint(ClassName()+"::NumericFactorization: Returned error code is " + ToString(numeric_status) + ". Message: " + this->NumericErrorMessage(numeric_status)
-                );
+                Msgr::eprint("NumericFactorization","Returned error code is ", numeric_status, ". Message: ", this->NumericErrorMessage(numeric_status) );
             }
         }
         
@@ -390,26 +389,27 @@ namespace Tensors
         >
         void Solve( const a_T alpha, cptr<B_T> B, const b_T beta, mptr<X_T> X )
         {
+            constexpr auto tag = ct_string("Solve")
+                + "<" + TypeName<a_T>
+                + "," + TypeName<B_T>
+                + "," + TypeName<b_T>
+                + "," + TypeName<X_T>
+                + ">";
+            
             if( numeric_status != UMFPACK_OK )
             {
-                eprint( ClassName()+"::Solve: Called without valid numeric factorization. numeric_status = " + ToString(numeric_status) + "." );
+                Msgr::eprint(tag, "Called without valid numeric factorization. numeric_status = ", numeric_status, "." );
                 return;
             }
             
             if( numeric == nullptr )
             {
-                eprint( ClassName()+"::Solve: NumericFactorization has not been called, yet." );
+                Msgr::eprint(tag, "NumericFactorization has not been called, yet." );
                 return;
             }
             
             
-            TOOLS_PTIMER(timer,ClassName()+"::Solve"
-                 + "<" + TypeName<a_T>
-                 + "," + TypeName<B_T>
-                 + "," + TypeName<b_T>
-                 + "," + TypeName<X_T>
-                 + ">"
-            );
+            TOOLS_PTIMER(timer,MethodName(tag));
             
             // UMFPACK works with CSC format; we use CSR format.
             // Hence, we have to make sure that things are correctly transposed.
@@ -488,7 +488,7 @@ namespace Tensors
             
             if( solve_status != 0 )
             {
-                eprint(ClassName()+"::Solve: Returned error code is " + ToString(solve_status) + ".");
+                Msgr::eprint("Solve", "Returned error code is ", solve_status, ".");
             }
 
             // We have to conjugate x to emulate the conjugate-transpose solve.
@@ -509,17 +509,19 @@ namespace Tensors
         
         std::pair<Scal,Real> Determinant()
         {
-            TOOLS_PTIMER(timer,ClassName()+"::Determinant");
+            constexpr auto tag = ct_string("Determinant");
+            
+            TOOLS_PTIMER(timer,MethodName(tag));
             
             if( numeric == nullptr )
             {
-                eprint( ClassName()+"::Determinant: NumericFactorization has not been called, yet." );
+                Msgr::eprint(tag, "NumericFactorization has not been called, yet." );
                 return std::pair<Scal,Real>( 0, 0 );
             }
             
             if( (symbolic_status != 0) || (numeric_status != 0) )
             {
-                wprint( ClassName()+"::Determinant: Called without valid numeric factorization. Numeric_status = " + ToString(numeric_status) + "." );
+                Msgr::wprint(tag, "Called without valid numeric factorization. Numeric_status = ", numeric_status, "." );
                 return std::pair<Scal,Real>( 0, 0 );
             }
             
@@ -587,7 +589,7 @@ namespace Tensors
             
             if( status != 0 )
             {
-                eprint(ClassName()+"::Determinant: Returned error code is " + ToString(status) + ".");
+                Msgr::eprint(tag, "Returned error code is ", status, ".");
             }
             
             return std::pair<Scal,Real>( Mx, Ex );
@@ -600,7 +602,7 @@ namespace Tensors
         {
             if( symbolic == nullptr ) { return; }
             
-            TOOLS_PTIMER(timer,ClassName()+"::FreeSymbolic");
+            TOOLS_PTIMER(timer,MethodName("FreeSymbolic"));
             
             if constexpr( SameQ<Int,Int64> )
             {
@@ -648,7 +650,7 @@ namespace Tensors
         {
             if( numeric == nullptr ) { return; }
             
-            TOOLS_PTIMER(timer,ClassName()+"::FreeNumeric");
+            TOOLS_PTIMER(timer,MethodName("FreeNumeric"));
             
             if constexpr( SameQ<Int,Int64> )
             {
@@ -692,9 +694,17 @@ namespace Tensors
         
     public:
         
-        static constexpr std::string ClassName()
+        using Msgr = Tools::Messenger<Class_T>;
+                
+        template<typename A>
+        static consteval auto MethodName( const A & tag )
         {
-            return std::string("UMFPACK") + "<" + TypeName<Scal> + ">";
+            return Msgr::MethodName(tag);
+        }
+        
+        static consteval auto ClassName()
+        {
+            return ct_string("UMFPACK<") + TypeName<Scal> + ">";
         }
         
     }; // class UMFPACK
